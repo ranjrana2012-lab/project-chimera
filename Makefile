@@ -2,7 +2,8 @@
 
 .PHONY: help dev test lint format build-all deploy \
         install-deps verify check-env clean \
-        run-dev backup restore
+        run-dev backup restore \
+        bootstrap bootstrap-status bootstrap-destroy
 
 # Default target
 help:
@@ -179,3 +180,37 @@ shell-openclaw:
 
 shell-scenespeak:
 	kubectl exec -it -n live deployment/scenespeak-agent -- bash
+
+# Bootstrap
+bootstrap:
+	@echo "🚀 Bootstrapping Project Chimera..."
+	@trap './scripts/bootstrap/cleanup-on-error.sh' ERR; \
+	./scripts/bootstrap/01-install-k3s.sh && \
+	./scripts/bootstrap/02-setup-registry.sh && \
+	./scripts/bootstrap/03-build-images.sh && \
+	./scripts/bootstrap/04-deploy-infrastructure.sh && \
+	./scripts/bootstrap/05-deploy-monitoring.sh && \
+	./scripts/bootstrap/06-deploy-services.sh && \
+	./scripts/bootstrap/07-verify-deployment.sh
+	@echo ""
+	@echo "🎉 Bootstrap complete!"
+
+bootstrap-status:
+	@echo "📊 Bootstrap Status:"
+	@kubectl get nodes 2>/dev/null || echo "k3s not installed"
+	@kubectl get namespaces 2>/dev/null || echo "No namespaces"
+	@kubectl get pods -n live 2>/dev/null || echo "No pods in live"
+	@kubectl get pods -n shared 2>/dev/null || echo "No pods in shared"
+
+bootstrap-destroy:
+	@echo "⚠️  Destroying k3s cluster..."
+	@read -p "Are you sure? This will remove k3s and all resources. (y/N): " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		pkill -f "port-forward" || true; \
+		/usr/local/bin/k3s-uninstall.sh || true; \
+		rm -f ~/.kube/config; \
+		echo "🧹 k3s removed"; \
+	else \
+		echo "Aborted"; \
+	fi
