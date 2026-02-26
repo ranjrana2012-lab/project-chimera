@@ -1,0 +1,16 @@
+# PVC for OpenClaw Orchestrator
+# This file is for reference - the actual PVC is defined in deployment.yaml
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-cache-pvc
+  namespace: live
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: shared-nfs
+  resources:
+    requests:
+      storage: 10Gi

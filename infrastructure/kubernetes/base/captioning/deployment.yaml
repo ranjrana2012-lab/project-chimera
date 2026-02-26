@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: captioning-agent
+  namespace: live
+  labels:
+    app: captioning-agent
+    project: project-chimera
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: captioning-agent
+  template:
+    metadata:
+      labels:
+        app: captioning-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8002"
+    spec:
+      priorityClassName: high-priority
+      containers:
+      - name: captioning-agent
+        image: ghcr.io/project-chimera/captioning-agent:latest
+        ports:
+        - containerPort: 8002
+        env:
+        - name: REDIS_HOST
+          value: "redis.shared.svc.cluster.local"
+        resources:
+          requests:
+            cpu: "2"
+            memory: 4Gi
+          limits:
+            cpu: "4"
+            memory: 8Gi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8002
+          initialDelaySeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8002
+          initialDelaySeconds: 10

@@ -1,0 +1,53 @@
+# Safety Filter Policy
+
+apiVersion: openclaw.io/v1
+kind: ContentPolicy
+metadata:
+  name: safety-filter-policy
+  namespace: live
+spec:
+  description: "Multi-layer content moderation policy"
+
+  # Content categories
+  categories:
+    - name: blocked
+      action: block
+      patterns:
+        - type: regex
+          pattern: "\\bfuck\\b"
+          category: profanity
+        - type: regex
+          pattern: "\\bhate\\s+\\w+\\s+because\\s+race"
+          category: hate_speech
+      autoReject: true
+
+    - name: flagged
+      action: review
+      patterns:
+        - type: regex
+          pattern: "\\b(intense|emotional)\\s+(distress|pain)\\b"
+          category: emotional_content
+        - type: keyword
+          keyword: controversial
+          category: sensitive_topic
+      requireHumanReview: true
+
+    - name: warning
+      action: warn
+      patterns:
+        - type: regex
+          pattern: "\\b(screaming|yelling)\\b"
+          category: vocal_intensity
+      logOnly: true
+
+  # Review queue settings
+  reviewQueue:
+    maxSize: 1000
+    retentionHours: 24
+    autoDeleteAfter: approved
+
+  # Thresholds
+  thresholds:
+    blockThreshold: 0.9
+    flagThreshold: 0.7
+    warnThreshold: 0.5

@@ -1,0 +1,54 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Production Environment Overlay
+
+namespace: live
+
+# Base configuration
+bases:
+- ../../
+
+# Production-specific patches
+patchesStrategicMerge:
+# Add production configurations here
+
+# Production-specific ConfigMap generator
+configMapGenerator:
+- name: production-config
+  literals:
+  - APP_ENV=production
+  - APP_DEBUG=false
+  - LOG_LEVEL=WARNING
+
+# Production image tags (use semantic version tags)
+images:
+- name: ghcr.io/project-chimera/openclaw-orchestrator
+  newTag: v0.1.0
+- name: ghcr.io/project-chimera/scenespeak-agent
+  newTag: v0.1.0
+- name: ghcr.io/project-chimera/captioning-agent
+  newTag: v0.1.0
+- name: ghcr.io/project-chimera/bsl-text2gloss-agent
+  newTag: v0.1.0
+- name: ghcr.io/project-chimera/sentiment-agent
+  newTag: v0.1.0
+- name: ghcr.io/project-chimera/lighting-control
+  newTag: v0.1.0
+- name: ghcr.io/project-chimera/safety-filter
+  newTag: v0.1.0
+- name: ghcr.io/project-chimera/operator-console
+  newTag: v0.1.0
+
+# Common labels for production
+commonLabels:
+  environment: production
+
+# Replica scaling for production
+replicas:
+- name: openclaw-orchestrator
+  count: 2
+- name: scenespeak-agent
+  count: 2
+- name: safety-filter
+  count: 2

@@ -1,0 +1,43 @@
+# SceneSpeak Agent Content Policy
+
+apiVersion: openclaw.io/v1
+kind: ContentPolicy
+metadata:
+  name: scenespeak-policy
+  namespace: live
+spec:
+  description: "Content generation policy for SceneSpeak agent"
+
+  allowedTopics:
+    - theatrical dialogue
+    - stage directions
+    - character development
+    - audience-appropriate humor
+    - dramatic tension
+    - emotional expression
+
+  blockedTopics:
+    - explicit language
+    - hate speech
+    - sexual content
+    - graphic violence
+    - self-harm
+    - illegal activities
+
+  flaggedTopics:
+    - intense emotional content
+    - controversial social issues
+    - religious themes
+    - political references
+
+  generationGuidelines:
+    maxTokensPerLine: 100
+    maxLinesPerGeneration: 5
+    requireStageCues: true
+    adaptToSentiment: true
+    maintainCharacterVoice: true
+
+  qualityThresholds:
+    minCoherenceScore: 0.7
+    minRelevanceScore: 0.8
+    maxRepetitionPenalty: 1.2

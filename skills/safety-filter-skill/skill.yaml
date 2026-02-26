@@ -1,0 +1,58 @@
+apiVersion: openclaw.io/v1
+kind: Skill
+metadata:
+  name: safety-filter
+  version: 1.0.0
+spec:
+  description: "Multi-layer content moderation with pattern matching, ML classification, and rule engine"
+
+  inputs:
+    - name: content
+      type: string
+      required: true
+      description: "Content to filter"
+
+  outputs:
+    - name: decision
+      type: string
+      description: "Filter decision: allow, block, or flag"
+
+    - name: category
+      type: string
+      description: "Content category: safe, blocked, or flagged"
+
+    - name: confidence
+      type: float
+      description: "Decision confidence score"
+
+    - name: details
+      type: object
+      description: "Detailed filtering results from each layer"
+
+  config:
+    timeout: 200ms
+    retryPolicy:
+      maxRetries: 1
+      backoff: fixed
+
+    layers:
+      - name: pattern_matcher
+        enabled: true
+      - name: classifier
+        enabled: true
+      - name: rule_engine
+        enabled: true
+
+    reviewQueue:
+      enabled: true
+      maxSize: 1000
+
+    caching:
+      enabled: true
+      ttl: 3600s
+
+  tags:
+    - safety
+    - moderation
+    - content-filter
+    - compliance

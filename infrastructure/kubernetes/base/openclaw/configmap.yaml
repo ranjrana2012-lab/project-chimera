@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: live
+  labels:
+    app: openclaw-orchestrator
+    project: project-chimera
+data:
+  config.yaml: |
+    # OpenClaw Orchestrator Configuration
+
+    server:
+      host: "0.0.0.0"
+      port: 8000
+      workers: 4
+
+    skill_registry:
+      path: "/app/skills"
+      auto_reload: false
+      cache_size: 1000
+
+    pipeline:
+      timeout_ms: 10000
+      max_retries: 3
+      parallelism: 4
+
+    gpu:
+      enabled: true
+      device_id: 0
+
+    monitoring:
+      metrics_enabled: true
+      tracing_enabled: true
+      log_level: "INFO"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: skills-config
+  namespace: live
+  labels:
+    app: openclaw-orchestrator
+    project: project-chimera
+data:
+  # Skill definitions will be mounted here
+  # This is a placeholder configmap for the skills volume

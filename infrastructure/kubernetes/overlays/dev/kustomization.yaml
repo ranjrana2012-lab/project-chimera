@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Development Environment Overlay
+
+namespace: live
+
+# Base configuration
+bases:
+- ../../
+
+# Development-specific patches
+patchesStrategicMerge:
+# Add development configurations here
+
+# Development-specific ConfigMap generator
+configMapGenerator:
+- name: dev-config
+  literals:
+  - APP_ENV=development
+  - APP_DEBUG=true
+  - LOG_LEVEL=DEBUG
+
+# Development image tags
+images:
+- name: ghcr.io/project-chimera/openclaw-orchestrator
+  newTag: dev
+- name: ghcr.io/project-chimera/scenespeak-agent
+  newTag: dev
+- name: ghcr.io/project-chimera/captioning-agent
+  newTag: dev
+- name: ghcr.io/project-chimera/bsl-text2gloss-agent
+  newTag: dev
+- name: ghcr.io/project-chimera/sentiment-agent
+  newTag: dev
+- name: ghcr.io/project-chimera/lighting-control
+  newTag: dev
+- name: ghcr.io/project-chimera/safety-filter
+  newTag: dev
+- name: ghcr.io/project-chimera/operator-console
+  newTag: dev

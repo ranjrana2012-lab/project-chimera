@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Staging Environment Overlay
+
+namespace: live
+
+# Base configuration
+bases:
+- ../../
+
+# Staging-specific patches
+patchesStrategicMerge:
+# Add staging configurations here
+
+# Staging-specific ConfigMap generator
+configMapGenerator:
+- name: staging-config
+  literals:
+  - APP_ENV=staging
+  - APP_DEBUG=false
+  - LOG_LEVEL=INFO
+
+# Staging image tags
+images:
+- name: ghcr.io/project-chimera/openclaw-orchestrator
+  newTag: staging
+- name: ghcr.io/project-chimera/scenespeak-agent
+  newTag: staging
+- name: ghcr.io/project-chimera/captioning-agent
+  newTag: staging
+- name: ghcr.io/project-chimera/bsl-text2gloss-agent
+  newTag: staging
+- name: ghcr.io/project-chimera/sentiment-agent
+  newTag: staging
+- name: ghcr.io/project-chimera/lighting-control
+  newTag: staging
+- name: ghcr.io/project-chimera/safety-filter
+  newTag: staging
+- name: ghcr.io/project-chimera/operator-console
+  newTag: staging
+
+# Common labels for staging
+commonLabels:
+  environment: staging

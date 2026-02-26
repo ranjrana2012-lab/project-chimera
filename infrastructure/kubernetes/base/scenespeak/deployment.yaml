@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scenespeak-agent
+  namespace: live
+  labels:
+    app: scenespeak-agent
+    project: project-chimera
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scenespeak-agent
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: scenespeak-agent
+        project: project-chimera
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/metrics"
+    spec:
+      priorityClassName: high-priority
+      containers:
+      - name: scenespeak-agent
+        image: ghcr.io/project-chimera/scenespeak-agent:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8001
+          name: http
+        env:
+        - name: APP_ENV
+          value: "production"
+        - name: REDIS_HOST
+          value: "redis.shared.svc.cluster.local"
+        - name: GPU_ENABLED
+          value: "true"
+        resources:
+          requests:
+            cpu: "4"
+            memory: 16Gi
+            nvidia.com/gpu: "1"
+          limits:
+            cpu: "8"
+            memory: 32Gi
+            nvidia.com/gpu: "1"
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8001
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        volumeMounts:
+        - name: models
+          mountPath: /app/models
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: models-pvc

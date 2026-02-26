@@ -1,0 +1,57 @@
+apiVersion: openclaw.io/v1
+kind: Skill
+metadata:
+  name: scenespeak
+  version: 1.0.0
+spec:
+  description: "Generates real-time dialogue and stage cues for live theatrical performances"
+
+  inputs:
+    - name: current_scene
+      type: object
+      required: true
+      description: "Current scene state including title, setting, mood, characters"
+
+    - name: dialogue_context
+      type: array
+      required: true
+      description: "Recent dialogue turns for context"
+
+    - name: sentiment_vector
+      type: object
+      required: false
+      description: "Current audience sentiment for adaptive performance"
+
+  outputs:
+    - name: proposed_lines
+      type: string
+      description: "Generated dialogue lines"
+
+    - name: stage_cues
+      type: array
+      description: "Suggested lighting/sound cues"
+
+    - name: metadata
+      type: object
+      description: "Generation metadata including model used and tokens"
+
+  config:
+    timeout: 3000ms
+    retryPolicy:
+      maxRetries: 2
+      backoff: exponential
+      initialDelay: 100ms
+
+    modelRouting:
+      primary: "local-7b-quantised"
+      fallback: "local-3b-quantised"
+
+    caching:
+      enabled: true
+      ttl: 300s
+
+  tags:
+    - dialogue
+    - llm
+    - creative
+    - real-time

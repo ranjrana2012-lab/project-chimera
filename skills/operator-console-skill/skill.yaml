@@ -1,0 +1,66 @@
+apiVersion: openclaw.io/v1
+kind: Skill
+metadata:
+  name: operator-console
+  version: 1.0.0
+spec:
+  description: "Human oversight interface for alerts, approvals, and system monitoring"
+
+  inputs:
+    - name: action
+      type: string
+      required: true
+      description: "Action: request_approval, get_dashboard, create_alert"
+
+    - name: type
+      type: string
+      required: false
+      description: "Approval type (for request_approval)"
+
+    - name: description
+      type: string
+      required: false
+      description: "Request description"
+
+    - name: timeout_seconds
+      type: integer
+      required: false
+      description: "Approval timeout"
+
+    - name: metadata
+      type: object
+      required: false
+      description: "Additional metadata"
+
+  outputs:
+    - name: id
+      type: string
+      description: "Approval or alert ID"
+
+    - name: status
+      type: string
+      description: "Current status"
+
+    - name: pending_approvals
+      type: array
+      description: "List of pending approvals (for get_dashboard)"
+
+    - name: alerts
+      type: array
+      description: "List of unacknowledged alerts (for get_dashboard)"
+
+  config:
+    timeout: 100ms
+    retryPolicy:
+      maxRetries: 2
+
+    alertRetention: 24h
+
+    caching:
+      enabled: false
+
+  tags:
+    - oversight
+    - approval
+    - monitoring
+    - human-in-the-loop

@@ -1,0 +1,68 @@
+apiVersion: openclaw.io/v1
+kind: Skill
+metadata:
+  name: lighting-control
+  version: 1.0.0
+spec:
+  description: "Controls DMX/OSC stage lighting with human approval gates for scene changes"
+
+  inputs:
+    - name: action
+      type: string
+      required: true
+      description: "Action to perform: set_scene, blackout, get_status"
+
+    - name: name
+      type: string
+      required: false
+      description: "Scene name (for set_scene action)"
+
+    - name: channels
+      type: object
+      required: false
+      description: "DMX channel values (for set_scene action)"
+
+    - name: osc_address
+      type: string
+      required: false
+      description: "OSC address for scene update"
+
+  outputs:
+    - name: success
+      type: boolean
+      description: "Whether the action succeeded"
+
+    - name: scene
+      type: string
+      description: "Applied scene name"
+
+    - name: action
+      type: string
+      description: "Completed action"
+
+    - name: current_state
+      type: object
+      description: "Current DMX state"
+
+  config:
+    timeout: 200ms
+    retryPolicy:
+      maxRetries: 3
+      backoff: exponential
+
+    approvalGates:
+      - name: scene-change
+        condition: "action.scene_change == true"
+        approvers: ["operator", "stage-manager"]
+        timeout: 30s
+        onTimeout: deny
+
+    caching:
+      enabled: false
+
+  tags:
+    - lighting
+    - dmx
+    - osc
+    - automation
+    - stage

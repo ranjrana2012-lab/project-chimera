@@ -1,0 +1,88 @@
+# Data Retention Policy
+
+apiVersion: openclaw.io/v1
+kind: DataRetentionPolicy
+metadata:
+  name: project-chimera-retention
+  namespace: live
+spec:
+  description: "Data retention and deletion policies"
+
+  policies:
+    # Audience audio (captioning input)
+    - name: audience-audio
+      dataType: audio
+      retention: 24h
+      afterRetention: delete
+      reason: "Privacy - contains audience voice data"
+      encryptionRequired: true
+      anonymisation: not_applicable
+
+    # Social media posts (sentiment input)
+    - name: social-posts
+      dataType: social-posts
+      retention: 7d
+      afterRetention: delete
+      reason: "Privacy - user-generated content"
+      encryptionRequired: true
+      anonymisation: immediate  # Remove user IDs immediately
+
+    # Generated dialogue
+    - name: generated-dialogue
+      dataType: text
+      retention: 90d
+      afterRetention: archive
+      reason: "Copyright and artistic record"
+      encryptionRequired: false
+      anonymisation: none
+
+    # Safety filter logs
+    - name: safety-logs
+      dataType: logs
+      retention: 1y
+      afterRetention: archive
+      reason: "Compliance and audit trail"
+      encryptionRequired: true
+      anonymisation: remove_pii
+
+    # Audit logs
+    - name: audit-logs
+      dataType: logs
+      retention: 2y
+      afterRetention: archive
+      reason: "Security and compliance"
+      encryptionRequired: true
+      anonymisation: remove_pii
+
+    # Model training data
+    - name: training-data
+      dataType: dataset
+      retention: permanent
+      afterRetention: none
+      reason: "Model training requires permanent retention"
+      encryptionRequired: true
+      anonymisation: remove_pii
+
+    # Performance metrics
+    - name: performance-metrics
+      dataType: metrics
+      retention: 1y
+      afterRetention: aggregate
+      reason: "Performance analysis"
+      encryptionRequired: false
+      anonymisation: aggregate_only
+
+    # Sentiment data
+    - name: sentiment-data
+      dataType: timeseries
+      retention: 30d
+      afterRetention: aggregate
+      reason: "Trend analysis only"
+      encryptionRequired: false
+      anonymisation: aggregate_only
+
+  # Storage classes
+  storageClasses:
+    hot: fast-ssd
+    cold: standard-nfs
+    archive: long-term-storage

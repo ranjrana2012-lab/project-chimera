@@ -1,0 +1,46 @@
+apiVersion: openclaw.io/v1
+kind: Skill
+metadata:
+  name: bsl-text2gloss
+  version: 1.0.0
+spec:
+  description: "Translates English text to BSL gloss notation for sign language interpretation"
+
+  inputs:
+    - name: text
+      type: string
+      required: true
+      description: "English text to translate"
+
+  outputs:
+    - name: gloss
+      type: string
+      description: "BSL gloss notation (uppercase text representation)"
+
+    - name: breakdown
+      type: array
+      description: "Individual gloss signs"
+
+    - name: language
+      type: string
+      description: "Target language (always 'bsl')"
+
+    - name: confidence
+      type: float
+      description: "Translation confidence score"
+
+  config:
+    timeout: 2000ms
+    retryPolicy:
+      maxRetries: 2
+      backoff: exponential
+
+    caching:
+      enabled: true
+      ttl: 300s
+
+  tags:
+    - bsl
+    - translation
+    - accessibility
+    - sign-language

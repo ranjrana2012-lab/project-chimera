@@ -1,0 +1,67 @@
+# Network Policies - Allow Shared Services Access
+# Allows live namespace pods to access shared services
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-to-shared
+  namespace: live
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: shared
+    ports:
+    - protocol: TCP
+      port: 6379  # Redis
+    - protocol: TCP
+      port: 9092  # Kafka
+    - protocol: TCP
+      port: 19530  # Vector DB
+    - protocol: TCP
+      port: 9090  # Prometheus
+    - protocol: TCP
+      port: 6831  # Jaeger
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: live
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-shared-ingress
+  namespace: shared
+spec:
+  podSelector:
+    matchLabels:
+      project: project-chimera
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: live
+    - namespaceSelector:
+        matchLabels:
+          name: preprod

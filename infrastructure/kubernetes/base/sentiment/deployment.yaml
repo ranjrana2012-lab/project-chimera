@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentiment-agent
+  namespace: live
+  labels:
+    app: sentiment-agent
+    project: project-chimera
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentiment-agent
+  template:
+    metadata:
+      labels:
+        app: sentiment-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8004"
+    spec:
+      priorityClassName: medium-priority
+      containers:
+      - name: sentiment-agent
+        image: ghcr.io/project-chimera/sentiment-agent:latest
+        ports:
+        - containerPort: 8004
+        env:
+        - name: REDIS_HOST
+          value: "redis.shared.svc.cluster.local"
+        resources:
+          requests:
+            cpu: "2"
+            memory: 2Gi
+          limits:
+            cpu: "4"
+            memory: 4Gi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8004
+          initialDelaySeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8004
+          initialDelaySeconds: 10

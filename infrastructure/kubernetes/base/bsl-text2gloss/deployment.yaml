@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bsl-text2gloss-agent
+  namespace: live
+  labels:
+    app: bsl-text2gloss-agent
+    project: project-chimera
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bsl-text2gloss-agent
+  template:
+    metadata:
+      labels:
+        app: bsl-text2gloss-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8003"
+    spec:
+      priorityClassName: medium-priority
+      containers:
+      - name: bsl-text2gloss-agent
+        image: ghcr.io/project-chimera/bsl-text2gloss-agent:latest
+        ports:
+        - containerPort: 8003
+        env:
+        - name: REDIS_HOST
+          value: "redis.shared.svc.cluster.local"
+        resources:
+          requests:
+            cpu: "1"
+            memory: 4Gi
+          limits:
+            cpu: "2"
+            memory: 8Gi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8003
+          initialDelaySeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8003
+          initialDelaySeconds: 10

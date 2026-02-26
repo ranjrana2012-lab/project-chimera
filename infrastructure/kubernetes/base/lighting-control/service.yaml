@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lighting-control
+  namespace: live
+  labels:
+    app: lighting-control
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8005
+  selector:
+    app: lighting-control

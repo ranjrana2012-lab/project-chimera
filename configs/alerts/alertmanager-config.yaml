@@ -1,0 +1,93 @@
+# Alertmanager Configuration
+
+global:
+  resolve_timeout: 5m
+  # Slack webhook (configure in secret)
+  # slack_api_url: "https://hooks.slack.com/services/YOUR/WEBHOOK"
+
+# Template files
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route configuration
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+  routes:
+    # Critical alerts go to PagerDuty/Slack immediately
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      continue: true
+
+    # Warnings go to Slack
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+
+    # Info alerts go to email digest
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+
+# Inhibition rules
+inhibit_rules:
+  # Inhibit warning if critical is firing for same service
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['service', 'cluster']
+
+# Receivers
+receivers:
+  - name: 'default'
+    webhook_configs:
+      - url: 'http://operator-console:8007/api/v1/alerts'
+
+  - name: 'critical-alerts'
+    webhook_configs:
+      - url: 'http://operator-console:8007/api/v1/alerts'
+        send_resolved: true
+    # Slack (optional)
+    # slack_configs:
+    #   - api_url: '$SLACK_WEBHOOK_URL'
+    #     channel: '#chimera-critical'
+    #     title: '{{ .GroupLabels.alertname }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  - name: 'warning-alerts'
+    webhook_configs:
+      - url: 'http://operator-console:8007/api/v1/alerts'
+
+  - name: 'info-alerts'
+    email_configs:
+      - to: 'chimera-team@example.com'
+        headers:
+          Subject: '[Chimera Info] {{ .GroupLabels.alertname }}'
+
+# Time intervals
+time_intervals:
+  - name: business-hours
+    time_intervals:
+      - times:
+          - start_time: '09:00'
+            end_time: '17:00'
+        weekdays: ['monday:friday']
+
+  - name: performance-hours
+    time_intervals:
+      - times:
+          - start_time: '18:00'
+            end_time: '23:00'
+        weekdays: ['friday', 'saturday']
+
+# Mute configurations (optional)
+# mute_time_intervals:
+#   - match:
+#       severity: info
+#     active_time_intervals:
+#       - performance-hours

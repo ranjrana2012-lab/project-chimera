@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: captioning-agent
+  namespace: live
+  labels:
+    app: captioning-agent
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8002
+  selector:
+    app: captioning-agent

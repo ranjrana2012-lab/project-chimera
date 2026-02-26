@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operator-console
+  namespace: live
+  labels:
+    app: operator-console
+    project: project-chimera
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: operator-console
+  template:
+    metadata:
+      labels:
+        app: operator-console
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8007"
+    spec:
+      priorityClassName: medium-priority
+      containers:
+      - name: operator-console
+        image: ghcr.io/project-chimera/operator-console:latest
+        ports:
+        - containerPort: 8007
+        resources:
+          requests:
+            cpu: "200m"
+            memory: 512Mi
+          limits:
+            cpu: "1"
+            memory: 2Gi

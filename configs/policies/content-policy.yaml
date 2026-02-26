@@ -1,0 +1,46 @@
+# General Content Policy
+
+apiVersion: openclaw.io/v1
+kind: ContentPolicy
+metadata:
+  name: default-content-policy
+  namespace: live
+spec:
+  description: "Default content policy for all services"
+
+  # Profanity filter
+  profanity:
+    level: moderate  # none, mild, moderate, strict
+    autoBlock: false
+    autoFlag: true
+    allowedInContext:
+      - dramatic-performance
+      - artistic-expression
+
+  # Hate speech policy
+  hateSpeech:
+    zeroTolerance: true
+    autoBlock: true
+    protectedCharacteristics:
+      - race
+      - ethnicity
+      - religion
+      - gender
+      - sexual_orientation
+      - disability
+
+  # Explicit content
+  explicitContent:
+    sexualContent:
+      autoBlock: true
+    violence:
+      contextualAllowed: true  # Allowed in theatrical context
+      autoBlock: true  # For non-contextual
+
+  # Thresholds
+  thresholds:
+    safetyScore:
+      block: 0.9
+      flag: 0.7
+    confidence:
+      minimum: 0.5

@@ -1,0 +1,188 @@
+# Project Chimera - Remote-Connected Development Mode
+# This compose file connects local development to remote infrastructure
+# Usage: docker-compose -f docker-compose.remote.yml up -d
+
+version: "3.9"
+
+services:
+  # ============================================
+  # Local Services (Running Locally)
+  # ============================================
+
+  openclaw-orchestrator:
+    build:
+      context: ./services/openclaw-orchestrator
+      dockerfile: Dockerfile
+    container_name: chimera-openclaw
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - REDIS_HOST=redis.shared.svc.cluster.local
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka.shared.svc.cluster.local:9092
+      - PROMETHEUS_HOST=prometheus.shared.svc.cluster.local
+      - PROMETHEUS_PORT=9090
+      - JAEGER_HOST=jaeger.shared.svc.cluster.local
+      - JAEGER_PORT=6831
+      - K8S_NAMESPACE=live
+    volumes:
+      - ./services/openclaw-orchestrator/src:/app/src
+      - ./skills:/app/skills:ro
+      - ./models:/app/models:ro
+    extra_hosts:
+      # Kubernetes services via port-forward or VPN
+      - "redis.shared.svc.cluster.local:host-gateway"
+      - "kafka.shared.svc.cluster.local:host-gateway"
+      - "prometheus.shared.svc.cluster.local:host-gateway"
+      - "grafana.shared.svc.cluster.local:host-gateway"
+      - "jaeger.shared.svc.cluster.local:host-gateway"
+    networks:
+      - chimera-network
+
+  scenespeak-agent:
+    build:
+      context: ./services/scenespeak-agent
+      dockerfile: Dockerfile
+    container_name: chimera-scenespeak
+    ports:
+      - "8001:8001"
+    environment:
+      - APP_ENV=development
+      - REDIS_HOST=redis.shared.svc.cluster.local
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka.shared.svc.cluster.local:9092
+    volumes:
+      - ./services/scenespeak-agent/src:/app/src
+      - ./models/prompts:/app/models/prompts:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    extra_hosts:
+      - "redis.shared.svc.cluster.local:host-gateway"
+      - "kafka.shared.svc.cluster.local:host-gateway"
+    networks:
+      - chimera-network
+
+  captioning-agent:
+    build:
+      context: ./services/captioning-agent
+      dockerfile: Dockerfile
+    container_name: chimera-captioning
+    ports:
+      - "8002:8002"
+    environment:
+      - APP_ENV=development
+      - REDIS_HOST=redis.shared.svc.cluster.local
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka.shared.svc.cluster.local:9092
+    volumes:
+      - ./services/captioning-agent/src:/app/src
+    extra_hosts:
+      - "redis.shared.svc.cluster.local:host-gateway"
+      - "kafka.shared.svc.cluster.local:host-gateway"
+    networks:
+      - chimera-network
+
+  bsl-text2gloss-agent:
+    build:
+      context: ./services/bsl-text2gloss-agent
+      dockerfile: Dockerfile
+    container_name: chimera-bsl
+    ports:
+      - "8003:8003"
+    environment:
+      - APP_ENV=development
+      - REDIS_HOST=redis.shared.svc.cluster.local
+      - REDIS_PORT=6379
+    volumes:
+      - ./services/bsl-text2gloss-agent/src:/app/src
+    extra_hosts:
+      - "redis.shared.svc.cluster.local:host-gateway"
+    networks:
+      - chimera-network
+
+  sentiment-agent:
+    build:
+      context: ./services/sentiment-agent
+      dockerfile: Dockerfile
+    container_name: chimera-sentiment
+    ports:
+      - "8004:8004"
+    environment:
+      - APP_ENV=development
+      - REDIS_HOST=redis.shared.svc.cluster.local
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka.shared.svc.cluster.local:9092
+    volumes:
+      - ./services/sentiment-agent/src:/app/src
+    extra_hosts:
+      - "redis.shared.svc.cluster.local:host-gateway"
+      - "kafka.shared.svc.cluster.local:host-gateway"
+    networks:
+      - chimera-network
+
+  lighting-control:
+    build:
+      context: ./services/lighting-control
+      dockerfile: Dockerfile
+    container_name: chimera-lighting
+    ports:
+      - "8005:8005"
+    environment:
+      - APP_ENV=development
+      - REDIS_HOST=redis.shared.svc.cluster.local
+      - REDIS_PORT=6379
+      - LIGHTING_DMX_HOST=192.168.1.100
+      - LIGHTING_DMX_PORT=6454
+    volumes:
+      - ./services/lighting-control/src:/app/src
+    extra_hosts:
+      - "redis.shared.svc.cluster.local:host-gateway"
+    networks:
+      - chimera-network
+
+  safety-filter:
+    build:
+      context: ./services/safety-filter
+      dockerfile: Dockerfile
+    container_name: chimera-safety
+    ports:
+      - "8006:8006"
+    environment:
+      - APP_ENV=development
+      - REDIS_HOST=redis.shared.svc.cluster.local
+      - REDIS_PORT=6379
+    volumes:
+      - ./services/safety-filter/src:/app/src
+      - ./configs/policies:/app/configs/policies:ro
+    extra_hosts:
+      - "redis.shared.svc.cluster.local:host-gateway"
+    networks:
+      - chimera-network
+
+  operator-console:
+    build:
+      context: ./services/operator-console
+      dockerfile: Dockerfile
+    container_name: chimera-operator
+    ports:
+      - "8007:8007"
+    environment:
+      - APP_ENV=development
+      - REDIS_HOST=redis.shared.svc.cluster.local
+      - REDIS_PORT=6379
+    volumes:
+      - ./services/operator-console/src:/app/src
+    extra_hosts:
+      - "redis.shared.svc.cluster.local:host-gateway"
+    networks:
+      - chimera-network
+
+networks:
+  chimera-network:
+    driver: bridge

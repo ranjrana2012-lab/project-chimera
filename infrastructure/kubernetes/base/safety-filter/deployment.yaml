@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safety-filter
+  namespace: live
+  labels:
+    app: safety-filter
+    project: project-chimera
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: safety-filter
+  template:
+    metadata:
+      labels:
+        app: safety-filter
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8006"
+    spec:
+      priorityClassName: high-priority
+      containers:
+      - name: safety-filter
+        image: ghcr.io/project-chimera/safety-filter:latest
+        ports:
+        - containerPort: 8006
+        env:
+        - name: REDIS_HOST
+          value: "redis.shared.svc.cluster.local"
+        resources:
+          requests:
+            cpu: "1"
+            memory: 2Gi
+          limits:
+            cpu: "2"
+            memory: 4Gi

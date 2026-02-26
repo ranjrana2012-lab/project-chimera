@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: safety-filter
+  namespace: live
+  labels:
+    app: safety-filter
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8006
+  selector:
+    app: safety-filter

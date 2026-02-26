@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openclaw-orchestrator
+  namespace: live
+  labels:
+    app: openclaw-orchestrator
+    project: project-chimera
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw-orchestrator
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: openclaw-orchestrator
+        project: project-chimera
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      priorityClassName: high-priority
+      serviceAccountName: openclaw-orchestrator
+      containers:
+      - name: openclaw-orchestrator
+        image: ghcr.io/project-chimera/openclaw-orchestrator:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: APP_NAME
+          value: "openclaw-orchestrator"
+        - name: APP_ENV
+          value: "production"
+        - name: APP_DEBUG
+          value: "false"
+        - name: REDIS_HOST
+          value: "redis.shared.svc.cluster.local"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka.shared.svc.cluster.local:9092"
+        - name: VECTOR_DB_HOST
+          value: "vector-db.shared.svc.cluster.local"
+        - name: VECTOR_DB_PORT
+          value: "19530"
+        - name: JAEGER_HOST
+          value: "jaeger.shared.svc.cluster.local"
+        - name: JAEGER_PORT
+          value: "6831"
+        - name: GPU_ENABLED
+          value: "true"
+        - name: K8S_NAMESPACE
+          value: "live"
+        - name: K8S_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: K8S_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        resources:
+          requests:
+            cpu: "2"
+            memory: 8Gi
+            nvidia.com/gpu: "1"
+          limits:
+            cpu: "4"
+            memory: 16Gi
+            nvidia.com/gpu: "1"
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health/startup
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+        volumeMounts:
+        - name: skills
+          mountPath: /app/skills
+          readOnly: true
+        - name: models
+          mountPath: /app/models
+          readOnly: true
+        - name: config
+          mountPath: /app/configs
+          readOnly: true
+        - name: model-cache
+          mountPath: /app/models/cache
+      volumes:
+      - name: skills
+        configMap:
+          name: skills-config
+      - name: models
+        persistentVolumeClaim:
+          claimName: models-pvc
+      - name: config
+        configMap:
+          name: openclaw-config
+      - name: model-cache
+        emptyDir:
+          sizeLimit: 10Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openclaw-orchestrator
+  namespace: live
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: models-pvc
+  namespace: live
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: shared-nfs
+  resources:
+    requests:
+      storage: 50Gi

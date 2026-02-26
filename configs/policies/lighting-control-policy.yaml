@@ -1,0 +1,41 @@
+# Lighting Control Policy
+
+apiVersion: openclaw.io/v1
+kind: ContentPolicy
+metadata:
+  name: lighting-control-policy
+  namespace: live
+spec:
+  description: "Lighting control safety and operational policy"
+
+  # Safety limits
+  dmxLimits:
+    maxChannels: 512
+    maxIntensity: 255
+    safeTransitionTime: 2s  # Minimum time for full blackout
+
+  # Scene change rules
+  sceneChangeRules:
+    requireApproval: true
+    approvers:
+      - operator
+      - stage-manager
+    timeout: 30s
+    onTimeout: deny
+
+  # Emergency procedures
+  emergencyProcedures:
+    - name: blackout
+      trigger: emergency-stop
+      timeout: 100ms
+      requiresApproval: false
+    - name: house-lights
+      trigger: fire-alarm
+      timeout: 500ms
+      requiresApproval: false
+
+  # Safety interlocks
+  interlocks:
+    preventStrobeFrequency: above 15hz
+    preventRapidChanges: more than 5 per second
+    requireCueConfirmation: for scene changes

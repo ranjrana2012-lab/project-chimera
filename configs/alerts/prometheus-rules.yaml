@@ -1,0 +1,110 @@
+# Prometheus Alert Rules
+
+groups:
+  # Critical alerts
+  - name: project-chimera-critical
+    interval: 30s
+    rules:
+      # High latency in SceneSpeak
+      - alert: HighSceneSpeakLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(scenespeak_generation_duration_seconds_bucket[5m])
+          ) > 2
+        for: 1m
+        labels:
+          severity: critical
+          service: scenespeak
+        annotations:
+          summary: "High dialogue generation latency"
+          description: "95th percentile latency > 2s for 1 minute"
+
+      # OpenClaw orchestrator down
+      - alert: OpenClawOrchestratorDown
+        expr: up{job="openclaw-orchestrator"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: openclaw
+        annotations:
+          summary: "OpenClaw orchestrator is down"
+          description: "OpenClaw has been down for more than 30 seconds"
+
+      # GPU overload
+      - alert: GPUOverload
+        expr: |
+          DCGM_FI_DEV_GPU_UTIL > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "GPU utilization critically high"
+          description: "GPU utilization above 95% for 2 minutes"
+
+      # Safety filter blocking too much
+      - alert: HighSafetyBlockRate
+        expr: |
+          rate(safety_filter_blocks_total[5m]) / rate(safety_filter_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: safety-filter
+        annotations:
+          summary: "High safety filter block rate"
+          description: "More than 10% of content being blocked"
+
+  # Warning alerts
+  - name: project-chimera-warnings
+    interval: 1m
+    rules:
+      # Pod restarts
+      - alert: HighPodRestartCount
+        expr: |
+          increase(kube_pod_container_status_restarts_total[1h]) > 3
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod restarting frequently"
+
+      # Memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container memory usage above 90%"
+
+      # Redis connection issues
+      - alert: RedisConnectionErrors
+        expr: |
+          rate(redis_connection_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Redis connection error rate"
+
+  # Info alerts
+  - name: project-chimera-info
+    interval: 5m
+    rules:
+      # Cache hit rate
+      - alert: LowCacheHitRate
+        expr: |
+          rate(skill_cache_hits_total[10m]) / (rate(skill_cache_hits_total[10m]) + rate(skill_cache_misses_total[10m])) < 0.5
+        for: 15m
+        labels:
+          severity: info
+        annotations:
+          summary: "Cache hit rate below 50%"
+
+      # Pipeline executions
+      - alert: PipelineExecutionCount
+        expr: |
+          increase(pipeline_executions_total[1h]) > 100
+        labels:
+          severity: info
+        annotations:
+          summary: "High pipeline execution volume"

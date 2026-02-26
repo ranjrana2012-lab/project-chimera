@@ -1,0 +1,54 @@
+apiVersion: openclaw.io/v1
+kind: Skill
+metadata:
+  name: sentiment
+  version: 1.0.0
+spec:
+  description: "Analyzes audience sentiment from social media and sensor data"
+
+  inputs:
+    - name: text
+      type: string
+      required: false
+      description: "Single text to analyze"
+
+    - name: texts
+      type: array
+      required: false
+      description: "Multiple texts for batch analysis"
+
+  outputs:
+    - name: sentiment
+      type: string
+      description: "Overall sentiment: positive, negative, or neutral"
+
+    - name: confidence
+      type: float
+      description: "Sentiment confidence score"
+
+    - name: emotions
+      type: object
+      description: "Detailed emotion breakdown"
+
+    - name: intensity
+      type: float
+      description: "Sentiment intensity (for batch analysis)"
+
+  config:
+    timeout: 500ms
+    retryPolicy:
+      maxRetries: 1
+      backoff: fixed
+
+    model:
+      name: "cardiffnlp/twitter-roberta-base-sentiment"
+
+    caching:
+      enabled: true
+      ttl: 30s
+
+  tags:
+    - sentiment
+    - analysis
+    - social
+    - monitoring

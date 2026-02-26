@@ -1,0 +1,97 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Project Chimera Base Kustomization
+# This defines the base configuration for all environments
+
+namespace: live
+
+# Common labels applied to all resources
+commonLabels:
+  project: project-chimera
+  version: v0.1.0
+
+# Resources to include
+resources:
+# Namespaces
+- base/namespaces/live-namespace.yaml
+- base/namespaces/preprod-namespace.yaml
+- base/namespaces/shared-namespace.yaml
+
+# Priority Classes
+- base/priority-classes/priority-classes.yaml
+
+# Network Policies
+- base/network-policies/default-deny.yaml
+- base/network-policies/allow-shared-services.yaml
+
+# Shared Services
+- base/redis/deployment.yaml
+- base/redis/service.yaml
+- base/redis/configmap.yaml
+
+- base/kafka/deployment.yaml
+- base/kafka/service.yaml
+
+- base/vector-db/deployment.yaml
+- base/vector-db/service.yaml
+
+# Monitoring
+- base/monitoring/prometheus/deployment.yaml
+- base/monitoring/prometheus/service.yaml
+- base/monitoring/prometheus/configmap.yaml
+
+- base/monitoring/grafana/deployment.yaml
+- base/monitoring/grafana/service.yaml
+- base/monitoring/grafana/dashboards-configmap.yaml
+
+- base/monitoring/jaeger/deployment.yaml
+
+# ConfigMap generator for Prometheus rules
+configMapGenerator:
+- name: prometheus-rules
+  files:
+  - configs/alerts/prometheus-rules.yaml
+  options:
+    labels:
+      app: prometheus
+
+# Secret generator (for development - use Sealed Secrets in production)
+secretGenerator:
+- name: redis-password
+  literals:
+  - password=change-me-in-production
+- name: kafka-passwords
+  literals:
+  - sasl-password=change-me-in-production
+- name: vector-db-credentials
+  literals:
+  - minio-access-key=minioadmin
+  - minio-secret-key=change-me-in-production
+
+# Images across all deployments
+images:
+- name: openclaw-orchestrator
+  newName: ghcr.io/project-chimera/openclaw-orchestrator
+  newTag: latest
+- name: scenespeak-agent
+  newName: ghcr.io/project-chimera/scenespeak-agent
+  newTag: latest
+- name: captioning-agent
+  newName: ghcr.io/project-chimera/captioning-agent
+  newTag: latest
+- name: bsl-text2gloss-agent
+  newName: ghcr.io/project-chimera/bsl-text2gloss-agent
+  newTag: latest
+- name: sentiment-agent
+  newName: ghcr.io/project-chimera/sentiment-agent
+  newTag: latest
+- name: lighting-control
+  newName: ghcr.io/project-chimera/lighting-control
+  newTag: latest
+- name: safety-filter
+  newName: ghcr.io/project-chimera/safety-filter
+  newTag: latest
+- name: operator-console
+  newName: ghcr.io/project-chimera/operator-console
+  newTag: latest

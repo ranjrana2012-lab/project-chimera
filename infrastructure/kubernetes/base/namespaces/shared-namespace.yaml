@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shared
+  labels:
+    name: shared
+    environment: shared
+    qos: burstable
+    project: project-chimera
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: shared-quota
+  namespace: shared
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 32Gi
+    limits.cpu: "16"
+    limits.memory: 64Gi
+    persistentvolumeclaims: "10"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: shared-limits
+  namespace: shared
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "128Mi"
+    type: Container

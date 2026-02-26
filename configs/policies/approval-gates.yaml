@@ -1,0 +1,60 @@
+# Approval Gates for Project Chimera
+
+apiVersion: openclaw.io/v1
+kind: ApprovalGates
+metadata:
+  name: project-chimera-gates
+  namespace: live
+spec:
+  description: "Human approval gates for critical actions"
+
+  gates:
+    # Lighting scene changes
+    - name: lighting-scene-change
+      description: "Require approval for significant lighting scene changes"
+      trigger:
+        skill: lighting-control
+        condition: "action.scene_change == true and action.significant == true"
+      approvers:
+        - operator
+        - stage-manager
+      timeout: 30s
+      onTimeout: deny
+      requireReason: true
+
+    # Low safety scores
+    - name: low-safety-score
+      description: "Require approval for content with marginal safety scores"
+      trigger:
+        skill: scenespeak
+        condition: "content.safety_score < 0.7 and content.safety_score >= 0.5"
+      approvers:
+        - operator
+      timeout: 15s
+      onTimeout: allow
+      requireReason: false
+
+    # Safety filter blocks
+    - name: safety-block-override
+      description: "Allow operator override of safety filter blocks"
+      trigger:
+        skill: safety-filter
+        condition: "decision == 'block' and override_requested == true"
+      approvers:
+        - operator
+        - technical-lead
+      timeout: 60s
+      onTimeout: deny
+      requireReason: true
+      auditLog: true
+
+    # DMX blackout
+    - name: emergency-blackout
+      description: "Emergency blackout does not require approval"
+      trigger:
+        skill: lighting-control
+        condition: "action == 'blackout' and emergency == true"
+      approvers: []
+      timeout: 0
+      onTimeout: allow
+      requireReason: false

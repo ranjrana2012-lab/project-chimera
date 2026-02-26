@@ -1,0 +1,176 @@
+# Project Chimera - Local Development Stack
+# This compose file sets up all services for local development
+# Usage: docker-compose -f docker-compose.local.yml up -d
+
+version: "3.9"
+
+services:
+  # ============================================
+  # Shared Services
+  # ============================================
+
+  redis:
+    image: redis:7-alpine
+    container_name: chimera-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - chimera-network
+
+  kafka:
+    image: bitnami/kafka:3.6
+    container_name: chimera-kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_CFG_NODE_ID: "0"
+      KAFKA_CFG_PROCESS_ROLES: "controller,broker"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "0@kafka:9093"
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka-data:/bitnami/kafka
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chimera-network
+
+  vector-db:
+    image: milvusdb/milvus:latest
+    container_name: chimera-vector-db
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    environment:
+      ETCD_ENDPOINTS: "etcd:2379"
+      MINIO_ADDRESS: "minio:9000"
+    volumes:
+      - vector-db-data:/var/lib/milvus
+    depends_on:
+      - etcd
+      - minio
+    networks:
+      - chimera-network
+
+  etcd:
+    image: quay.io/coreos/etcd:latest
+    container_name: chimera-etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: "revision"
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"
+      ETCD_SNAPSHOT_COUNT: "50000"
+    volumes:
+      - etcd-data:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    networks:
+      - chimera-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: chimera-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - minio-data:/minio_data
+    command: minio server /minio_data
+    networks:
+      - chimera-network
+
+  # ============================================
+  # Monitoring
+  # ============================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: chimera-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/alerts/prometheus-rules.yaml:/etc/prometheus/rules.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - chimera-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: chimera-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: chimera
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infrastructure/kubernetes/base/monitoring/grafana/dashboards-configmap.yaml:/etc/grafana/provisioning/dashboards/dashboards.yml
+    depends_on:
+      - prometheus
+    networks:
+      - chimera-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: chimera-jaeger
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: ":9411"
+    networks:
+      - chimera-network
+
+  # ============================================
+  # Chimera Services (Local Build)
+  # ============================================
+
+  # OpenClaw Orchestrator will be built and run locally for development
+  # Use: python -m services.openclaw_orchestrator.main
+  # Or: make run-openclaw
+
+volumes:
+  redis-data:
+    driver: local
+  kafka-data:
+    driver: local
+  vector-db-data:
+    driver: local
+  etcd-data:
+    driver: local
+  minio-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  chimera-network:
+    driver: bridge

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw-orchestrator
+  namespace: live
+  labels:
+    app: openclaw-orchestrator
+    project: project-chimera
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: openclaw-orchestrator
