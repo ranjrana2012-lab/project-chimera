@@ -5,6 +5,10 @@ from .pipeline_executor import PipelineExecutor
 from .orchestrator import Orchestrator
 from .health import HealthChecker
 from .metrics import metrics_registry
+from .router import Router
+from .gpu_scheduler import GPUScheduler
+from .kafka_producer import KafkaProducer
+from .policy_engine import PolicyEngine
 
 __all__ = [
     "SkillRegistry",
@@ -12,4 +16,8 @@ __all__ = [
     "Orchestrator",
     "HealthChecker",
     "metrics_registry",
+    "Router",
+    "GPUScheduler",
+    "KafkaProducer",
+    "PolicyEngine",
 ]
