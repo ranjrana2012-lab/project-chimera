@@ -114,7 +114,7 @@ metadata:
 spec:
   accessModes:
   - ReadWriteMany
-  storageClassName: shared-nfs
+  storageClassName: local-path
   resources:
     requests:
       storage: 20Gi
