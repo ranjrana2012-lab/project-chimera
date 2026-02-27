@@ -1,32 +1,42 @@
 # Student Quick Start Guide
 ## Project Chimera: Development Environment Setup
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Audience:** AI Students joining Project Chimera
-**Last Updated:** January 2025
+**Last Updated:** February 2026
 
 ---
 
 ## Welcome to Project Chimera
 
-This guide will help you set up your development environment to contribute to Project Chimera, a student-run Dynamic Performance Hub that creates live theatre adapting in real time to audience input. By following this guide, you will have a working local development environment within 30-60 minutes, depending on your internet connection and prior setup.
+This guide will help you set up your development environment to contribute to Project Chimera, a student-run Dynamic Performance Hub that creates live theatre adapting in real time to audience input. The project uses **k3s** (lightweight Kubernetes) for local development, providing a production-like environment on your machine.
 
 ### What You Will Be Working On
 
 As an AI student contributor, you may work on:
 
 - **OpenClaw Skills:** Python modules that integrate with the orchestrator
-- **Microservices:** Containerised services for dialogue generation, captioning, sentiment analysis, etc.
+- **AI Agents:** Containerised services for dialogue generation, captioning, sentiment analysis, BSL translation
 - **Model Pipelines:** Fine-tuning, evaluation, and inference optimisation
 - **Infrastructure:** Kubernetes manifests, CI/CD pipelines, monitoring
 - **Testing:** Unit tests, integration tests, load tests, safety tests
 
-### Two Development Modes
+### Student Role Assignments
 
-| Mode | Description | Use Case |
-|------|-------------|----------|
-| **Local-Only** | Everything runs on your laptop using Docker | Development, unit testing, skill prototyping |
-| **Remote-Connected** | Your laptop connects to DGX Spark services | Integration testing, model access, production-like testing |
+Project Chimera is divided into 10 focus areas. Each student will be assigned ownership of one component:
+
+| # | Role | Component | Description |
+|---|------|-----------|-------------|
+| 1 | OpenClaw Orchestrator Lead | `openclaw-orchestrator` | Skill routing, agent coordination |
+| 2 | SceneSpeak Agent Lead | `scenespeak-agent` | LLM dialogue generation |
+| 3 | Captioning Agent Lead | `captioning-agent` | Speech-to-text, live captions |
+| 4 | BSL Translation Lead | `bsl-text2gloss-agent` | Text-to-BSL gloss translation |
+| 5 | Sentiment Analysis Lead | `sentiment-agent` | Audience emotion analysis |
+| 6 | Lighting Control Lead | `lighting-control` | DMX/sACN lighting integration |
+| 7 | Safety Filter Lead | `safety-filter` | Content moderation, guardrails |
+| 8 | Operator Console Lead | `operator-console` | Human oversight interface |
+| 9 | Infrastructure & DevOps Lead | `infrastructure/` | k3s, Kubernetes, monitoring |
+| 10 | QA & Documentation Lead | `tests/`, `docs/` | Testing, quality assurance |
 
 ---
 
@@ -36,32 +46,35 @@ As an AI student contributor, you may work on:
 
 | Requirement | Minimum | Recommended |
 |-------------|---------|-------------|
-| RAM | 8 GB | 16 GB+ |
-| Disk Space | 20 GB free | 50 GB+ free |
-| CPU | 4 cores | 8+ cores |
-| OS | Windows 10/11, macOS 12+ | macOS 14+, Windows 11 |
+| RAM | 16 GB | 32 GB+ |
+| Disk Space | 30 GB free | 50 GB+ free |
+| CPU | 6 cores | 8+ cores |
+| OS | Linux (Ubuntu 22.04) | Ubuntu 22.04 LTS |
+| GPU | None | NVIDIA GPU (optional) |
+
+**Note:** The k3s bootstrap requires Linux. For macOS/Windows, use WSL2 or a Linux VM.
 
 ### Required Software
 
 Before starting, ensure you have the following installed:
 
-#### For All Platforms
+#### For Linux (Ubuntu 22.04)
 
 1. **Git** - Version control
    - Verify: `git --version`
-   - Install: https://git-scm.com/downloads
+   - Install: `sudo apt update && sudo apt install git`
 
-2. **Docker Desktop** - Container runtime
-   - Verify: `docker --version` and `docker compose version`
-   - Install: https://www.docker.com/products/docker-desktop/
-   - **Important:** Ensure Docker Desktop is running before proceeding
+2. **Docker** - Container runtime
+   - Verify: `docker --version`
+   - Install: https://docs.docker.com/engine/install/ubuntu/
 
-3. **Visual Studio Code** (recommended) or your preferred IDE
-   - Install: https://code.visualstudio.com/
+3. **kubectl** - Kubernetes CLI
+   - Verify: `kubectl version --client`
+   - Install: `curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && sudo install kubectl /usr/local/bin/`
 
-4. **Python 3.11+** - For local scripts and tools
-   - Verify: `python --version` or `python3 --version`
-   - Install: https://www.python.org/downloads/
+4. **Python 3.10+** - For local scripts and tools
+   - Verify: `python3 --version`
+   - Install: `sudo apt install python3 python3-pip`
 
 #### Platform-Specific Setup
 
@@ -91,429 +104,288 @@ brew install python@3.11
 
 ---
 
-## Quick Start: Local-Only Mode
+## Quick Start: k3s Bootstrap
 
-This mode runs a minimal Project Chimera stack on your laptop using Docker. It uses smaller models and mocked services, making it suitable for most development tasks without requiring GPU access.
+The bootstrap process automates the complete setup of Project Chimera on a local k3s cluster.
 
 ### Step 1: Clone the Repository
 
 ```bash
 # Clone the main repository
 git clone https://github.com/project-chimera/main.git
-cd main
+cd Project_Chimera
 
 # Or use SSH if you have keys set up
 git clone git@github.com:project-chimera/main.git
-cd main
+cd Project_Chimera
 ```
 
-### Step 2: Configure Environment
+### Step 2: Run Bootstrap
 
 ```bash
-# Copy the example environment file
-cp .env.example .env
+# Automated setup (requires sudo for k3s installation)
+make bootstrap
 
-# Edit with your details (optional for local mode)
-# The defaults work for local development
+# This will:
+# 1. Install k3s (lightweight Kubernetes)
+# 2. Set up local container registry (localhost:30500)
+# 3. Build all 8 service Docker images
+# 4. Deploy infrastructure (Redis, Kafka, Milvus)
+# 5. Deploy monitoring (Prometheus, Grafana, Jaeger)
+# 6. Deploy all AI agents
+# 7. Run health checks
 ```
 
-**Environment File Contents:**
+**Expected runtime:** 15-20 minutes
+
+**Bootstrap Process:**
+
+```
+🚀 Bootstrapping Project Chimera...
+[01-install-k3s] Installing k3s...
+[02-setup-registry] Setting up local registry...
+[03-build-images] Building 8 service images...
+[04-deploy-infrastructure] Deploying Redis, Kafka, Milvus...
+[05-deploy-monitoring] Deploying Prometheus, Grafana, Jaeger...
+[06-deploy-services] Deploying AI agents...
+[07-verify-deployment] Running health checks...
+
+🎉 Bootstrap complete!
+```
+
+### Step 3: Verify Deployment
 
 ```bash
-# .env.example - Local Development Configuration
+# Check all pods are running
+make bootstrap-status
 
-# Mode: local or remote
-CHIMERA_MODE=local
-
-# Local model settings (small models for CPU inference)
-SCENESPEAK_MODEL=mock
-ASR_MODEL=mock
-SENTIMENT_MODEL=mock
-
-# Redis (local container)
-REDIS_URL=redis://localhost:6379
-
-# Kafka (local container)
-KAFKA_BROKERS=localhost:9092
-
-# OpenClaw (local container)
-OPENCLAW_URL=http://localhost:8080
-
-# Logging
-LOG_LEVEL=DEBUG
+# Expected output:
+# 📊 Bootstrap Status:
+# NAME              STATUS   ROLES    AGE   VERSION
+# localhost         Ready    control-plane  10m   v1.28.3+k3s1
+#
+# Namespace: live
+# NAME                                   READY   STATUS    RESTARTS   AGE
+# openclaw-orchestrator-...              1/1     Running   0          5m
+# scenespeak-agent-...                   1/1     Running   0          5m
+# captioning-agent-...                   1/1     Running   0          5m
+# ...
 ```
 
-### Step 3: Start Local Stack
+### Step 4: Access Services
+
+**Monitoring Stack:**
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| Grafana | http://localhost:3000 | admin/admin |
+| Prometheus | http://localhost:9090 | - |
+| Jaeger | http://localhost:16686 | - |
+
+**Service APIs (use port-forward):**
 
 ```bash
-# Start all services using Docker Compose
-docker compose -f docker-compose.local.yml up -d
-
-# This starts:
-# - OpenClaw orchestrator (mock mode)
-# - Redis for caching
-# - Kafka for event streaming
-# - Mock model servers
-# - Prometheus & Grafana for monitoring
-```
-
-**Expected Output:**
-
-```
-[+] Running 6/6
- ✔ Network chimera-local      Created
- ✔ Container chimera-redis    Started
- ✔ Container chimera-kafka    Started
- ✔ Container chimera-openclaw Started
- ✔ Container chimera-prometheus Started
- ✔ Container chimera-grafana  Started
-```
-
-### Step 4: Verify Installation
-
-```bash
-# Check all containers are running
-docker compose -f docker-compose.local.yml ps
-
-# Run verification script
-./scripts/verify-local-setup.sh
-```
-
-**Expected Verification Output:**
-
-```
-✓ Docker is running
-✓ All containers healthy
-✓ Redis connection successful
-✓ Kafka connection successful
-✓ OpenClaw health check passed
-✓ Mock model server responding
-✓ Prometheus metrics available
-✓ Grafana dashboard accessible at http://localhost:3000
-
-Local setup complete! You can now start developing.
+make run-openclaw    # OpenClaw: localhost:8000
+make run-scenespeak  # SceneSpeak: localhost:8001
+make run-captioning  # Captioning: localhost:8002
 ```
 
 ### Step 5: Run Tests
 
 ```bash
 # Run unit tests
-pytest tests/unit/
+make test-unit
 
 # Run with coverage
 pytest tests/unit/ --cov=services --cov-report=html
 
 # View coverage report
-open htmlcov/index.html  # macOS
-start htmlcov/index.html  # Windows
+xdg-open htmlcov/index.html  # Linux
 ```
-
-### Step 6: Access Services
-
-| Service | URL | Purpose |
-|---------|-----|---------|
-| OpenClaw API | http://localhost:8080 | Orchestrator API |
-| OpenClaw UI | http://localhost:8080/ui | Web interface |
-| Grafana | http://localhost:3000 | Monitoring dashboards |
-| Prometheus | http://localhost:9090 | Metrics |
-| Redis Commander | http://localhost:8081 | Redis GUI |
 
 ---
 
-## Remote-Connected Mode
+## Project Structure Overview
 
-This mode connects your local development environment to the DGX Spark cluster at the university. You can access production-like models, GPU inference, and shared data.
+```
+project-chimera/
+├── services/                    # AI Service Implementations
+│   ├── openclaw-orchestrator/   # Skill orchestration (port 8000)
+│   ├── scenespeak-agent/        # Dialogue generation (port 8001)
+│   ├── captioning-agent/        # Speech-to-text (port 8002)
+│   ├── bsl-text2gloss-agent/    # BSL translation (port 8003)
+│   ├── sentiment-agent/         # Sentiment analysis (port 8004)
+│   ├── lighting-control/        # DMX/sACN control (port 8005)
+│   ├── safety-filter/           # Content moderation (port 8006)
+│   └── operator-console/        # Human oversight (port 8007)
+├── skills/                      # OpenClaw skill definitions
+│   ├── scenespeak-skill/
+│   ├── captioning-skill/
+│   ├── bsl-text2gloss-skill/
+│   ├── sentiment-skill/
+│   ├── lighting-control-skill/
+│   ├── safety-filter-skill/
+│   └── operator-console-skill/
+├── models/                      # AI models and prompts
+│   ├── prompts/                 # LLM prompt templates
+│   └── lora-adapters/           # Fine-tuned adapters
+├── infrastructure/              # Kubernetes configurations
+│   └── kubernetes/
+│       ├── base/                # Base manifests
+│       └── overlays/            # Environment overlays
+├── scripts/
+│   └── bootstrap/               # Bootstrap scripts
+├── tests/                       # Test suites
+├── docs/                        # Documentation
+└── Makefile                     # Build automation
+```
 
-### Prerequisites for Remote Mode
+---
 
-1. **VPN Access:** You must be connected to the university network
-2. **SSH Key:** Your SSH key must be registered with the cluster
-3. **API Credentials:** Obtain from Technical Lead
+## Working with Your Assigned Component
 
-### Step 1: Obtain Credentials
+### For Service Owners (Roles 1-8)
 
-Contact the Technical Lead to receive:
-
-- SSH key for cluster access
-- API token for OpenClaw remote endpoint
-- Kubernetes config file (`kubeconfig`)
-
-Store these securely:
+Each service follows the same structure:
 
 ```bash
-# Create config directory
-mkdir -p ~/.config/chimera
-
-# Save your credentials
-# SSH key
-chmod 600 ~/.config/chimera/id_rsa
-
-# API token (add to .env)
-echo "CHIMERA_API_TOKEN=your-token-here" >> .env
+cd services/<your-service>/
 ```
 
-### Step 2: Configure Environment for Remote
+**Service Directory Structure:**
 
-Create a separate environment file for remote mode:
+```
+services/<service-name>/
+├── src/
+│   └── <service-name>/
+│       ├── __init__.py
+│       ├── main.py            # FastAPI application
+│       ├── config.py          # Configuration
+│       └── handlers/          # Request handlers
+├── tests/
+│   ├── test_main.py
+│   └── test_handlers.py
+├── Dockerfile
+├── requirements.txt
+└── README.md
+```
+
+**Rebuild and redeploy your service:**
 
 ```bash
-# Copy and edit for remote
-cp .env.example .env.remote
+# Build new image
+docker build -t localhost:30500/project-chimera/<service>:latest services/<service>/
+
+# Push to local registry
+docker push localhost:30500/project-chimera/<service>:latest
+
+# Restart deployment
+kubectl rollout restart deployment/<deployment-name> -n live
+
+# Follow logs
+kubectl logs -f -n live deployment/<deployment-name>
 ```
 
-**Remote Environment Configuration:**
+### For Infrastructure Lead (Role 9)
+
+**Key responsibilities:**
 
 ```bash
-# .env.remote - Remote Development Configuration
+# Check cluster status
+kubectl get nodes
+kubectl get pods -A
 
-# Mode: local or remote
-CHIMERA_MODE=remote
+# Access monitoring
+make run-openclaw  # Port forward to services
+kubectl port-forward -n shared svc/grafana 3000:3000
 
-# Remote endpoints (replace with actual addresses)
-OPENCLAW_URL=https://chimera-api.university.ac.uk
-KAFKA_BROKERS=chimera-kafka.university.ac.uk:9092
-REDIS_URL=redis://chimera-redis.university.ac.uk:6379
-
-# Authentication
-CHIMERA_API_TOKEN=${CHIMERA_API_TOKEN}
-
-# Use remote models
-SCENESPEAK_MODEL=remote:7b-quantised
-ASR_MODEL=remote:whisper-small
-SENTIMENT_MODEL=remote:distilbert
-
-# Logging
-LOG_LEVEL=INFO
+# Deploy infrastructure changes
+kubectl apply -k infrastructure/kubernetes/base/redis/
+kubectl apply -k infrastructure/kubernetes/base/kafka/
+kubectl apply -k infrastructure/kubernetes/base/vector-db/
 ```
 
-### Step 3: Connect to Cluster
+### For QA & Documentation Lead (Role 10)
+
+**Key responsibilities:**
 
 ```bash
-# Test SSH connection
-ssh chimera-user@chimera-cluster.university.ac.uk
+# Run all tests
+make test
 
-# If successful, you'll see:
-# Welcome to Project Chimera DGX Spark Cluster
-# Last login: [date]
+# Run specific test suites
+make test-unit
+make test-integration
+make test-load
 
-# Exit and continue local setup
-exit
-```
+# Check coverage
+pytest tests/ --cov=services --cov-report=html
 
-### Step 4: Start Remote-Connected Stack
-
-```bash
-# Start local services that connect to remote
-docker compose -f docker-compose.remote.yml up -d
-
-# This starts only local tools (IDE helper, debugging tools)
-# All heavy services run on DGX Spark
-```
-
-### Step 5: Verify Remote Connection
-
-```bash
-# Run verification for remote mode
-./scripts/verify-remote-setup.sh
-```
-
-**Expected Output:**
-
-```
-✓ VPN connection verified
-✓ SSH access to cluster confirmed
-✓ OpenClaw API reachable
-✓ API token valid
-✓ Kafka broker accessible
-✓ Redis accessible
-
-Remote connection established!
-You can now develop against DGX Spark services.
+# Lint and format
+make lint
+make format
 ```
 
 ---
 
 ## Development Workflow
 
-### Project Structure
-
-```
-project-chimera/
-├── services/                # Microservice implementations
-│   ├── scenespeak/         # Dialogue generation
-│   │   ├── src/
-│   │   ├── tests/
-│   │   ├── Dockerfile
-│   │   └── README.md
-│   ├── captioning/         # ASR and captions
-│   ├── safety-filter/      # Content moderation
-│   └── ...
-├── skills/                  # OpenClaw skill definitions
-│   ├── scenespeak-skill/
-│   ├── captioning-skill/
-│   └── ...
-├── models/                  # Prompts, adapters, evaluation
-│   ├── prompts/
-│   ├── lora-adapters/
-│   └── evaluation/
-├── infrastructure/          # Kubernetes configs
-│   └── kubernetes/
-├── tests/                   # Test suites
-│   ├── unit/
-│   ├── integration/
-│   └── load/
-├── scripts/                 # Utility scripts
-├── docs/                    # Documentation
-└── docker-compose*.yml      # Docker configurations
-```
-
-### Creating a New Skill
-
-1. **Copy the skill template:**
-
-```bash
-./scripts/create-skill.sh my-new-skill
-```
-
-2. **Edit the skill definition:**
-
-```yaml
-# skills/my-new-skill/skill.yaml
-apiVersion: openclaw.io/v1
-kind: Skill
-metadata:
-  name: my-new-skill
-  version: 0.1.0
-spec:
-  description: "Description of what this skill does"
-  
-  inputs:
-    - name: input_param
-      type: string
-      required: true
-      description: "Input description"
-  
-  outputs:
-    - name: output_param
-      type: string
-      description: "Output description"
-  
-  config:
-    timeout: 5000ms
-```
-
-3. **Implement the skill handler:**
-
-```python
-# skills/my-new-skill/handler.py
-
-from openclaw import SkillHandler
-
-def handle(inputs: dict) -> dict:
-    """
-    Skill implementation.
-    
-    Args:
-        inputs: Dictionary of input parameters
-        
-    Returns:
-        Dictionary of output parameters
-    """
-    input_param = inputs.get("input_param", "")
-    
-    # Your implementation here
-    output = process(input_param)
-    
-    return {
-        "output_param": output
-    }
-
-# Register with OpenClaw
-skill = SkillHandler(handle)
-```
-
-4. **Write tests:**
-
-```python
-# skills/my-new-skill/tests/test_handler.py
-
-import pytest
-from handler import handle
-
-def test_basic_functionality():
-    result = handle({"input_param": "test"})
-    assert "output_param" in result
-    assert result["output_param"] is not None
-
-def test_empty_input():
-    result = handle({})
-    # Should handle gracefully
-    assert result is not None
-```
-
-5. **Test locally:**
-
-```bash
-# Run skill tests
-pytest skills/my-new-skill/tests/
-
-# Test with Docker
-docker build -t chimera/my-new-skill skills/my-new-skill/
-docker run --rm chimera/my-new-skill test
-```
-
-### Making Changes to Services
+### Making Changes to Your Component
 
 1. **Create a feature branch:**
 
 ```bash
-git checkout -b feature/my-feature-name
+git checkout -b feature/<component>-<feature-name>
 ```
 
 2. **Make your changes:**
 
 ```bash
-# Edit files in services/
-# Or skills/
-# Or models/
+# Edit files in services/<your-service>/
+# Or skills/<your-skill>/
+# Or infrastructure/
 ```
 
 3. **Run tests:**
 
 ```bash
-# Run all tests (fast)
-pytest tests/unit/
+# Run all tests
+make test
 
-# Run integration tests (slower)
-pytest tests/integration/
-
-# Run specific test file
-pytest tests/unit/test_safety_filter.py -v
+# Run specific test suites
+make test-unit
+make test-integration
 ```
 
 4. **Format and lint:**
 
 ```bash
 # Format code
-black services/ skills/
-isort services/ skills/
+make format
 
 # Lint
-ruff check services/ skills/
-
-# Type check
-mypy services/
+make lint
 ```
 
-5. **Commit and push:**
+5. **Build and test your service:**
+
+```bash
+# Build your service image
+docker build -t localhost:30500/project-chimera/<service>:test services/<service>/
+
+# Test locally before pushing
+# (service-specific testing commands)
+```
+
+6. **Commit and push:**
 
 ```bash
 git add .
-git commit -m "feat: description of your changes"
-git push origin feature/my-feature-name
+git commit -m "feat(<service>): description of your changes"
+git push origin feature/<component>-<feature-name>
 ```
 
-6. **Create pull request:**
+7. **Create pull request:**
 
 - Go to GitHub and create a PR
 - Fill in the PR template
@@ -522,146 +394,100 @@ git push origin feature/my-feature-name
 
 ---
 
-## Using Dev Containers (Recommended)
+## Service-Specific Quick Reference
 
-For the most consistent development experience, use VS Code Dev Containers. This ensures all contributors have identical environments.
-
-### Setup Dev Containers
-
-1. **Install VS Code extensions:**
+### 1. OpenClaw Orchestrator (Port 8000)
 
 ```bash
-# In VS Code, install:
-# - Dev Containers (ms-vscode-remote.remote-containers)
-# - Python (ms-python.python)
-# - Docker (ms-azuretools.vscode-docker)
+# Port forward to local
+make run-openclaw
+
+# Access API
+curl http://localhost:8000/health
+
+# Shell access
+make shell-openclaw
+
+# View logs
+kubectl logs -f -n live deployment/openclaw-orchestrator
 ```
 
-2. **Open project in container:**
+### 2. SceneSpeak Agent (Port 8001)
 
 ```bash
-# Open VS Code
-code .
+# Port forward to local
+kubectl port-forward -n live svc/scenespeak-agent 8001:8001
 
-# When prompted, click "Reopen in Container"
-# Or use Command Palette: "Dev Containers: Reopen in Container"
+# Test dialogue generation
+curl -X POST http://localhost:8001/v1/generate \
+  -H "Content-Type: application/json" \
+  -d '{"context": "Scene: A garden at sunset", "sentiment": 0.7}'
 ```
 
-3. **Wait for container to build:**
-
-The first build takes 5-10 minutes. Subsequent starts are much faster.
-
-### Dev Container Configuration
-
-The project includes a pre-configured dev container:
-
-```json
-// .devcontainer/devcontainer.json
-{
-  "name": "Project Chimera Dev",
-  "dockerComposeFile": ["docker-compose.devcontainer.yml"],
-  "service": "devcontainer",
-  "workspaceFolder": "/workspace",
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-python.python",
-        "ms-python.vscode-pylance",
-        "charliermarsh.ruff",
-        "ms-azuretools.vscode-docker",
-        "redhat.vscode-yaml"
-      ],
-      "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.formatting.provider": "black",
-        "editor.formatOnSave": true
-      }
-    }
-  },
-  "forwardPorts": [8080, 3000, 9090],
-  "postCreateCommand": "pip install -r requirements-dev.txt"
-}
-```
-
----
-
-## Claude Code Integration
-
-Claude Code is an AI-assisted coding tool that can help with development tasks. Here is how to connect it to your Project Chimera workflow.
-
-### Installing Claude Code
-
-**macOS:**
+### 3. Captioning Agent (Port 8002)
 
 ```bash
-# Install via Homebrew
-brew install claude-code
+# Port forward to local
+kubectl port-forward -n live svc/captioning-agent 8002:8002
 
-# Or download directly
-curl -fsSL https://claude.ai/code/install.sh | sh
+# View logs
+kubectl logs -f -n live deployment/captioning-agent
 ```
 
-**Windows:**
-
-```powershell
-# Download installer from https://claude.ai/code
-# Or use winget
-winget install Anthropic.ClaudeCode
-```
-
-### Configuration for Project Chimera
-
-Create a `.claude/config.json` in the project root:
-
-```json
-{
-  "project": "project-chimera",
-  "context": {
-    "description": "Student-run Dynamic Performance Hub using OpenClaw on DGX Spark",
-    "techStack": ["Python", "Docker", "Kubernetes", "OpenClaw", "PyTorch"],
-    "conventions": {
-      "testing": "pytest",
-      "formatting": "black",
-      "linting": "ruff",
-      "documentation": "docstrings with Google style"
-    }
-  },
-  "rules": [
-    "Always run tests before suggesting code changes",
-    "Follow existing code patterns in the codebase",
-    "Prefer type hints in function signatures",
-    "Include docstrings for public functions"
-  ]
-}
-```
-
-### Using Claude Code Effectively
+### 4. BSL-Text2Gloss Agent (Port 8003)
 
 ```bash
-# Start Claude Code in project directory
-cd project-chimera
-claude-code
+# Port forward to local
+kubectl port-forward -n live svc/bsl-text2gloss-agent 8003:8003
 
-# Example commands:
-# "Help me understand the SceneSpeak agent architecture"
-# "Write a unit test for the safety filter"
-# "Explain how OpenClaw routing works"
-# "Refactor this function to be more efficient"
+# Test translation
+curl -X POST http://localhost:8003/v1/translate \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello, welcome to the theatre."}'
 ```
 
-### Connecting to OpenClaw
-
-Claude Code can help you understand and work with OpenClaw:
+### 5. Sentiment Agent (Port 8004)
 
 ```bash
-# Ask Claude Code to explain OpenClaw concepts
-"Explain OpenClaw's policy engine and how to define a new policy"
+# Port forward to local
+kubectl port-forward -n live svc/sentiment-agent 8004:8004
 
-# Generate skill templates
-"Create a new OpenClaw skill for [specific task]"
+# Test sentiment analysis
+curl -X POST http://localhost:8004/v1/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "The audience seems excited!"}'
+```
 
-# Debug issues
-"Why might this OpenClaw skill be failing?"
+### 6. Lighting Control (Port 8005)
+
+```bash
+# Port forward to local
+kubectl port-forward -n live svc/lighting-control 8005:8005
+
+# View logs
+kubectl logs -f -n live deployment/lighting-control
+```
+
+### 7. Safety Filter (Port 8006)
+
+```bash
+# Port forward to local
+kubectl port-forward -n live svc/safety-filter 8006:8006
+
+# Test safety check
+curl -X POST http://localhost:8006/v1/check \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Test content for safety check"}'
+```
+
+### 8. Operator Console (Port 8007)
+
+```bash
+# Port forward to local
+kubectl port-forward -n live svc/operator-console 8007:8007
+
+# Access web interface
+open http://localhost:8007
 ```
 
 ---
@@ -670,152 +496,122 @@ Claude Code can help you understand and work with OpenClaw:
 
 ### Common Issues and Solutions
 
+#### k3s Issues
+
+**Problem: k3s won't start**
+
+```bash
+# Check k3s status
+sudo systemctl status k3s
+
+# View logs
+journalctl -u k3s -n 50
+
+# Restart k3s
+sudo systemctl restart k3s
+```
+
+**Problem: Pods stuck in Pending state**
+
+```bash
+# Check pod status
+kubectl get pods -A
+
+# Describe pod to see why
+kubectl describe pod <pod-name> -n <namespace>
+
+# Common issues:
+# - ImagePullBackOff: Check registry is accessible
+# - Insufficient resources: Check CPU/memory available
+```
+
+**Problem: ImagePullBackOff errors**
+
+The k3s nodes cannot pull from localhost:30500 without manual configuration. Two options:
+
+**Option 1: Configure k3s for insecure registry** (requires sudo):
+
+```bash
+sudo mkdir -p /etc/rancher/k3s/
+cat <<EOF | sudo tee /etc/rancher/k3s/registries.yaml
+mirrors:
+  "localhost:30500":
+    endpoint:
+      - "http://localhost:30500"
+EOF
+
+sudo systemctl restart k3s
+```
+
+**Option 2: Load images directly into k3s**:
+
+```bash
+# Save image from Docker
+docker save localhost:30500/project-chimera/<service>:latest -o <service>.tar
+
+# Load into k3s
+sudo k3s ctr images import <service>.tar
+
+# Clean up
+rm <service>.tar
+```
+
 #### Docker Issues
 
-**Problem: Docker Desktop not starting**
+**Problem: Docker daemon not running**
 
-```
-Error: Cannot connect to Docker daemon
-```
+```bash
+# Start Docker
+sudo systemctl start docker
 
-*Solution:*
-- Ensure Docker Desktop is running (check system tray/menu bar)
-- Restart Docker Desktop
-- On Windows, ensure WSL2 is enabled:
-  ```powershell
-  wsl --install
-  ```
+# Enable on boot
+sudo systemctl enable docker
+
+# Check status
+sudo systemctl status docker
+```
 
 **Problem: Port already in use**
 
-```
-Error: port is already allocated
-```
-
-*Solution:*
 ```bash
 # Find what's using the port
-# macOS/Linux
-lsof -i :8080
+sudo lsof -i :<port>
 
-# Windows
-netstat -ano | findstr :8080
+# Kill port-forwards
+pkill -f "port-forward"
 
-# Kill the process or change the port in docker-compose.yml
+# Or kill specific process
+kill <PID>
 ```
 
-**Problem: Out of disk space**
+#### Pod Issues
 
-```
-Error: no space left on device
-```
+**Problem: Pod keeps restarting**
 
-*Solution:*
 ```bash
-# Clean up Docker resources
-docker system prune -a
+# View logs
+kubectl logs -f -n live deployment/<deployment-name>
 
-# Remove unused volumes
-docker volume prune
+# View previous container logs
+kubectl logs -f -n live deployment/<deployment-name> --previous
 
-# Check disk usage
-docker system df
+# Common issues:
+# - Application crashes
+# - Missing environment variables
+# - Failed health checks
 ```
 
-#### Python Issues
+**Problem: Cannot connect to service**
 
-**Problem: Module not found**
-
-```
-ModuleNotFoundError: No module named 'xxx'
-```
-
-*Solution:*
 ```bash
-# Ensure you're using the virtual environment
-source venv/bin/activate  # macOS/Linux
-venv\Scripts\activate     # Windows
+# Verify service exists
+kubectl get svc -n live
 
-# Reinstall dependencies
-pip install -r requirements-dev.txt
-```
+# Port forward to local
+kubectl port-forward -n live svc/<service-name> <local-port>:<service-port>
 
-**Problem: Python version mismatch**
-
-```
-Error: Python 3.11+ required
-```
-
-*Solution:*
-```bash
-# Check version
-python --version
-
-# If outdated, install Python 3.11+
-# Use pyenv (macOS/Linux) or download (Windows)
-```
-
-#### Connection Issues
-
-**Problem: Cannot connect to OpenClaw**
-
-```
-Error: Connection refused to localhost:8080
-```
-
-*Solution:*
-```bash
-# Check if container is running
-docker compose -f docker-compose.local.yml ps
-
-# Restart the container
-docker compose -f docker-compose.local.yml restart openclaw
-
-# Check logs
-docker compose -f docker-compose.local.yml logs openclaw
-```
-
-**Problem: Remote connection timeout**
-
-```
-Error: Connection timed out
-```
-
-*Solution:*
-- Verify VPN is connected
-- Check if your IP is whitelisted (contact Technical Lead)
-- Verify credentials are correct
-- Try SSH connection first to verify network access
-
-#### Performance Issues
-
-**Problem: Tests running slowly**
-
-*Solution:*
-```bash
-# Run only affected tests
-pytest tests/unit/test_specific_file.py
-
-# Run tests in parallel
-pytest -n auto tests/unit/
-
-# Skip slow tests
-pytest -m "not slow" tests/
-```
-
-**Problem: Docker container using too much memory**
-
-*Solution:*
-```bash
-# Check container resource usage
-docker stats
-
-# Limit memory in docker-compose
-# Add to service definition:
-deploy:
-  resources:
-    limits:
-      memory: 2G
+# Test connection
+curl http://localhost:<local-port>/health
 ```
 
 ### Verification Checklist
@@ -823,30 +619,27 @@ deploy:
 If something isn't working, run through this checklist:
 
 ```bash
-# 1. Docker is running
+# 1. k3s is running
+sudo systemctl status k3s
+kubectl get nodes
+
+# 2. All namespaces exist
+kubectl get namespaces
+
+# 3. All pods are running
+make bootstrap-status
+
+# 4. Services are accessible
+kubectl get svc -A
+
+# 5. Docker is running
 docker info
 
-# 2. All containers are healthy
-docker compose -f docker-compose.local.yml ps
+# 6. Tests pass
+make test-unit
 
-# 3. Environment variables are set
-env | grep CHIMERA
-
-# 4. Python environment is active
-which python
-pip list
-
-# 5. Tests pass
-pytest tests/unit/ -q
-
-# 6. Can connect to OpenClaw
-curl http://localhost:8080/health
-
-# 7. Can connect to Redis
-redis-cli ping
-
-# 8. Can connect to Kafka
-kafka-topics.sh --list --bootstrap-server localhost:9092
+# 7. Can access Grafana
+curl http://localhost:3000
 ```
 
 ### Getting Help
@@ -856,13 +649,13 @@ If you're stuck:
 1. **Check the documentation:**
    - This guide
    - `/docs/` folder in the repository
-   - Code comments and docstrings
+   - `/docs/runbooks/bootstrap-setup.md`
+   - `/docs/plans/IMPLEMENTATION_DOCUMENTATION.md`
 
 2. **Search existing issues:**
    - GitHub Issues: https://github.com/project-chimera/main/issues
 
 3. **Ask in the team chat:**
-   - Slack: #project-chimera-dev
    - Tag: @technical-lead for urgent issues
 
 4. **Create a new issue:**
@@ -884,15 +677,15 @@ def generate_dialogue(
 ) -> dict:
     """
     Generate dialogue for the current scene.
-    
+
     Args:
         scene_context: Dictionary containing scene state and history
         sentiment: Current sentiment value (-1.0 to 1.0)
         max_tokens: Maximum tokens to generate
-        
+
     Returns:
         Dictionary with 'lines' and 'metadata' keys
-        
+
     Raises:
         ModelTimeoutError: If generation exceeds timeout
     """
@@ -905,10 +698,10 @@ def generate_dialogue(
 Follow conventional commit format:
 
 ```
-feat: add BSL translation caching
+feat(scenespeak): add dialogue caching
 
-Implements a caching layer for BSL translations to reduce
-latency for repeated phrases. Cache uses Redis with 5-minute TTL.
+Implements a caching layer for SceneSpeak dialogue to reduce
+latency for repeated context. Cache uses Redis with 5-minute TTL.
 
 Closes #123
 ```
@@ -941,13 +734,14 @@ def test_safety_filter_handles_unicode_profanity():
 
 After completing this setup:
 
-1. **Read the Architecture Overview:**
-   - `/docs/architecture/overview.md`
-   - Understanding the system helps you contribute effectively
+1. **Read the Implementation Documentation:**
+   - `/docs/plans/IMPLEMENTATION_DOCUMENTATION.md`
+   - Understanding how the scaffold was built helps you contribute effectively
 
-2. **Pick a Starter Task:**
-   - Look for "good first issue" labels in GitHub
-   - These are specifically chosen for new contributors
+2. **Explore Your Assigned Component:**
+   - Review the service/skill code
+   - Read the component's README.md
+   - Understand the configuration
 
 3. **Join Team Meetings:**
    - Daily standup: [time]
@@ -955,51 +749,62 @@ After completing this setup:
    - Ask for calendar invite
 
 4. **Introduce Yourself:**
-   - Post in #project-chimera-introductions
    - Share your interests and what you want to work on
+   - Ask questions about your assigned component
 
-5. **Ask Questions:**
-   - No question is too basic
-   - We all started somewhere
-   - Asking questions helps improve documentation
+5. **Start Contributing:**
+   - Look for issues in your component area
+   - Start with documentation or test improvements
+   - Propose new features for your component
 
 ---
 
 ## Quick Reference
 
-### Essential Commands
+### Essential Make Commands
 
 | Task | Command |
 |------|---------|
-| Start local stack | `docker compose -f docker-compose.local.yml up -d` |
-| Stop local stack | `docker compose -f docker-compose.local.yml down` |
-| View logs | `docker compose -f docker-compose.local.yml logs -f` |
-| Run tests | `pytest tests/unit/` |
-| Format code | `black . && isort .` |
-| Lint | `ruff check .` |
-| Build container | `docker build -t chimera/service-name services/service-name/` |
+| Bootstrap setup | `make bootstrap` |
+| Check status | `make bootstrap-status` |
+| Clean destroy | `make bootstrap-destroy` |
+| Run tests | `make test` |
+| Format code | `make format` |
+| Lint | `make lint` |
+| Port forward OpenClaw | `make run-openclaw` |
+| Port forward SceneSpeak | `make run-scenespeak` |
+| View logs | `make logs` |
+| View all logs | `make logs-all` |
 
-### Important URLs
+### Service URLs (after port-forward)
 
-| Service | Local URL | Remote URL |
-|---------|-----------|------------|
-| OpenClaw API | http://localhost:8080 | https://chimera-api.university.ac.uk |
-| Grafana | http://localhost:3000 | https://chimera-grafana.university.ac.uk |
-| Prometheus | http://localhost:9090 | https://chimera-prometheus.university.ac.uk |
+| Service | Local Port | Description |
+|---------|-----------|-------------|
+| OpenClaw | 8000 | Orchestrator API |
+| SceneSpeak | 8001 | Dialogue generation |
+| Captioning | 8002 | Speech-to-text |
+| BSL-Text2Gloss | 8003 | BSL translation |
+| Sentiment | 8004 | Sentiment analysis |
+| Lighting | 8005 | DMX/sACN control |
+| Safety Filter | 8006 | Content moderation |
+| Operator Console | 8007 | Oversight UI |
+| Grafana | 3000 | Monitoring dashboards |
+| Prometheus | 9090 | Metrics |
+| Jaeger | 16686 | Distributed tracing |
 
 ### Useful Files
 
 | File | Purpose |
 |------|---------|
-| `.env.example` | Environment template |
-| `docker-compose.local.yml` | Local stack definition |
-| `docker-compose.remote.yml` | Remote connection stack |
-| `requirements-dev.txt` | Python dependencies |
-| `pyproject.toml` | Project configuration |
-| `scripts/verify-local-setup.sh` | Installation verification |
+| `Student_Quick_Start.md` | This file |
+| `Makefile` | Build automation |
+| `docs/runbooks/bootstrap-setup.md` | Bootstrap guide |
+| `docs/plans/IMPLEMENTATION_DOCUMENTATION.md` | Implementation details |
+| `scripts/bootstrap/` | Bootstrap scripts |
+| `infrastructure/kubernetes/base/` | Kubernetes manifests |
 
 ---
 
 *Welcome to Project Chimera! We're excited to have you on the team.*
 
-*Questions? Reach out in Slack or contact the Technical Lead directly.*
+*Questions? Reach out to your Technical Lead or check the documentation.*

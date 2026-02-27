@@ -24,66 +24,59 @@ Project Chimera is a student-run Dynamic Performance Hub that uses AI to generat
 
 ### Prerequisites
 
+- Linux (Ubuntu 22.04 recommended)
 - Python 3.10 or later
-- Docker and Docker Compose
-- Kubernetes cluster (k3s recommended for local)
-- NVIDIA GPU (for OpenClaw and SceneSpeak)
+- Docker
+- kubectl
+- NVIDIA GPU (optional, for OpenClaw and SceneSpeak)
 
-### Local Development
+### Automated Setup (Recommended)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/project-chimera/project-chimera.git
-   cd project-chimera
-   ```
+The bootstrap process automates the complete setup of Project Chimera on a local k3s cluster:
 
-2. **Install dependencies**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements-dev.txt
-   ```
+```bash
+git clone https://github.com/project-chimera/project-chimera.git
+cd project-chimera
+make bootstrap
+```
 
-3. **Configure environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+**This will:**
+1. Install k3s (lightweight Kubernetes)
+2. Set up local container registry
+3. Build all 8 service Docker images
+4. Deploy infrastructure (Redis, Kafka, Milvus)
+5. Deploy monitoring (Prometheus, Grafana, Jaeger)
+6. Deploy all AI agents
 
-4. **Start local development stack**
-   ```bash
-   docker-compose -f docker-compose.local.yml up -d
-   ```
+**Expected runtime:** 15-20 minutes
 
-5. **Run tests**
-   ```bash
-   make test
-   ```
+For detailed setup instructions, see [Student Quick Start Guide](Student_Quick_Start.md).
 
-### Kubernetes Deployment
+### Manual Setup
 
-1. **Build Docker images**
-   ```bash
-   make build-all
-   ```
+See [Bootstrap Setup Guide](docs/runbooks/bootstrap-setup.md) for manual setup steps.
 
-2. **Deploy to Kubernetes**
-   ```bash
-   kubectl apply -k infrastructure/kubernetes/overlays/dev
-   ```
+### Check Status
 
-3. **Check deployment status**
-   ```bash
-   kubectl get pods -n live
-   kubectl get pods -n shared
-   ```
+```bash
+make bootstrap-status
+```
 
 ## Documentation
 
-- [Technical Requirements](docs/trd/TRD_Project_Chimera.md)
+### For Students
+
+- [Student Quick Start Guide](Student_Quick_Start.md) - Setup your development environment
+- [Student Role Assignments](docs/STUDENT_ROLES.md) - Component ownership details
+
+### Technical Documentation
+
+- [Technical Requirements](TRD_Project_Chimera.md)
+- [Implementation Documentation](docs/plans/IMPLEMENTATION_DOCUMENTATION.md) - How the scaffold was built
 - [Architecture Decisions](docs/architecture/)
 - [API Documentation](docs/api/)
 - [Operational Runbooks](docs/runbooks/)
+- [Backlog](Backlog_Project_Chimera.md)
 
 ## Project Structure
 
