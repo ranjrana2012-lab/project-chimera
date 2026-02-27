@@ -1,16 +1,20 @@
-# SceneSpeak Agent Requirements
+# FastAPI
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
 
-fastapi>=0.109.0
-uvicorn[standard]>=0.27.0
-pydantic>=2.5.0
-pydantic-settings>=2.1.0
-redis>=5.0.0
-python-dotenv>=1.0.0
-prometheus-client>=0.19.0
-pyyaml>=6.0.0
+# ML
+torch==2.1.0
+transformers==4.35.0
+bitsandbytes==0.41.0
+accelerate==0.24.0
 
-# AI/ML (for actual implementation)
-# torch>=2.1.0
-# transformers>=4.36.0
-# accelerate>=0.25.0
-# bitsandbytes>=0.41.0
+# Redis
+redis==5.0.1
+
+# Kafka
+aiokafka==0.9.0
+
+# Monitoring
+prometheus-client==0.19.0
