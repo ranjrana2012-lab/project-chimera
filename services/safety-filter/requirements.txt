@@ -23,7 +23,10 @@ pyyaml>=6.0.0,<7.0.0
 # Observability
 prometheus-client>=0.19.0,<0.21.0
 
-# Content Moderation (for actual implementation)
-# transformers>=4.36.0
-# torch>=2.1.0
-# detoxify>=0.5.0
+# ML/Transformers for content safety
+transformers>=4.36.0,<5.0.0
+torch>=2.1.0,<3.0.0
+numpy>=1.24.0,<2.0.0
+
+# Optional: Advanced content moderation libraries
+# detoxify>=0.5.0  # Uncomment for production use
