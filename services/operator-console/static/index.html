@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Chimera - Operator Console</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0a0e27;
+            color: #e0e6ed;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1f3a 0%, #0d1117 100%);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #21262d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: #58a6ff;
+        }
+
+        .header .status {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .system-mode {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .mode-automatic {
+            background: #238636;
+            color: #3fb950;
+        }
+
+        .mode-manual {
+            background: #8a4af3;
+            color: #a371f7;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 1rem;
+            padding: 1rem;
+            height: calc(100vh - 70px);
+        }
+
+        .panel {
+            background: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: #21262d;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        /* Service Status Panel */
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #21262d;
+        }
+
+        .service-item:last-child {
+            border-bottom: none;
+        }
+
+        .service-name {
+            font-weight: 500;
+        }
+
+        .service-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .status-healthy {
+            background: #238636;
+            color: #3fb950;
+        }
+
+        .status-degraded {
+            background: #9e6a03;
+            color: #d29922;
+        }
+
+        .status-offline {
+            background: #8b0c0c;
+            color: #f85149;
+        }
+
+        /* Event Stream */
+        .event-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #21262d;
+            font-size: 0.875rem;
+        }
+
+        .event-item:hover {
+            background: #1c2128;
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .event-type {
+            font-weight: 600;
+            color: #58a6ff;
+        }
+
+        .event-time {
+            color: #8b949e;
+            font-size: 0.75rem;
+        }
+
+        .event-message {
+            color: #c9d1d9;
+        }
+
+        .event-error {
+            border-left: 3px solid #f85149;
+        }
+
+        .event-warning {
+            border-left: 3px solid #d29922;
+        }
+
+        .event-info {
+            border-left: 3px solid #58a6ff;
+        }
+
+        /* Approval Panel */
+        .approval-item {
+            padding: 1rem;
+            border: 1px solid #21262d;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .approval-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .approval-service {
+            font-weight: 600;
+            color: #58a6ff;
+        }
+
+        .approval-priority {
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .priority-high {
+            background: #8b0c0c;
+            color: #f85149;
+        }
+
+        .priority-normal {
+            background: #21262d;
+            color: #8b949e;
+        }
+
+        .approval-content {
+            background: #0d1117;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+            font-size: 0.875rem;
+        }
+
+        .approval-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-approve {
+            background: #238636;
+            color: #3fb950;
+        }
+
+        .btn-approve:hover {
+            background: #2ea043;
+        }
+
+        .btn-reject {
+            background: #8b0c0c;
+            color: #f85149;
+        }
+
+        .btn-reject:hover {
+            background: #da3633;
+        }
+
+        .btn-stop {
+            background: #8b0c0c;
+            color: #f85149;
+            padding: 1rem;
+            font-size: 1rem;
+        }
+
+        .btn-stop:hover {
+            background: #da3633;
+        }
+
+        /* Override Panel */
+        .override-section {
+            padding: 1rem;
+        }
+
+        .override-form {
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            color: #8b949e;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 4px;
+            color: #c9d1d9;
+            font-size: 0.875rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        /* Active Overrides */
+        .active-override {
+            background: #1c2128;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .override-info h4 {
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .override-info p {
+            font-size: 0.75rem;
+            color: #8b949e;
+        }
+
+        .btn-release {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            background: #21262d;
+            color: #8b949e;
+        }
+
+        .btn-release:hover {
+            background: #30363d;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .stat-item {
+            background: #0d1117;
+            padding: 0.75rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #58a6ff;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #8b949e;
+        }
+
+        /* Connection status */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .connected {
+            background: #3fb950;
+        }
+
+        .disconnected {
+            background: #f85149;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #8b949e;
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Project Chimera - Operator Console</h1>
+        <div class="status">
+            <div class="connection-status">
+                <div class="status-dot" id="connectionDot"></div>
+                <span id="connectionStatus">Connecting...</span>
+            </div>
+            <div class="system-mode mode-automatic" id="systemMode">AUTOMATIC</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Left Panel: Services & Overrides -->
+        <div class="panel">
+            <div class="panel-header">Service Status</div>
+            <div class="panel-content">
+                <div id="serviceList"></div>
+            </div>
+        </div>
+
+        <!-- Center Panel: Event Stream -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>Event Stream</span>
+                <span class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="eventCount">0</div>
+                        <div class="stat-label">Events</div>
+                    </div>
+                </span>
+            </div>
+            <div class="panel-content">
+                <div id="eventStream"></div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Approvals & Controls -->
+        <div class="panel">
+            <div class="panel-header">Pending Approvals</div>
+            <div class="panel-content" id="approvalPanel">
+                <div class="empty-state">
+                    <div class="stat-item">
+                        <div class="stat-value" id="pendingCount">0</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Override Panel (separate) -->
+    <div class="panel" style="position: fixed; bottom: 1rem; right: 1rem; width: 300px; max-height: 400px;">
+        <div class="panel-header">Manual Overrides</div>
+        <div class="panel-content">
+            <div id="activeOverrides"></div>
+            <div class="override-section">
+                <div class="form-group">
+                    <label>Override Type</label>
+                    <select id="overrideType">
+                        <option value="emergency_stop">Emergency Stop</option>
+                        <option value="service_pause">Pause Service</option>
+                        <option value="generation_skip">Skip Generation</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Target Service</label>
+                    <select id="targetService">
+                        <option value="all">All Services</option>
+                        <option value="script-agent">Script Agent</option>
+                        <option value="lighting-agent">Lighting Agent</option>
+                        <option value="audio-agent">Audio Agent</option>
+                        <option value="stage-manager">Stage Manager</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <textarea id="overrideReason" placeholder="Reason for override..."></textarea>
+                </div>
+                <button class="btn btn-stop" onclick="triggerOverride()">EMERGENCY STOP ALL</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = window.location.origin;
+        const WS_URL = `ws://${window.location.host}/v1/events/stream`;
+
+        // State
+        let ws = null;
+        let reconnectTimer = null;
+        let pendingApprovals = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            connectWebSocket();
+            fetchInitialData();
+            setInterval(fetchStatus, 5000);
+            setInterval(fetchApprovals, 3000);
+        });
+
+        // WebSocket connection
+        function connectWebSocket() {
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                updateConnectionStatus(true);
+                if (reconnectTimer) {
+                    clearTimeout(reconnectTimer);
+                    reconnectTimer = null;
+                }
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'keepalive') return;
+                addEventToStream(data);
+            };
+
+            ws.onclose = () => {
+                updateConnectionStatus(false);
+                reconnectTimer = setTimeout(connectWebSocket, 5000);
+            };
+
+            ws.onerror = () => {
+                updateConnectionStatus(false);
+            };
+        }
+
+        function updateConnectionStatus(connected) {
+            const dot = document.getElementById('connectionDot');
+            const status = document.getElementById('connectionStatus');
+            dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+            status.textContent = connected ? 'Connected' : 'Disconnected';
+        }
+
+        // Fetch initial data
+        async function fetchInitialData() {
+            try {
+                const [statusRes, eventsRes] = await Promise.all([
+                    fetch(`${API_BASE}/v1/console/status`),
+                    fetch(`${API_BASE}/v1/events/recent?limit=50`)
+                ]);
+
+                const status = await statusRes.json();
+                const events = await eventsRes.json();
+
+                updateServiceStatus(status.services);
+                updateSystemMode(status.system_mode);
+                events.events.forEach(addEventToStream);
+            } catch (error) {
+                console.error('Error fetching initial data:', error);
+            }
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/v1/console/status`);
+                const status = await res.json();
+                updateServiceStatus(status.services);
+                updateSystemMode(status.system_mode);
+                updateActiveOverrides(status.active_overrides);
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        }
+
+        async function fetchApprovals() {
+            try {
+                const res = await fetch(`${API_BASE}/v1/approvals/pending`);
+                const data = await res.json();
+                updateApprovals(data.requests);
+            } catch (error) {
+                console.error('Error fetching approvals:', error);
+            }
+        }
+
+        // Update functions
+        function updateServiceStatus(services) {
+            const container = document.getElementById('serviceList');
+            container.innerHTML = Object.entries(services).map(([name, svc]) => `
+                <div class="service-item">
+                    <span class="service-name">${name}</span>
+                    <span class="service-status status-${svc.status}">${svc.status}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateSystemMode(mode) {
+            const el = document.getElementById('systemMode');
+            el.textContent = mode.toUpperCase();
+            el.className = 'system-mode mode-' + mode;
+        }
+
+        function updateActiveOverrides(overrides) {
+            const container = document.getElementById('activeOverrides');
+            if (!overrides.length) {
+                container.innerHTML = '<p style="color: #8b949e; text-align: center; padding: 1rem;">No active overrides</p>';
+                return;
+            }
+            container.innerHTML = overrides.map(id => `
+                <div class="active-override">
+                    <div class="override-info">
+                        <h4>${id}</h4>
+                        <p>Active</p>
+                    </div>
+                    <button class="btn btn-release" onclick="releaseOverride('${id}')">Release</button>
+                </div>
+            `).join('');
+        }
+
+        function updateApprovals(approvals) {
+            pendingApprovals = approvals;
+            document.getElementById('pendingCount').textContent = approvals.length;
+
+            const container = document.getElementById('approvalPanel');
+            if (!approvals.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="stat-item">
+                            <div class="stat-value" id="pendingCount">0</div>
+                            <div class="stat-label">Pending Approvals</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = approvals.map(approval => `
+                <div class="approval-item">
+                    <div class="approval-header">
+                        <span class="approval-service">${approval.source_service}</span>
+                        <span class="approval-priority priority-${approval.priority}">${approval.priority}</span>
+                    </div>
+                    <div class="approval-content">${approval.content_preview}</div>
+                    <div class="approval-actions">
+                        <button class="btn btn-approve" onclick="approveRequest('${approval.request_id}')">Approve</button>
+                        <button class="btn btn-reject" onclick="rejectRequest('${approval.request_id}')">Reject</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addEventToStream(event) {
+            const container = document.getElementById('eventStream');
+            const severityClass = 'event-' + event.severity;
+
+            const eventEl = document.createElement('div');
+            eventEl.className = `event-item ${severityClass}`;
+            eventEl.innerHTML = `
+                <div class="event-header">
+                    <span class="event-type">${event.event_type}</span>
+                    <span class="event-time">${new Date(event.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div class="event-message">${event.message}</div>
+            `;
+
+            container.insertBefore(eventEl, container.firstChild);
+
+            // Limit events in DOM
+            while (container.children.length > 100) {
+                container.removeChild(container.lastChild);
+            }
+
+            document.getElementById('eventCount').textContent = container.children.length;
+        }
+
+        // Actions
+        async function approveRequest(requestId) {
+            try {
+                await fetch(`${API_BASE}/v1/approvals/approve?request_id=${requestId}&approved_by=operator`, {
+                    method: 'POST'
+                });
+                fetchApprovals();
+            } catch (error) {
+                console.error('Error approving request:', error);
+            }
+        }
+
+        async function rejectRequest(requestId) {
+            const reason = prompt('Reason for rejection:');
+            if (!reason) return;
+
+            try {
+                await fetch(`${API_BASE}/v1/approvals/reject?request_id=${requestId}&rejected_by=operator&reason=${encodeURIComponent(reason)}`, {
+                    method: 'POST'
+                });
+                fetchApprovals();
+            } catch (error) {
+                console.error('Error rejecting request:', error);
+            }
+        }
+
+        async function triggerOverride() {
+            const type = document.getElementById('overrideType').value;
+            const target = document.getElementById('targetService').value;
+            const reason = document.getElementById('overrideReason').value || 'Manual override';
+
+            if (!confirm(`Trigger ${type} on ${target}?`)) return;
+
+            try {
+                await fetch(`${API_BASE}/v1/console/trigger-override`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        override_type: type,
+                        target_service: target,
+                        reason: reason
+                    })
+                });
+                fetchStatus();
+            } catch (error) {
+                console.error('Error triggering override:', error);
+            }
+        }
+
+        async function releaseOverride(overrideId) {
+            try {
+                await fetch(`${API_BASE}/v1/console/release-override/${overrideId}?operator=console`, {
+                    method: 'POST'
+                });
+                fetchStatus();
+            } catch (error) {
+                console.error('Error releasing override:', error);
+            }
+        }
+    </script>
+</body>
+</html>
