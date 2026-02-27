@@ -1,22 +1,19 @@
-"""Health check routes"""
-
+"""Health check routes."""
 from fastapi import APIRouter
+import time
 
-router = APIRouter()
+router = APIRouter(tags=["health"])
+_start_time = time.time()
 
 
-@router.get("")
 @router.get("/live")
 async def liveness():
-    """Liveness probe."""
-    return {"status": "healthy"}
+    """Liveness probe - returns OK if service is alive."""
+    return "OK"
 
 
 @router.get("/ready")
 async def readiness():
-    """Readiness probe."""
-    from ....main import handler
-    if handler:
-        health = await handler.health_check()
-        return health
-    return {"status": "initializing"}
+    """Readiness probe - returns ready status and uptime."""
+    uptime = time.time() - _start_time
+    return {"ready": True, "uptime": uptime}
