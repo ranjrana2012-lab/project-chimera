@@ -29,7 +29,7 @@ spec:
       priorityClassName: high-priority
       containers:
       - name: scenespeak-agent
-        image: ghcr.io/project-chimera/scenespeak-agent:latest
+        image: localhost:30500/project-chimera/scenespeak-agent:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8001

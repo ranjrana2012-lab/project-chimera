@@ -22,7 +22,7 @@ spec:
       priorityClassName: medium-priority
       containers:
       - name: lighting-control
-        image: ghcr.io/project-chimera/lighting-control:latest
+        image: localhost:30500/project-chimera/lighting-control:latest
         ports:
         - containerPort: 8005
         env:

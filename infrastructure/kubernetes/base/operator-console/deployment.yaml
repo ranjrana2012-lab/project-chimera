@@ -22,7 +22,7 @@ spec:
       priorityClassName: medium-priority
       containers:
       - name: operator-console
-        image: ghcr.io/project-chimera/operator-console:latest
+        image: localhost:30500/project-chimera/operator-console:latest
         ports:
         - containerPort: 8007
         resources:

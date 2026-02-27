@@ -22,7 +22,7 @@ spec:
       priorityClassName: high-priority
       containers:
       - name: safety-filter
-        image: ghcr.io/project-chimera/safety-filter:latest
+        image: localhost:30500/project-chimera/safety-filter:latest
         ports:
         - containerPort: 8006
         env:

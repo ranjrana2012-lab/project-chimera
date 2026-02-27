@@ -22,7 +22,7 @@ spec:
       priorityClassName: high-priority
       containers:
       - name: captioning-agent
-        image: ghcr.io/project-chimera/captioning-agent:latest
+        image: localhost:30500/project-chimera/captioning-agent:latest
         ports:
         - containerPort: 8002
         env:

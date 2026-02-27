@@ -30,7 +30,7 @@ spec:
       serviceAccountName: openclaw-orchestrator
       containers:
       - name: openclaw-orchestrator
-        image: ghcr.io/project-chimera/openclaw-orchestrator:latest
+        image: localhost:30500/project-chimera/openclaw-orchestrator:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
