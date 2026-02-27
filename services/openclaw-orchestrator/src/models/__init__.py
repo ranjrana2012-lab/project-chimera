@@ -13,6 +13,10 @@ from .responses import (
     SkillMetadata,
     PipelineStatus,
 )
+from .skill import (
+    Skill,
+    SkillHealth,
+)
 
 __all__ = [
     "SkillInvokeRequest",
@@ -24,4 +28,6 @@ __all__ = [
     "SkillListResponse",
     "SkillMetadata",
     "PipelineStatus",
+    "Skill",
+    "SkillHealth",
 ]

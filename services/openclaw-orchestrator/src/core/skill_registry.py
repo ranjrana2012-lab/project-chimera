@@ -1,153 +1,85 @@
-"""Skill Registry for OpenClaw Orchestrator"""
-
+"""Skill registry for loading and managing skills."""
 import asyncio
-import time
+import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+import aiohttp
+from kubernetes import client, config
+from kubernetes.client.rest import ApiException
+from datetime import datetime
 
-import httpx
-import yaml
-
-from ..config import Settings
-from ..models.responses import SkillMetadata
+from ..models.skill import Skill, SkillHealth
 
 
 class SkillRegistry:
-    """Registry for managing OpenClaw skills."""
+    """Manages skill registration and health monitoring."""
 
-    def __init__(self, skills_path: Path):
-        self.skills_path = skills_path
-        self._skills: Dict[str, SkillMetadata] = {}
-        self._load_time: Optional[datetime] = None
-        self._cache: Dict[str, tuple[Any, float]] = {}
-        self.is_loaded = False
+    def __init__(self, config_path: str = "/app/configs/skills"):
+        self.config_path = Path(config_path)
+        self.skills: Dict[str, Skill] = {}
+        self.health: Dict[str, SkillHealth] = {}
+        self._load_config()
 
-    async def load_skills(self) -> None:
-        """Load all skills from the skills directory."""
-        skill_dirs = [d for d in self.skills_path.iterdir() if d.is_dir()]
+    def _load_config(self) -> None:
+        """Load skill configurations from ConfigMaps."""
+        try:
+            config.load_kube_config()
+            api = client.CoreV1Api()
 
-        for skill_dir in skill_dirs:
-            skill_file = skill_dir / "skill.yaml"
-            if skill_file.exists():
-                try:
-                    skill_data = yaml.safe_load(skill_file.read_text())
-                    metadata = self._parse_skill_metadata(skill_data, skill_dir)
-                    self._skills[metadata.name] = metadata
-                except Exception as e:
-                    print(f"Failed to load skill from {skill_dir}: {e}")
+            # Get ConfigMaps in current namespace
+            namespace = open("/var/run/secrets/kubernetes.io/serviceaccount/namespace").read().strip()
+            configmaps = api.list_namespaced_config_map(
+                namespace=namespace,
+                label_selector="project-chimera.io/component=skill"
+            )
 
-        self.is_loaded = True
-        self._load_time = datetime.now()
-        print(f"Loaded {len(self._skills)} skills from {self.skills_path}")
+            for cm in configmaps.items:
+                skill_name = cm.metadata.name.replace("-skill-config", "")
+                skill_data = json.loads(cm.data["skill.json"])
+                self.skills[skill_name] = Skill(**skill_data)
 
-    def _parse_skill_metadata(
-        self, skill_data: Dict, skill_dir: Path
-    ) -> SkillMetadata:
-        """Parse skill metadata from skill.yaml."""
-        meta = skill_data["metadata"]
-        spec = skill_data["spec"]
+        except Exception as e:
+            # Fallback to local files
+            if self.config_path.exists():
+                for skill_file in self.config_path.glob("*.json"):
+                    with open(skill_file) as f:
+                        skill_data = json.load(f)
+                        skill = Skill(**skill_data)
+                        self.skills[skill.name] = skill
 
-        return SkillMetadata(
-            name=meta["name"],
-            version=meta["version"],
-            description=spec.get("description", ""),
-            category=spec.get("category", "general"),
-            enabled=spec.get("enabled", True),
-            timeout_ms=spec.get("timeout", 3000),
-            cache_enabled=spec["config"].get("caching", {}).get("enabled", False),
-            cache_ttl_seconds=spec["config"].get("caching", {}).get("ttl", 300),
-            inputs=spec.get("inputs", []),
-            outputs=spec.get("outputs", []),
-            tags=spec.get("tags", []),
-        )
+    def get_skill(self, name: str) -> Optional[Skill]:
+        """Get a skill by name."""
+        return self.skills.get(name)
 
-    async def list_skills(
-        self,
-        category: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        enabled_only: bool = True,
-    ) -> List[SkillMetadata]:
-        """List available skills with optional filtering."""
-        skills = list(self._skills.values())
+    def list_skills(self) -> List[Skill]:
+        """List all registered skills."""
+        return list(self.skills.values())
 
-        if category:
-            skills = [s for s in skills if s.category == category]
+    def get_healthy_skills(self) -> List[Skill]:
+        """Get all healthy skills."""
+        return [
+            skill for skill in self.skills.values()
+            if self.health.get(skill.name, SkillHealth(name=skill.name, healthy=False, last_check="")).healthy
+        ]
 
-        if tags:
-            skills = [
-                s for s in skills if any(tag in s.tags for tag in tags)
-            ]
-
-        if enabled_only:
-            skills = [s for s in skills if s.enabled]
-
-        return skills
-
-    async def get_skill(self, skill_name: str) -> SkillMetadata:
-        """Get metadata for a specific skill."""
-        if skill_name not in self._skills:
-            raise ValueError(f"Skill not found: {skill_name}")
-        return self._skills[skill_name]
-
-    async def enable_skill(self, skill_name: str) -> None:
-        """Enable a skill."""
-        if skill_name not in self._skills:
-            raise ValueError(f"Skill not found: {skill_name}")
-        self._skills[skill_name].enabled = True
-
-    async def disable_skill(self, skill_name: str) -> None:
-        """Disable a skill."""
-        if skill_name not in self._skills:
-            raise ValueError(f"Skill not found: {skill_name}")
-        self._skills[skill_name].enabled = False
-
-    async def reload_skills(self) -> None:
-        """Reload all skills from disk."""
-        self._skills.clear()
-        await self.load_skills()
-
-    async def list_categories(self) -> List[str]:
-        """List all skill categories."""
-        categories = set(s.category for s in self._skills.values())
-        return sorted(categories)
-
-    def get_cache_key(self, skill_name: str, input_data: Dict[str, Any]) -> str:
-        """Generate a cache key for skill invocation."""
-        import hashlib
-        import json
-
-        key_str = f"{skill_name}:{json.dumps(input_data, sort_keys=True)}"
-        return hashlib.sha256(key_str.encode()).hexdigest()
-
-    async def get_cached_result(self, cache_key: str) -> Optional[Any]:
-        """Get cached result if available and not expired."""
-        if cache_key in self._cache:
-            result, expiry = self._cache[cache_key]
-            if time.time() < expiry:
-                return result
-            else:
-                del self._cache[cache_key]
-        return None
-
-    async def cache_result(
-        self, cache_key: str, result: Any, ttl_seconds: int
-    ) -> None:
-        """Cache a result with TTL."""
-        expiry = time.time() + ttl_seconds
-        self._cache[cache_key] = (result, expiry)
-
-    async def invalidate_cache(self, skill_name: Optional[str] = None) -> None:
-        """Invalidate cache for a skill or all skills."""
-        if skill_name:
-            keys_to_delete = [
-                k for k in self._cache.keys() if k.startswith(f"{skill_name}:")
-            ]
-            for key in keys_to_delete:
-                del self._cache[key]
-        else:
-            self._cache.clear()
-
-    async def close(self) -> None:
-        """Clean up resources."""
-        self._cache.clear()
+    async def check_health(self, session: aiohttp.ClientSession) -> None:
+        """Check health of all skills."""
+        for skill in self.skills.values():
+            try:
+                async with session.get(
+                    f"{skill.endpoint}/health/ready",
+                    timeout=aiohttp.ClientTimeout(total=5)
+                ) as response:
+                    is_healthy = response.status == 200
+                    self.health[skill.name] = SkillHealth(
+                        name=skill.name,
+                        healthy=is_healthy,
+                        last_check=datetime.utcnow().isoformat()
+                    )
+            except Exception as e:
+                self.health[skill.name] = SkillHealth(
+                    name=skill.name,
+                    healthy=False,
+                    last_check=datetime.utcnow().isoformat(),
+                    error_message=str(e)
+                )
