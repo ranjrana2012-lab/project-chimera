@@ -38,6 +38,23 @@ def test_config() -> dict:
         "redis_db": int(os.getenv("TEST_REDIS_DB", "15")),  # Use DB 15 for tests
         "kafka_bootstrap_servers": os.getenv("TEST_KAFKA_SERVERS", "localhost:9092"),
         "kafka_consumer_group": "test-consumer-group",
+        # Service endpoints for integration tests
+        "openclaw_host": os.getenv("OPENCLAW_HOST", "localhost"),
+        "openclaw_port": int(os.getenv("OPENCLAW_PORT", "8000")),
+        "sentiment_host": os.getenv("SENTIMENT_HOST", "localhost"),
+        "sentiment_port": int(os.getenv("SENTIMENT_PORT", "8001")),
+        "scenespeak_host": os.getenv("SCENESPEAK_HOST", "localhost"),
+        "scenespeak_port": int(os.getenv("SCENESPEAK_PORT", "8002")),
+        "safety_host": os.getenv("SAFETY_HOST", "localhost"),
+        "safety_port": int(os.getenv("SAFETY_PORT", "8003")),
+        "captioning_host": os.getenv("CAPTIONING_HOST", "localhost"),
+        "captioning_port": int(os.getenv("CAPTIONING_PORT", "8004")),
+        "bsl_host": os.getenv("BSL_HOST", "localhost"),
+        "bsl_port": int(os.getenv("BSL_PORT", "8005")),
+        "lighting_host": os.getenv("LIGHTING_HOST", "localhost"),
+        "lighting_port": int(os.getenv("LIGHTING_PORT", "8006")),
+        "console_host": os.getenv("CONSOLE_HOST", "localhost"),
+        "console_port": int(os.getenv("CONSOLE_PORT", "8007")),
     }
 
 
