@@ -1,0 +1,29 @@
+# Safety Filter Requirements
+# Python 3.10+
+
+# Web Framework
+fastapi>=0.109.0,<0.110.0
+uvicorn[standard]>=0.27.0,<0.28.0
+python-multipart>=0.0.6,<0.1.0
+
+# Data Validation
+pydantic>=2.5.0,<3.0.0
+pydantic-settings>=2.1.0,<3.0.0
+
+# Storage
+redis>=5.0.0,<6.0.0
+
+# HTTP Client
+httpx>=0.26.0,<0.27.0
+
+# Configuration
+python-dotenv>=1.0.0,<2.0.0
+pyyaml>=6.0.0,<7.0.0
+
+# Observability
+prometheus-client>=0.19.0,<0.21.0
+
+# Content Moderation (for actual implementation)
+# transformers>=4.36.0
+# torch>=2.1.0
+# detoxify>=0.5.0
