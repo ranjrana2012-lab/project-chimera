@@ -1,15 +1,27 @@
 # Project Chimera
 
-> An AI-powered live theatre platform that creates performances adapting in real-time to audience input.
+> An AI-powered live theatre platform creating performances that adapt in real-time to audience input.
 
-**Version:** 0.1.0
-**Status:** Alpha Development
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Status](https://img.shields.io/badge/status-alpha-orange)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/python-3.10+-blue)
 
 ## Overview
 
-Project Chimera is a student-run Dynamic Performance Hub that uses AI to generate live theatre experiences. The system combines multiple AI agents with stage automation to create responsive, audience-driven performances.
+Project Chimera is an open-source, student-run Dynamic Performance Hub that uses AI to generate live theatre experiences. The system combines multiple AI agents with stage automation to create responsive, audience-driven performances for universities and theatre companies worldwide.
 
-### Key Components
+### What Makes Project Chimera Unique?
+
+- **Real-Time Adaptation** - Performances change based on audience sentiment and input
+- **Multi-Agent AI** - Specialized agents for dialogue, captioning, translation, and more
+- **Safety First** - Multi-layer content moderation with human oversight
+- **Accessible** - Built-in captioning and British Sign Language translation
+- **Open Source** - Free for universities and educational institutions
+
+## Key Components
+
+### AI Agents
 
 - **OpenClaw Orchestrator** - Central control plane coordinating all agents
 - **SceneSpeak Agent** - Real-time dialogue generation using local LLMs
@@ -20,15 +32,25 @@ Project Chimera is a student-run Dynamic Performance Hub that uses AI to generat
 - **Safety Filter** - Multi-layer content moderation
 - **Operator Console** - Human oversight and approval interface
 
+### Technology Stack
+
+- **Framework:** FastAPI (Python 3.10+)
+- **Orchestration:** Kubernetes (k3s)
+- **Messaging:** Apache Kafka
+- **Caching:** Redis
+- **Vector DB:** Milvus
+- **Monitoring:** Prometheus + Grafana + Jaeger
+- **AI/ML:** PyTorch, Transformers, OpenAI Whisper
+
 ## Quick Start
 
 ### Prerequisites
 
-- Linux (Ubuntu 22.04 recommended)
+- Linux (Ubuntu 22.04 recommended) or macOS
 - Python 3.10 or later
 - Docker
 - kubectl
-- NVIDIA GPU (optional, for OpenClaw and SceneSpeak)
+- NVIDIA GPU (optional, for full AI features)
 
 ### Automated Setup (Recommended)
 
@@ -50,11 +72,9 @@ make bootstrap
 
 **Expected runtime:** 15-20 minutes
 
-For detailed setup instructions, see [Student Quick Start Guide](Student_Quick_Start.md).
-
 ### Manual Setup
 
-See [Bootstrap Setup Guide](docs/runbooks/bootstrap-setup.md) for manual setup steps.
+For manual setup or custom configurations, see the [Deployment Guide](docs/DEPLOYMENT.md).
 
 ### Check Status
 
@@ -64,31 +84,60 @@ make bootstrap-status
 
 ## Documentation
 
-### For Students
+### For Students and Developers
 
 - [Student Quick Start Guide](Student_Quick_Start.md) - Setup your development environment
 - [Student Role Assignments](docs/STUDENT_ROLES.md) - Component ownership details
+- [Development Guide](docs/DEVELOPMENT.md) - Development workflow and coding standards
 
 ### Technical Documentation
 
-- [Technical Requirements](TRD_Project_Chimera.md)
-- [Implementation Documentation](docs/plans/IMPLEMENTATION_DOCUMENTATION.md) - How the scaffold was built
-- [Architecture Decisions](docs/architecture/)
-- [API Documentation](docs/api/)
-- [Operational Runbooks](docs/runbooks/)
-- [Backlog](Backlog_Project_Chimera.md)
+- [Architecture Overview](docs/ARCHITECTURE.md) - System architecture and design
+- [API Documentation](docs/API.md) - Complete API reference for all services
+- [Deployment Guide](docs/DEPLOYMENT.md) - Deployment scenarios and procedures
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
+
+### Operational Documentation
+
+- [Monitoring Runbook](docs/runbooks/monitoring.md) - Monitoring and alerting setup
+- [Incident Response](docs/runbooks/incident-response.md) - Handling incidents
+- [Deployment Runbook](docs/runbooks/deployment.md) - Deployment procedures
+
+### Reference
+
+- [Technical Requirements](TRD_Project_Chimera.md) - Full technical specification
+- [Implementation Documentation](docs/plans/IMPLEMENTATION_DOCUMENTATION.md) - Build details
+- [Project Backlog](Backlog_Project_Chimera.md) - Outstanding work and features
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Operator Console                         │
+│                    (Human Oversight)                         │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────────┐
+│                  OpenClaw Orchestrator                      │
+│              (Central Control Plane)                        │
+└─────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┘
+      │       │       │       │       │       │       │
+      ▼       ▼       ▼       ▼       ▼       ▼       ▼
+  SceneSpeak Captioning  BSL  Sentiment Lighting Safety  Operator
+    Agent     Agent    Agent   Agent  Control Filter  Console
+```
 
 ## Project Structure
 
 ```
 project-chimera/
 ├── infrastructure/    # Kubernetes manifests and infrastructure
-├── services/         # Microservices
+├── services/         # Microservices (8 agents)
 ├── skills/           # OpenClaw skill definitions
 ├── models/           # Prompts, LoRA adapters, evaluation
 ├── configs/          # Policies, retention, alerts
 ├── scripts/          # Setup, operations, training
-├── tests/            # Test suite
+├── tests/            # Test suite (unit, integration, load)
 └── docs/             # Documentation
 ```
 
@@ -118,9 +167,36 @@ make build-all      # Build all service images
 make build-service SERVICE=scenespeak-agent  # Build specific service
 ```
 
+## Use Cases
+
+Project Chimera is designed for:
+
+- **University Theatre Programs** - Educational AI theatre projects
+- **Experimental Theatre** - Innovative performance experiences
+- **Interactive Installations** - Audience-driven installations
+- **Research Projects** - AI and creativity research
+
+## Safety and Ethics
+
+Project Chimera includes multiple safety layers:
+
+1. **Input Validation** - All inputs validated at API boundaries
+2. **Content Filtering** - Word-based + ML-based filtering
+3. **Human Oversight** - Operator approval for critical actions
+4. **Audit Logging** - All actions logged for review
+5. **Accessibility** - Built-in captioning and BSL translation
+
 ## Contributing
 
-This is a student project. Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
+We welcome contributions from students, researchers, and theatre professionals!
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Community
+
+- **GitHub:** https://github.com/project-chimera/project-chimera
+- **Issues:** https://github.com/project-chimera/project-chimera/issues
+- **Discussions:** https://github.com/project-chimera/project-chimera/discussions
 
 ## License
 
@@ -128,12 +204,45 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Team
 
-- Technical Lead
-- AI/ML Specialist
-- Infrastructure Engineer
-- Frontend Developer
-- QA/Accessibility Specialist
+Project Chimera is maintained by university students and faculty:
+
+- **Technical Lead** - Architecture and technical direction
+- **AI/ML Specialist** - Machine learning and model training
+- **Infrastructure Engineer** - Kubernetes and deployment
+- **Frontend Developer** - User interfaces and experiences
+- **QA/Accessibility Specialist** - Quality and accessibility
+
+## Acknowledgments
+
+Project Chimera is built on open-source technologies and would not be possible without:
+
+- FastAPI and the Python ecosystem
+- Kubernetes and k3s
+- The open-source AI/ML community
+- University theatre programs worldwide
+
+## Roadmap
+
+### v0.1.0 (Current - Alpha)
+
+- Core AI agents implemented
+- Basic orchestration and safety
+- Local deployment support
+
+### v0.2.0 (Planned)
+
+- Enhanced dialogue models
+- Multi-scene support
+- Improved accessibility features
+
+### v1.0.0 (Future)
+
+- Production-ready deployment
+- Cloud deployment guides
+- Comprehensive documentation
 
 ---
 
-**Project Chimera** © 2026 University Technical Theatre Team
+**Project Chimera** - An AI-powered live theatre platform for universities worldwide.
+
+For questions, support, or to get involved, please [open an issue](https://github.com/project-chimera/project-chimera/issues) or [start a discussion](https://github.com/project-chimera/project-chimera/discussions).
