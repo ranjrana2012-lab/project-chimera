@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 from .context_builder import ContextBuilder
 from .prompt_composer import PromptComposer
 from .inference_engine import InferenceEngine
-from .cache.redis_cache import RedisCache
+from .caches.redis_cache import RedisCache
 from ..config import Settings
 
 
