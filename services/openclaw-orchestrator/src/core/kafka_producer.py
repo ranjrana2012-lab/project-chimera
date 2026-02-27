@@ -1,7 +1,7 @@
 """Kafka event producer."""
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 from aiokafka import AIOKafkaProducer
 import asyncio
@@ -13,7 +13,6 @@ class KafkaProducer:
     def __init__(self, bootstrap_servers: str):
         self.bootstrap_servers = bootstrap_servers
         self.producer = None
-        self._loop = asyncio.get_event_loop()
 
     async def start(self):
         """Start the producer."""
@@ -41,7 +40,7 @@ class KafkaProducer:
             "event_id": str(uuid.uuid4()),
             "event_type": event_type,
             "event_version": "1.0.0",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "source_service": source_service,
             "data": data
         }

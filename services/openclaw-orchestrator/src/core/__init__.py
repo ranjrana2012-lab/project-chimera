@@ -8,6 +8,7 @@ from .metrics import metrics_registry
 from .router import Router
 from .gpu_scheduler import GPUScheduler
 from .kafka_producer import KafkaProducer
+from .kafka_consumer import KafkaConsumer
 from .policy_engine import PolicyEngine
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "Router",
     "GPUScheduler",
     "KafkaProducer",
+    "KafkaConsumer",
     "PolicyEngine",
 ]
