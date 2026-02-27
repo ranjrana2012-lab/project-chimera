@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: safety-filter-monitor
+  namespace: shared
+  labels:
+    app: prometheus
+    project: project-chimera
+    component: safety-filter
+spec:
+  selector:
+    matchLabels:
+      app: safety-filter
+  namespaceSelector:
+    matchNames:
+      - live
+  endpoints:
+  - port: http
+    targetPort: 8006
+    path: /metrics
+    interval: 15s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_label_app]
+      targetLabel: service
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'safety_.*'
+      action: keep

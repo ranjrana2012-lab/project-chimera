@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: captioning-monitor
+  namespace: shared
+  labels:
+    app: prometheus
+    project: project-chimera
+    component: captioning
+spec:
+  selector:
+    matchLabels:
+      app: captioning-agent
+  namespaceSelector:
+    matchNames:
+      - live
+  endpoints:
+  - port: http
+    targetPort: 8002
+    path: /metrics
+    interval: 15s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_label_app]
+      targetLabel: service
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'captioning_.*'
+      action: keep

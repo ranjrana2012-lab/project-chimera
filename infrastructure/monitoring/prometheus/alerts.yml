@@ -1,0 +1,407 @@
+# Prometheus Alert Rules for Project Chimera
+# These rules define alert conditions for all platform services
+
+groups:
+  # General Platform Alerts
+  - name: platform_alerts
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: |
+          (
+            sum(rate(container_cpu_usage_seconds_total{namespace=~"live|shared|preprod"}[5m])) by (namespace)
+            /
+            sum(kube_pod_container_resource_limits{resource="cpu", namespace=~"live|shared|preprod"}) by (namespace)
+          ) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: platform
+        annotations:
+          summary: "High CPU usage in namespace {{ $labels.namespace }}"
+          description: "Namespace {{ $labels.namespace }} is using more than 80% of allocated CPU for 10 minutes"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            sum(container_memory_working_set_bytes{namespace=~"live|shared|preprod"}) by (namespace)
+            /
+            sum(kube_pod_container_resource_limits{resource="memory", namespace=~"live|shared|preprod"}) by (namespace)
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: platform
+        annotations:
+          summary: "High memory usage in namespace {{ $labels.namespace }}"
+          description: "Namespace {{ $labels.namespace }} is using more than 85% of allocated memory for 10 minutes"
+
+      - alert: PodNotReady
+        expr: |
+          sum by (namespace, pod) (kube_pod_status_phase{namespace=~"live|shared|preprod", phase!="Running"})
+          > 0
+        for: 5m
+        labels:
+          severity: critical
+          component: kubernetes
+        annotations:
+          summary: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is not ready"
+          description: "Pod {{ $labels.pod }} has been in a non-running state for over 5 minutes"
+
+  # SceneSpeak Service Alerts
+  - name: scenespeak_alerts
+    interval: 30s
+    rules:
+      - alert: SceneSpeakHighErrorRate
+        expr: |
+          (
+            sum(rate(scenespeak_requests_total{status="error"}[5m]))
+            /
+            sum(rate(scenespeak_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: scenespeak
+        annotations:
+          summary: "SceneSpeak high error rate"
+          description: "SceneSpeak is experiencing error rate above 5% for 5 minutes"
+
+      - alert: SceneSpeakHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(scenespeak_request_duration_seconds_bucket[5m])) by (le)
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          component: scenespeak
+        annotations:
+          summary: "SceneSpeak high latency"
+          description: "SceneSpeak p95 latency is above 2 seconds for 10 minutes"
+
+      - alert: SceneSpeakCacheHitRateLow
+        expr: |
+          (
+            sum(rate(scenespeak_cache_hits_total[5m]))
+            /
+            (sum(rate(scenespeak_cache_hits_total[5m])) + sum(rate(scenespeak_cache_misses_total[5m])))
+          ) < 0.7
+        for: 15m
+        labels:
+          severity: warning
+          component: scenespeak
+        annotations:
+          summary: "SceneSpeak low cache hit rate"
+          description: "SceneSpeak cache hit rate is below 70% for 15 minutes"
+
+  # Captioning Service Alerts
+  - name: captioning_alerts
+    interval: 30s
+    rules:
+      - alert: CaptioningHighErrorRate
+        expr: |
+          (
+            sum(rate(captioning_requests_total{status="error"}[5m]))
+            /
+            sum(rate(captioning_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: captioning
+        annotations:
+          summary: "Captioning service high error rate"
+          description: "Captioning service is experiencing error rate above 5% for 5 minutes"
+
+      - alert: CaptioningProcessingDelay
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(captioning_processing_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          component: captioning
+        annotations:
+          summary: "Captioning processing delay"
+          description: "Captioning p95 processing time is above 1 second for 10 minutes"
+
+  # BSL Text2Gloss Service Alerts
+  - name: bsl_text2gloss_alerts
+    interval: 30s
+    rules:
+      - alert: BSLTranslationHighErrorRate
+        expr: |
+          (
+            sum(rate(bsl_text2gloss_requests_total{status="error"}[5m]))
+            /
+            sum(rate(bsl_text2gloss_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: bsl-text2gloss
+        annotations:
+          summary: "BSL Text2Gloss high error rate"
+          description: "BSL Text2Gloss service is experiencing error rate above 5% for 5 minutes"
+
+      - alert: BSLTranslationSlow
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(bsl_text2gloss_translation_duration_seconds_bucket[5m])) by (le)
+          ) > 3
+        for: 10m
+        labels:
+          severity: warning
+          component: bsl-text2gloss
+        annotations:
+          summary: "BSL translation slow"
+          description: "BSL Text2Gloss p95 translation time is above 3 seconds for 10 minutes"
+
+  # Sentiment Service Alerts
+  - name: sentiment_alerts
+    interval: 30s
+    rules:
+      - alert: SentimentAnalysisHighErrorRate
+        expr: |
+          (
+            sum(rate(sentiment_requests_total{status="error"}[5m]))
+            /
+            sum(rate(sentiment_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: sentiment
+        annotations:
+          summary: "Sentiment analysis high error rate"
+          description: "Sentiment service is experiencing error rate above 5% for 5 minutes"
+
+      - alert: SentimentAnalysisBacklog
+        expr: |
+          sentiment_queue_size > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: sentiment
+        annotations:
+          summary: "Sentiment analysis backlog"
+          description: "Sentiment queue has more than 100 items for 5 minutes"
+
+  # Safety Filter Service Alerts
+  - name: safety_filter_alerts
+    interval: 30s
+    rules:
+      - alert: SafetyFilterHighRejectionRate
+        expr: |
+          (
+            sum(rate(safety_filter_rejections_total[5m]))
+            /
+            sum(rate(safety_filter_requests_total[5m]))
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: safety-filter
+        annotations:
+          summary: "Safety filter high rejection rate"
+          description: "Safety filter is rejecting more than 50% of content for 10 minutes - possible policy misconfiguration"
+
+  # Lighting Control Service Alerts
+  - name: lighting_control_alerts
+    interval: 30s
+    rules:
+      - alert: LightingControlUnresponsive
+        expr: |
+          up{job="chimera-live-services", app="lighting-control"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: lighting-control
+        annotations:
+          summary: "Lighting control service unresponsive"
+          description: "Lighting control service has been down for 2 minutes"
+
+      - alert: LightingCommandFailure
+        expr: |
+          (
+            sum(rate(lighting_commands_failed_total[5m]))
+            /
+            sum(rate(lighting_commands_total[5m]))
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: lighting-control
+        annotations:
+          summary: "Lighting command failures"
+          description: "More than 10% of lighting commands are failing for 5 minutes"
+
+  # OpenClaw Service Alerts
+  - name: openclaw_alerts
+    interval: 30s
+    rules:
+      - alert: OpenClawGPUNotAvailable
+        expr: |
+          openclaw_gpu_available == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: openclaw
+        annotations:
+          summary: "OpenClaw GPU not available"
+          description: "OpenClaw has no available GPU resources for 1 minute"
+
+      - alert: OpenClawQueueFull
+        expr: |
+          (
+            openclaw_queue_size
+            /
+            openclaw_queue_capacity
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: openclaw
+        annotations:
+          summary: "OpenClaw queue nearly full"
+          description: "OpenClaw inference queue is above 90% capacity for 5 minutes"
+
+  # Redis Alerts
+  - name: redis_alerts
+    interval: 30s
+    rules:
+      - alert: RedisHighMemoryUsage
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis is using more than 90% of allocated memory"
+
+      - alert: RedisHighConnectionCount
+        expr: |
+          redis_connected_clients > 1000
+        for: 10m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis high connection count"
+          description: "Redis has more than 1000 active connections"
+
+      - alert: RedisReplicationLag
+        expr: |
+          redis_replication_lag_seconds > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis replication lag"
+          description: "Redis replication lag is above 30 seconds"
+
+  # Kafka Alerts
+  - name: kafka_alerts
+    interval: 30s
+    rules:
+      - alert: KafkaConsumerLag
+        expr: |
+          kafka_consumergroup_lag{topic=~"dialogue-events|caption-events|sentiment-events"} > 1000
+        for: 10m
+        labels:
+          severity: warning
+          component: kafka
+        annotations:
+          summary: "Kafka consumer lag"
+          description: "Consumer group {{ $labels.consumergroup }} has lag of {{ $value }} messages on topic {{ $labels.topic }}"
+
+      - alert: KafkaOfflinePartitions
+        expr: |
+          kafka_topic_partitions{state="offline"} > 0
+        for: 5m
+        labels:
+          severity: critical
+          component: kafka
+        annotations:
+          summary: "Kafka offline partitions"
+          description: "Topic {{ $labels.topic }} has offline partitions"
+
+  # Vector DB Alerts
+  - name: vector_db_alerts
+    interval: 30s
+    rules:
+      - alert: VectorDBHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(vector_db_query_duration_seconds_bucket[5m])) by (le)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: vector-db
+        annotations:
+          summary: "Vector DB high latency"
+          description: "Vector DB p95 query latency is above 500ms for 10 minutes"
+
+      - alert: VectorDBConnectionFailure
+        expr: |
+          up{job="chimera-shared-services", app="vector-db"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: vector-db
+        annotations:
+          summary: "Vector DB connection failure"
+          description: "Vector DB service has been unreachable for 2 minutes"
+
+  # Live Production Alerts
+  - name: live_production_alerts
+    interval: 30s
+    rules:
+      - alert: LiveServiceDown
+        expr: |
+          up{job="chimera-live-services"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: live-production
+        annotations:
+          summary: "Live service down"
+          description: "Service {{ $labels.service }} in live namespace is down"
+
+      - alert: MultipleLiveServicesDown
+        expr: |
+          count(up{job="chimera-live-services"} == 0) >= 2
+        for: 1m
+        labels:
+          severity: critical
+          component: live-production
+        annotations:
+          summary: "Multiple live services down"
+          description: "{{ $value }} or more services in the live namespace are down - this may affect production performance"
+
+      - alert: LiveShowDegraded
+        expr: |
+          (
+            sum(rate(scenespeak_requests_total{status="error"}[5m]))
+            +
+            sum(rate(captioning_requests_total{status="error"}[5m]))
+            +
+            sum(rate(lighting_commands_failed_total[5m]))
+          ) > 10
+        for: 2m
+        labels:
+          severity: critical
+          component: live-production
+        annotations:
+          summary: "Live show performance degraded"
+          description: "Multiple critical services are experiencing high error rates during a live show"

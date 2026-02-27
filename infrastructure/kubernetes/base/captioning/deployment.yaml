@@ -18,6 +18,7 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8002"
+        prometheus.io/path: "/metrics"
     spec:
       priorityClassName: high-priority
       containers:

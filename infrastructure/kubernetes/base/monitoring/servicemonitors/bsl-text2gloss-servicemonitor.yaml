@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bsl-text2gloss-monitor
+  namespace: shared
+  labels:
+    app: prometheus
+    project: project-chimera
+    component: bsl-text2gloss
+spec:
+  selector:
+    matchLabels:
+      app: bsl-text2gloss-agent
+  namespaceSelector:
+    matchNames:
+      - live
+  endpoints:
+  - port: http
+    targetPort: 8003
+    path: /metrics
+    interval: 15s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_label_app]
+      targetLabel: service
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'bsl_text2gloss_.*'
+      action: keep

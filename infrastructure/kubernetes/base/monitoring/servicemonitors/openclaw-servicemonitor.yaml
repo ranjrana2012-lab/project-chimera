@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: openclaw-monitor
+  namespace: shared
+  labels:
+    app: prometheus
+    project: project-chimera
+    component: openclaw
+spec:
+  selector:
+    matchLabels:
+      app: openclaw-orchestrator
+  namespaceSelector:
+    matchNames:
+      - live
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 10s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_label_app]
+      targetLabel: service
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'openclaw_.*'
+      action: keep

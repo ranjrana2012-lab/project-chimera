@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sentiment-monitor
+  namespace: shared
+  labels:
+    app: prometheus
+    project: project-chimera
+    component: sentiment
+spec:
+  selector:
+    matchLabels:
+      app: sentiment-agent
+  namespaceSelector:
+    matchNames:
+      - live
+  endpoints:
+  - port: http
+    targetPort: 8004
+    path: /metrics
+    interval: 10s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_label_app]
+      targetLabel: service
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'sentiment_.*'
+      action: keep

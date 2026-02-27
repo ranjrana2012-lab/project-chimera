@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: lighting-control-monitor
+  namespace: shared
+  labels:
+    app: prometheus
+    project: project-chimera
+    component: lighting-control
+spec:
+  selector:
+    matchLabels:
+      app: lighting-control
+  namespaceSelector:
+    matchNames:
+      - live
+  endpoints:
+  - port: http
+    targetPort: 8005
+    path: /metrics
+    interval: 10s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_label_app]
+      targetLabel: service
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'lighting_.*'
+      action: keep

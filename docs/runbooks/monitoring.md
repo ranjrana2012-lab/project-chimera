@@ -1,119 +1,142 @@
-# Monitoring Runbook
+# Project Chimera - Monitoring Runbook
 
-This runbook covers monitoring and alerting for Project Chimera.
+This runbook provides comprehensive guidance for monitoring, troubleshooting, and maintaining the Project Chimera platform.
 
-## Key Metrics
+## Table of Contents
 
-### Service Health
+- [Overview](#overview)
+- [Monitoring Stack](#monitoring-stack)
+- [Key Metrics](#key-metrics)
+- [Dashboards](#dashboards)
+- [Common Issues and Resolutions](#common-issues-and-resolutions)
+- [Maintenance Procedures](#maintenance-procedures)
 
-| Metric | Description | Threshold |
-|--------|-------------|----------|
-| SceneSpeak latency | Dialogue generation p95 | < 2000ms |
-| Safety block rate | Blocked content ratio | < 10% |
-| GPU utilization | GPU usage percentage | < 90% |
-| Cache hit rate | Skill cache effectiveness | > 50% |
+## Overview
 
-### Viewing Metrics
+Project Chimera uses a comprehensive monitoring stack consisting of:
 
-**Grafana Dashboards:**
-```
-http://grafana.shared.svc.cluster.local:3000
-```
+- **Prometheus**: Metrics collection and alerting
+- **Grafana**: Visualization dashboards
+- **Jaeger**: Distributed tracing
+- **Service-specific metrics**: Each service exposes Prometheus-compatible metrics
 
-**Prometheus Queries:**
-```bash
-# Access Prometheus
-kubectl port-forward -n shared svc/prometheus 9090:9090
+## Monitoring Stack
 
-# Query in browser or CLI
-curl 'http://localhost:9090/api/v1/query?query=up{job="scenespeak-agent"}'
-```
+### Prometheus
 
-## Health Checks
+**Access**: `http://prometheus.shared.svc.cluster.local:9090`
 
-### Check All Services
+Prometheus scrapes metrics from all services every 15 seconds and stores them for 30 days.
 
-```bash
-#!/bin/bash
-for service in openclaw-orchestrator scenespeak-agent captioning-agent \
-              bsl-text2gloss-agent sentiment-agent lighting-control \
-              safety-filter operator-console; do
-    echo "Checking $service..."
-    kubectl exec -n live $service-0 -- curl -s http://localhost:8000/health/live
-done
-```
+#### Key Prometheus Queries
 
-### Check GPU Status
+```promql
+# Overall service health
+up{job="chimera-live-services"}
 
-```bash
-for pod in scenespeak-agent openclaw-orchestrator; do
-    echo "GPU status for $pod:"
-    kubectl exec -n live $pod-0 -- nvidia-smi
-    echo ""
-done
+# Request rate by service
+sum(rate(scenespeak_requests_total[5m])) by (service)
+
+# Error rate
+sum(rate(scenespeak_requests_total{status="error"}[5m])) /
+sum(rate(scenespeak_requests_total[5m]))
+
+# P95 latency
+histogram_quantile(0.95, sum(rate(scenespeak_request_duration_seconds_bucket[5m])) by (le))
 ```
 
-## Alert Investigation
+### Grafana
 
-### High Latency Alert
+**Access**: `http://grafana.shared.svc.cluster.local:3000`
 
-1. **Identify the service:** Check alert labels
-2. **Check correlation:** Are other services also slow?
-3. **Check dependencies:** Is Redis/Kafka responding?
-4. **Check GPU:** Is GPU memory full?
-5. **Check cache:** Is cache working?
+Default credentials (change in production):
+- Username: `admin`
+- Password: `chimera-admin-change-me`
 
-### High Memory Usage
+#### Available Dashboards
 
-```bash
-# Check memory usage
-kubectl top pods -n live --containers=true | sort -k6
+1. **Project Chimera - Services Overview** (`chimera-services`)
+   - Request rates across all services
+   - Error rates
+   - Latency percentiles
+   - Cache hit rates
+   - Resource utilization
 
-# Check for memory leaks
-kubectl logs -n live <pod> --previous | grep -i memory
-```
+2. **Project Chimera - SceneSpeak** (`chimera-scenespeak`)
+   - Dialogue generation metrics
+   - Token processing rates
+   - Model-specific performance
+   - Cache utilization
 
-### High Safety Block Rate
+3. **Project Chimera - Sentiment Analysis** (`chimera-sentiment`)
+   - Audience sentiment trends
+   - Emotion distribution
+   - Queue metrics
+   - Processing latency
 
-This may indicate:
-1. Legitimate increase in problematic content
-2. Overly aggressive filtering rules
-3. Model generating borderline content
+### Jaeger
 
-Investigation steps:
-1. Review blocked content samples
-2. Check filter thresholds
-3. Update policies if needed
+**Access**: `http://jaeger.shared.svc.cluster.local:16686`
 
-## Distributed Tracing
+Jaeger provides distributed tracing for all service-to-service communication.
 
-**Jaeger UI:**
-```
-http://jaeger.shared.svc.cluster.local:16686
-```
+## Common Issues and Resolutions
 
-### Tracing a Request
+### High Error Rates
 
-1. Get trace ID from service response headers
-2. Search in Jaeger UI
-3. Analyze span timeline
-4. Identify bottlenecks
+#### SceneSpeak High Error Rate
 
-## Performance Tuning
+**Symptom**: Error rate > 5% for 5+ minutes
 
-### Adjust Cache TTL
+**Resolution**:
+1. Check model loading status: `kubectl logs -n live deployment/scenespeak-agent`
+2. Verify GPU availability: `kubectl describe nodes | grep nvidia.com/gpu`
+3. Test Redis connectivity: `kubectl exec -n live deployment/scenespeak-agent -- redis-cli -h redis.shared ping`
 
-Based on cache hit rate, adjust TTL values:
-- Low hit rate (< 30%): Increase TTL
-- High hit rate (> 70%): TTL may be too long
+### High Latency
 
-### Scale Services
+#### SceneSpeak P95 Latency > 2s
 
-```bash
-# Scale up a service
-kubectl scale deployment/scenespeak-agent --replicas=2 -n live
+**Resolution**:
+1. Check GPU memory: `nvidia-smi` on the node
+2. Review cache hit rate: should be > 70%
+3. Consider scaling replicas during high demand
 
-# Scale with HPA (if configured)
-kubectl autoscale deployment/scenespeak-agent \
-  --min=1 --max=3 --cpu-percent=70 -n live
-```
+### Queue Issues
+
+#### Sentiment Queue Backlog
+
+**Resolution**:
+1. Check worker pod status: `kubectl get pods -n live -l app=sentiment-agent`
+2. Scale horizontally: `kubectl scale deployment sentiment-agent -n live --replicas=2`
+
+## Emergency Procedures
+
+### Service Degradation During Live Show
+
+If services degrade during a live performance:
+
+1. Check Grafana for affected services
+2. Scale affected services
+3. Consider rollback if recent deployment
+4. Document all actions taken
+
+### Complete Service Outage
+
+If a service is completely down:
+
+1. Check cluster health
+2. Restart affected pods
+3. Scale to minimum viable capacity
+4. Investigate root cause
+
+## Access and Credentials
+
+| Service | Username | Password | Change Required |
+|---------|----------|----------|-----------------|
+| Grafana | admin | chimera-admin-change-me | Yes |
+
+---
+
+**Last Updated**: 2026-02-27
+**Version**: 1.0

@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: vector-db-monitor
+  namespace: shared
+  labels:
+    app: prometheus
+    project: project-chimera
+    component: vector-db
+spec:
+  selector:
+    matchLabels:
+      app: vector-db
+  namespaceSelector:
+    matchNames:
+      - shared
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_label_app]
+      targetLabel: service
