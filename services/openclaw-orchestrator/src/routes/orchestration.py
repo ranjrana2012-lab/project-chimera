@@ -1,53 +1,50 @@
-"""Orchestration routes for OpenClaw Orchestrator"""
+"""Orchestration API routes."""
+from fastapi import APIRouter, HTTPException, Depends
+from prometheus_client import Counter, Histogram
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from ..models.request import OrchestrationRequest
+from ..models.response import OrchestrationResponse
+from ..core.router import Router
+from ..core.skill_registry import SkillRegistry
+from ..core.gpu_scheduler import GPUScheduler
 
-from ...models.requests import SkillInvokeRequest
-from ...models.responses import SkillInvokeResponse
-from ...core.orchestrator import Orchestrator
-from ...config import Settings
+router = APIRouter(prefix="/v1", tags=["orchestration"])
 
-router = APIRouter()
+# Metrics
+orchestration_counter = Counter(
+    'orchestration_requests_total',
+    'Total orchestration requests',
+    ['status']
+)
+orchestration_duration = Histogram(
+    'orchestration_duration_seconds',
+    'Orchestration duration'
+)
 
+# Dependencies (simplified for now)
+_router = None
 
-async def get_orchestrator() -> Orchestrator:
-    """Dependency to get orchestrator instance."""
-    from ....main import pipeline_executor
-    # Create orchestrator from pipeline executor
-    return Orchestrator(pipeline_executor=pipeline_executor)  # type: ignore
+async def get_router():
+    global _router
+    return _router
 
+@router.post("/orchestrate", response_model=OrchestrationResponse)
+async def orchestrate(
+    request: OrchestrationRequest,
+    router: Router = Depends(get_router)
+):
+    """Execute orchestration through specified skills."""
+    with orchestration_duration.time():
+        try:
+            response = await router.orchestrate(request)
 
-@router.post("/invoke", response_model=SkillInvokeResponse)
-async def invoke_skill(
-    request: SkillInvokeRequest,
-    orchestrator: Orchestrator = Depends(get_orchestrator)
-) -> SkillInvokeResponse:
-    """
-    Invoke a single skill.
+            if response.status.value == "success":
+                orchestration_counter.labels(status="success").inc()
+            else:
+                orchestration_counter.labels(status="error").inc()
 
-    This endpoint invokes a single skill with the provided input data.
-    The skill is executed and the result is returned.
-    """
-    try:
-        response = await orchestrator.invoke_skill(
-            skill_name=request.skill_name,
-            input_data=request.input,
-            config=request.config,
-            timeout_ms=request.timeout_ms,
-        )
-        return response
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Skill not found: {request.skill_name}"
-        )
-    except TimeoutError as e:
-        raise HTTPException(
-            status_code=status.HTTP_408_REQUEST_TIMEOUT,
-            detail=f"Skill invocation timed out: {request.skill_name}"
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Skill invocation failed: {str(e)}"
-        )
+            return response
+
+        except Exception as e:
+            orchestration_counter.labels(status="error").inc()
+            raise HTTPException(status_code=500, detail=str(e))
