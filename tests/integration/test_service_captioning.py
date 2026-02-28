@@ -16,7 +16,7 @@ class TestCaptioningHealth:
         response = http_client.get(f"{base_urls['captioning']}/health/live")
         assert response.status_code == 200
         data = response.json()
-        assert "status" in data
+        assert data["status"] == "ok"  # Verify actual status value
 
 
 @pytest.mark.requires_services
@@ -91,29 +91,23 @@ class TestCaptioningAPI:
 class TestCaptioningWebSocket:
     """Test Captioning Agent WebSocket streaming."""
 
-    def test_websocket_connection(self, base_urls):
+    @pytest.mark.asyncio
+    async def test_websocket_connection(self, base_urls):
         """Test WebSocket /api/v1/stream connection."""
-        async def connect_and_test():
-            uri = "ws://localhost:8002/api/v1/stream"
-            try:
-                async with websockets.connect(uri, close_timeout=5) as websocket:
-                    # Send a test request
-                    request = {
-                        "audio_data": "dGVzdCBhdWRpbyBkYXRh",  # base64 "test audio data"
-                        "language": "en"
-                    }
-                    await websocket.send(json.dumps(request))
+        # Use base_urls fixture for portability
+        uri = f"{base_urls['captioning'].replace('http', 'ws')}/api/v1/stream"
 
-                    # Receive response
-                    response = await websocket.recv()
-                    data = json.loads(response)
+        async with websockets.connect(uri, close_timeout=5) as websocket:
+            # Send streaming config
+            request = {
+                "audio_data": "dGVzdCBhdWRpbyBkYXRh",
+                "language": "en"
+            }
+            await websocket.send(json.dumps(request))
 
-                    # Verify response structure
-                    assert "text" in data or "error" in data
-                    return True
-            except Exception as e:
-                print(f"WebSocket test error: {e}")
-                return False
+            # Receive with timeout
+            response = await asyncio.wait_for(websocket.recv(), timeout=5)
+            data = json.loads(response)
 
-        result = asyncio.run(connect_and_test())
-        assert result, "WebSocket connection test failed"
+            # Verify response structure
+            assert "text" in data or "error" in data
