@@ -21,6 +21,7 @@ Welcome to the official documentation for Project Chimera, an AI-powered live th
 - [Architecture Overview](ARCHITECTURE.md) - System architecture and design
 - [API Documentation](API.md) - Complete API reference
 - [Technical Requirements](../TRD_Project_Chimera.md) - Full technical specification
+- [Quality Platform](quality-platform/README.md) - Testing infrastructure and quality gates
 
 ### Operational Guides
 
