@@ -145,7 +145,12 @@ project-chimera/
 ├── configs/          # Policies, retention, alerts
 ├── scripts/          # Setup, operations, training
 ├── tests/            # Test suite (unit, integration, load)
-└── docs/             # Documentation
+├── docs/             # Documentation
+├── platform/         # Chimera Quality Platform
+│   ├── orchestrator/ # Test orchestration
+│   ├── dashboard/    # Quality dashboards
+│   ├── ci_gateway/   # CI/CD integration
+│   └── shared/       # Shared utilities
 ```
 
 ## Development
