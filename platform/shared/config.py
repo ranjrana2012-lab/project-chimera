@@ -7,7 +7,9 @@ class Settings(BaseSettings):
     """Application settings with environment variable support."""
 
     # Database
-    database_url: str = "postgresql+asyncpg://user:pass@localhost/chimera_quality"
+    # Note: For production, set DATABASE_URL environment variable with proper credentials
+    # Format: postgresql+asyncpg://[user:password@]host[:port]/database
+    database_url: str = "postgresql+asyncpg://localhost/chimera_quality"
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"

@@ -57,3 +57,37 @@ def test_settings() -> Settings:
         max_workers=4,
         test_timeout_seconds=60
     )
+
+
+@pytest.fixture
+def redis_client(monkeypatch):
+    """Provide a mock Redis client for testing.
+
+    This fixture returns a mock Redis client that can be used in unit tests
+    without requiring an actual Redis instance to be running. The mock provides
+    basic Redis-like interface methods commonly used in the codebase.
+
+    For integration tests that require real Redis, use a separate fixture
+    or configure accordingly.
+    """
+    from unittest.mock import MagicMock, AsyncMock
+
+    # Create a mock Redis client
+    mock_redis = MagicMock()
+    mock_redis.get = AsyncMock(return_value=None)
+    mock_redis.set = AsyncMock(return_value=True)
+    mock_redis.delete = AsyncMock(return_value=1)
+    mock_redis.exists = AsyncMock(return_value=0)
+    mock_redis.expire = AsyncMock(return_value=True)
+    mock_redis.keys = AsyncMock(return_value=[])
+    mock_redis.ping = AsyncMock(return_value=True)
+    mock_redis.close = AsyncMock(return_value=None)
+
+    # Make it async context manager compatible
+    async def mock_context():
+        yield mock_redis
+
+    mock_redis.__aenter__ = AsyncMock(return_value=mock_redis)
+    mock_redis.__aexit__ = AsyncMock(return_value=None)
+
+    return mock_redis

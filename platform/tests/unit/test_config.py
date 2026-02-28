@@ -24,3 +24,6 @@ def test_settings_default_values():
     assert settings.test_timeout_seconds == 300
     assert settings.min_coverage_threshold == 95.0
     assert settings.max_mutation_survival == 2.0
+    assert settings.database_url == "postgresql+asyncpg://localhost/chimera_quality"
+    assert settings.redis_url == "redis://localhost:6379/0"
+    assert settings.dashboard_url == "http://localhost:8000"
