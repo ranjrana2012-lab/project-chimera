@@ -36,7 +36,7 @@ Project Chimera is divided into 10 focus areas. Each student will be assigned ow
 | 7 | Safety Filter Lead | `safety-filter` | Content moderation, guardrails |
 | 8 | Operator Console Lead | `operator-console` | Human oversight interface |
 | 9 | Infrastructure & DevOps Lead | `infrastructure/` | k3s, Kubernetes, monitoring |
-| 10 | QA & Documentation Lead | `tests/`, `docs/` | Testing, quality assurance |
+| 10 | QA & Documentation Lead | `tests/`, `docs/`, `platform/` | Testing, QA, Quality Platform |
 
 ---
 
