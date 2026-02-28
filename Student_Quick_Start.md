@@ -237,6 +237,14 @@ project-chimera/
 │   └── bootstrap/               # Bootstrap scripts
 ├── tests/                       # Test suites
 ├── docs/                        # Documentation
+├── platform/                    # Chimera Quality Platform
+│   ├── orchestrator/            # Test orchestration service
+│   ├── dashboard/               # Quality dashboard service
+│   ├── ci_gateway/              # CI/CD webhook gateway
+│   ├── shared/                  # Shared utilities and models
+│   ├── database/                # Database schema
+│   ├── testengines/             # Advanced test engines
+│   └── tests/                   # Platform tests
 └── Makefile                     # Build automation
 ```
 
