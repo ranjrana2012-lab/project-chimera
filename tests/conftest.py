@@ -5,17 +5,25 @@ Pytest configuration and shared fixtures for Project Chimera tests.
 import os
 import sys
 import asyncio
+import logging
 from pathlib import Path
 from typing import AsyncGenerator, Generator
 from unittest.mock import AsyncMock, MagicMock
 
+logger = logging.getLogger(__name__)
+
 import pytest
 import redis.asyncio as aioredis
 from httpx import AsyncClient, ASGITransport
-from pydantic import RedisDsn
 
 # Add services to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent / "services"))
+
+# Import K3sHelper with error handling
+try:
+    from fixtures.deployments import K3sHelper
+except ImportError:
+    K3sHelper = None
 
 
 @pytest.fixture(scope="session")
@@ -56,18 +64,18 @@ def test_config() -> dict:
         # Service endpoints for integration tests
         "openclaw_host": os.getenv("OPENCLAW_HOST", "localhost"),
         "openclaw_port": int(os.getenv("OPENCLAW_PORT", "8000")),
-        "sentiment_host": os.getenv("SENTIMENT_HOST", "localhost"),
-        "sentiment_port": int(os.getenv("SENTIMENT_PORT", "8001")),
         "scenespeak_host": os.getenv("SCENESPEAK_HOST", "localhost"),
-        "scenespeak_port": int(os.getenv("SCENESPEAK_PORT", "8002")),
-        "safety_host": os.getenv("SAFETY_HOST", "localhost"),
-        "safety_port": int(os.getenv("SAFETY_PORT", "8003")),
+        "scenespeak_port": int(os.getenv("SCENESPEAK_PORT", "8001")),
         "captioning_host": os.getenv("CAPTIONING_HOST", "localhost"),
-        "captioning_port": int(os.getenv("CAPTIONING_PORT", "8004")),
+        "captioning_port": int(os.getenv("CAPTIONING_PORT", "8002")),
         "bsl_host": os.getenv("BSL_HOST", "localhost"),
-        "bsl_port": int(os.getenv("BSL_PORT", "8005")),
+        "bsl_port": int(os.getenv("BSL_PORT", "8003")),
+        "sentiment_host": os.getenv("SENTIMENT_HOST", "localhost"),
+        "sentiment_port": int(os.getenv("SENTIMENT_PORT", "8004")),
         "lighting_host": os.getenv("LIGHTING_HOST", "localhost"),
-        "lighting_port": int(os.getenv("LIGHTING_PORT", "8006")),
+        "lighting_port": int(os.getenv("LIGHTING_PORT", "8005")),
+        "safety_host": os.getenv("SAFETY_HOST", "localhost"),
+        "safety_port": int(os.getenv("SAFETY_PORT", "8006")),
         "console_host": os.getenv("CONSOLE_HOST", "localhost"),
         "console_port": int(os.getenv("CONSOLE_PORT", "8007")),
     }
@@ -76,14 +84,20 @@ def test_config() -> dict:
 @pytest.fixture
 async def redis_client(test_config: dict) -> AsyncGenerator[aioredis.Redis, None]:
     """Create a Redis client for testing."""
-    redis = await aioredis.from_url(
-        f"redis://{test_config['redis_host']}:{test_config['redis_port']}/{test_config['redis_db']}",
-        encoding="utf-8",
-        decode_responses=True,
-    )
-    yield redis
-    await redis.flushdb()  # Clean up test data
-    await redis.close()
+    try:
+        redis = await aioredis.from_url(
+            f"redis://{test_config['redis_host']}:{test_config['redis_port']}/{test_config['redis_db']}",
+            encoding="utf-8",
+            decode_responses=True,
+        )
+        # Test connection
+        await redis.ping()
+        yield redis
+        await redis.flushdb()  # Clean up test data
+        await redis.close()
+    except Exception as e:
+        pytest.skip(f"Redis connection failed: {e}. Ensure Redis is running at "
+                   f"{test_config['redis_host']}:{test_config['redis_port']}")
 
 
 @pytest.fixture
@@ -105,10 +119,12 @@ def http_client():
 @pytest.fixture(scope="session")
 def wait_for_services():
     """Wait for all services to be ready."""
-    from fixtures.deployments import K3sHelper
     import time
 
-    print("\nWaiting for services to be ready...")
+    if K3sHelper is None:
+        pytest.skip("K3sHelper not available - skipping service wait")
+
+    logger.info("Waiting for services to be ready...")
     services = [
         "openclaw-orchestrator",
         "scenespeak-agent",
@@ -120,7 +136,7 @@ def wait_for_services():
         "operator-console"
     ]
 
-    timeout = 300
+    timeout = int(os.getenv("TEST_SERVICE_TIMEOUT", "60"))
     start = time.time()
 
     while time.time() - start < timeout:
@@ -129,7 +145,7 @@ def wait_for_services():
             if K3sHelper.wait_for_service_ready(service, timeout=1):
                 ready += 1
         if ready == len(services):
-            print(f"All {len(services)} services ready!")
+            logger.info(f"All {len(services)} services ready!")
             return True
         time.sleep(5)
 
@@ -296,13 +312,13 @@ def pytest_collection_modifyitems(config, items):
     kafka_available = os.getenv("TEST_KAFKA_AVAILABLE", "false").lower() == "true"
     redis_available = os.getenv("TEST_REDIS_AVAILABLE", "false").lower() == "true"
 
-    # Check if k8s services are ready (import only when needed to avoid issues)
+    # Check if k8s services are ready
     services_ready = False
-    try:
-        from fixtures.deployments import K3sHelper
-        services_ready = len(K3sHelper.get_pods()) > 0
-    except Exception:
-        pass
+    if K3sHelper is not None:
+        try:
+            services_ready = len(K3sHelper.get_pods()) > 0
+        except Exception:
+            pass
 
     for item in items:
         if "kafka" in item.keywords and not kafka_available:
