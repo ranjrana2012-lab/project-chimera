@@ -116,14 +116,13 @@ def test_quality_gate_result_model_attributes():
     gate = QualityGateResult(
         run_id=None,
         gate_name="coverage_gate",
-        status="passed",
-        threshold=80.0,
-        actual_value=85.5,
+        passed=True,
+        score=85.5,
         message="Coverage threshold met",
     )
     assert gate.gate_name == "coverage_gate"
-    assert gate.status == "passed"
-    assert gate.threshold == 80.0
+    assert gate.passed is True
+    assert gate.score == 85.5
 
 
 @pytest.mark.asyncio

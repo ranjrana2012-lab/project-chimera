@@ -1,7 +1,7 @@
 """SQLAlchemy ORM models for Chimera Quality Platform."""
 from datetime import datetime
 from uuid import UUID, uuid4
-from sqlalchemy import Column, String, Integer, DateTime, Text, Numeric, ForeignKey, Date, Index, DECIMAL
+from sqlalchemy import Column, String, Integer, DateTime, Text, Numeric, ForeignKey, Date, Index, DECIMAL, Boolean, CheckConstraint
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -35,6 +35,7 @@ class TestRun(Base):
 
     __table_args__ = (
         Index("idx_test_runs_started_at", "started_at"),
+        CheckConstraint("status IN ('running', 'passed', 'failed', 'cancelled', 'timeout')", name="check_test_runs_status"),
     )
 
 
@@ -58,6 +59,10 @@ class TestResult(Base):
     # Relationship
     run = relationship("TestRun", back_populates="results")
 
+    __table_args__ = (
+        CheckConstraint("status IN ('passed', 'failed', 'skipped', 'error', 'timeout')", name="check_test_results_status"),
+    )
+
 
 class CoverageSnapshot(Base):
     """Coverage snapshot for a service."""
@@ -66,13 +71,20 @@ class CoverageSnapshot(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     run_id = Column(UUID(as_uuid=True), ForeignKey("test_runs.id", ondelete="CASCADE"), nullable=False)
     service_name = Column(String(100), nullable=False)
-    line_coverage = Column(DECIMAL(5, 2))
-    branch_coverage = Column(DECIMAL(5, 2))
-    lines_covered = Column(Integer)
-    lines_total = Column(Integer)
+    line_coverage = Column(DECIMAL(5, 2), nullable=False)
+    branch_coverage = Column(DECIMAL(5, 2), nullable=False)
+    lines_covered = Column(Integer, nullable=False)
+    lines_total = Column(Integer, nullable=False)
 
     # Relationship
     run = relationship("TestRun", back_populates="coverage_snapshots")
+
+    __table_args__ = (
+        CheckConstraint("line_coverage >= 0 AND line_coverage <= 100", name="check_coverage_line_coverage"),
+        CheckConstraint("branch_coverage >= 0 AND branch_coverage <= 100", name="check_coverage_branch_coverage"),
+        CheckConstraint("lines_covered >= 0", name="check_coverage_lines_covered"),
+        CheckConstraint("lines_total >= 0 AND lines_total >= lines_covered", name="check_coverage_lines_total"),
+    )
 
 
 class MutationResult(Base):
@@ -82,7 +94,7 @@ class MutationResult(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     run_id = Column(UUID(as_uuid=True), ForeignKey("test_runs.id", ondelete="CASCADE"), nullable=False)
     service_name = Column(String(100), nullable=False)
-    total_mutations = Column(Integer)
+    total_mutations = Column(Integer, nullable=False)
     killed_mutations = Column(Integer)
     survived_mutations = Column(Integer)
     timeout_mutations = Column(Integer)
@@ -90,6 +102,11 @@ class MutationResult(Base):
 
     # Relationship
     run = relationship("TestRun", back_populates="mutation_results")
+
+    __table_args__ = (
+        CheckConstraint("total_mutations >= 0", name="check_mutation_total_mutations"),
+        CheckConstraint("mutation_score IS NULL OR (mutation_score >= 0 AND mutation_score <= 100)", name="check_mutation_score"),
+    )
 
 
 class PerformanceMetric(Base):
@@ -115,7 +132,7 @@ class DailySummary(Base):
 
     date = Column(Date, nullable=False, primary_key=True)
     service_name = Column(String(100), nullable=False, primary_key=True)
-    total_runs = Column(Integer)
+    total_runs = Column(Integer, nullable=False, default=0)
     avg_coverage = Column(DECIMAL(5, 2))
     avg_mutation_score = Column(DECIMAL(5, 2))
     avg_duration_seconds = Column(Integer)
@@ -128,9 +145,8 @@ class QualityGateResult(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     run_id = Column(UUID(as_uuid=True), ForeignKey("test_runs.id", ondelete="CASCADE"), nullable=False)
     gate_name = Column(String(100), nullable=False)
-    status = Column(String(20), nullable=False)
-    threshold = Column(DECIMAL(5, 2))
-    actual_value = Column(DECIMAL(5, 2))
+    passed = Column(Boolean, nullable=False)
+    score = Column(DECIMAL(5, 2))
     message = Column(Text)
 
     # Relationship

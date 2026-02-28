@@ -14,7 +14,7 @@ CREATE TABLE test_runs (
     triggered_by VARCHAR(255),
     started_at TIMESTAMPTZ NOT NULL,
     completed_at TIMESTAMPTZ,
-    status VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL CHECK (status IN ('running', 'passed', 'failed', 'cancelled', 'timeout')),
     total_tests INT NOT NULL,
     passed INT,
     failed INT,
@@ -35,7 +35,7 @@ CREATE TABLE test_results (
     test_file VARCHAR(500),
     test_class VARCHAR(255),
     test_function VARCHAR(255),
-    status VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL CHECK (status IN ('passed', 'failed', 'skipped', 'error', 'timeout')),
     duration_ms INT,
     started_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
@@ -53,10 +53,10 @@ CREATE TABLE coverage_snapshots (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     run_id UUID REFERENCES test_runs(id) ON DELETE CASCADE,
     service_name VARCHAR(100) NOT NULL,
-    line_coverage DECIMAL(5,2),
-    branch_coverage DECIMAL(5,2),
-    lines_covered INT,
-    lines_total INT
+    line_coverage DECIMAL(5,2) NOT NULL CHECK (line_coverage >= 0 AND line_coverage <= 100),
+    branch_coverage DECIMAL(5,2) NOT NULL CHECK (branch_coverage >= 0 AND branch_coverage <= 100),
+    lines_covered INT NOT NULL CHECK (lines_covered >= 0),
+    lines_total INT NOT NULL CHECK (lines_total >= 0 AND lines_total >= lines_covered)
 );
 
 CREATE INDEX idx_coverage_snapshots_run_service ON coverage_snapshots(run_id, service_name);
@@ -67,11 +67,11 @@ CREATE TABLE mutation_results (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     run_id UUID REFERENCES test_runs(id) ON DELETE CASCADE,
     service_name VARCHAR(100) NOT NULL,
-    total_mutations INT,
+    total_mutations INT NOT NULL CHECK (total_mutations >= 0),
     killed_mutations INT,
     survived_mutations INT,
     timeout_mutations INT,
-    mutation_score DECIMAL(5,2)
+    mutation_score DECIMAL(5,2) CHECK (mutation_score >= 0 AND mutation_score <= 100)
 );
 
 CREATE INDEX idx_mutation_results_run_service ON mutation_results(run_id, service_name);
@@ -96,7 +96,7 @@ CREATE INDEX idx_performance_metrics_run_endpoint ON performance_metrics(run_id,
 CREATE TABLE daily_summaries (
     date DATE NOT NULL,
     service_name VARCHAR(100) NOT NULL,
-    total_runs INT,
+    total_runs INT NOT NULL DEFAULT 0,
     avg_coverage DECIMAL(5,2),
     avg_mutation_score DECIMAL(5,2),
     avg_duration_seconds INT,
@@ -109,9 +109,8 @@ CREATE TABLE quality_gate_results (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     run_id UUID REFERENCES test_runs(id) ON DELETE CASCADE,
     gate_name VARCHAR(100) NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    threshold DECIMAL(5,2),
-    actual_value DECIMAL(5,2),
+    passed BOOLEAN NOT NULL,
+    score DECIMAL(5,2),
     message TEXT
 );
 
