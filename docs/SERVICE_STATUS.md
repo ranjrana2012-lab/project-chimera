@@ -6,13 +6,13 @@ Quick reference guide for all Project Chimera services, ports, endpoints, and he
 
 | Service | Port | Health Endpoint | API Endpoints | GPU/CPU | Status |
 |---------|------|-----------------|---------------|---------|--------|
-| **OpenClaw Orchestrator** | 8000 | `/health/live`, `/health/ready` | `/`, `/orchestrate`, `/skills`, `/metrics` | CPU | ✅ Built |
-| **SceneSpeak Agent** | 8001 | `/health`, `/` | `/generate`, `/metrics` | GPU (1) | ✅ Built |
+| **OpenClaw Orchestrator** | 8000 | `/health/live`, `/health/ready` | `/v1/orchestrate`, `/skills`, `/metrics` | CPU | ✅ Built |
+| **SceneSpeak Agent** | 8001 | `/health`, `/` | `/v1/generate`, `/metrics` | GPU (1) | ✅ Built |
 | **Captioning Agent** | 8002 | `/health`, `/` | `/api/v1/transcribe`, `/api/v1/stream`, `/metrics` | CPU | ✅ Built |
-| **BSL Text2Gloss Agent** | 8003 | `/health`, `/` | `/api/v1/translate`, `/api/v1/batch`, `/metrics` | CPU | ✅ Built |
-| **Sentiment Agent** | 8004 | `/health`, `/` | `/api/v1/analyze`, `/api/v1/batch`, `/api/v1/trends`, `/metrics` | CPU | ✅ Built |
+| **BSL Text2Gloss Agent** | 8003 | `/health`, `/` | `/api/v1/translate`, `/api/v1/translate/batch`, `/metrics` | CPU | ✅ Built |
+| **Sentiment Agent** | 8004 | `/health`, `/` | `/api/v1/analyze`, `/api/v1/analyze-batch`, `/api/v1/trend`, `/metrics` | CPU | ✅ Built |
 | **Lighting Control** | 8005 | `/health`, `/` | `/v1/lighting/*`, `/v1/cues/*`, `/v1/presets/*`, `/metrics` | CPU | ✅ Built |
-| **Safety Filter** | 8006 | `/health`, `/` | `/api/v1/check`, `/api/v1/policies`, `/stats`, `/metrics` | CPU | ✅ Built |
+| **Safety Filter** | 8006 | `/health`, `/` | `/api/v1/check`, `/api/v1/filter`, `/api/v1/policies`, `/stats`, `/metrics` | CPU | ✅ Built |
 | **Operator Console** | 8007 | `/health`, `/` | `/console`, `/events`, `/approvals`, `/` (UI) | CPU | ✅ Built |
 
 ## Infrastructure Services
@@ -106,8 +106,8 @@ done
 echo ""
 echo "📊 Quick Commands"
 echo "----------------"
-echo "View logs: docker-compose logs -f [service-name]"
-echo "Restart: docker-compose restart [service-name]"
+echo "View logs: kubectl logs -f -n live deployment/<service-name>"
+echo "Restart: kubectl rollout restart deployment/<service-name> -n live"
 echo "Metrics: http://localhost:9090"
 echo "Grafana: http://localhost:3000 (admin/chimera)"
 echo "Jaeger: http://localhost:16686"
@@ -181,16 +181,16 @@ lsof -i :8000
 netstat -tulpn | grep 8000
 ```
 
-**2. Check Docker logs:**
+**2. Check k3s/Docker logs:**
 ```bash
 # View logs for a specific service
-docker logs chimera-openclaw
+kubectl logs -n live deployment/openclaw-orchestrator
 
 # Follow logs in real-time
-docker logs -f chimera-openclaw
+kubectl logs -f -n live deployment/openclaw-orchestrator
 
 # View all service logs
-docker-compose logs -f
+kubectl logs -f -n live --all-containers=true
 ```
 
 **3. Check service health:**
@@ -312,23 +312,23 @@ Shared Infrastructure:
 ## Development Quick Start
 
 ```bash
-# Start all services
-docker-compose -f docker-compose.local.yml up -d
+# Start all services (k3s bootstrap)
+make bootstrap
 
 # Start only infrastructure
-docker-compose -f docker-compose.local.yml up -d redis kafka prometheus grafana jaeger
+kubectl apply -k infrastructure/kubernetes/base/
 
 # Start specific service
-docker-compose -f docker-compose.remote.yml up -d scenespeak-agent
+kubectl apply -f infrastructure/kubernetes/services/<service>/
 
 # View logs
-docker-compose logs -f scenespeak-agent
+kubectl logs -f -n live deployment/<service-name>
 
 # Stop all services
-docker-compose -f docker-compose.local.yml down
+make bootstrap-destroy
 
 # Restart specific service
-docker-compose restart scenespeak-agent
+kubectl rollout restart deployment/<service-name> -n live
 ```
 
 ## Dashboard URLs

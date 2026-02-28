@@ -441,7 +441,7 @@ kubectl logs -f -n live deployment/captioning-agent
 kubectl port-forward -n live svc/bsl-text2gloss-agent 8003:8003
 
 # Test translation
-curl -X POST http://localhost:8003/v1/translate \
+curl -X POST http://localhost:8003/api/v1/translate \
   -H "Content-Type: application/json" \
   -d '{"text": "Hello, welcome to the theatre."}'
 ```
@@ -453,7 +453,7 @@ curl -X POST http://localhost:8003/v1/translate \
 kubectl port-forward -n live svc/sentiment-agent 8004:8004
 
 # Test sentiment analysis
-curl -X POST http://localhost:8004/v1/analyze \
+curl -X POST http://localhost:8004/api/v1/analyze \
   -H "Content-Type: application/json" \
   -d '{"text": "The audience seems excited!"}'
 ```
@@ -475,7 +475,7 @@ kubectl logs -f -n live deployment/lighting-control
 kubectl port-forward -n live svc/safety-filter 8006:8006
 
 # Test safety check
-curl -X POST http://localhost:8006/v1/check \
+curl -X POST http://localhost:8006/api/v1/check \
   -H "Content-Type: application/json" \
   -d '{"content": "Test content for safety check"}'
 ```

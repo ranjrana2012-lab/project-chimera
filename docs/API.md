@@ -121,7 +121,7 @@ GET /health/ready
 
 #### Orchestration
 
-**POST /api/v1/orchestrate**
+**POST /v1/orchestrate**
 
 Execute orchestration through specified skills.
 
@@ -161,7 +161,7 @@ Execute orchestration through specified skills.
 
 #### Skills Management
 
-**GET /api/v1/skills**
+**GET /skills**
 
 List all available skills.
 
@@ -280,7 +280,7 @@ GET /health/ready
 
 #### Dialogue Generation
 
-**POST /api/v1/dialogue/generate**
+**POST /v1/generate**
 
 Generate dialogue for a scene.
 
@@ -342,7 +342,7 @@ GET /health/ready
 
 #### Transcription
 
-**POST /api/v1/captioning/transcribe**
+**POST /api/v1/transcribe**
 
 Transcribe audio using Whisper.
 
@@ -382,7 +382,7 @@ Transcribe audio using Whisper.
 }
 ```
 
-**POST /api/v1/captioning/detect-language**
+**POST /api/v1/detect-language**
 
 Detect the language of audio.
 
@@ -396,7 +396,7 @@ Detect the language of audio.
 
 #### WebSocket Streaming
 
-**WebSocket /api/v1/captioning/stream**
+**WebSocket /api/v1/stream**
 
 Real-time transcription streaming.
 
@@ -446,7 +446,7 @@ GET /health/ready
 
 #### Gloss Translation
 
-**POST /api/v1/gloss/translate**
+**POST /api/v1/translate**
 
 Translate text to BSL gloss notation.
 
@@ -497,7 +497,7 @@ GET /health/ready
 
 #### Sentiment Analysis
 
-**POST /api/v1/sentiment/analyze**
+**POST /api/v1/analyze**
 
 Analyze sentiment of text.
 
@@ -538,7 +538,7 @@ Analyze sentiment of text.
 }
 ```
 
-**POST /api/v1/sentiment/batch**
+**POST /api/v1/analyze-batch**
 
 Batch process multiple texts.
 
@@ -559,7 +559,7 @@ GET /health/ready
 
 #### Scene Management
 
-**POST /api/v1/lighting/scene**
+**POST /v1/lighting/set**
 
 Set a lighting scene.
 
@@ -600,7 +600,7 @@ Immediate blackout.
 }
 ```
 
-**GET /api/v1/lighting/status**
+**GET /v1/lighting/state**
 
 Get current lighting status.
 
@@ -634,9 +634,9 @@ GET /health/ready
 
 #### Content Filtering
 
-**POST /api/v1/safety/filter**
+**POST /api/v1/check**
 
-Filter content for safety.
+Check content for safety issues.
 
 **Request:**
 ```json

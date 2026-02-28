@@ -568,18 +568,6 @@ make bootstrap
 # 6. Deploy all AI agents
 ```
 
-### Option 2: Local Development (Docker Compose)
-
-```bash
-# Start infrastructure services
-docker-compose -f docker-compose.local.yml up -d
-
-# Services will be available at:
-# - Grafana: http://localhost:3000 (admin/chimera)
-# - Prometheus: http://localhost:9090
-# - Jaeger: http://localhost:16686
-```
-
 ### Verify Deployment
 
 ```bash
@@ -1100,7 +1088,7 @@ curl http://localhost:8007/health/live  # Operator
 | `docs/API.md` | Complete API reference |
 | `docs/ARCHITECTURE.md` | System architecture |
 | `Makefile` | Build automation |
-| `docker-compose.local.yml` | Local development |
+| `scripts/bootstrap/` | Bootstrap scripts for k3s setup |
 
 ---
 
