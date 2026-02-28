@@ -34,6 +34,8 @@ Welcome to the official documentation for Project Chimera, an AI-powered live th
 
 - [Student Roles](STUDENT_ROLES.md) - Component ownership and responsibilities
 - [Implementation Documentation](plans/IMPLEMENTATION_DOCUMENTATION.md) - How the scaffold was built
+- [Quality Platform Design](plans/2026-02-28-chimera-quality-platform-design.md) - Platform architecture
+- [Quality Platform Implementation](plans/2026-02-28-chimera-quality-platform-implementation.md) - Implementation details
 - [Project Backlog](../Backlog_Project_Chimera.md) - Outstanding work and features
 
 ### Architecture Decisions
