@@ -174,7 +174,7 @@ See [Contributing Guidelines](../CONTRIBUTING.md) for details.
 ## Version Information
 
 - **Current Version:** 0.1.0 (Alpha)
-- **Documentation Last Updated:** 2026-02-27
+- **Documentation Last Updated:** 2026-02-28
 - **Supported Python:** 3.10+
 - **Supported Kubernetes:** 1.25+
 
