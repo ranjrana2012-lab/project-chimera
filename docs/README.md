@@ -163,6 +163,14 @@ See [Contributing Guidelines](../CONTRIBUTING.md) for details.
 - Update table of contents when adding sections
 - Test all procedures before documenting
 
+### Quality Platform
+
+- [Overview](quality-platform/README.md) - Platform introduction
+- [Architecture](quality-platform/ARCHITECTURE.md) - System design
+- [API Documentation](quality-platform/API.md) - Service APIs
+- [Development](quality-platform/DEVELOPMENT.md) - Contributing guide
+- [Deployment](quality-platform/DEPLOYMENT.md) - Deployment guide
+
 ## Version Information
 
 - **Current Version:** 0.1.0 (Alpha)
