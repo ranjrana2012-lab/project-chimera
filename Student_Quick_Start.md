@@ -492,6 +492,65 @@ open http://localhost:8007
 
 ---
 
+## Quality Platform Services
+
+### Test Orchestrator (Port 8008)
+
+```bash
+# Port forward to local
+kubectl port-forward -n quality svc/orchestrator 8008:8008
+
+# Access API
+curl http://localhost:8008/health
+
+# View logs
+kubectl logs -f -n quality deployment/orchestrator
+```
+
+### Dashboard Service (Port 8009)
+
+```bash
+# Port forward to local
+kubectl port-forward -n quality svc/dashboard 8009:8009
+
+# Access web interface
+open http://localhost:8009
+```
+
+### CI/CD Gateway (Port 8010)
+
+```bash
+# Port forward to local
+kubectl port-forward -n quality svc/ci-gateway 8010:8010
+
+# Test webhook endpoint
+curl -X POST http://localhost:8010/health
+```
+
+**Platform Quick Reference:**
+
+| Component | Port | Description |
+|-----------|-----|-------------|
+| Test Orchestrator | 8008 | Test discovery and execution |
+| Dashboard Service | 8009 | Quality dashboards and visualization |
+| CI/CD Gateway | 8010 | GitHub/GitLab webhook integration |
+
+**Running Platform Tests:**
+
+```bash
+# Run Quality Platform unit tests
+cd platform
+pytest tests/unit/ -v
+
+# Run with coverage
+pytest tests/unit/ --cov=platform --cov-report=html
+
+# View coverage report
+xdg-open htmlcov/index.html
+```
+
+---
+
 ## Troubleshooting
 
 ### Common Issues and Solutions
