@@ -1,5 +1,9 @@
 """Captioning Agent API tests."""
+import asyncio
+import json
+
 import pytest
+import websockets
 from tests.fixtures.test_data import TestData
 
 
@@ -81,3 +85,35 @@ class TestCaptioningAPI:
         assert isinstance(data["model_version"], str)
         assert isinstance(data["confidence"], (int, float))
         assert 0.0 <= data["confidence"] <= 1.0
+
+
+@pytest.mark.requires_services
+class TestCaptioningWebSocket:
+    """Test Captioning Agent WebSocket streaming."""
+
+    def test_websocket_connection(self, base_urls):
+        """Test WebSocket /api/v1/stream connection."""
+        async def connect_and_test():
+            uri = "ws://localhost:8002/api/v1/stream"
+            try:
+                async with websockets.connect(uri, close_timeout=5) as websocket:
+                    # Send a test request
+                    request = {
+                        "audio_data": "dGVzdCBhdWRpbyBkYXRh",  # base64 "test audio data"
+                        "language": "en"
+                    }
+                    await websocket.send(json.dumps(request))
+
+                    # Receive response
+                    response = await websocket.recv()
+                    data = json.loads(response)
+
+                    # Verify response structure
+                    assert "text" in data or "error" in data
+                    return True
+            except Exception as e:
+                print(f"WebSocket test error: {e}")
+                return False
+
+        result = asyncio.run(connect_and_test())
+        assert result, "WebSocket connection test failed"
