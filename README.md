@@ -114,6 +114,7 @@ make bootstrap-status
 
 - [Technical Requirements](TRD_Project_Chimera.md) - Full technical specification
 - [Implementation Documentation](docs/plans/IMPLEMENTATION_DOCUMENTATION.md) - Build details
+- [Quality Platform Documentation](docs/quality-platform/README.md) - Testing infrastructure
 - [Project Backlog](Backlog_Project_Chimera.md) - Outstanding work and features
 
 ## Architecture
