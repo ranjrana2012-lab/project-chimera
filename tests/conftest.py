@@ -19,6 +19,21 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "services"))
 
 
 @pytest.fixture(scope="session")
+def base_urls():
+    """Base URLs for all services."""
+    return {
+        "openclaw": "http://localhost:8000",
+        "scenespeak": "http://localhost:8001",
+        "captioning": "http://localhost:8002",
+        "bsl": "http://localhost:8003",
+        "sentiment": "http://localhost:8004",
+        "lighting": "http://localhost:8005",
+        "safety": "http://localhost:8006",
+        "console": "http://localhost:8007"
+    }
+
+
+@pytest.fixture(scope="session")
 def event_loop() -> Generator:
     """Create an instance of the default event loop for the test session."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
@@ -72,10 +87,53 @@ async def redis_client(test_config: dict) -> AsyncGenerator[aioredis.Redis, None
 
 
 @pytest.fixture
-async def http_client() -> AsyncGenerator[AsyncClient, None]:
+async def async_http_client() -> AsyncGenerator[AsyncClient, None]:
     """Create an async HTTP client for testing."""
     async with AsyncClient(base_url="http://test", timeout=30.0) as client:
         yield client
+
+
+@pytest.fixture(scope="session")
+def http_client():
+    """HTTP client for testing."""
+    import requests
+    session = requests.Session()
+    session.verify = False
+    return session
+
+
+@pytest.fixture(scope="session")
+def wait_for_services():
+    """Wait for all services to be ready."""
+    from fixtures.deployments import K3sHelper
+    import time
+
+    print("\nWaiting for services to be ready...")
+    services = [
+        "openclaw-orchestrator",
+        "scenespeak-agent",
+        "captioning-agent",
+        "bsl-text2gloss-agent",
+        "sentiment-agent",
+        "lighting-control",
+        "safety-filter",
+        "operator-console"
+    ]
+
+    timeout = 300
+    start = time.time()
+
+    while time.time() - start < timeout:
+        ready = 0
+        for service in services:
+            if K3sHelper.wait_for_service_ready(service, timeout=1):
+                ready += 1
+        if ready == len(services):
+            print(f"All {len(services)} services ready!")
+            return True
+        time.sleep(5)
+
+    raise TimeoutError(f"Services not ready within {timeout}s")
 
 
 @pytest.fixture
@@ -217,14 +275,20 @@ def pytest_configure(config):
     """Configure custom pytest markers."""
     config.addinivalue_line("markers", "unit: Unit tests")
     config.addinivalue_line("markers", "integration: Integration tests")
+    config.addinivalue_line("markers", "e2e: End-to-end tests")
+    config.addinivalue_line("markers", "slow: Slow running tests")
+    config.addinivalue_line("markers", "requires_k8s: Tests requiring kubernetes")
+    config.addinivalue_line("markers", "requires_services: Tests requiring deployed services")
     config.addinivalue_line("markers", "load: Load tests")
     config.addinivalue_line("markers", "red_team: Red team / security tests")
     config.addinivalue_line("markers", "accessibility: Accessibility tests")
+    config.addinivalue_line("markers", "kafka: Tests requiring Kafka")
+    config.addinivalue_line("markers", "redis: Tests requiring Redis")
 
 
 # Skip tests that require external services if not available
 def pytest_collection_modifyitems(config, items):
-    """Modify test collection to skip tests based on availability."""
+    """Skip service-dependent tests if services aren't ready."""
     skip_requires_kafka = pytest.mark.skip(reason="Kafka not available")
     skip_requires_redis = pytest.mark.skip(reason="Redis not available")
 
@@ -232,8 +296,19 @@ def pytest_collection_modifyitems(config, items):
     kafka_available = os.getenv("TEST_KAFKA_AVAILABLE", "false").lower() == "true"
     redis_available = os.getenv("TEST_REDIS_AVAILABLE", "false").lower() == "true"
 
+    # Check if k8s services are ready (import only when needed to avoid issues)
+    services_ready = False
+    try:
+        from fixtures.deployments import K3sHelper
+        services_ready = len(K3sHelper.get_pods()) > 0
+    except Exception:
+        pass
+
     for item in items:
         if "kafka" in item.keywords and not kafka_available:
             item.add_marker(skip_requires_kafka)
         if "redis" in item.keywords and not redis_available:
             item.add_marker(skip_requires_redis)
+        if item.get_closest_marker("requires_services"):
+            if not services_ready:
+                item.add_marker(pytest.mark.skip("Services not deployed"))
