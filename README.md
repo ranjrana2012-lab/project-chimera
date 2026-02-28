@@ -32,6 +32,13 @@ Project Chimera is an open-source, student-run Dynamic Performance Hub that uses
 - **Safety Filter** - Multi-layer content moderation
 - **Operator Console** - Human oversight and approval interface
 
+### Quality Platform
+
+- **Chimera Quality Platform** - Unified testing and quality infrastructure
+  - Test Orchestrator (port 8008) - Test discovery and execution
+  - Dashboard Service (port 8009) - Real-time visualization
+  - CI/CD Gateway (port 8010) - GitHub/GitLab integration
+
 ### Technology Stack
 
 - **Framework:** FastAPI (Python 3.10+)
