@@ -8,6 +8,7 @@ class K3sHelper:
     """Helper for k3s cluster operations."""
 
     NAMESPACE = "live"
+    _port_forward_processes: List[subprocess.Popen] = []
 
     @staticmethod
     def get_pods() -> List[dict]:
@@ -15,7 +16,8 @@ class K3sHelper:
         result = subprocess.run(
             ["kubectl", "get", "pods", "-n", K3sHelper.NAMESPACE, "-o", "json"],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=30
         )
         if result.returncode != 0:
             return []
@@ -38,7 +40,8 @@ class K3sHelper:
         result = subprocess.run(
             ["kubectl", "rollout", "restart", f"deployment/{service}", "-n", K3sHelper.NAMESPACE],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=30
         )
         return result.returncode == 0
 
@@ -60,12 +63,14 @@ class K3sHelper:
         """Start port forwarding for a service."""
         if service_port is None:
             service_port = local_port
-        return subprocess.Popen(
+        process = subprocess.Popen(
             ["kubectl", "port-forward", "-n", K3sHelper.NAMESPACE,
              f"svc/{service}", f"{local_port}:{service_port}"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
+        K3sHelper._port_forward_processes.append(process)
+        return process
 
     @staticmethod
     def check_service_health(url: str) -> bool:
@@ -74,5 +79,19 @@ class K3sHelper:
             import requests
             response = requests.get(f"{url}/health/live", timeout=2)
             return response.status_code == 200
-        except:
+        except (requests.RequestException, OSError) as e:
             return False
+
+    @staticmethod
+    def cleanup_port_forwards() -> None:
+        """Clean up all port forward processes spawned by this helper."""
+        for process in K3sHelper._port_forward_processes:
+            try:
+                process.terminate()
+                process.wait(timeout=5)
+            except Exception:
+                try:
+                    process.kill()
+                except Exception:
+                    pass
+        K3sHelper._port_forward_processes.clear()
