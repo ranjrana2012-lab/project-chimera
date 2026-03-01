@@ -175,6 +175,36 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 
 **Scale:** 2 replicas (CPU)
 
+#### Music Generation Platform
+
+**Music Generation Service** (port 8011)
+- AI music generation using Meta MusicGen and ACE-Step models
+- Model pool management with VRAM-aware loading
+- Async generation with cancellation support
+
+**Music Orchestration Service** (port 8012)
+- Request routing with cache-first approach
+- Redis caching with 7-day TTL
+- Staged approval pipeline (marketing=auto, show=manual)
+- WebSocket progress streaming
+- MinIO storage for audio files
+
+**Scale:** 2 replicas (GPU for generation service)
+
+#### GitHub Student Automation
+
+**Trust-Based Auto-Merge** - Students earn trust (3+ PRs = trusted)
+
+**GitHub Actions Workflows**
+- PR Validation (lint, test, coverage)
+- Trust Check (query merged PRs)
+- Auto-Merge (trusted contributors)
+- Onboarding (Sprint 0 issues)
+
+**CODEOWNERS** - Role-based review routing
+
+**Branch Protection** - Required status checks and reviews
+
 #### Operator Console
 
 **Purpose:** Human oversight and approval interface
