@@ -92,7 +92,7 @@ make bootstrap
 
 ### Manual Setup
 
-For manual setup or custom configurations, see the [Deployment Guide](docs/DEPLOYMENT.md).
+For manual setup or custom configurations, see the [Deployment Guide](docs/reference/runbooks/deployment.md).
 
 ### Check Status
 
