@@ -388,7 +388,7 @@ Each student reports:
 ## First Week Checklist
 
 For All Students:
-- [ ] Complete `Student_Quick_Start.md` setup
+- [ ] Complete `getting-started/quick-start.md` setup
 - [ ] Read assigned component README
 - [ ] Run component tests
 - [ ] Access component via port-forward
