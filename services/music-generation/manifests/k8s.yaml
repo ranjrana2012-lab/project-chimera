@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chimera
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-cache-pvc
+  namespace: chimera
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-generation
+  namespace: chimera
+  labels:
+    app: music-generation
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: music-generation
+  template:
+    metadata:
+      labels:
+        app: music-generation
+        version: v1
+    spec:
+      containers:
+      - name: music-generation
+        image: chimera/music-generation:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8011
+          protocol: TCP
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+            memory: "16Gi"
+            cpu: "2000m"
+          limits:
+            nvidia.com/gpu: 1
+            memory: "32Gi"
+            cpu: "4000m"
+        env:
+        - name: MODEL_POOL_SIZE
+          value: "2"
+        - name: MAX_CONCURRENT_GENERATIONS
+          value: "4"
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: chimera-secrets
+              key: redis-url
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: chimera-secrets
+              key: database-url
+        - name: MINIO_ENDPOINT
+          value: "minio.chimera.svc.cluster.local:9000"
+        volumeMounts:
+        - name: model-cache
+          mountPath: /models
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: model-cache-pvc
+      nodeSelector:
+        gpu: "nvidia"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: music-generation
+  namespace: chimera
+  labels:
+    app: music-generation
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8011
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: music-generation
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: music-generation-hpa
+  namespace: chimera
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: music-generation
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: nvidia.com/gpu
+      target:
+        type: Utilization
+        averageUtilization: 80

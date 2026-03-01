@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: music-orchestration-policy
+  namespace: chimera
+spec:
+  podSelector:
+    matchLabels:
+      app: music-orchestration
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: chimera
+    ports:
+    - protocol: TCP
+      port: 8012
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: chimera
+    ports:
+    - protocol: TCP
+      port: 5432   # PostgreSQL
+    - protocol: TCP
+      port: 6379   # Redis
+    - protocol: TCP
+      port: 9000   # MinIO
+    - protocol: TCP
+      port: 8011   # Music Generation Service
