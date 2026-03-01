@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi import FastAPI, Depends, HTTPException, Header, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import structlog
 
@@ -7,6 +7,7 @@ from music_orchestration.router import RequestRouter
 from music_orchestration.cache import CacheManager
 from music_orchestration.auth import ServiceAuthenticator, PermissionChecker
 from music_orchestration.approval import ApprovalPipeline
+from music_orchestration.websocket import websocket_manager
 from music_orchestration.schemas import (
     MusicRequest,
     MusicResponse,
@@ -130,6 +131,20 @@ async def generate_music(
         format=request.format,
         was_cache_hit=result.get("was_cache_hit", False)
     )
+
+
+@app.websocket("/ws/music/{request_id}")
+async def websocket_music_progress(websocket: WebSocket, request_id: str):
+    """WebSocket endpoint for real-time progress updates"""
+    await websocket.accept()
+    await websocket_manager.subscribe(request_id, websocket)
+
+    try:
+        while True:
+            # Keep connection alive
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        await websocket_manager.unsubscribe(request_id, websocket)
 
 
 if __name__ == "__main__":
