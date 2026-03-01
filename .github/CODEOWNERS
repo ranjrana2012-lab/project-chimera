@@ -1,51 +1,30 @@
-# Project Chimera Code Owners
+# Role-based code ownership for Project Chimera
+# Technical lead has ownership over all components
 
-# This file defines who owns which parts of the codebase.
-# Owners are automatically requested for review on pull requests.
+# Core AI Services
+/services/openclaw-orchestrator/ @technical-lead
+/services/scenespeak-agent/ @technical-lead
+/services/captioning-agent/ @technical-lead
+/services/bsl-text2gloss-agent/ @technical-lead
+/services/sentiment-agent/ @technical-lead
+/services/lighting-control/ @technical-lead
+/services/safety-filter/ @technical-lead
+/services/operator-console/ @technical-lead
 
-# Technical Lead - Overall responsibility
-* @technical-lead
+# Music Generation Platform
+/services/music-generation/ @technical-lead
+/services/music-orchestration/ @technical-lead
 
-# Infrastructure Team
-infrastructure/ @infrastructure-lead
-*.yaml @infrastructure-lead
-.kubernetes/ @infrastructure-lead
+# Quality Platform
+/platform/ @technical-lead
 
-# AI/ML Team
-services/scenespeak-agent/ @ai-specialist
-services/captioning-agent/ @ai-specialist
-services/bsl-text2gloss-agent/ @ai-specialist
-services/sentiment-agent/ @ai-specialist
-models/ @ai-specialist
-models/prompts/ @ai-specialist
-models/lora-adapters/ @ai-specialist
+# Infrastructure
+/infrastructure/ @technical-lead
+/kubernetes/ @technical-lead
 
-# Backend Services Team
-services/openclaw-orchestrator/ @backend-lead
-services/lighting-control/ @backend-lead
-services/safety-filter/ @backend-lead
-services/operator-console/ @backend-lead
+# Tests and Documentation
+/tests/ @technical-lead
+/docs/ @technical-lead
 
-# Skills Team
-skills/ @backend-lead @ai-specialist
-
-# Configuration Team
-configs/ @tech-ops-lead
-
-# Testing Team
-tests/ @qa-lead
-tests/red-team/ @security-lead
-
-# Documentation Team
-docs/ @tech-writer
-README.md @tech-writer
-*.md @tech-writer
-
-# CI/CD Team
-.github/ @devops-lead
-Makefile @devops-lead
-docker-compose*.yml @devops-lead
-Dockerfile* @devops-lead
-
-# Emergency overrides (require any 2 approvals)
-# /emergency/ @technical-lead @infrastructure-lead @backend-lead
+# GitHub Workflows (protected - always requires review)
+.github/workflows/ @technical-lead
