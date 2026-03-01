@@ -1,0 +1,4 @@
+mirrors:
+  "localhost:30500":
+    endpoint:
+      - "http://localhost:30500"

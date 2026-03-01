@@ -129,7 +129,16 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(.venv/bin/pip install:*)",
-      "Bash(.venv/bin/python:*)"
+      "Bash(.venv/bin/python:*)",
+      "Bash(sudo kubectl apply:*)",
+      "Bash(git push:*)",
+      "Bash(/home/ranj/Project_Chimera/.github/PULL_REQUEST_TEMPLATE.md:*)",
+      "Bash(git mv:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git checkout:*)",
+      "Bash(git tag:*)",
+      "Bash(/home/ranj/Project_Chimera/docs/services/music-generation.md:*)",
+      "Bash(/tmp/test_summary.md:*)"
     ]
   }
 }

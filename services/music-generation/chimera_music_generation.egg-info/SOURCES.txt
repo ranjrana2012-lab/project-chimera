@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+chimera_music_generation.egg-info/PKG-INFO
+chimera_music_generation.egg-info/SOURCES.txt
+chimera_music_generation.egg-info/dependency_links.txt
+chimera_music_generation.egg-info/requires.txt
+chimera_music_generation.egg-info/top_level.txt
+music_generation/__init__.py
+music_generation/audio.py
+music_generation/errors.py
+music_generation/inference.py
+music_generation/main.py
+music_generation/models.py
+music_generation/schemas.py
