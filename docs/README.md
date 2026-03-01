@@ -22,6 +22,7 @@ Welcome to the official documentation for Project Chimera, an AI-powered live th
 - [API Documentation](API.md) - Complete API reference
 - [Technical Requirements](../TRD_Project_Chimera.md) - Full technical specification
 - [Quality Platform](quality-platform/README.md) - Testing infrastructure and quality gates
+- [Music Platform](music-platform/README.md) - AI-powered music generation platform
 
 ### Operational Guides
 
@@ -36,6 +37,7 @@ Welcome to the official documentation for Project Chimera, an AI-powered live th
 - [Implementation Documentation](plans/IMPLEMENTATION_DOCUMENTATION.md) - How the scaffold was built
 - [Quality Platform Design](plans/2026-02-28-chimera-quality-platform-design.md) - Platform architecture
 - [Quality Platform Implementation](plans/2026-02-28-chimera-quality-platform-implementation.md) - Implementation details
+- [Music Generation Platform Design](plans/2026-03-01-music-generation-platform-design.md) - Music platform architecture
 - [Project Backlog](../Backlog_Project_Chimera.md) - Outstanding work and features
 
 ### Architecture Decisions
@@ -81,6 +83,9 @@ docs/
 │   ├── deployment.md
 │   ├── monitoring.md
 │   └── incident-response.md
+├── music-platform/              # Music generation platform
+│   ├── README.md
+│   └── ARCHITECTURE.md
 └── plans/                       # Implementation plans
     └── IMPLEMENTATION_DOCUMENTATION.md
 ```

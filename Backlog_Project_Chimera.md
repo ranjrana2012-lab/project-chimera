@@ -372,7 +372,7 @@ Create documentation describing how skills are structured and integrated with Op
 | Risk | Single Select | High, Medium, Low |
 | Size | Single Select | XS, S, M, L, XL |
 | Sprint | Single Select | Sprint 1-14 |
-| Epic | Single Select | E1-E8 (see below) |
+| Epic | Single Select | E1-E9 (see below) |
 | Milestone | Single Select | M1-M6 (see below) |
 
 ### Views
@@ -399,6 +399,7 @@ Create documentation describing how skills are structured and integrated with Op
 | E6 | Security Hardening | Security audit, penetration testing | Weeks 7-8 |
 | E7 | Performance | Optimisation, load testing | Week 9 |
 | E8 | Production Readiness | Final testing, documentation, launch | Weeks 10-14 |
+| E9 | Music Generation Platform | AI-powered local music generation for social media and live shows | Weeks 4-10 |
 
 ### Milestones
 
@@ -626,6 +627,28 @@ Create documentation describing how skills are structured and integrated with Op
 - No critical system failures during shows
 - Post-show reports generated
 - Documentation finalised
+
+---
+
+### E9: Music Generation Platform
+**Goal**: AI-powered local music generation for social media and live shows
+
+**Stories**:
+- **S9.1: Model pool manager (MusicGen, ACE-Step)** - Manage multiple AI models for music generation with dynamic loading/unloading based on demand
+- **S9.2: Caching and approval pipeline** - Implement intelligent caching of generated music with a multi-stage approval workflow for quality control
+- **S9.3: WebSocket progress streaming** - Real-time progress updates for music generation tasks to provide responsive user feedback
+- **S9.4: Sentiment-based adaptive modulation** - Dynamic music adjustment based on audience sentiment analysis and performance context
+- **S9.5: Operator Console integration** - Seamless integration with the main Operator Console for unified show control
+
+**E9 Acceptance Criteria:**
+
+- MusicGen and ACE-Step models load and generate music successfully
+- Generated music is cached with appropriate metadata
+- Approval pipeline supports multiple approval stages (draft, pending, approved, rejected)
+- WebSocket connections receive real-time progress updates during generation
+- Music modulation responds to sentiment changes with <500ms latency
+- Operator Console can control music generation and approval workflows
+- System handles concurrent generation requests without degradation
 
 ---
 
