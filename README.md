@@ -106,8 +106,14 @@ make bootstrap-status
 
 - [Quick Start Guide](docs/getting-started/quick-start.md) - Set up your development environment
 - [Student Roles](docs/getting-started/roles.md) - Component ownership details
+- [Communication Channels](docs/getting-started/communication-channels.md) - Slack/Discord guide
+- [Office Hours](docs/getting-started/office-hours.md) - Support schedule
+- [Student FAQ](docs/getting-started/faq.md) - Frequently asked questions
+- [Sprint Definitions](docs/getting-started/sprint-definitions.md) - 15 sprint overview
+- [Evaluation Criteria](docs/getting-started/evaluation-criteria.md) - Grading information
+- [Monday Demo Info](docs/getting-started/monday-demo/) - Demo preparation
 - [GitHub Workflow](docs/guides/github-workflow.md) - GitHub automation and trust system
-- [Contributing Guidelines](docs/guides/contributing.md) - How to contribute
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
 - [Development Guide](docs/DEVELOPMENT.md) - Development workflow and coding standards
 
 ### Technical Documentation
