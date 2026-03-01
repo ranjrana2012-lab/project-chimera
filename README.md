@@ -2,7 +2,7 @@
 
 > An AI-powered live theatre platform creating performances that adapt in real-time to audience input.
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![Status](https://img.shields.io/badge/status-alpha-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.10+-blue)
@@ -39,6 +39,17 @@ Project Chimera is an open-source, student-run Dynamic Performance Hub that uses
   - Dashboard Service (port 8009) - Real-time visualization
   - CI/CD Gateway (port 8010) - GitHub/GitLab integration
 
+### Music Generation Platform
+
+- **Music Generation Service** - AI-powered music generation using Meta MusicGen and ACE-Step models
+- **Music Orchestration Service** - Caching, approval workflow, and WebSocket progress streaming
+
+### GitHub Student Automation
+
+- **Trust-Based Auto-Merge** - Students earn trust through quality PRs (3+ merged = trusted)
+- **GitHub Actions Workflows** - PR validation, trust checking, auto-merge, and onboarding automation
+- **Issue & PR Templates** - Standardized templates for contributors
+
 ### Technology Stack
 
 - **Framework:** FastAPI (Python 3.10+)
@@ -47,7 +58,7 @@ Project Chimera is an open-source, student-run Dynamic Performance Hub that uses
 - **Caching:** Redis
 - **Vector DB:** Milvus
 - **Monitoring:** Prometheus + Grafana + Jaeger
-- **AI/ML:** PyTorch, Transformers, OpenAI Whisper
+- **AI/ML:** PyTorch, Transformers, OpenAI Whisper, Meta MusicGen
 
 ## Quick Start
 
@@ -93,29 +104,28 @@ make bootstrap-status
 
 ### For Students and Developers
 
-- [Student Quick Start Guide](Student_Quick_Start.md) - Setup your development environment
-- [Student Role Assignments](docs/STUDENT_ROLES.md) - Component ownership details
+- [Quick Start Guide](docs/getting-started/quick-start.md) - Set up your development environment
+- [Student Roles](docs/getting-started/roles.md) - Component ownership details
+- [GitHub Workflow](docs/guides/github-workflow.md) - GitHub automation and trust system
+- [Contributing Guidelines](docs/guides/contributing.md) - How to contribute
 - [Development Guide](docs/DEVELOPMENT.md) - Development workflow and coding standards
 
 ### Technical Documentation
 
-- [Architecture Overview](docs/ARCHITECTURE.md) - System architecture and design
-- [API Documentation](docs/API.md) - Complete API reference for all services
-- [Deployment Guide](docs/DEPLOYMENT.md) - Deployment scenarios and procedures
-- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
+- [Architecture Overview](docs/reference/architecture.md) - System architecture and design
+- [API Documentation](docs/reference/api.md) - Complete API reference for all services
+- [Deployment Guide](docs/reference/runbooks/deployment.md) - Deployment scenarios and procedures
+
+### Services Documentation
+
+- [Core Services](docs/services/core-services.md) - 8 AI agents overview
+- [Music Generation Platform](docs/services/music-generation.md) - Music generation services
+- [Quality Platform](docs/services/quality-platform.md) - Testing infrastructure
 
 ### Operational Documentation
 
-- [Monitoring Runbook](docs/runbooks/monitoring.md) - Monitoring and alerting setup
-- [Incident Response](docs/runbooks/incident-response.md) - Handling incidents
-- [Deployment Runbook](docs/runbooks/deployment.md) - Deployment procedures
-
-### Reference
-
-- [Technical Requirements](TRD_Project_Chimera.md) - Full technical specification
-- [Implementation Documentation](docs/plans/IMPLEMENTATION_DOCUMENTATION.md) - Build details
-- [Quality Platform Documentation](docs/quality-platform/README.md) - Testing infrastructure
-- [Project Backlog](Backlog_Project_Chimera.md) - Outstanding work and features
+- [Monitoring Runbook](docs/reference/runbooks/monitoring.md) - Monitoring and alerting setup
+- [Incident Response](docs/reference/runbooks/incident-response.md) - Handling incidents
 
 ## Architecture
 
@@ -236,23 +246,23 @@ Project Chimera is built on open-source technologies and would not be possible w
 
 ## Roadmap
 
-### v0.1.0 (Current - Alpha)
+### v0.2.0 (Current - March 2026)
 
-- Core AI agents implemented
-- Basic orchestration and safety
-- Local deployment support
+- Music Generation Platform implemented
+- GitHub Student Contribution Automation implemented
+- Monday demo documentation complete
 
-### v0.2.0 (Planned)
+### v0.3.0 (Planned)
 
-- Enhanced dialogue models
+- Complete service fixes (Captioning, BSL, Sentiment, Safety)
 - Multi-scene support
-- Improved accessibility features
+- Enhanced accessibility features
 
 ### v1.0.0 (Future)
 
 - Production-ready deployment
 - Cloud deployment guides
-- Comprehensive documentation
+- Public performances
 
 ---
 
