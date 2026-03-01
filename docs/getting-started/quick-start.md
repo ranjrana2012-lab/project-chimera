@@ -863,7 +863,7 @@ After completing this setup:
 
 | File | Purpose |
 |------|---------|
-| `Student_Quick_Start.md` | This file |
+| `getting-started/quick-start.md` | This file |
 | `Makefile` | Build automation |
 | `reference/runbooks/bootstrap-setup.md` | Bootstrap guide |
 | `docs/plans/IMPLEMENTATION_DOCUMENTATION.md` | Implementation details |

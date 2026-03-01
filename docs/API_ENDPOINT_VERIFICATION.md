@@ -8,7 +8,7 @@
 
 ## Summary
 
-This document verifies the actual API endpoints against the documented endpoints in `docs/API.md`. The actual code was inspected to determine the correct endpoints.
+This document verifies the actual API endpoints against the documented endpoints in `reference/api.md`. The actual code was inspected to determine the correct endpoints.
 
 ---
 
@@ -210,9 +210,9 @@ This document verifies the actual API endpoints against the documented endpoints
 
 ## Action Items
 
-1. ✅ **Update `docs/API.md`** - Correct all endpoint paths to match actual implementation
+1. ✅ **Update `reference/api.md`** - Correct all endpoint paths to match actual implementation
 2. ✅ **Update `docs/SERVICE_STATUS.md`** - Fix endpoint references
-3. ✅ **Update `Student_Quick_Start.md`** - Fix curl command examples (lines 444, 456, 478)
+3. ✅ **Update `getting-started/quick-start.md`** - Fix curl command examples (lines 444, 456, 478)
 4. ⚠️ **Consider standardizing** - Either use `/api/v1/` everywhere or `/v1/` everywhere consistently
 
 ---

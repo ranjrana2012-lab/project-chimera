@@ -575,70 +575,70 @@ jobs:
           gh issue create \
             --title "Sprint 0: OpenClaw Orchestrator Setup" \
             --label "sprint-0,onboarding,role-1" \
-            --body "## Onboarding Task: OpenClaw Orchestrator\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Access OpenClaw via port-forward (port 8000)\n- [ ] Run health check: \`curl http://localhost:8000/health/live\`\n- [ ] List available skills\n- [ ] Document skill registration flow" \
+            --body "## Onboarding Task: OpenClaw Orchestrator\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Access OpenClaw via port-forward (port 8000)\n- [ ] Run health check: \`curl http://localhost:8000/health/live\`\n- [ ] List available skills\n- [ ] Document skill registration flow" \
             --assignee "STUDENT1_USERNAME" || true
 
           # Role 2: SceneSpeak Agent Lead
           gh issue create \
             --title "Sprint 0: SceneSpeak Agent Setup" \
             --label "sprint-0,onboarding,role-2" \
-            --body "## Onboarding Task: SceneSpeak Agent\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Access SceneSpeak via port-forward (port 8001)\n- [ ] Test dialogue generation endpoint\n- [ ] Document prompt templates" \
+            --body "## Onboarding Task: SceneSpeak Agent\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Access SceneSpeak via port-forward (port 8001)\n- [ ] Test dialogue generation endpoint\n- [ ] Document prompt templates" \
             --assignee "STUDENT2_USERNAME" || true
 
           # Role 3: Captioning Agent Lead
           gh issue create \
             --title "Sprint 0: Captioning Agent Setup" \
             --label "sprint-0,onboarding,role-3" \
-            --body "## Onboarding Task: Captioning Agent\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Access Captioning via port-forward (port 8002)\n- [ ] Test transcription endpoint\n- [ ] Review Whisper model configuration" \
+            --body "## Onboarding Task: Captioning Agent\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Access Captioning via port-forward (port 8002)\n- [ ] Test transcription endpoint\n- [ ] Review Whisper model configuration" \
             --assignee "STUDENT3_USERNAME" || true
 
           # Role 4: BSL Translation Lead
           gh issue create \
             --title "Sprint 0: BSL Translation Setup" \
             --label "sprint-0,onboarding,role-4" \
-            --body "## Onboarding Task: BSL Translation Agent\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Access BSL agent via port-forward (port 8003)\n- [ ] Test translation endpoint\n- [ ] Document gloss translation format" \
+            --body "## Onboarding Task: BSL Translation Agent\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Access BSL agent via port-forward (port 8003)\n- [ ] Test translation endpoint\n- [ ] Document gloss translation format" \
             --assignee "STUDENT4_USERNAME" || true
 
           # Role 5: Sentiment Analysis Lead
           gh issue create \
             --title "Sprint 0: Sentiment Agent Setup" \
             --label "sprint-0,onboarding,role-5" \
-            --body "## Onboarding Task: Sentiment Agent\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Access Sentiment via port-forward (port 8004)\n- [ ] Test sentiment analysis endpoint\n- [ ] Review sentiment aggregation logic" \
+            --body "## Onboarding Task: Sentiment Agent\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Access Sentiment via port-forward (port 8004)\n- [ ] Test sentiment analysis endpoint\n- [ ] Review sentiment aggregation logic" \
             --assignee "STUDENT5_USERNAME" || true
 
           # Role 6: Lighting Control Lead
           gh issue create \
             --title "Sprint 0: Lighting Control Setup" \
             --label "sprint-0,onboarding,role-6" \
-            --body "## Onboarding Task: Lighting Control\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Access Lighting via port-forward (port 8005)\n- [ ] Test lighting set endpoint\n- [ ] Document DMX fixture configuration" \
+            --body "## Onboarding Task: Lighting Control\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Access Lighting via port-forward (port 8005)\n- [ ] Test lighting set endpoint\n- [ ] Document DMX fixture configuration" \
             --assignee "STUDENT6_USERNAME" || true
 
           # Role 7: Safety Filter Lead
           gh issue create \
             --title "Sprint 0: Safety Filter Setup" \
             --label "sprint-0,onboarding,role-7" \
-            --body "## Onboarding Task: Safety Filter\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Access Safety via port-forward (port 8006)\n- [ ] Test safety check endpoint\n- [ ] Review filter rules and policies" \
+            --body "## Onboarding Task: Safety Filter\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Access Safety via port-forward (port 8006)\n- [ ] Test safety check endpoint\n- [ ] Review filter rules and policies" \
             --assignee "STUDENT7_USERNAME" || true
 
           # Role 8: Operator Console Lead
           gh issue create \
             --title "Sprint 0: Operator Console Setup" \
             --label "sprint-0,onboarding,role-8" \
-            --body "## Onboarding Task: Operator Console\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Access Console via port-forward (port 8007)\n- [ ] Open dashboard UI in browser\n- [ ] Review alert management system" \
+            --body "## Onboarding Task: Operator Console\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Access Console via port-forward (port 8007)\n- [ ] Open dashboard UI in browser\n- [ ] Review alert management system" \
             --assignee "STUDENT8_USERNAME" || true
 
           # Role 9: Infrastructure & DevOps Lead
           gh issue create \
             --title "Sprint 0: Infrastructure Setup" \
             --label "sprint-0,onboarding,role-9" \
-            --body "## Onboarding Task: Infrastructure\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Verify k3s cluster health: \`kubectl get nodes\`\n- [ ] Access Grafana: http://localhost:3000\n- [ ] Review Prometheus metrics" \
+            --body "## Onboarding Task: Infrastructure\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Verify k3s cluster health: \`kubectl get nodes\`\n- [ ] Access Grafana: http://localhost:3000\n- [ ] Review Prometheus metrics" \
             --assignee "STUDENT9_USERNAME" || true
 
           # Role 10: QA & Documentation Lead
           gh issue create \
             --title "Sprint 0: QA & Documentation Setup" \
             --label "sprint-0,onboarding,role-10" \
-            --body "## Onboarding Task: QA & Documentation\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Run full test suite: \`make test\`\n- [ ] Check coverage report\n- [ ] Review documentation structure" \
+            --body "## Onboarding Task: QA & Documentation\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Run full test suite: \`make test\`\n- [ ] Check coverage report\n- [ ] Review documentation structure" \
             --assignee "STUDENT10_USERNAME" || true
 
           # Floating contributors (11-15)
@@ -646,7 +646,7 @@ jobs:
             gh issue create \
               --title "Sprint 0: General Contributor Setup ($i)" \
               --label "sprint-0,onboarding,floating" \
-              --body "## Onboarding Task: General Contributor\n\n- [ ] Read Student_Quick_Start.md\n- [ ] Complete environment setup\n- [ ] Explore all 8 services\n- [ ] Choose a component to contribute to\n- [ ] Create first issue for your contribution" \
+              --body "## Onboarding Task: General Contributor\n\n- [ ] Read getting-started/quick-start.md\n- [ ] Complete environment setup\n- [ ] Explore all 8 services\n- [ ] Choose a component to contribute to\n- [ ] Create first issue for your contribution" \
               --assignee "STUDENT${i}_USERNAME" || true
           done
 
@@ -685,11 +685,11 @@ git commit -m "feat: add Monday onboarding workflow (Sprint 0 issues)"
 ## Task 8: Create GitHub Project Documentation
 
 **Files:**
-- Create: `docs/monday-demo/github-setup-guide.md`
+- Create: `getting-started/monday-demo/github-setup-guide.md`
 
 **Step 1: Create GitHub setup guide**
 
-Create `docs/monday-demo/github-setup-guide.md`:
+Create `getting-started/monday-demo/github-setup-guide.md`:
 ```markdown
 # GitHub Project Setup Guide
 
@@ -813,13 +813,13 @@ gh pr create --template
 
 **Step 2: Verify documentation created**
 
-Run: `cat docs/monday-demo/github-setup-guide.md`
+Run: `cat getting-started/monday-demo/github-setup-guide.md`
 Expected: Documentation content displayed
 
 **Step 3: Commit**
 
 ```bash
-git add docs/monday-demo/github-setup-guide.md
+git add getting-started/monday-demo/github-setup-guide.md
 git commit -m "docs: add GitHub Project setup guide"
 ```
 
@@ -828,11 +828,11 @@ git commit -m "docs: add GitHub Project setup guide"
 ## Task 9: Create Monday Demo Script
 
 **Files:**
-- Create: `docs/monday-demo/demo-script.md`
+- Create: `getting-started/monday-demo/demo-script.md`
 
 **Step 1: Create demo script**
 
-Create `docs/monday-demo/demo-script.md`:
+Create `getting-started/monday-demo/demo-script.md`:
 ```markdown
 # Monday Demo Script
 
@@ -900,7 +900,7 @@ Create `docs/monday-demo/demo-script.md`:
 **Demo Actions:**
 1. Display role assignment matrix
 2. Call out each student's role
-3. Show Student_Quick_Start.md
+3. Show getting-started/quick-start.md
 4. Demonstrate creating first issue
 
 **Roles to Assign:**
@@ -1066,13 +1066,13 @@ If demo environment fails:
 
 **Step 2: Verify demo script created**
 
-Run: `cat docs/monday-demo/demo-script.md`
+Run: `cat getting-started/monday-demo/demo-script.md`
 Expected: Demo script content displayed
 
 **Step 3: Commit**
 
 ```bash
-git add docs/monday-demo/demo-script.md
+git add getting-started/monday-demo/demo-script.md
 git commit -m "docs: add Monday demo script (60 min agenda)"
 ```
 
@@ -1538,11 +1538,11 @@ git push origin main
 ## Task 17: Final Verification Checklist
 
 **Files:**
-- Create: `docs/monday-demo/pre-monday-checklist.md`
+- Create: `getting-started/monday-demo/pre-monday-checklist.md`
 
 **Step 1: Create checklist document**
 
-Create `docs/monday-demo/pre-monday-checklist.md`:
+Create `getting-started/monday-demo/pre-monday-checklist.md`:
 ```markdown
 # Pre-Monday Verification Checklist
 
@@ -1620,7 +1620,7 @@ Create `docs/monday-demo/pre-monday-checklist.md`:
 **Step 2: Commit checklist**
 
 ```bash
-git add docs/monday-demo/pre-monday-checklist.md
+git add getting-started/monday-demo/pre-monday-checklist.md
 git commit -m "docs: add pre-Monday verification checklist"
 ```
 
@@ -1648,7 +1648,7 @@ Expected: Repository opens in browser with all changes visible
 
 **Step 1: Create summary document**
 
-Create `docs/monday-demo/README.md`:
+Create `getting-started/monday-demo/README.md`:
 ```markdown
 # Monday Demo Documentation
 
@@ -1660,7 +1660,7 @@ Create `docs/monday-demo/README.md`:
 - [Demo Script](./demo-script.md) - 60-minute agenda
 - [GitHub Setup Guide](./github-setup-guide.md) - Project configuration
 - [Pre-Monday Checklist](./pre-monday-checklist.md) - Verification steps
-- [Student Quick Start](../../Student_Quick_Start.md) - Student guide
+- [Student Quick Start](../../getting-started/quick-start.md) - Student guide
 - [Student Roles](../../docs/STUDENT_ROLES.md) - Role assignments
 
 ## What Students Will Learn
@@ -1718,7 +1718,7 @@ If GitHub automation fails:
 **Step 2: Commit final documentation**
 
 ```bash
-git add docs/monday-demo/README.md
+git add getting-started/monday-demo/README.md
 git commit -m "docs: add Monday demo documentation summary"
 git push origin main
 ```

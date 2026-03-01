@@ -779,12 +779,12 @@ git commit -m "feat: add bootstrap targets to Makefile"
 ## Task 11: Create Bootstrap Documentation
 
 **Files:**
-- Create: `docs/runbooks/bootstrap-setup.md`
+- Create: `reference/runbooks/bootstrap-setup.md`
 
 **Step 1: Write documentation**
 
 ```bash
-cat > docs/runbooks/bootstrap-setup.md << 'EOF'
+cat > reference/runbooks/bootstrap-setup.md << 'EOF'
 # Bootstrap Setup Guide
 
 ## Overview
@@ -908,13 +908,13 @@ EOF
 
 **Step 2: Verify documentation**
 
-Run: `cat docs/runbooks/bootstrap-setup.md | head -20`
+Run: `cat reference/runbooks/bootstrap-setup.md | head -20`
 Expected: Documentation header content
 
 **Step 3: Commit**
 
 ```bash
-git add docs/runbooks/bootstrap-setup.md
+git add reference/runbooks/bootstrap-setup.md
 git commit -m "docs: add bootstrap setup guide"
 ```
 

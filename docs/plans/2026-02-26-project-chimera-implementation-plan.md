@@ -445,9 +445,9 @@ Create operational scripts and supporting documentation.
 - [ ] `scripts/training/evaluate_model.py`
 
 #### 10.4 Create Documentation Structure
-- [ ] `docs/runbooks/deployment.md`
-- [ ] `docs/runbooks/incident-response.md`
-- [ ] `docs/runbooks/monitoring.md`
+- [ ] `reference/runbooks/deployment.md`
+- [ ] `reference/runbooks/incident-response.md`
+- [ ] `reference/runbooks/monitoring.md`
 - [ ] `docs/architecture/001-use-k3s.md`
 - [ ] `docs/architecture/002-fastapi-services.md`
 - [ ] `docs/architecture/003-openclaw-skills.md`

@@ -27,9 +27,9 @@ Update all Project Chimera documentation to reflect the newly completed Chimera 
 
 ### Files to Update
 
-#### 1. Student_Quick_Start.md
+#### 1. getting-started/quick-start.md
 
-**Location:** `/home/ranj/Project_Chimera/Student_Quick_Start.md`
+**Location:** `/home/ranj/Project_Chimera/getting-started/quick-start.md`
 
 **Changes:**
 - Update Role 10 (QA & Documentation Lead) to include `platform/` directory
@@ -439,7 +439,7 @@ See k8s manifests in `platform/manifests/`.
 
 ## Implementation Steps
 
-1. **Update Student_Quick_Start.md**
+1. **Update getting-started/quick-start.md**
    - Modify Role 10 responsibilities
    - Add Quality Platform service references
 
@@ -462,7 +462,7 @@ See k8s manifests in `platform/manifests/`.
 
 5. **Commit changes**
    ```bash
-   git add Student_Quick_Start.md README.md docs/ docs/plans/2026-02-28-quality-platform-documentation-update-design.md
+   git add getting-started/quick-start.md README.md docs/ docs/plans/2026-02-28-quality-platform-documentation-update-design.md
    git commit -m "docs: add Quality Platform documentation and update student guide"
    ```
 
@@ -470,7 +470,7 @@ See k8s manifests in `platform/manifests/`.
 
 ## Success Criteria
 
-- ✅ Student_Quick_Start.md updated with Quality Platform
+- ✅ getting-started/quick-start.md updated with Quality Platform
 - ✅ main README.md includes Quality Platform in components
 - ✅ docs/README.md has Quality Platform section
 - ✅ New docs/quality-platform/ directory created

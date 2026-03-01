@@ -1021,9 +1021,9 @@ curl http://localhost:3000
 ### Getting Help
 
 1. **Check documentation:**
-   - `Student_Quick_Start.md`
+   - `getting-started/quick-start.md`
    - `docs/` folder
-   - `docs/runbooks/`
+   - `reference/runbooks/`
    - `docs/plans/IMPLEMENTATION_DOCUMENTATION.md`
 
 2. **Search existing issues:**
@@ -1083,10 +1083,10 @@ curl http://localhost:8007/health/live  # Operator
 | File | Purpose |
 |------|---------|
 | `README.md` | Project overview |
-| `Student_Quick_Start.md` | Setup guide |
+| `getting-started/quick-start.md` | Setup guide |
 | `docs/STUDENT_ROLES.md` | Role assignments |
-| `docs/API.md` | Complete API reference |
-| `docs/ARCHITECTURE.md` | System architecture |
+| `reference/api.md` | Complete API reference |
+| `reference/architecture.md` | System architecture |
 | `Makefile` | Build automation |
 | `scripts/bootstrap/` | Bootstrap scripts for k3s setup |
 

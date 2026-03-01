@@ -320,7 +320,7 @@ Project Chimera is divided into 10 focus areas. Each student owns one component 
 
 **Documentation:**
 - `infrastructure/kubernetes/`
-- `docs/runbooks/`
+- `reference/runbooks/`
 - `.github/workflows/`
 
 ---

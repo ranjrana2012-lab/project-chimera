@@ -17,10 +17,10 @@ A comprehensive documentation audit was conducted to ensure all documentation ac
 | File | Changes | Status |
 |------|---------|--------|
 | `docs/API_ENDPOINT_VERIFICATION.md` | NEW - Detailed endpoint audit | ✅ Created |
-| `docs/API.md` | Fixed 8 services' API endpoints | ✅ Updated |
+| `reference/api.md` | Fixed 8 services' API endpoints | ✅ Updated |
 | `docs/SERVICE_STATUS.md` | Fixed endpoints, removed docker-compose | ✅ Updated |
 | `docs/MONDAY_DEMO_SUMMARY.md` | Removed docker-compose section | ✅ Updated |
-| `Student_Quick_Start.md` | Fixed curl command examples | ✅ Updated |
+| `getting-started/quick-start.md` | Fixed curl command examples | ✅ Updated |
 
 ---
 
@@ -45,7 +45,7 @@ A comprehensive documentation audit was conducted to ensure all documentation ac
 
 ---
 
-## Student Lab Document (Student_Quick_Start.md)
+## Student Lab Document (getting-started/quick-start.md)
 
 ### Fixed Examples
 
@@ -185,7 +185,7 @@ All services implement health endpoints:
 ## Documentation Verification Checklist
 
 ✅ All API endpoints verified against actual source code
-✅ Student_Quick_Start.md curl examples corrected
+✅ getting-started/quick-start.md curl examples corrected
 ✅ SERVICE_STATUS.md endpoint table updated
 ✅ API.md service documentation updated
 ✅ Docker Compose references replaced with k3s commands
@@ -210,7 +210,7 @@ API endpoint paths to match the real implementation.
 
 The documentation is now **ready for Monday's student onboarding**:
 
-1. ✅ **Student_Quick_Start.md** - All curl commands work with actual implementation
+1. ✅ **getting-started/quick-start.md** - All curl commands work with actual implementation
 2. ✅ **API.md** - Complete reference with correct endpoints
 3. ✅ **SERVICE_STATUS.md** - Quick reference with accurate ports/endpoints
 4. ✅ **DEPLOYMENT.md** - k3s deployment guide (already correct)

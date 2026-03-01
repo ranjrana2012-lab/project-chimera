@@ -107,8 +107,8 @@ Both manifests include:
 | Document | Path | Status |
 |----------|------|--------|
 | Platform README | `/docs/music-platform/README.md` | ✅ |
-| API Documentation | `/services/music-orchestration/docs/API.md` | ✅ |
-| Deployment Guide | `/services/music-orchestration/docs/DEPLOYMENT.md` | ✅ |
+| API Documentation | `/services/music-orchestration/reference/api.md` | ✅ |
+| Deployment Guide | `/services/music-orchestration/reference/runbooks/deployment.md` | ✅ |
 | Design Document | `/docs/plans/2026-03-01-music-generation-platform-design.md` | ✅ |
 
 ---

@@ -27,11 +27,11 @@ Update all Project Chimera documentation to reflect the newly completed Chimera 
 ### Task 1.1: Update Role 10 Responsibilities
 
 **Files:**
-- Modify: `Student_Quick_Start.md` (lines 24-39)
+- Modify: `getting-started/quick-start.md` (lines 24-39)
 
 **Step 1: Read current Role 10 section**
 
-Run: `head -40 Student_Quick_Start.md | tail -15`
+Run: `head -40 getting-started/quick-start.md | tail -15`
 
 **Step 2: Update Role 10 entry**
 
@@ -47,14 +47,14 @@ Replace with:
 
 **Step 3: Verify the change**
 
-Run: `grep -n "QA & Documentation Lead" Student_Quick_Start.md`
+Run: `grep -n "QA & Documentation Lead" getting-started/quick-start.md`
 
 Expected: Line 39 shows the updated entry with `platform/` added.
 
 **Step 4: Commit**
 
 ```bash
-git add Student_Quick_Start.md
+git add getting-started/quick-start.md
 git commit -m "docs(student): add platform/ to QA & Documentation Lead responsibilities"
 ```
 
@@ -63,11 +63,11 @@ git commit -m "docs(student): add platform/ to QA & Documentation Lead responsib
 ### Task 1.2: Add Quality Platform Service References
 
 **Files:**
-- Modify: `Student_Quick_Start.md` (insert after line 491)
+- Modify: `getting-started/quick-start.md` (insert after line 491)
 
 **Step 1: Find insertion point**
 
-Run: `grep -n "### 8. Operator Console" Student_Quick_Start.md`
+Run: `grep -n "### 8. Operator Console" getting-started/quick-start.md`
 
 **Step 2: Add new section after line 491**
 
@@ -135,14 +135,14 @@ xdg-open htmlcov/index.html
 
 **Step 3: Verify the addition**
 
-Run: `grep -A 5 "Quality Platform Services" Student_Quick_Start.md`
+Run: `grep -A 5 "Quality Platform Services" getting-started/quick-start.md`
 
 Expected: New section is present with all three service descriptions.
 
 **Step 4: Commit**
 
 ```bash
-git add Student_Quick_Start.md
+git add getting-started/quick-start.md
 git commit -m "docs(student): add Quality Platform services section with quick reference"
 ```
 
@@ -151,11 +151,11 @@ git commit -m "docs(student): add Quality Platform services section with quick r
 ### Task 1.3: Update Project Structure Section
 
 **Files:**
-- Modify: `Student_Quick_Start.md` (lines 208-241)
+- Modify: `getting-started/quick-start.md` (lines 208-241)
 
 **Step 1: Find the project structure diagram**
 
-Run: `grep -n "project-chimera/" Student_Quick_Start.md`
+Run: `grep -n "project-chimera/" getting-started/quick-start.md`
 
 **Step 2: Add platform/ directory to structure**
 
@@ -178,14 +178,14 @@ Add after the `├── docs/` line:
 
 **Step 3: Verify structure update**
 
-Run: `grep -A 15 "├── platform/" Student_Quick_Start.md`
+Run: `grep -A 15 "├── platform/" getting-started/quick-start.md`
 
 Expected: platform/ section shows all subdirectories.
 
 **Step 4: Commit**
 
 ```bash
-git add Student_Quick_Start.md
+git add getting-started/quick-start.md
 git commit -m "docs(student): add platform/ directory to project structure"
 ```
 
@@ -1286,7 +1286,7 @@ grep -r "\[.*\](" docs/ | head -20
 
 **Step 2: Verify Student Quick Start updates**
 
-Run: `grep -A 3 "platform/" Student_Quick_Start.md`
+Run: `grep -A 3 "platform/" getting-started/quick-start.md`
 
 Expected: Multiple references to platform/ in student guide.
 
@@ -1346,7 +1346,7 @@ Verify all documentation updates are staged.
 git add .
 git commit -m "docs: complete Quality Platform documentation update
 
-- Updated Student_Quick_Start.md with Role 10 Quality Platform responsibilities
+- Updated getting-started/quick-start.md with Role 10 Quality Platform responsibilities
 - Added Quality Platform to main README.md key components
 - Created docs/quality-platform/ section with:
   - README.md (overview and quick start)
@@ -1366,8 +1366,8 @@ This completes the documentation update for the Chimera Quality Platform.
 
 ## Success Criteria
 
-- ✅ Student_Quick_Start.md updated with Quality Platform in Role 10
-- ✅ Student_Quick_Start.md has Quality Platform services section
+- ✅ getting-started/quick-start.md updated with Quality Platform in Role 10
+- ✅ getting-started/quick-start.md has Quality Platform services section
 - ✅ main README.md includes Quality Platform in key components
 - ✅ main README.md project structure includes platform/ directory
 - ✅ docs/README.md has Quality Platform section with all subsections

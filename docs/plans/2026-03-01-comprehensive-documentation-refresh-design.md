@@ -39,7 +39,7 @@ docs/
 docs/
 ├── README.md                      # Main docs index
 ├── getting-started/               # Consolidated onboarding
-│   ├── quick-start.md             # From Student_Quick_Start.md
+│   ├── quick-start.md             # From getting-started/quick-start.md
 │   ├── installation.md            # Installation guide
 │   ├── first-steps.md             # Tutorial for first contribution
 │   ├── monday-demo/               # Monday demo docs
@@ -250,16 +250,16 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 
 | Old Path | New Path |
 |----------|----------|
-| `Student_Quick_Start.md` | `docs/getting-started/quick-start.md` |
+| `getting-started/quick-start.md` | `docs/getting-started/quick-start.md` |
 | `docs/STUDENT_ROLES.md` | `docs/getting-started/roles.md` |
-| `docs/monday-demo/README.md` | `docs/getting-started/monday-demo/README.md` |
-| `docs/monday-demo/github-setup-guide.md` | `docs/getting-started/monday-demo/github-setup-guide.md` |
-| `docs/monday-demo/demo-script.md` | `docs/getting-started/monday-demo/demo-script.md` |
-| `docs/monday-demo/pre-monday-checklist.md` | `docs/getting-started/monday-demo/pre-monday-checklist.md` |
-| `docs/ARCHITECTURE.md` | `docs/reference/architecture.md` |
-| `docs/API.md` | `docs/reference/api.md` |
-| `docs/DEPLOYMENT.md` | `docs/reference/runbooks/deployment.md` |
-| `docs/runbooks/` | `docs/reference/runbooks/` |
+| `getting-started/monday-demo/README.md` | `docs/getting-started/monday-demo/README.md` |
+| `getting-started/monday-demo/github-setup-guide.md` | `docs/getting-started/monday-demo/github-setup-guide.md` |
+| `getting-started/monday-demo/demo-script.md` | `docs/getting-started/monday-demo/demo-script.md` |
+| `getting-started/monday-demo/pre-monday-checklist.md` | `docs/getting-started/monday-demo/pre-monday-checklist.md` |
+| `reference/architecture.md` | `docs/reference/architecture.md` |
+| `reference/api.md` | `docs/reference/api.md` |
+| `reference/runbooks/deployment.md` | `docs/reference/runbooks/deployment.md` |
+| `reference/runbooks/` | `docs/reference/runbooks/` |
 
 ### 5. docs/getting-started/github-workflow.md (Create New)
 
@@ -664,24 +664,24 @@ curl http://localhost:8012/api/v1/music/{music_id}
 
 | Old Link | New Link |
 |----------|----------|
-| `Student_Quick_Start.md` | `docs/getting-started/quick-start.md` |
+| `getting-started/quick-start.md` | `docs/getting-started/quick-start.md` |
 | `docs/STUDENT_ROLES.md` | `docs/getting-started/roles.md` |
 | N/A | `docs/services/music-generation.md` |
 | N/A | `docs/guides/github-workflow.md` |
 
-### docs/ARCHITECTURE.md Updates
+### reference/architecture.md Updates
 
 - Add Music Generation Platform services
 - Add GitHub automation workflows
 - Update service count: 8 → 10
 
-### docs/API.md Updates
+### reference/api.md Updates
 
 - Add Music Generation API endpoints (port 8011)
 - Add Music Orchestration API endpoints (port 8012)
 - Update service port table
 
-### docs/DEPLOYMENT.md Updates
+### reference/runbooks/deployment.md Updates
 
 - Add Music Generation deployment
 - Add GitHub automation setup
@@ -737,7 +737,7 @@ related:
 find docs/ -name "*.md" -exec grep -H "\[.*\](" {} \;
 
 # Verify old references are updated
-grep -r "Student_Quick_Start.md" docs/
+grep -r "getting-started/quick-start.md" docs/
 grep -r "monday-demo/" docs/
 ```
 
@@ -781,12 +781,12 @@ Simulate user journeys:
 
 **Files to Update:** ~15 files
 - `README.md`
-- All files in `docs/monday-demo/` (moves)
-- `Student_Quick_Start.md` (move)
+- All files in `getting-started/monday-demo/` (moves)
+- `getting-started/quick-start.md` (move)
 - `docs/STUDENT_ROLES.md` (move)
-- `docs/ARCHITECTURE.md`
-- `docs/API.md`
-- `docs/DEPLOYMENT.md`
+- `reference/architecture.md`
+- `reference/api.md`
+- `reference/runbooks/deployment.md`
 - `docs/DEVELOPMENT.md`
 
 **Total:** ~25 files to create/update/move

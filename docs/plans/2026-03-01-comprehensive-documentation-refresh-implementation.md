@@ -258,16 +258,16 @@ Expected: monday-demo subdirectory listed
 
 ---
 
-## Task 4: Move Student_Quick_Start.md to docs/getting-started/quick-start.md
+## Task 4: Move getting-started/quick-start.md to docs/getting-started/quick-start.md
 
 **Files:**
-- Move: `Student_Quick_Start.md` → `docs/getting-started/quick-start.md`
+- Move: `getting-started/quick-start.md` → `docs/getting-started/quick-start.md`
 
 **Step 1: Move file**
 
 Run:
 ```bash
-git mv Student_Quick_Start.md docs/getting-started/quick-start.md
+git mv getting-started/quick-start.md docs/getting-started/quick-start.md
 ```
 
 Expected: File moved silently
@@ -277,7 +277,7 @@ Expected: File moved silently
 Run:
 ```bash
 sed -i 's|docs/STUDENT_ROLES.md|getting-started/roles.md|g' docs/getting-started/quick-start.md
-sed -i 's|docs/runbooks/bootstrap-setup.md|reference/runbooks/bootstrap-setup.md|g' docs/getting-started/quick-start.md
+sed -i 's|reference/runbooks/bootstrap-setup.md|reference/runbooks/bootstrap-setup.md|g' docs/getting-started/quick-start.md
 ```
 
 Expected: Files modified silently
@@ -291,7 +291,7 @@ Expected: File listed
 
 ```bash
 git add docs/getting-started/quick-start.md
-git commit -m "docs: move Student_Quick_Start.md to docs/getting-started/quick-start.md"
+git commit -m "docs: move getting-started/quick-start.md to docs/getting-started/quick-start.md"
 ```
 
 ---
@@ -314,7 +314,7 @@ Expected: File moved silently
 
 Run:
 ```bash
-sed -i 's|Student_Quick_Start.md|getting-started/quick-start.md|g' docs/getting-started/roles.md
+sed -i 's|getting-started/quick-start.md|getting-started/quick-start.md|g' docs/getting-started/roles.md
 ```
 
 Expected: File modified silently
@@ -336,16 +336,16 @@ git commit -m "docs: move STUDENT_ROLES.md to docs/getting-started/roles.md"
 ## Task 6: Move monday-demo Documentation
 
 **Files:**
-- Move: `docs/monday-demo/*` → `docs/getting-started/monday-demo/`
+- Move: `getting-started/monday-demo/*` → `docs/getting-started/monday-demo/`
 
 **Step 1: Move all monday-demo files**
 
 Run:
 ```bash
-git mv docs/monday-demo/README.md docs/getting-started/monday-demo/README.md
-git mv docs/monday-demo/github-setup-guide.md docs/getting-started/monday-demo/github-setup-guide.md
-git mv docs/monday-demo/demo-script.md docs/getting-started/monday-demo/demo-script.md
-git mv docs/monday-demo/pre-monday-checklist.md docs/getting-started/monday-demo/pre-monday-checklist.md
+git mv getting-started/monday-demo/README.md docs/getting-started/monday-demo/README.md
+git mv getting-started/monday-demo/github-setup-guide.md docs/getting-started/monday-demo/github-setup-guide.md
+git mv getting-started/monday-demo/demo-script.md docs/getting-started/monday-demo/demo-script.md
+git mv getting-started/monday-demo/pre-monday-checklist.md docs/getting-started/monday-demo/pre-monday-checklist.md
 ```
 
 Expected: Files moved silently
@@ -354,7 +354,7 @@ Expected: Files moved silently
 
 Run:
 ```bash
-sed -i 's|docs/monday-demo/|getting-started/monday-demo/|g' docs/getting-started/monday-demo/*.md
+sed -i 's|getting-started/monday-demo/|getting-started/monday-demo/|g' docs/getting-started/monday-demo/*.md
 ```
 
 Expected: Files modified silently
@@ -382,7 +382,7 @@ git commit -m "docs: move monday-demo docs to docs/getting-started/monday-demo/"
 
 Run:
 ```bash
-sed -i 's|\[Student Quick Start Guide\](Student_Quick_Start.md)|[Student Quick Start Guide](docs/getting-started/quick-start.md)|g' README.md
+sed -i 's|\[Student Quick Start Guide\](getting-started/quick-start.md)|[Student Quick Start Guide](docs/getting-started/quick-start.md)|g' README.md
 ```
 
 Expected: File modified silently
@@ -401,12 +401,12 @@ Expected: File modified silently
 Run:
 ```bash
 sed -i 's|\[Development Guide\](docs/DEVELOPMENT.md)|[Development Guide](docs/DEVELOPMENT.md)|g' README.md
-sed -i 's|\[Architecture Overview\](docs/ARCHITECTURE.md)|[Architecture Overview](docs/reference/architecture.md)|g' README.md
-sed -i 's|\[API Documentation\](docs/API.md)|[API Documentation](docs/reference/api.md)|g' README.md
-sed -i 's|\[Deployment Guide\](docs/DEPLOYMENT.md)|[Deployment Guide](docs/reference/runbooks/deployment.md)|g' README.md
-sed -i 's|\[Monitoring Runbook\](docs/runbooks/monitoring.md)|[Monitoring Runbook](docs/reference/runbooks/monitoring.md)|g' README.md
-sed -i 's|\[Incident Response\](docs/runbooks/incident-response.md)|[Incident Response](docs/reference/runbooks/incident-response.md)|g' README.md
-sed -i 's|\[Deployment Runbook\](docs/runbooks/deployment.md)|[Deployment Runbook](docs/reference/runbooks/deployment.md)|g' README.md
+sed -i 's|\[Architecture Overview\](reference/architecture.md)|[Architecture Overview](docs/reference/architecture.md)|g' README.md
+sed -i 's|\[API Documentation\](reference/api.md)|[API Documentation](docs/reference/api.md)|g' README.md
+sed -i 's|\[Deployment Guide\](reference/runbooks/deployment.md)|[Deployment Guide](docs/reference/runbooks/deployment.md)|g' README.md
+sed -i 's|\[Monitoring Runbook\](reference/runbooks/monitoring.md)|[Monitoring Runbook](docs/reference/runbooks/monitoring.md)|g' README.md
+sed -i 's|\[Incident Response\](reference/runbooks/incident-response.md)|[Incident Response](docs/reference/runbooks/incident-response.md)|g' README.md
+sed -i 's|\[Deployment Runbook\](reference/runbooks/deployment.md)|[Deployment Runbook](docs/reference/runbooks/deployment.md)|g' README.md
 ```
 
 Expected: File modified silently
@@ -987,17 +987,17 @@ git commit -m "docs: add documentation index and hub"
 
 ---
 
-## Task 12: Update docs/ARCHITECTURE.md with New Services
+## Task 12: Update reference/architecture.md with New Services
 
 **Files:**
-- Modify: `docs/ARCHITECTURE.md`
+- Modify: `reference/architecture.md`
 
 **Step 1: Backup and move architecture doc**
 
 Run:
 ```bash
 mkdir -p docs/reference
-git mv docs/ARCHITECTURE.md docs/reference/architecture.md
+git mv reference/architecture.md docs/reference/architecture.md
 ```
 
 Expected: File moved silently
@@ -1049,16 +1049,16 @@ git commit -m "docs: move and update ARCHITECTURE.md with Music Platform and Git
 
 ---
 
-## Task 13: Update docs/API.md with New Endpoints
+## Task 13: Update reference/api.md with New Endpoints
 
 **Files:**
-- Modify: `docs/API.md`
+- Modify: `reference/api.md`
 
 **Step 1: Move API docs to reference folder**
 
 Run:
 ```bash
-git mv docs/API.md docs/reference/api.md
+git mv reference/api.md docs/reference/api.md
 ```
 
 Expected: File moved silently
@@ -1186,10 +1186,10 @@ git commit -m "docs: move and update API.md with Music Platform endpoints"
 Run:
 ```bash
 # Find and replace old paths
-find docs/ -name "*.md" -type f -exec sed -i 's|docs/ARCHITECTURE.md|reference/architecture.md|g' {} \;
-find docs/ -name "*.md" -type f -exec sed -i 's|docs/API.md|reference/api.md|g' {} \;
-find docs/ -name "*.md" -type f -exec sed -i 's|docs/DEPLOYMENT.md|reference/runbooks/deployment.md|g' {} \;
-find docs/ -name "*.md" -type f -exec sed -i 's|docs/runbooks/|reference/runbooks/|g' {} \;
+find docs/ -name "*.md" -type f -exec sed -i 's|reference/architecture.md|reference/architecture.md|g' {} \;
+find docs/ -name "*.md" -type f -exec sed -i 's|reference/api.md|reference/api.md|g' {} \;
+find docs/ -name "*.md" -type f -exec sed -i 's|reference/runbooks/deployment.md|reference/runbooks/deployment.md|g' {} \;
+find docs/ -name "*.md" -type f -exec sed -i 's|reference/runbooks/|reference/runbooks/|g' {} \;
 ```
 
 Expected: Files modified silently
@@ -1289,8 +1289,8 @@ Expected: All new files/directories listed
 Run:
 ```bash
 echo "=== Checking for old references ===" && \
-echo "Student_Quick_Start.md references:" && \
-grep -r "Student_Quick_Start.md" . --include="*.md" | grep -v ".git" | wc -l && \
+echo "getting-started/quick-start.md references:" && \
+grep -r "getting-started/quick-start.md" . --include="*.md" | grep -v ".git" | wc -l && \
 echo "docs/STUDENT_ROLES.md references:" && \
 grep -r "docs/STUDENT_ROLES.md" . --include="*.md" | grep -v ".git" | wc -l
 ```
@@ -1339,7 +1339,7 @@ Expected: Summary displayed
 1. **Updated README.md** - v0.2.0 with Music Platform and GitHub automation
 2. **CHANGELOG.md** - v0.1.0 and v0.2.0 release notes
 3. **Reorganized docs/** - New folder structure (getting-started/, services/, guides/, reference/)
-4. **Moved files** - Student_Quick_Start.md, STUDENT_ROLES.md, monday-demo/
+4. **Moved files** - getting-started/quick-start.md, STUDENT_ROLES.md, monday-demo/
 5. **New documentation** - core-services.md, music-generation.md, github-workflow.md
 6. **Updated cross-references** - All links updated to new paths
 7. **Git tag v0.2.0** - Annotated tag for release

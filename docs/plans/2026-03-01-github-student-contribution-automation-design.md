@@ -396,7 +396,7 @@ docs/
 ### 0:20-0:30 | Component Assignments
 - Announce 10 role assignments
 - Explain 5 floating roles
-- Show Student_Quick_Start.md
+- Show getting-started/quick-start.md
 - Assign Sprint 0 issues
 
 ### 0:30-0:40 | Live Demo: Working Services

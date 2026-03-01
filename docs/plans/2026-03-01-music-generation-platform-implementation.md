@@ -2913,13 +2913,13 @@ git commit -m "feat: add Dockerfiles"
 ## Task 18: Documentation
 
 **Files:**
-- Create: `services/music-orchestration/docs/API.md`
-- Create: `services/music-orchestration/docs/DEPLOYMENT.md`
+- Create: `services/music-orchestration/reference/api.md`
+- Create: `services/music-orchestration/reference/runbooks/deployment.md`
 - Create: `docs/music-platform/README.md`
 
 **Step 1: Create API documentation**
 
-Create `services/music-orchestration/docs/API.md`:
+Create `services/music-orchestration/reference/api.md`:
 ```markdown
 # Music Orchestration Service - API Documentation
 
@@ -2988,7 +2988,7 @@ Real-time progress updates.
 
 **Step 2: Create deployment guide**
 
-Create `services/music-orchestration/docs/DEPLOYMENT.md`:
+Create `services/music-orchestration/reference/runbooks/deployment.md`:
 ```markdown
 # Music Platform Deployment Guide
 
@@ -3067,8 +3067,8 @@ curl -X POST http://localhost:8012/api/v1/music/generate \
 ```
 
 ## Documentation
-- [API Documentation](../services/music-orchestration/docs/API.md)
-- [Deployment Guide](../services/music-orchestration/docs/DEPLOYMENT.md)
+- [API Documentation](../services/music-orchestration/reference/api.md)
+- [Deployment Guide](../services/music-orchestration/reference/runbooks/deployment.md)
 - [Design Document](../plans/2026-03-01-music-generation-platform-design.md)
 ```
 
@@ -3205,7 +3205,7 @@ Expected: No errors
 ```bash
 # Check all docs exist and are readable
 cat docs/music-platform/README.md
-cat services/music-orchestration/docs/API.md
+cat services/music-orchestration/reference/api.md
 cat docs/plans/2026-03-01-music-generation-platform-design.md
 ```
 

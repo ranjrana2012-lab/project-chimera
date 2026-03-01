@@ -23,6 +23,6 @@ curl -X POST http://localhost:8012/api/v1/music/generate \
 ```
 
 ## Documentation
-- [API Documentation](../../services/music-orchestration/docs/API.md)
-- [Deployment Guide](../../services/music-orchestration/docs/DEPLOYMENT.md)
+- [API Documentation](../../services/music-orchestration/reference/api.md)
+- [Deployment Guide](../../services/music-orchestration/reference/runbooks/deployment.md)
 - [Design Document](../../plans/2026-03-01-music-generation-platform-design.md)
