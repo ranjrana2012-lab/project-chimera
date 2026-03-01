@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any
+
 from minio import Minio
 from minio.helpers import ObjectWriteResult
 
