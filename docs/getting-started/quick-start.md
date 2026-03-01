@@ -716,7 +716,7 @@ If you're stuck:
 1. **Check the documentation:**
    - This guide
    - `/docs/` folder in the repository
-   - `/docs/runbooks/bootstrap-setup.md`
+   - `/reference/runbooks/bootstrap-setup.md`
    - `/docs/plans/IMPLEMENTATION_DOCUMENTATION.md`
 
 2. **Search existing issues:**
@@ -865,7 +865,7 @@ After completing this setup:
 |------|---------|
 | `Student_Quick_Start.md` | This file |
 | `Makefile` | Build automation |
-| `docs/runbooks/bootstrap-setup.md` | Bootstrap guide |
+| `reference/runbooks/bootstrap-setup.md` | Bootstrap guide |
 | `docs/plans/IMPLEMENTATION_DOCUMENTATION.md` | Implementation details |
 | `scripts/bootstrap/` | Bootstrap scripts |
 | `infrastructure/kubernetes/base/` | Kubernetes manifests |
