@@ -5,154 +5,77 @@ All notable changes to Project Chimera will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Planned
-- Enhanced dialogue models with better context understanding
-- Multi-scene support and scene transitions
-- Improved accessibility features
-- Cloud deployment guides
-- Production-ready hardening
-
-## [0.1.0] - 2026-02-27
+## [0.2.0] - 2026-03-01
 
 ### Added
+- **Music Generation Platform** - AI-powered local music generation for social media and live shows
+  - Music Generation Service (port 8011) with Meta MusicGen & ACE-Step models
+  - Music Orchestration Service (port 8012) with caching, approval, and WebSocket streaming
+  - Support for marketing use case (auto-approve) and show use case (manual approval)
+  - MinIO storage integration for audio files
+- **GitHub Student Contribution Automation** - Complete workflow for 15 AI students
+  - Trust-based auto-merge system (3+ merged PRs = trusted contributor)
+  - 4 GitHub Actions workflows: validation, trust-check, auto-merge, onboarding
+  - Issue templates: feature request, bug report, documentation
+  - Pull request template with testing checklist
+  - CODEOWNERS file for role-based review routing
+  - Branch protection rules with required status checks
+  - 15 Sprint 0 onboarding issues for Monday demo
+- **Monday Demo Documentation** - Complete onboarding package for students
+  - 60-minute demo script with talking points
+  - Pre-Monday verification checklist
+  - GitHub setup guide for students
 
-#### Core Services
-- OpenClaw Orchestrator - Central control plane with skill registry
-- SceneSpeak Agent - Real-time dialogue generation with Llama 2
-- Captioning Agent - Speech-to-text with OpenAI Whisper
-- BSL-Text2Gloss Agent - British Sign Language translation
-- Sentiment Agent - Audience sentiment analysis
-- Lighting Control - DMX/OSC stage automation
-- Safety Filter - Multi-layer content moderation
-- Operator Console - Human oversight interface
+### Changed
+- Updated documentation structure for better navigation
+- Reorganized docs/ into getting-started/, services/, guides/, reference/
+- Improved student onboarding experience
+- Enhanced GitHub contribution workflow with automation
 
-#### Infrastructure
-- Kubernetes manifests for k3s deployment
-- Bootstrap automation for local development
-- Docker builds for all services
-- Local container registry setup
+### Services Status
+- OpenClaw Orchestrator: ✅ Production Ready
+- SceneSpeak Agent: ✅ Production Ready
+- Captioning Agent: ⚠️ Partial (needs minor fixes to response model)
+- BSL Translation Agent: ⚠️ Partial (needs minor fixes to response model)
+- Sentiment Agent: ⚠️ Partial (needs minor fixes to response model)
+- Lighting Control: ✅ Production Ready
+- Safety Filter: ⚠️ Partial (needs minor fixes to response model)
+- Operator Console: ✅ Production Ready
+- Music Generation: ✅ Production Ready (NEW)
+- Music Orchestration: ✅ Production Ready (NEW)
 
-#### Monitoring & Observability
-- Prometheus metrics collection
-- Grafana dashboards
-- Jaeger distributed tracing
-- Structured JSON logging
+### Documentation
+- Added comprehensive documentation refresh
+- Created getting-started guides for students
+- Added service-specific documentation
+- Added GitHub workflow guides
 
-#### Documentation
-- Complete API documentation
-- Architecture overview
-- Deployment guides
-- Development setup guide
-- Student role assignments
-- Operational runbooks
-
-#### Testing
-- Unit test framework
-- Integration test structure
-- Load testing infrastructure
-- Red team testing for security
-
-#### Open Source
-- MIT License
-- Contributing guidelines
-- Code of conduct
-- Security policy
-- GitHub issue and PR templates
-
-### Configuration
-
-- Environment-based configuration
-- Example `.env` file
-- Kubernetes ConfigMaps support
-- Secret management guidelines
-
-### Development Tools
-
-- Make targets for common operations
-- Pre-commit hooks configuration
-- Code formatting with Black
-- Linting with Ruff
-- Type checking with MyPy
-
-### Security
-
-- Multi-layer content filtering
-- Human approval workflows
-- Audit logging
-- Network policies for Kubernetes
-- Security vulnerability reporting
-
-### Accessibility
-
-- WCAG compliance considerations
-- Captioning service
-- BSL translation service
-- Accessibility testing framework
-
-## [0.0.1] - 2026-02-20
+## [0.1.0] - 2026-02-28
 
 ### Added
-- Initial project scaffold
-- Basic service structure
-- Development environment setup
+- **Initial Scaffold** - 8 AI microservices implemented
+  - OpenClaw Orchestrator (port 8000) - Central control plane
+  - SceneSpeak Agent (port 8001) - Dialogue generation
+  - Captioning Agent (port 8002) - Speech-to-text
+  - BSL-Text2Gloss Agent (port 8003) - BSL translation
+  - Sentiment Agent (port 8004) - Sentiment analysis
+  - Lighting Control (port 8005) - DMX/sACN control
+  - Safety Filter (port 8006) - Content moderation
+  - Operator Console (port 8007) - Human oversight
+- **Quality Platform** - Testing and quality infrastructure
+  - Test Orchestrator (port 8008) - Test discovery and execution
+  - Dashboard Service (port 8009) - Quality visualization
+  - CI/CD Gateway (port 8010) - GitHub/GitLab integration
+- **Bootstrap Setup** - Automated k3s cluster setup (make bootstrap)
+- **Monitoring Stack** - Prometheus, Grafana, Jaeger
+- **Initial Documentation** - Architecture, API, deployment, development guides
 
----
+### Infrastructure
+- k3s cluster configuration
+- Redis for caching and pub/sub
+- Kafka for event streaming
+- Milvus vector database
+- MinIO for object storage
 
-## Release Notes
-
-### 0.1.0 Highlights
-
-This is the initial alpha release of Project Chimera, an AI-powered live theatre platform.
-
-**Key Features:**
-- 8 AI agents for theatre production
-- Real-time audience adaptation
-- Multi-layer safety filtering
-- Built-in accessibility features
-- Complete open source documentation
-
-**Known Limitations:**
-- Alpha quality - not production ready
-- Limited model training data
-- Basic UI only
-- Single-region deployment only
-
-**Getting Started:**
-See the [Quick Start Guide](README.md#quick-start) to get started in 15-20 minutes.
-
-**Contributing:**
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-**Support:**
-- [GitHub Issues](https://github.com/project-chimera/project-chimera/issues)
-- [GitHub Discussions](https://github.com/project-chimera/project-chimera/discussions)
-- [Documentation](docs/)
-
----
-
-## Version Schema
-
-- **Major (X.0.0)**: Breaking changes, major features
-- **Minor (0.X.0)**: New features, backward compatible
-- **Patch (0.0.X)**: Bug fixes, minor changes
-
-## Release Schedule
-
-- **Alpha:** Monthly releases during active development
-- **Beta:** Bi-weekly releases as features stabilize
-- **Stable:** Quarterly releases after v1.0.0
-
-## Support Policy
-
-- **Current version:** Full support
-- **Previous version:** Security fixes only
-- **Older versions:** No support
-
----
-
-For detailed release information, see:
-- [GitHub Releases](https://github.com/project-chimera/project-chimera/releases)
-- [Milestone Tracking](https://github.com/project-chimera/project-chimera/milestones)
-- [Project Roadmap](https://github.com/project-chimera/project-chimera/wiki/Roadmap)
+[0.2.0]: https://github.com/project-chimera/project-chimera/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/project-chimera/project-chimera/releases/tag/v0.1.0
