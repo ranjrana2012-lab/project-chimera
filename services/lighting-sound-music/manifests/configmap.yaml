@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lsm-config
+  namespace: chimera
+  labels:
+    app: lighting-sound-music
+    component: lsm
+data:
+  config.yaml: |
+    # Lighting, Sound and Music Service Configuration
+    # (Kubernetes-deployed version)
+
+    service:
+      name: "lighting-sound-music"
+      version: "0.1.0"
+      port: 8005
+      host: "0.0.0.0"
+      debug: false
+
+    lighting:
+      enabled: true
+      dmx_universe: 1
+      sacn_enabled: true
+      sacn_host: "127.0.0.1"
+      sacn_port: 5568
+      sacn_priority: 100
+      osc_enabled: true
+      osc_server_port: 9000
+      default_fade_time: 1.0
+
+    sound:
+      enabled: true
+      default_volume: 0.8
+      sounds_directory: "/app/assets/sounds/"
+      max_concurrent_sounds: 8
+
+    music:
+      enabled: true
+      models_directory: "/app/models"
+      default_model: "turbo"
+      cache_size_mb: 512
+      tracks_directory: "/app/assets/music"
+      max_generation_duration: 300
+
+    cues:
+      enabled: true
+      max_concurrent_cues: 4
+      default_fade_time: 1.0
+
+    logging:
+      level: "INFO"
+      console:
+        enabled: true
+      file:
+        enabled: true
+        path: "/app/logs/lsm-service.log"
+
+    health:
+      liveness_interval: 30
+      readiness_timeout: 5
+      startup_timeout: 60
+
+    cors:
+      enabled: true
+      origins:
+        - "http://localhost:3000"
+        - "http://operator-console.chimera.svc.cluster.local:8007"
+      allow_credentials: true

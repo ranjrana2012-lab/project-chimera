@@ -1,0 +1,44 @@
+# Namespace for Project Chimera
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chimera
+  labels:
+    name: chimera
+    project: project-chimera
+---
+# Service Account for LSM Service
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lsm-service-account
+  namespace: chimera
+  labels:
+    app: lighting-sound-music
+    component: lsm
+---
+# Role for service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lsm-role
+  namespace: chimera
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list"]
+---
+# Role binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lsm-role-binding
+  namespace: chimera
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lsm-role
+subjects:
+- kind: ServiceAccount
+  name: lsm-service-account
+  namespace: chimera

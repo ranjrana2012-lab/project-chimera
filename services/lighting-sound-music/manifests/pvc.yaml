@@ -1,0 +1,58 @@
+# Persistent Volume Claims for Lighting, Sound & Music Service
+
+---
+# PVC for ACE-Step-1.5 models (large, should be preloaded)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ace-models-pvc
+  namespace: chimera
+  labels:
+    app: lighting-sound-music
+    component: lsm
+    type: models
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+
+---
+# PVC for sound effects library
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sound-effects-pvc
+  namespace: chimera
+  labels:
+    app: lighting-sound-music
+    component: lsm
+    type: sounds
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+
+---
+# PVC for generated music tracks
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: music-library-pvc
+  namespace: chimera
+  labels:
+    app: lighting-sound-music
+    component: lsm
+    type: music
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard

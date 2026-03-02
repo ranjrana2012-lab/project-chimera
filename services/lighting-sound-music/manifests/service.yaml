@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lighting-sound-music
+  namespace: chimera
+  labels:
+    app: lighting-sound-music
+    component: lsm
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+  - name: http
+    port: 8005
+    targetPort: 8005
+    protocol: TCP
+  selector:
+    app: lighting-sound-music
+    component: lsm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lighting-sound-music-headless
+  namespace: chimera
+  labels:
+    app: lighting-sound-music
+    component: lsm
+spec:
+  type: ClusterIP
+  clusterIP: None
+  sessionAffinity: None
+  ports:
+  - name: http
+    port: 8005
+    targetPort: 8005
+    protocol: TCP
+  selector:
+    app: lighting-sound-music
+    component: lsm
