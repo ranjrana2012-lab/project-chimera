@@ -60,23 +60,23 @@ WORKDIR ${APP_DIR}
 # Copy application code
 COPY --chown=${APP_USER}:${APP_USER} main.py .
 
-# Copy assets (will be populated in subsequent tasks)
-COPY --chown=${APP_USER}:${APP_USER} assets ./assets
+# TODO: Copy assets (will be populated in subsequent tasks)
+# COPY --chown=${APP_USER}:${APP_USER} assets ./assets
 
-# Copy models directory structure (will be populated in subsequent tasks)
-COPY --chown=${APP_USER}:${APP_USER} models ./models
+# TODO: Copy models directory structure (will be populated in subsequent tasks)
+# COPY --chown=${APP_USER}:${APP_USER} models ./models
 
-# Copy ACE-Step library
-COPY --chown=${APP_USER}:${APP_USER} acestep-lib ./acestep-lib
+# TODO: Copy ACE-Step library
+# COPY --chown=${APP_USER}:${APP_USER} acestep-lib ./acestep-lib
 
 USER ${APP_USER}
 
 # Health check - service must respond within 10s
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8015/health/live || exit 1
+    CMD curl -f http://localhost:8005/health/live || exit 1
 
 # Expose service port
-EXPOSE 8015
+EXPOSE 8005
 
 # Run application with uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8015", "--log-level", "info"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8005", "--log-level", "info"]

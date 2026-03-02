@@ -42,6 +42,8 @@ redis>=5.0.0
 asyncio-mqtt>=0.16.0
 
 # Additional utilities
+pyyaml>=6.0.1
+python-multipart>=0.0.6
 toml
 modelscope
 

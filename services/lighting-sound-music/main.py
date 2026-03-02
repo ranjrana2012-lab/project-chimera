@@ -176,11 +176,11 @@ async def root():
             "readiness": "/health/ready",
             "docs": "/docs",
             "api": {
-                "lighting": "/api/v1/lighting/*",
-                "sound": "/api/v1/sound/*",
-                "music": "/api/v1/music/*",
-                "cues": "/api/v1/cues/*",
-                "presets": "/api/v1/presets/*"
+                "lighting": "/lighting/*",
+                "sound": "/sound/*",
+                "music": "/music/*",
+                "cues": "/cues/*",
+                "presets": "/presets/*"
             }
         }
     }
@@ -193,11 +193,11 @@ async def root():
 # from .routes.cues import router as cues_router
 # from .routes.presets import router as presets_router
 #
-# app.include_router(lighting_router, prefix="/api/v1/lighting", tags=["Lighting"])
-# app.include_router(sound_router, prefix="/api/v1/sound", tags=["Sound"])
-# app.include_router(music_router, prefix="/api/v1/music", tags=["Music"])
-# app.include_router(cues_router, prefix="/api/v1/cues", tags=["Cues"])
-# app.include_router(presets_router, prefix="/api/v1/presets", tags=["Presets"])
+# app.include_router(lighting_router, prefix="/lighting", tags=["Lighting"])
+# app.include_router(sound_router, prefix="/sound", tags=["Sound"])
+# app.include_router(music_router, prefix="/music", tags=["Music"])
+# app.include_router(cues_router, prefix="/cues", tags=["Cues"])
+# app.include_router(presets_router, prefix="/presets", tags=["Presets"])
 
 
 if __name__ == "__main__":
@@ -205,6 +205,6 @@ if __name__ == "__main__":
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=8015,
+        port=8005,
         log_level="info"
-    )
+        )
