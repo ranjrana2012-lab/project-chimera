@@ -1,0 +1,199 @@
+# Sound Effects Library Catalog
+# This file contains metadata for all sound effects in the library
+
+# Format specification:
+# id: Unique identifier (kebab-case)
+# name: Human-readable display name
+# filename: Actual audio file name
+# category: effects, ambient, or transitions
+# tags: Array of searchable keywords
+# duration: Length in seconds (float)
+# loop: Whether sound should loop continuously (boolean)
+# volume: Default volume level 0.0-1.0 (float)
+# description: Brief description of the sound
+
+# === EFFECTS ===
+effects:
+  - id: ui-click-default
+    name: UI Click - Default
+    filename: ui_click_default.wav
+    category: effects
+    tags: [ui, interaction, click, button, interface]
+    duration: 0.15
+    loop: false
+    volume: 0.8
+    description: Standard click sound for UI button interactions
+
+  - id: ui-hover-subtle
+    name: UI Hover - Subtle
+    filename: ui_hover_subtle.wav
+    category: effects
+    tags: [ui, interaction, hover, button, interface]
+    duration: 0.1
+    loop: false
+    volume: 0.5
+    description: Subtle hover sound for UI elements
+
+  - id: game-score-points
+    name: Game Score - Points
+    filename: game_score_01.wav
+    category: effects
+    tags: [game, scoring, points, reward, positive]
+    duration: 0.3
+    loop: false
+    volume: 0.9
+    description: Positive sound effect when scoring points
+
+  - id: game-achievement-unlock
+    name: Game Achievement - Unlock
+    filename: game_achievement_unlock.wav
+    category: effects
+    tags: [game, achievement, unlock, reward, success]
+    duration: 0.8
+    loop: false
+    volume: 1.0
+    description: Celebratory sound for unlocking achievements
+
+  - id: env-footstep-grass
+    name: Environment Footstep - Grass
+    filename: env_footstep_grass.wav
+    category: effects
+    tags: [environment, footstep, grass, walking, movement]
+    duration: 0.25
+    loop: false
+    volume: 0.7
+    description: Footstep sound on grass surface
+
+  - id: notification-alert-info
+    name: Notification - Alert Info
+    filename: notification_alert_info.wav
+    category: effects
+    tags: [notification, alert, info, attention]
+    duration: 0.4
+    loop: false
+    volume: 0.85
+    description: Information alert notification sound
+
+# === AMBIENT ===
+ambient:
+  - id: ambient-forest-calm-day
+    name: Ambient Forest - Calm Day
+    filename: ambient_forest_calm_day.ogg
+    category: ambient
+    tags: [ambient, nature, forest, calm, day, birds, outdoors]
+    duration: 30.0
+    loop: true
+    volume: 0.6
+    description: Peaceful forest ambience with birds and gentle wind
+
+  - id: ambient-city-busy-night
+    name: Ambient City - Busy Night
+    filename: ambient_city_busy_night.ogg
+    category: ambient
+    tags: [ambient, urban, city, night, traffic, busy]
+    duration: 45.0
+    loop: true
+    volume: 0.5
+    description: Urban city soundscape at night with distant traffic
+
+  - id: ambient-room-quiet
+    name: Ambient Room - Quiet
+    filename: ambient_room_quiet.ogg
+    category: ambient
+    tags: [ambient, indoor, room, quiet, subtle]
+    duration: 20.0
+    loop: true
+    volume: 0.3
+    description: Subtle indoor room tone with very light air ambience
+
+  - id: ambient-rain-light
+    name: Ambient Rain - Light
+    filename: ambient_rain_light.ogg
+    category: ambient
+    tags: [ambient, weather, rain, light, water, calming]
+    duration: 35.0
+    loop: true
+    volume: 0.55
+    description: Light rain ambience for atmospheric background
+
+  - id: ambient-crowd-cheering
+    name: Ambient Crowd - Cheering
+    filename: ambient_crowd_cheering.ogg
+    category: ambient
+    tags: [ambient, crowd, cheering, excitement, event]
+    duration: 25.0
+    loop: true
+    volume: 0.7
+    description: Crowd cheering ambience for exciting events
+
+# === TRANSITIONS ===
+transitions:
+  - id: transition-fade-in-soft
+    name: Transition Fade In - Soft
+    filename: transition_fade_in_soft.wav
+    category: transitions
+    tags: [transition, fade, in, soft, smooth]
+    duration: 1.5
+    loop: false
+    volume: 0.0
+    description: Soft fade-in transition for smooth audio entry
+
+  - id: transition-fade-out-soft
+    name: Transition Fade Out - Soft
+    filename: transition_fade_out_soft.wav
+    category: transitions
+    tags: [transition, fade, out, soft, smooth]
+    duration: 1.5
+    loop: false
+    volume: 0.0
+    description: Soft fade-out transition for smooth audio exit
+
+  - id: transition-whoosh-fast
+    name: Transition Whoosh - Fast
+    filename: transition_whoosh_fast.wav
+    category: transitions
+    tags: [transition, whoosh, fast, movement, dynamic]
+    duration: 0.5
+    loop: false
+    volume: 0.9
+    description: Fast whoosh sound for quick movements or scene changes
+
+  - id: transition-warp-magical
+    name: Transition Warp - Magical
+    filename: transition_warp_magical.wav
+    category: transitions
+    tags: [transition, warp, magical, fantasy, teleport]
+    duration: 1.2
+    loop: false
+    volume: 0.95
+    description: Magical warp sound for fantasy scene transitions
+
+  - id: transition-power-up
+    name: Transition Power - Up
+    filename: transition_power_up.wav
+    category: transitions
+    tags: [transition, power, up, activation, positive]
+    duration: 0.8
+    loop: false
+    volume: 0.9
+    description: Positive power-up sound for system activation
+
+  - id: transition-power-down
+    name: Transition Power - Down
+    filename: transition_power_down.wav
+    category: transitions
+    tags: [transition, power, down, deactivation, shutdown]
+    duration: 1.0
+    loop: false
+    volume: 0.85
+    description: Power-down sound for system deactivation
+
+# === METADATA ===
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-03-02"
+  total_sounds: 17
+  categories:
+    effects: 6
+    ambient: 5
+    transitions: 6
