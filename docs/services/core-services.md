@@ -11,7 +11,7 @@ Overview of the 8 AI agents that power Project Chimera.
 | Captioning Agent | 8002 | ⚠️ Partial | Speech-to-text |
 | BSL Translation Agent | 8003 | ⚠️ Partial | BSL gloss translation |
 | Sentiment Agent | 8004 | ⚠️ Partial | Audience sentiment |
-| Lighting Control | 8005 | ✅ Production Ready | DMX/sACN control |
+| **Lighting, Sound & Music** | **8005** | **✅ Production Ready** | **Unified audio-visual control** |
 | Safety Filter | 8006 | ⚠️ Partial | Content moderation |
 | Operator Console | 8007 | ✅ Production Ready | Human oversight |
 
@@ -83,20 +83,33 @@ curl http://localhost:8001/health/live
 
 **Status:** ⚠️ Partial - Needs minor fixes to response model
 
-### Lighting Control (Port 8005)
+### Lighting, Sound & Music (Port 8005)
 
-**Purpose:** DMX/sACN stage automation
+**Purpose:** Unified control for theatrical lighting, sound effects, and AI-generated music
 
 **Key Features:**
-- DMX/sACN protocol support
-- OSC message handling
-- Scene preset management
-- Fade time control
+- **Lighting Module:** DMX/sACN protocol support, OSC message handling, fixture management, fade control
+- **Sound Module:** Sound effects library and playback, volume control and mixing, multi-track audio support
+- **Music Module:** AI music generation using ACE-Step-1.5 models, track/playlist management, playback controls
+- **Cues Module:** Coordinated multi-media scenes, timeline-based execution, scene presets, synchronization primitives
+
+**API Endpoints:**
+- `/health/live`, `/health/ready` - Health checks
+- `/lighting/*` - DMX/sACN stage automation (9 endpoints)
+- `/sound/*` - Sound effects and playback (9 endpoints)
+- `/music/*` - AI generation and playback (12 endpoints + WebSocket)
+- `/cues/*` - Coordinated scenes (12 endpoints + WebSocket)
 
 **Health Check:**
 ```bash
 curl http://localhost:8005/health/live
 ```
+
+**Module Status:**
+- Lighting: ✅ Active (DMX/sACN, OSC)
+- Sound: ✅ Active (playback, mixing)
+- Music: ✅ Active (ACE-Step-1.5 integrated)
+- Cues: ✅ Active (coordinated execution)
 
 ### Safety Filter (Port 8006)
 
@@ -140,11 +153,23 @@ curl http://localhost:8007/health/live
       │       │       │       │       │       │       │
       ▼       ▼       ▼       ▼       ▼       ▼       ▼
   SceneSpeak Captioning  BSL  Sentiment Lighting Safety  Operator
-    Agent     Agent    Agent   Agent  Control Filter  Console
+    Agent     Agent    Agent   Agent  Sound  Filter  Console
+                                     & Music
 ```
 
 ## Related Documentation
 
+- [Lighting, Sound & Music Service](lighting-sound-music.md) - Unified audio-visual control
 - [Architecture](../reference/architecture.md) - System architecture
 - [API Reference](../reference/api.md) - Complete API docs
 - [Quality Platform](quality-platform.md) - Testing infrastructure
+
+## Service Migration Notes
+
+**As of 2026-03-02**, the following services have been consolidated:
+
+- **Lighting Control** → Merged into **Lighting, Sound & Music** (port 8005)
+- **Music Generation** → Merged into **Lighting, Sound & Music** (port 8005)
+- **Music Orchestration** → Merged into **Lighting, Sound & Music** (port 8005)
+
+All functionality from these services has been preserved and enhanced in the new unified service.
