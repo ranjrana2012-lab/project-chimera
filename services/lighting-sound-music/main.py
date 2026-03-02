@@ -187,7 +187,6 @@ async def root():
 
 
 # TODO: Include routers (will be added in subsequent tasks)
-# from .routes.cues import router as cues_router
 # from .routes.presets import router as presets_router
 
 # Lighting module
@@ -201,6 +200,10 @@ app.include_router(sound_router, prefix="/sound", tags=["Sound"])
 # Music module
 from music import router as music_router
 app.include_router(music_router, prefix="/music", tags=["Music"])
+
+# Cues module
+from cues import router as cues_router
+app.include_router(cues_router, prefix="/cues", tags=["Cues"])
 
 # app.include_router(cues_router, prefix="/cues", tags=["Cues"])
 # app.include_router(presets_router, prefix="/presets", tags=["Presets"])
