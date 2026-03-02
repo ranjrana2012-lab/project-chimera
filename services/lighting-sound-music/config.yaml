@@ -1,0 +1,134 @@
+# Lighting, Sound and Music Service Configuration
+# Unified audio-visual control for Project Chimera
+
+service:
+  name: "lighting-sound-music"
+  version: "0.1.0"
+  port: 8005
+  host: "0.0.0.0"
+  debug: false
+
+# Lighting module configuration
+lighting:
+  enabled: true
+  dmx_universe: 1
+  sacn_enabled: true
+  sacn_host: "127.0.0.1"
+  sacn_port: 5568
+  sacn_priority: 100
+  osc_enabled: true
+  osc_server_port: 9000
+  max_fixtures: 512
+  default_fade_time: 1.0  # seconds
+
+# Sound module configuration
+sound:
+  enabled: true
+  default_volume: 0.8
+  sounds_directory: "./assets/sounds/"
+  max_concurrent_sounds: 8
+  sample_rate: 44100
+  channels: 2
+  buffer_size: 1024
+  supported_formats:
+    - "wav"
+    - "mp3"
+    - "flac"
+    - "ogg"
+
+# Music module configuration
+music:
+  enabled: true
+  models_directory: "./models/"
+  default_model: "turbo"
+  cache_size_mb: 512
+  tracks_directory: "./assets/music/"
+  max_generation_duration: 300  # seconds (5 minutes)
+  supported_formats:
+    - "wav"
+    - "mp3"
+    - "flac"
+
+# ACE-Step-1.5 model configuration
+models:
+  base:
+    path: "./models/base/"
+    parameters: "~1.5B"
+    loaded: false
+  sft:
+    path: "./models/sft/"
+    parameters: "~1.5B"
+    loaded: false
+  turbo:
+    path: "./models/turbo/"
+    parameters: "~1.5B"
+    loaded: false
+  mlx:
+    path: "./models/mlx/"
+    parameters: "~1.5B"
+    loaded: false
+
+# Cues module configuration
+cues:
+  enabled: true
+  max_concurrent_cues: 4
+  default_fade_time: 1.0
+  auto_save_executions: true
+  execution_history_limit: 100
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file:
+    enabled: false
+    path: "./logs/lsm-service.log"
+    max_size_mb: 10
+    backup_count: 5
+  console:
+    enabled: true
+
+# Health check configuration
+health:
+  liveness_interval: 30
+  readiness_timeout: 5
+  startup_timeout: 60
+
+# CORS configuration
+cors:
+  enabled: true
+  origins:
+    - "http://localhost:3000"
+    - "http://localhost:8007"
+  allow_credentials: true
+  allow_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allow_headers:
+    - "Content-Type"
+    - "Authorization"
+
+# WebSocket configuration
+websocket:
+  enabled: true
+  ping_interval: 20
+  ping_timeout: 20
+  max_connections: 10
+
+# Cache configuration
+cache:
+  enabled: true
+  type: "memory"  # or "redis"
+  ttl: 3600  # seconds
+  max_size: 1000
+
+# Monitoring configuration
+monitoring:
+  prometheus:
+    enabled: false
+    port: 9090
+  metrics:
+    enabled: true
