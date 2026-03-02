@@ -1,0 +1,112 @@
+name: CD - Staging
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.10"
+  KUBE_NAMESPACE: live
+  KUBE_OVERLAY: staging
+
+jobs:
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.chimera.example.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (if using EKS)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+        continue-on-error: true
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Get kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Deploy with Kustomize
+        run: |
+          kubectl apply -k infrastructure/kubernetes/overlays/${{ env.KUBE_OVERLAY }}
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/openclaw-orchestrator -n ${{ env.KUBE_NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/scenespeak-agent -n ${{ env.KUBE_NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/captioning-agent -n ${{ env.KUBE_NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/bsl-text2gloss-agent -n ${{ env.KUBE_NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/sentiment-agent -n ${{ env.KUBE_NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/lighting-control -n ${{ env.KUBE_NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/safety-filter -n ${{ env.KUBE_NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/operator-console -n ${{ env.KUBE_NAMESPACE }} --timeout=5m
+
+      - name: Verify deployment health
+        run: |
+          kubectl get pods -n ${{ env.KUBE_NAMESPACE }}
+          kubectl get services -n ${{ env.KUBE_NAMESPACE }}
+
+      - name: Run smoke tests
+        run: |
+          # Basic smoke test - check that services are responding
+          kubectl run smoke-test --rm -i --restart=Never --image=curlimages/curl -- \
+            curl -f http://openclaw-orchestrator.${{ env.KUBE_NAMESPACE }}.svc.cluster.local:8000/health || exit 1
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "Deployment to staging succeeded!"
+          else
+            echo "Deployment to staging failed!"
+            exit 1
+          fi
+
+  rollback:
+    name: Rollback (Manual)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment:
+      name: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Get kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      - name: Rollback deployments
+        run: |
+          kubectl rollout undo deployment/openclaw-orchestrator -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/scenespeak-agent -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/captioning-agent -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/bsl-text2gloss-agent -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/sentiment-agent -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/lighting-control -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/safety-filter -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/operator-console -n ${{ env.KUBE_NAMESPACE }}
+
+      - name: Wait for rollback
+        run: |
+          kubectl rollout status deployment/openclaw-orchestrator -n ${{ env.KUBE_NAMESPACE }} --timeout=5m

@@ -1,0 +1,509 @@
+name: Sprint 0 Onboarding Issues
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_issues:
+        description: 'Create Sprint 0 onboarding issues'
+        required: true
+        default: 'true'
+        type: boolean
+      dry_run:
+        description: 'Dry run (show what would be created without creating)'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  create-onboarding-issues:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.create_issues == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Sprint 0 labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Creating Sprint 0 labels..."
+
+          # Sprint labels
+          gh label create "sprint-0" --color "c5def5" --description "Sprint 0 - Onboarding and setup" 2>/dev/null || echo "Label sprint-0 already exists"
+          gh label create "sprint-0:setup" --color "bfdadc" --description "Environment setup and configuration" 2>/dev/null || echo "Label sprint-0:setup already exists"
+          gh label create "sprint-0:first-pr" --color "bfd4f5" --description "First pull request milestone" 2>/dev/null || echo "Label sprint-0:first-pr already exists"
+          gh label create "sprint-0:role" --color "e99695" --description "Role-specific onboarding task" 2>/dev/null || echo "Label sprint-0:role already exists"
+
+          # Component labels
+          gh label create "component:openclaw" --color "0075ca" --description "OpenClaw Orchestrator" 2>/dev/null || true
+          gh label create "component:scenespeak" --color "5319e7" --description "SceneSpeak Agent" 2>/dev/null || true
+          gh label create "component:captioning" --color "3D4CDB" --description "Captioning Agent" 2>/dev/null || true
+          gh label create "component:bsl" --color "762ac7" --description "BSL Translation" 2>/dev/null || true
+          gh label create "component:sentiment" --color "9E68C5" --description "Sentiment Analysis" 2>/dev/null || true
+          gh label create "component:lighting" --color "C762AC" --description "Lighting Control" 2>/dev/null || true
+          gh label create "component:safety" --color "DB6D9E" --description "Safety Filter" 2>/dev/null || true
+          gh label create "component:console" --color "E57373" --description "Operator Console" 2>/dev/null || true
+          gh label create "component:infrastructure" --color "F06292" --description "Infrastructure & DevOps" 2>/dev/null || true
+          gh label create "component:qa" --color "FFA726" --description "QA & Documentation" 2>/dev/null || true
+
+          # Task type labels
+          gh label create "task:setup" --color "006b75" --description "Environment setup task" 2>/dev/null || true
+          gh label create "task:documentation" --color "5319e7" --description "Documentation task" 2>/dev/null || true
+          gh label create "task:testing" --color "0366d6" --description "Testing task" 2>/dev/null || true
+          gh label create "task:development" --color "7057ff" --description "Development task" 2>/dev/null || true
+
+          # Difficulty labels
+          gh label create "difficulty:beginner" --color "2da44e" --description "Good first issue for beginners" 2>/dev/null || true
+          gh label create "difficulty:intermediate" --color "fbca04" --description "Requires some experience" 2>/dev/null || true
+          gh label create "difficulty:advanced" --color "d73a4a" --description "Complex task requiring expertise" 2>/dev/null || true
+
+      - name: Create Environment Setup Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          ISSUE_BODY='## Sprint 0: Environment Setup
+
+          **Role:** All Students
+          **Type:** Setup
+          **Difficulty:** Beginner
+          **Estimated Time:** 30-60 minutes
+
+          ### Overview
+
+          Welcome to Project Chimera! This issue guides you through setting up your development environment so you can start contributing to the project.
+
+          ### Task List
+
+          #### Prerequisites Verification
+          - [ ] Verify you have Git installed: \`git --version\`
+          - [ ] Verify you have Docker installed: \`docker --version\`
+          - [ ] Verify you have kubectl installed: \`kubectl version --client\`
+          - [ ] Verify you have Python 3.10+: \`python3 --version\`
+
+          #### Repository Setup
+          - [ ] Clone the repository: \`git clone https://github.com/project-chimera/main.git\`
+          - [ ] Navigate to project directory: \`cd Project_Chimera\`
+          - [ ] Verify repository structure: \`ls -la\`
+
+          #### k3s Bootstrap
+          - [ ] Run bootstrap: \`make bootstrap\`
+          - [ ] Wait for bootstrap to complete (15-20 minutes)
+          - [ ] Verify deployment: \`make bootstrap-status\`
+          - [ ] Check all pods are running: \`kubectl get pods -A\`
+
+          #### Service Access
+          - [ ] Access Grafana: http://localhost:3000 (admin/admin)
+          - [ ] Port forward OpenClaw: \`make run-openclaw\`
+          - [ ] Test health endpoint: \`curl http://localhost:8000/health\`
+          - [ ] Explore at least 2 other services
+
+          #### Development Tools
+          - [ ] Run unit tests: \`make test-unit\`
+          - [ ] Check test coverage: \`pytest tests/unit/ --cov=services --cov-report=html\`
+          - [ ] Run linting: \`make lint\`
+          - [ ] Run formatting: \`make format\`
+
+          ### Success Criteria
+
+          - [ ] All system pods are in \`Running\` state
+          - [ ] Can access Grafana dashboard
+          - [ ] At least one service endpoint responds successfully
+          - [ ] Unit tests pass without errors
+          - [ ] Development environment is ready for contribution
+
+          ### Resources
+
+          - **Documentation:** [Student Quick Start Guide](../blob/main/docs/getting-started/quick-start.md)
+          - **Roles Reference:** [Role Assignments](../blob/main/docs/getting-started/roles.md)
+          - **Troubleshooting:** [Bootstrap Runbook](../blob/main/docs/runbooks/bootstrap-setup.md)
+
+          ### Next Steps
+
+          After completing this setup, proceed to your role-specific onboarding issue.
+
+          ---
+
+          **Blocked by:** None
+          **Blocking:** Role-specific onboarding issues
+          '
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would create issue: Sprint 0 - Environment Setup"
+            echo "$ISSUE_BODY"
+          else
+            gh issue create \
+              --title "Sprint 0 - Environment Setup" \
+              --label "sprint-0,sprint-0:setup,task:setup,difficulty:beginner" \
+              --body "$ISSUE_BODY"
+            echo "Created issue: Sprint 0 - Environment Setup"
+          fi
+
+      - name: Create First PR Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          ISSUE_BODY='## Sprint 0: Your First Pull Request
+
+          **Role:** All Students
+          **Type:** Documentation
+          **Difficulty:** Beginner
+          **Estimated Time:** 30-45 minutes
+
+          ### Overview
+
+          This issue guides you through creating your first pull request (PR) to Project Chimera. You will make a simple documentation update to learn the workflow before tackling more complex tasks.
+
+          ### Task List
+
+          #### Preparation
+          - [ ] Read the [GitHub Workflow Guide](../blob/main/docs/guides/github-workflow.md)
+          - [ ] Review the [Commit Message Standards](../blob/main/docs/standards/documentation-style.md)
+          - [ ] Ensure your environment is setup (complete Sprint 0 - Environment Setup)
+
+          #### Make Your Contribution
+          - [ ] Create a feature branch: \`git checkout -b sprint-0-first-pr-<your-name>\`
+          - [ ] Choose one of the following tasks:
+            - Add a brief bio to \`docs/contributors/<your-name>.md\` (create directory if needed)
+            - Fix a typo in any README.md file
+            - Add a helpful comment to a service main.py file
+            - Update this issue with something that confused you during setup
+          - [ ] Make your changes
+          - [ ] Commit with conventional commit format: \`git commit -m "docs: add contributor bio for <your-name>"\`
+          - [ ] Push your branch: \`git push origin sprint-0-first-pr-<your-name>\`
+
+          #### Create Pull Request
+          - [ ] Go to GitHub and create a PR from your branch
+          - [ ] Fill in the PR template completely
+          - [ ] Link this issue in the PR description: "Closes #<issue-number>"
+          - [ ] Request review from a teammate
+          - [ ] Address any review feedback
+
+          #### Verification
+          - [ ] CI checks pass (if applicable)
+          - [ ] At least one reviewer approves
+          - [ ] PR is merged (or you understand why it was not)
+
+          ### Success Criteria
+
+          - [ ] Branch created from latest main
+          - [ ] Commit follows conventional commit format
+          - [ ] PR description is complete and clear
+          - [ ] At least one round of review completed
+          - [ ] You understand the PR merge process
+
+          ### PR Template Reference
+
+          Your PR should include:
+          - **Title:** Conventional commit format (e.g., \`docs: add contributor bio\`)
+          - **Description:** What you changed and why
+          - **Testing:** How you verified your changes
+          - **Issue Link:** "Closes #<issue-number>"
+
+          ### Resources
+
+          - **Guide:** [GitHub Workflow](../blob/main/docs/guides/github-workflow.md)
+          - **Standards:** [Commit Conventions](../blob/main/docs/standards/documentation-style.md)
+          - **Example:** [Previous PRs](../pulls)
+
+          ### After This PR
+
+          Once merged:
+          - [ ] Celebrate your first contribution! 🎉
+          - [ ] Proceed to your role-specific onboarding issues
+          - [ ] Help another student with their first PR
+
+          ---
+
+          **Blocked by:** Sprint 0 - Environment Setup
+          **Blocking:** Role-specific onboarding issues
+          **Dependencies:** None
+          '
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "[DRY RUN] Would create issue: Sprint 0 - Your First Pull Request"
+            echo "$ISSUE_BODY"
+          else
+            gh issue create \
+              --title "Sprint 0 - Your First Pull Request" \
+              --label "sprint-0,sprint-0:first-pr,task:documentation,difficulty:beginner,good-first-issue" \
+              --body "$ISSUE_BODY"
+            echo "Created issue: Sprint 0 - Your First Pull Request"
+          fi
+
+      - name: Create Role-Specific Issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          # Array of role configurations
+          # Each role: name, component, port, labels, tasks
+
+          declare -A roles=(
+            ["1"]="OpenClaw Orchestrator|openclaw-orchestrator|8000|component:openclaw"
+            ["2"]="SceneSpeak Agent|scenespeak-agent|8001|component:scenespeak"
+            ["3"]="Captioning Agent|captioning-agent|8002|component:captioning"
+            ["4"]="BSL Translation|bsl-text2gloss-agent|8003|component:bsl"
+            ["5"]="Sentiment Analysis|sentiment-agent|8004|component:sentiment"
+            ["6"]="Lighting Control|lighting-control|8005|component:lighting"
+            ["7"]="Safety Filter|safety-filter|8006|component:safety"
+            ["8"]="Operator Console|operator-console|8007|component:console"
+            ["9"]="Infrastructure & DevOps|infrastructure|N/A|component:infrastructure"
+            ["10"]="QA & Documentation|qa-docs|N/A|component:qa"
+          )
+
+          for role_num in "${!roles[@]}"; do
+            IFS='|' read -r role_name component port labels <<< "${roles[$role_num]}"
+
+            ISSUE_BODY="## Sprint 0: ${role_name} Onboarding
+
+          **Role:** Role ${role_num} - ${role_name}
+          **Component:** \`${component}\`
+  **Type:** Role-Specific Onboarding
+  **Difficulty:** Intermediate
+  **Estimated Time:** 60-90 minutes
+
+          ### Overview
+
+          Welcome to your role as the **${role_name} Lead**! This issue will guide you through understanding your component, setting up your development environment, and making your first contribution.
+
+          ### Your Component
+
+          - **Directory:** \`services/${component}/\`
+          - **Port:** ${port}
+          - **Documentation:** [README](../blob/main/services/${component}/README.md)
+          - **Architecture:** [System Architecture](../blob/main/docs/architecture/README.md)
+
+          ### Task List
+
+          #### Phase 1: Understand Your Component (30 min)
+          - [ ] Read your component'\''s README.md file
+          - [ ] Review the service main.py file
+          - [ ] Identify the service'\''s main endpoints
+          - [ ] Understand dependencies (other services, databases, etc.)
+          - [ ] Review existing tests for your component
+
+          #### Phase 2: Setup Development Environment (20 min)
+          - [ ] Navigate to component directory: \`cd services/${component}/\`
+          - [ ] Review service configuration files
+          - [ ] Port-forward to your service: \`kubectl port-forward -n live svc/${component} ${port}:${port}\`
+          - [ ] Access health endpoint: \`curl http://localhost:${port}/health\`
+          - [ ] Review service logs: \`kubectl logs -f -n live deployment/${component}\`
+
+          #### Phase 3: Explore and Test (20 min)
+          - [ ] Run component-specific tests: \`cd services/${component} && pytest tests/\`
+          - [ ] Test at least one API endpoint
+          - [ ] Review Dockerfile: \`cat services/${component}/Dockerfile\`
+          - [ ] Check requirements: \`cat services/${component}/requirements.txt\`
+          - [ ] Identify one improvement you could make
+
+          #### Phase 4: Documentation Review (10 min)
+          - [ ] Review API documentation if exists
+          - [ ] Check for architecture docs related to your component
+          - [ ] List any missing documentation you notice
+          - [ ] Document one thing you learned about your component
+
+          #### Phase 5: First Contribution Plan (10 min)
+          - [ ] Identify a simple bug or improvement
+          - [ ] Create a feature branch: \`git checkout -b role-${role_num}-<task-name>\`
+          - [ ] Create an issue for your planned improvement
+          - [ ] Tag it with your component label: \`${labels}\`
+          - [ ] Share in team chat what you plan to work on
+
+          ### Success Criteria
+
+          - [ ] Can access your component via port-forward
+          - [ ] Health endpoint returns 200 OK
+          - [ ] Component tests pass successfully
+          - [ ] Have identified at least one improvement opportunity
+          - [ ] Created at least one new issue for your component
+          - [ ] Understand your component'\''s role in the system
+
+          ### Component-Specific Tasks
+
+          #### For ${role_name}:
+
+          $(case $role_num in
+            1) cat << 'EOF'
+          - [ ] Review skill registration flow in OpenClaw
+          - [ ] List all registered skills: `curl http://localhost:8000/v1/skills`
+          - [ ] Test skill invocation endpoint
+          - [ ] Review Redis integration for caching
+          - [ ] Understand GPU resource allocation
+          EOF
+            ;;
+            2) cat << 'EOF'
+          - [ ] Review dialogue generation prompts
+          - [ ] Test generation endpoint: `curl -X POST http://localhost:8001/v1/generate -d '{"context": "test"}'`
+          - [ ] Review model loading and configuration
+          - [ ] Check LoRA adapter setup
+          - [ ] Understand caching strategy
+          EOF
+            ;;
+            3) cat << 'EOF'
+          - [ ] Test transcription endpoint
+          - [ ] Review Whisper model configuration
+          - [ ] Check caption streaming setup
+          - [ ] Review language support configuration
+          - [ ] Test with sample audio if available
+          EOF
+            ;;
+            4) cat << 'EOF'
+          - [ ] Test translation endpoint: `curl -X POST http://localhost:8003/v1/translate -d '{"text": "Hello"}'`
+          - [ ] Review BSL gloss mappings
+          - [ ] Check text normalization pipeline
+          - [ ] Review translation accuracy metrics
+          - [ ] Document one gloss translation example
+          EOF
+            ;;
+            5) cat << 'EOF'
+          - [ ] Test sentiment analysis: `curl -X POST http://localhost:8004/v1/analyze -d '{"text": "Happy day!"}'`
+          - [ ] Review sentiment aggregation logic
+          - [ ] Check model configuration
+          - [ ] Review Kafka event publishing
+          - [ ] Test sentiment threshold configuration
+          EOF
+            ;;
+            6) cat << 'EOF'
+          - [ ] Review DMX/sACN protocol implementation
+          - [ ] Test lighting control endpoint
+          - [ ] Check fixture configuration
+          - [ ] Review preset management
+          - [ ] Test OSC message handling
+          EOF
+            ;;
+            7) cat << 'EOF'
+          - [ ] Test safety check endpoint: `curl -X POST http://localhost:8006/v1/check -d '{"content": "test"}'`
+          - [ ] Review filter rules and policies
+          - [ ] Check blocklist configuration
+          - [ ] Review audit logging setup
+          - [ ] Test with various content types
+          EOF
+            ;;
+            8) cat << 'EOF'
+          - [ ] Access console UI in browser
+          - [ ] Review dashboard components
+          - [ ] Test WebSocket connection
+          - [ ] Check alert management system
+          - [ ] Review manual override controls
+          EOF
+            ;;
+            9) cat << 'EOF'
+          - [ ] Review k3s cluster configuration
+          - [ ] Check all Kubernetes manifests
+          - [ ] Review monitoring stack (Prometheus, Grafana)
+          - [ ] Check CI/CD pipeline configurations
+          - [ ] Review resource allocation and limits
+          EOF
+            ;;
+            10) cat << 'EOF'
+          - [ ] Review test suite structure
+          - [ ] Check coverage reports
+          - [ ] Review documentation standards
+          - [ ] Identify gaps in documentation
+          - [ ] Review runbook completeness
+          EOF
+            ;;
+          esac)
+
+          ### Resources
+
+          - **Component README:** [${role_name}](../blob/main/services/${component}/README.md)
+          - **Architecture:** [System Architecture](../blob/main/docs/architecture/README.md)
+          - **API Docs:** [API Reference](../blob/main/docs/api/README.md)
+          - **Runbooks:** [Operations](../blob/main/docs/runbooks/README.md)
+
+          ### Dependencies
+
+          Your component depends on:
+          - **Infrastructure:** k3s cluster, Docker registry
+          - **Shared Services:** Redis, Kafka (check specifics for your component)
+
+          ### Coordination
+
+          **Your team coordinates with:**
+          $(case $role_num in
+            1) echo "- All skill owners (roles 2-8)\n- Infrastructure Lead (role 9)\n- QA Lead (role 10)" ;;
+            2) echo "- Captioning Agent (role 3)\n- Safety Filter (role 7)\n- Sentiment Analysis (role 5)\n- Orchestrator (role 1)" ;;
+            3) echo "- SceneSpeak Agent (role 2)\n- BSL Translation (role 4)\n- Orchestrator (role 1)" ;;
+            4) echo "- Captioning Agent (role 3)\n- Orchestrator (role 1)" ;;
+            5) echo "- SceneSpeak Agent (role 2)\n- Orchestrator (role 1)" ;;
+            6) echo "- Orchestrator (role 1)\n- Infrastructure Lead (role 9)" ;;
+            7) echo "- SceneSpeak Agent (role 2)\n- Orchestrator (role 1)" ;;
+            8) echo "- All service leads\n- Infrastructure Lead (role 9)" ;;
+            9) echo "- All service owners\n- QA Lead (role 10)" ;;
+            10) echo "- All team members\n- Technical Lead" ;;
+          esac)
+
+          ### Next Steps
+
+          After completing this onboarding:
+          - [ ] Start working on issues labeled with \`${labels}\`
+          - [ ] Attend daily standup prepared to discuss your component
+          - [ ] Help onboard other students in related areas
+          - [ ] Contribute to sprint planning for your component
+
+          ### Questions?
+
+          - Check the [troubleshooting guide](../blob/main/docs/getting-started/quick-start.md#troubleshooting)
+          - Ask in \`#project-chimera-dev\` channel
+          - Tag @technical-lead for blocking issues
+          - Review [FAQ](../blob/main/docs/getting-started/faq.md)
+
+          ---
+
+          **Blocked by:** Sprint 0 - Environment Setup, Sprint 0 - Your First PR
+          **Blocking:** Feature development for your component
+          **Labels:** \`${labels}\`
+          "
+
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "[DRY RUN] Would create issue: Sprint 0 - Role ${role_num}: ${role_name}"
+            else
+              gh issue create \
+                --title "Sprint 0 - Role ${role_num}: ${role_name} Onboarding" \
+                --label "sprint-0,sprint-0:role,task:development,difficulty:intermediate,${labels}" \
+                --body "$ISSUE_BODY"
+              echo "Created issue: Sprint 0 - Role ${role_num}: ${role_name} Onboarding"
+            fi
+          done
+
+      - name: Create Summary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          echo ""
+          echo "=========================================="
+          echo "Sprint 0 Onboarding Issues Creation Complete"
+          echo "=========================================="
+          echo ""
+          echo "Created issues:"
+          echo "  1. Sprint 0 - Environment Setup"
+          echo "  2. Sprint 0 - Your First Pull Request"
+          echo "  3-12. Role-specific onboarding issues (10 roles)"
+          echo ""
+          echo "Total: 12 onboarding issues"
+          echo ""
+          echo "Next steps:"
+          echo "  1. Students should complete 'Environment Setup' first"
+          echo "  2. Then complete 'Your First Pull Request'"
+          echo "  3. Finally, complete their role-specific onboarding"
+          echo ""
+          echo "Issue labels created:"
+          echo "  - sprint-0, sprint-0:setup, sprint-0:first-pr, sprint-0:role"
+          echo "  - component:* labels for all 10 components"
+          echo "  - task:* labels (setup, documentation, testing, development)"
+          echo "  - difficulty:* labels (beginner, intermediate, advanced)"
+          echo ""
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "NOTE: This was a DRY RUN - no issues were actually created."
+            echo "To create issues, run workflow without dry_run enabled."
+          fi

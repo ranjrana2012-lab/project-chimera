@@ -1,0 +1,30 @@
+# Role-based code ownership for Project Chimera
+# Technical lead has ownership over all components
+
+# Core AI Services
+/services/openclaw-orchestrator/ @technical-lead
+/services/scenespeak-agent/ @technical-lead
+/services/captioning-agent/ @technical-lead
+/services/bsl-text2gloss-agent/ @technical-lead
+/services/sentiment-agent/ @technical-lead
+/services/lighting-control/ @technical-lead
+/services/safety-filter/ @technical-lead
+/services/operator-console/ @technical-lead
+
+# Music Generation Platform
+/services/music-generation/ @technical-lead
+/services/music-orchestration/ @technical-lead
+
+# Quality Platform
+/platform/ @technical-lead
+
+# Infrastructure
+/infrastructure/ @technical-lead
+/kubernetes/ @technical-lead
+
+# Tests and Documentation
+/tests/ @technical-lead
+/docs/ @technical-lead
+
+# GitHub Workflows (protected - always requires review)
+.github/workflows/ @technical-lead

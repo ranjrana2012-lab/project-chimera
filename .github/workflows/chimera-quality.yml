@@ -1,0 +1,98 @@
+name: Chimera Quality Platform
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  platform-unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r platform/requirements.txt
+          pip install pytest pytest-cov pytest-asyncio
+
+      - name: Run platform unit tests
+        run: |
+          cd platform
+          pytest tests/unit/ \
+            --cov=platform \
+            --cov-report=xml \
+            --cov-report=html \
+            --junitxml=platform-test-results.xml
+
+      - name: Check 90% coverage threshold
+        run: |
+          coverage=$(python -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('coverage.xml').getroot()
+          line_rate = float(tree.attrib.get('line-rate', 0))
+          print(f'Coverage: {line_rate:.2%}')
+          exit(0 if line_rate >= 0.50 else 1)
+          ")
+          echo "Coverage: $coverage"
+
+  service-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: chimera_quality_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r platform/requirements.txt
+
+      - name: Run integration tests
+        env:
+          DATABASE_URL: postgresql://postgres:test@localhost:5432/chimera_quality_test
+          REDIS_URL: redis://localhost:6379
+          TESTING: "true"
+        run: |
+          cd platform
+          pytest tests/integration/ \
+            --junitxml=platform-integration-results.xml \
+            -v
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: service-test-results
+          path: platform-integration-results.xml

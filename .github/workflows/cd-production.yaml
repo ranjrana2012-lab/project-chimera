@@ -1,0 +1,146 @@
+name: CD - Production
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.10"
+  KUBE_NAMESPACE: live
+  KUBE_OVERLAY: production
+
+jobs:
+  pre-deploy-checks:
+    name: Pre-deploy Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check tag format
+        run: |
+          if [[ ! "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Tag must follow semantic versioning (e.g., v1.0.0)"
+            exit 1
+          fi
+
+      - name: Check for migrations
+        run: |
+          echo "Checking for pending migrations..."
+          # Add actual migration check here
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: pre-deploy-checks
+    environment:
+      name: production
+      url: https://chimera.example.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (if using EKS)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+        continue-on-error: true
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Get kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Create backup
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          kubectl get configmap -n ${{ env.KUBE_NAMESPACE }} -o yaml > backup-configmap-${TIMESTAMP}.yaml
+          kubectl get secrets -n ${{ env.KUBE_NAMESPACE }} -o yaml > backup-secrets-${TIMESTAMP}.yaml
+          echo "Backups created"
+
+      - name: Deploy with Kustomize
+        run: |
+          kubectl apply -k infrastructure/kubernetes/overlays/${{ env.KUBE_OVERLAY }} --dry-run=client
+          kubectl apply -k infrastructure/kubernetes/overlays/${{ env.KUBE_OVERLAY }}
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/openclaw-orchestrator -n ${{ env.KUBE_NAMESPACE }} --timeout=10m
+          kubectl rollout status deployment/scenespeak-agent -n ${{ env.KUBE_NAMESPACE }} --timeout=10m
+          kubectl rollout status deployment/captioning-agent -n ${{ env.KUBE_NAMESPACE }} --timeout=10m
+          kubectl rollout status deployment/bsl-text2gloss-agent -n ${{ env.KUBE_NAMESPACE }} --timeout=10m
+          kubectl rollout status deployment/sentiment-agent -n ${{ env.KUBE_NAMESPACE }} --timeout=10m
+          kubectl rollout status deployment/lighting-control -n ${{ env.KUBE_NAMESPACE }} --timeout=10m
+          kubectl rollout status deployment/safety-filter -n ${{ env.KUBE_NAMESPACE }} --timeout=10m
+          kubectl rollout status deployment/operator-console -n ${{ env.KUBE_NAMESPACE }} --timeout=10m
+
+      - name: Verify deployment health
+        run: |
+          kubectl get pods -n ${{ env.KUBE_NAMESPACE }}
+          kubectl get services -n ${{ env.KUBE_NAMESPACE }}
+
+      - name: Run smoke tests
+        run: |
+          # Basic smoke test - check that services are responding
+          kubectl run smoke-test --rm -i --restart=Never --image=curlimages/curl -- \
+            curl -f http://openclaw-orchestrator.${{ env.KUBE_NAMESPACE }}.svc.cluster.local:8000/health || exit 1
+
+      - name: Run integration tests
+        run: |
+          kubectl run integration-test --rm -i --restart=Never --image=ghcr.io/${{ github.repository }}/test-runner:latest -- \
+            pytest tests/integration/ -v
+
+      - name: Notify deployment success
+        run: |
+          echo "Deployment to production succeeded!"
+          # Add notification logic here (Slack, email, etc.)
+
+  rollback:
+    name: Rollback (Manual)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment:
+      name: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Get kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      - name: Rollback deployments
+        run: |
+          kubectl rollout undo deployment/openclaw-orchestrator -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/scenespeak-agent -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/captioning-agent -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/bsl-text2gloss-agent -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/sentiment-agent -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/lighting-control -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/safety-filter -n ${{ env.KUBE_NAMESPACE }}
+          kubectl rollout undo deployment/operator-console -n ${{ env.KUBE_NAMESPACE }}
+
+      - name: Wait for rollback
+        run: |
+          kubectl rollout status deployment/openclaw-orchestrator -n ${{ env.KUBE_NAMESPACE }} --timeout=10m
+
+      - name: Notify rollback
+        run: |
+          echo "Production rollback completed!"
+          # Add notification logic here (Slack, email, etc.)
