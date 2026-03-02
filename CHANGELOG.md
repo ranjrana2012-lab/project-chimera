@@ -5,6 +5,52 @@ All notable changes to Project Chimera will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Lighting, Sound & Music (LSM)** - Unified audio-visual control service (port 8005)
+  - Consolidated Lighting Control, Music Generation, and Music Orchestration into single service
+  - Integrated ACE-Step-1.5 models (base, sft, turbo, mlx) for AI music generation
+  - Coordinated cues module for synchronized multi-media scenes
+  - Sound effects library with playback and mixing capabilities
+  - Flat API structure: `/lighting/*`, `/sound/*`, `/music/*`, `/cues/*`
+  - WebSocket support for real-time generation and execution updates
+  - Kubernetes deployment manifests with PVCs for models and audio
+  - Comprehensive configuration management (config.yaml + env vars)
+
+### Changed
+- **8 Core Pillars Updated:** Lighting Control (port 8005) → Lighting, Sound & Music
+- Simplified student onboarding with single audio-visual component instead of three
+- Improved API consistency with flat route structure across all modules
+
+### Deprecated
+- `services/lighting-control` - Merged into LSM service
+- `services/music-generation` - Merged into LSM service
+- `services/music-orchestration` - Merged into LSM service
+
+**Migration Notes:**
+- All lighting functionality preserved: `/v1/lighting/*` → `/lighting/*`
+- All music generation preserved with ACE-Step-1.5: `/generate` → `/music/generate`
+- All orchestration preserved in cues module: `/cues/*`
+
+### Documentation
+- Added comprehensive LSM service documentation (`docs/services/lighting-sound-music.md`)
+- Updated core services documentation (`docs/services/core-services.md`)
+- Created deprecation notices for migrated services
+- Added test validation report (`services/lighting-sound-music/TEST_VALIDATION.md`)
+
+### Services Status
+- OpenClaw Orchestrator: ✅ Production Ready
+- SceneSpeak Agent: ✅ Production Ready
+- Captioning Agent: ⚠️ Partial (needs minor fixes to response model)
+- BSL Translation Agent: ⚠️ Partial (needs minor fixes to response model)
+- Sentiment Agent: ⚠️ Partial (needs minor fixes to response model)
+- **Lighting, Sound & Music: ✅ Production Ready (NEW - replaces 3 services)**
+- Safety Filter: ⚠️ Partial (needs minor fixes to response model)
+- Operator Console: ✅ Production Ready
+
+---
+
 ## [0.2.0] - 2026-03-01
 
 ### Added
