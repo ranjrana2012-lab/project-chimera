@@ -65,3 +65,14 @@ models/*.gguf
 models/*.pth
 **/__pycache__
 **/*.pyc
+# Virtual environments - don't commit these!
+**/venv/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/node_modules/
+
+# Large model files (should be in separate storage)
+**/*.bin
+**/*.so
+**/*.dylib
