@@ -2,6 +2,8 @@
 
 Welcome to the Project Chimera documentation. Use this hub to find what you need.
 
+> **New in v0.3.0:** [Lighting, Sound & Music (LSM)](services/lighting-sound-music.md) - Unified audio-visual control service. [Read more](plans/lsm-migration-summary.md)
+
 ## Quick Links
 
 | I want to... | Go to |
@@ -9,10 +11,11 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | Get started with Project Chimera | [Getting Started](getting-started/) |
 | Set up my development environment | [Quick Start](getting-started/quick-start.md) |
 | Learn about the services | [Services Overview](services/) |
-| Contribute code | [Contributing Guide](guides/contributing.md) |
+| Explore documentation hub | [Documentation Hub](guides/README.md) |
+| Contribute code | [Contributing Guide](../CONTRIBUTING.md) |
 | Understand the GitHub workflow | [GitHub Workflow](guides/github-workflow.md) |
 | Read the API docs | [API Reference](reference/api.md) |
-| Deploy to production | [Deployment Runbook](reference/runbooks/deployment.md) |
+| Deploy to production | [Deployment Guide](../DEPLOYMENT.md) |
 
 ## By Audience
 
@@ -44,13 +47,14 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 
 ### Services
 - [Core Services](services/core-services.md) - 8 AI agents overview
-- [Music Generation](services/music-generation.md) - Music platform
-- [Quality Platform](services/quality-platform.md) - Testing infrastructure
+- [Lighting, Sound & Music](services/lighting-sound-music.md) - Unified audio-visual control (NEW)
+- [Music Generation](services/music-generation.md) - Music platform (now part of LSM)
+- [Quality Platform](quality-platform/README.md) - Testing infrastructure
 
 ### Guides
-- [Contributing](guides/contributing.md) - How to contribute
-- [GitHub Workflow](guides/github-workflow.md) - GitHub automation
-- [Testing](guides/testing.md) - Testing guide
+- [Documentation Hub](guides/README.md) - Central navigation for all guides
+- [GitHub Workflow](guides/github-workflow.md) - GitHub automation and contribution
+- [Testing](../TESTING.md) - Testing guide
 
 ### Reference
 - [Architecture](reference/architecture.md) - System architecture
