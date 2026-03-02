@@ -1,0 +1,57 @@
+# Lighting, Sound & Music Integration Service Requirements
+# Unified service for stage lighting, sound effects, and music generation
+
+# Web Framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+
+# Configuration & Validation
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Logging & Monitoring
+loguru>=0.7.3
+prometheus-client>=0.19.0
+
+# ACE-Step 1.5 Model Dependencies
+# PyTorch with CUDA support
+safetensors==0.7.0
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.10.0+cu128; sys_platform == 'linux' and platform_machine == 'x86_64'
+torchvision==0.25.0+cu128; sys_platform == 'linux' and platform_machine == 'x86_64'
+torchaudio==2.10.0+cu128; sys_platform == 'linux' and platform_machine == 'x86_64'
+
+# AI/ML Dependencies
+transformers>=4.51.0,<4.58.0
+diffusers
+accelerate>=1.12.0
+einops>=0.8.1
+numba>=0.63.1
+
+# Audio Processing
+soundfile>=0.13.1
+scipy>=1.10.1
+matplotlib>=3.7.5
+
+# Lighting Control Protocols
+sacn>=1.7.0
+python-osc>=1.8.0
+
+# Project Chimera Infrastructure
+redis>=5.0.0
+asyncio-mqtt>=0.16.0
+
+# Additional utilities
+toml
+modelscope
+
+# Training dependencies (for LoRA/LoKr training)
+peft>=0.18.0
+lycoris-lora
+lightning>=2.0.0
+tensorboard>=2.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
