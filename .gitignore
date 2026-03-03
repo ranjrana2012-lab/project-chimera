@@ -39,6 +39,10 @@ venv/
 .DS_Store
 Thumbs.db
 
+# Git worktrees
+.worktrees/
+worktrees/
+
 # Environment variables
 .env
 .env.local
