@@ -5,6 +5,8 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 
+from .context import GlobalContext
+
 
 class SentimentLabel(str, Enum):
     """Sentiment classification labels."""
@@ -222,6 +224,7 @@ class SentimentResponse(BaseModel):
         sentiment: Sentiment score details
         emotions: Optional emotion detection scores
         trend: Optional trend analysis
+        context: Optional global context from WorldMonitor
         processing_time_ms: Processing time in milliseconds
         model_version: Version of the model used
         timestamp: Response timestamp
@@ -245,6 +248,10 @@ class SentimentResponse(BaseModel):
     trend: Optional[SentimentTrend] = Field(
         default=None,
         description="Trend analysis"
+    )
+    context: Optional[GlobalContext] = Field(
+        default=None,
+        description="Global context from WorldMonitor"
     )
     processing_time_ms: float = Field(
         ...,
