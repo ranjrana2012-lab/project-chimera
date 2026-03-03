@@ -587,5 +587,5 @@ docker build --no-cache -t test:local .
 
 For more information:
 - [Contributing Guidelines](../CONTRIBUTING.md)
-- [API Documentation](API.md)
-- [Architecture Overview](ARCHITECTURE.md)
+- [API Documentation](reference/api.md)
+- [Architecture Overview](reference/architecture.md)
