@@ -15,7 +15,21 @@ export const config = {
   },
 
   // News sources
-  newsSources: JSON.parse(process.env.NEWS_SOURCES || '[]'),
+  newsSources: (() => {
+    try {
+      return JSON.parse(process.env.NEWS_SOURCES || '[]');
+    } catch (error) {
+      console.error('Failed to parse NEWS_SOURCES environment variable:', error.message);
+      return [];
+    }
+  })(),
+
+  // News aggregator settings
+  news: {
+    cacheTTL: parseInt(process.env.NEWS_CACHE_TTL || '300'), // 5 minutes
+    maxArticlesPerSource: parseInt(process.env.MAX_ARTICLES_PER_SOURCE || '50'),
+    maxTotalArticles: parseInt(process.env.MAX_TOTAL_ARTICLES || '500')
+  },
 
   // Context update interval (seconds)
   contextUpdateInterval: parseInt(process.env.CONTEXT_UPDATE_INTERVAL || '60'),

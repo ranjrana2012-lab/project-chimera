@@ -13,11 +13,22 @@ export class WSBroadcaster {
       data: data
     });
 
+    // Track clients to remove on error
+    const clientsToRemove = new Set();
+
     this.clients.forEach(client => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
+        try {
+          client.send(message);
+        } catch (error) {
+          console.error('Error sending to WebSocket client:', error.message);
+          clientsToRemove.add(client);
+        }
       }
     });
+
+    // Remove failed clients
+    clientsToRemove.forEach(client => this.clients.delete(client));
   }
 
   addClient(ws) {
@@ -25,5 +36,22 @@ export class WSBroadcaster {
     ws.on('close', () => {
       this.clients.delete(ws);
     });
+  }
+
+  /**
+   * Close all WebSocket connections
+   * Used during graceful shutdown
+   */
+  closeAll() {
+    this.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        try {
+          client.close(1001, 'Server shutdown');
+        } catch (error) {
+          console.error('Error closing WebSocket connection:', error.message);
+        }
+      }
+    });
+    this.clients.clear();
   }
 }

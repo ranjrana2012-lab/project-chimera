@@ -18,7 +18,7 @@ export class NewsAggregator {
   async fetchNews(source) {
     try {
       const feed = await Parser.parseURL(source.url);
-      const articles = feed.items.slice(0, 50).map(item => ({
+      const articles = feed.items.slice(0, this.config.news.maxArticlesPerSource).map(item => ({
         title: item.title,
         link: item.link,
         pubDate: item.pubDate,
@@ -49,9 +49,9 @@ export class NewsAggregator {
 
     const allArticles = [];
     for (const source of filteredSources) {
-      // Check cache (5 minutes)
+      // Check cache (configurable via config.news.cacheTTL)
       const lastFetch = this.lastFetch.get(source.name) || 0;
-      if (now - lastFetch > 5 * 60 * 1000) {
+      if (now - lastFetch > this.config.news.cacheTTL * 1000) {
         const articles = await this.fetchNews(source);
         this.newsCache.set(source.name, articles);
         this.lastFetch.set(source.name, now);
@@ -61,7 +61,7 @@ export class NewsAggregator {
     }
 
     return {
-      articles: allArticles.slice(0, 500),
+      articles: allArticles.slice(0, this.config.news.maxTotalArticles),
       total: allArticles.length,
       fetched_at: new Date().toISOString()
     };

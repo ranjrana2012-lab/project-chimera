@@ -74,7 +74,9 @@ export class ContextCalculator {
   }
 
   calculateCII(news) {
-    // Simplified CII calculation
+    // NOTE: This returns hardcoded mock data as an intentional placeholder.
+    // In production, this would integrate with a proper CII calculation service
+    // that analyzes news sentiment, historical data, and other geopolitical factors.
     const countryScores = {
       'GB': { score: 25, trend: 'stable', events: [], newsSummary: 'Low instability' },
       'US': { score: 35, trend: 'stable', events: [], newsSummary: 'Moderate instability' },
@@ -144,5 +146,24 @@ export class ContextCalculator {
       });
     }
     return events;
+  }
+
+  /**
+   * Cleanup method to properly close Redis connection
+   * Should be called during graceful shutdown
+   */
+  async cleanup() {
+    try {
+      await this.redis.quit();
+      console.log('Redis connection closed successfully');
+    } catch (error) {
+      console.error('Error closing Redis connection:', error.message);
+      // Force close if graceful quit fails
+      try {
+        await this.redis.disconnect();
+      } catch (disconnectError) {
+        console.error('Error force disconnecting Redis:', disconnectError.message);
+      }
+    }
   }
 }
