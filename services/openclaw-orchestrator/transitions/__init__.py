@@ -7,7 +7,6 @@ for scene management.
 
 from transitions.time_triggers import (
     TimeTriggerType,
-    TransitionType,
     TimeTriggerConfig,
     TimeTrigger,
     TimeTriggerScheduler
@@ -31,6 +30,14 @@ from transitions.manual_triggers import (
     create_manual_transition_request
 )
 
+from transitions.transition_effects import (
+    TransitionEffectConfig,
+    TransitionEffect,
+    TransitionEffectExecutor,
+    EffectState,
+    get_executor
+)
+
 # Re-export TriggerState from manual_triggers
 from transitions.manual_triggers import TriggerState
 
@@ -52,5 +59,10 @@ __all__ = [
     "TransitionRequestValidator",
     "get_registry",
     "create_manual_transition_request",
+    "TransitionEffectConfig",
+    "TransitionEffect",
+    "TransitionEffectExecutor",
+    "EffectState",
+    "get_executor",
     "TriggerState"
 ]
