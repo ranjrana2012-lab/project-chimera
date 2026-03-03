@@ -2,7 +2,7 @@
 
 Welcome to the Project Chimera documentation. Use this hub to find what you need.
 
-> **New in v0.3.0:** [Lighting, Sound & Music (LSM)](services/lighting-sound-music.md) - Unified audio-visual control service. [Read more](plans/lsm-migration-summary.md)
+> **New in v0.4.0:** [WorldMonitor Integration](services/core-services.md#sentiment-agent-port-8004) - Enhanced sentiment analysis with global context. [Read more](../plans/worldmonitor-integration-summary.md)
 
 ## Quick Links
 
