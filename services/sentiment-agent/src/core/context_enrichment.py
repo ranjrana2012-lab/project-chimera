@@ -97,3 +97,9 @@ class ContextEnricher:
         except Exception as e:
             logger.error(f"Error fetching country context: {e}")
             return None
+
+    def get_context(self) -> Optional[Dict[str, Any]]:
+        """Get the current cached context as a dict for WebSocket streaming."""
+        if self._context_cache:
+            return self._context_cache.model_dump()
+        return None
