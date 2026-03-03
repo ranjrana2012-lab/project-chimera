@@ -252,9 +252,9 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 
 ### Infrastructure Components
 
-#### Kubernetes (k3s)
+#### k3s
 
-Lightweight Kubernetes distribution for development and production.
+Lightweight k3s distribution for development and production.
 
 **Namespaces:**
 - `live` - Production services
@@ -355,7 +355,7 @@ Vector database for semantic search and retrieval.
 
 ### Infrastructure
 
-- **Orchestration:** Kubernetes (k3s)
+- **Orchestration:** k3s
 - **Messaging:** Apache Kafka
 - **Caching:** Redis 7+
 - **Vector DB:** Milvus 2.3+

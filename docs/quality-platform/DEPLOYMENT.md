@@ -86,7 +86,7 @@ curl http://localhost:8010/health
 
 ## Production Deployment
 
-### Kubernetes Deployment
+### k3s Deployment
 
 ```bash
 # Create namespace

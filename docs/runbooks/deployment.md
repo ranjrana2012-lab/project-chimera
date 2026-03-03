@@ -4,7 +4,7 @@ This runbook covers deployment procedures for Project Chimera.
 
 ## Prerequisites
 
-- Kubernetes cluster (k3s for local, cloud provider for production)
+- k3s cluster (local) or cloud provider (production)
 - kubectl configured
 - Docker registry access
 - NVIDIA GPU drivers (for GPU nodes)
