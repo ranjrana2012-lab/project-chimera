@@ -18,6 +18,13 @@ from .trigger import (
     get_services_from_files
 )
 
+from .sync import (
+    GitHubClient,
+    ResultParser,
+    ResultSyncService,
+    PollingService
+)
+
 __all__ = [
     "verify_github_signature",
     "WebhookEvent",
@@ -26,5 +33,9 @@ __all__ = [
     "PipelineTrigger",
     "TriggerResult",
     "PipelineTriggerService",
-    "get_services_from_files"
+    "get_services_from_files",
+    "GitHubClient",
+    "ResultParser",
+    "ResultSyncService",
+    "PollingService"
 ]
