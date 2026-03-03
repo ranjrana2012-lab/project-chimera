@@ -9,9 +9,22 @@ from .discovery import (
     ServiceTests
 )
 
+from .executor import (
+    ParallelExecutor,
+    ExecutionConfig,
+    TestExecutionResult,
+    ServiceExecutionResult,
+    ExecutorState
+)
+
 __all__ = [
     "TestDiscovery",
     "TestCatalog",
     "TestInfo",
-    "ServiceTests"
+    "ServiceTests",
+    "ParallelExecutor",
+    "ExecutionConfig",
+    "TestExecutionResult",
+    "ServiceExecutionResult",
+    "ExecutorState"
 ]
