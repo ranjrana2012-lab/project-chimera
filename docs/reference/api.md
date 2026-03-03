@@ -40,6 +40,9 @@ sentiment-agent.live.svc.cluster.local:8004
 lighting-sound-music.live.svc.cluster.local:8005
 safety-filter.live.svc.cluster.local:8006
 operator-console.live.svc.cluster.local:8007
+
+# WorldMonitor sidecar (accessed via sentiment-agent pod)
+worldmonitor-sidecar:8010
 ```
 
 For local development, services run on `localhost` with their respective ports.
@@ -488,7 +491,7 @@ Standard skill invocation endpoint.
 
 **Base URL:** `http://sentiment-agent:8004`
 
-Audience sentiment analysis from social media.
+Audience sentiment analysis from social media with WorldMonitor global context integration (v0.4.0).
 
 #### Health Endpoints
 
@@ -1191,6 +1194,7 @@ The following services offer WebSocket interfaces:
 1. **Captioning Agent** - Real-time transcription streaming
 2. **Operator Console** - Live event updates
 3. **Music Orchestration** - Real-time generation progress streaming
+4. **WorldMonitor Sidecar** - Real-time global context events streaming (v0.4.0)
 
 ### Connection Pattern
 
