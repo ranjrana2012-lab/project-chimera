@@ -155,6 +155,69 @@ services:
   # Use: python -m services.openclaw_orchestrator.main
   # Or: make run-openclaw
 
+  # ============================================
+  # Sentiment Agent with WorldMonitor Sidecar
+  # ============================================
+
+  sentiment-agent:
+    build:
+      context: ./services/sentiment-agent
+      dockerfile: Dockerfile
+    container_name: chimera-sentiment-agent
+    ports:
+      - "8004:8004"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - WORLDMONITOR_SIDECAR_URL=http://worldmonitor-sidecar:3001
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - ENABLE_WORLD_MONITOR=true
+      - ENABLE_WEBSOCKET_CONTEXT=true
+    volumes:
+      - ./services/sentiment-agent:/app
+      - sentiment-agent-logs:/app/logs
+    depends_on:
+      - redis
+      - kafka
+      - worldmonitor-sidecar
+    networks:
+      - chimera-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  worldmonitor-sidecar:
+    image: ghcr.io/project-chimera/worldmonitor-sidecar:v1.0.0
+    container_name: chimera-worldmonitor-sidecar
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - LOG_LEVEL=debug
+      - WS_BROADCAST_URL=ws://sentiment-agent:8004/api/v1/context/stream
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_TTL=300
+      - ENABLE_WEBSOCKET=true
+    volumes:
+      - worldmonitor-sidecar-logs:/app/logs
+    depends_on:
+      - redis
+    networks:
+      - chimera-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
 volumes:
   redis-data:
     driver: local
@@ -169,6 +232,10 @@ volumes:
   prometheus-data:
     driver: local
   grafana-data:
+    driver: local
+  sentiment-agent-logs:
+    driver: local
+  worldmonitor-sidecar-logs:
     driver: local
 
 networks:
