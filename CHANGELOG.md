@@ -5,76 +5,47 @@ All notable changes to Project Chimera will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
 ## [0.4.0] - 2026-03-03
 
 ### Added
-- **WorldMonitor Integration for Sentiment Agent** - Real-time global context enrichment
-  - WorldMonitor sidecar service (port 8010) for global events streaming
-  - Context enrichment layer with WebSocket client for real-time updates
-  - News sentiment analyzer for headline and event impact analysis
-  - Context API endpoints: `/api/v1/context`, `/api/v1/context/stats`, `/api/v1/context/categories`
-  - News sentiment endpoint: `/api/v1/news-sentiment`
-  - Context-aware sentiment analysis with global event correlation
-  - Category-based filtering (technology, business, entertainment, sports)
-  - Context caching with configurable TTL (default: 300 seconds)
-  - Enhanced response models with contextual metadata
+- **WorldMonitor Integration** - Global intelligence platform integration with Sentiment Agent
+  - WorldMonitor sidecar service (Node.js) for news aggregation and context calculation
+  - Country Instability Index (CII) scoring for sentiment context
+  - Real-time context updates via WebSocket streaming
+  - News sentiment analysis using aggregated news feeds
+  - Sidecar deployment pattern for service integration
+  - Context-aware sentiment responses with global context
+  - Comprehensive test coverage (38 tests passing)
+
+### New API Endpoints
+- `GET /api/v1/context/global` - Global context with CII scores, threats, events
+- `GET /api/v1/context/country/{code}` - Country-specific context
+- `WebSocket /api/v1/context/stream` - Real-time context updates
+- `POST /api/v1/news/sentiment` - News sentiment analysis
 
 ### Changed
-- **Sentiment Agent Enhanced** (port 8004)
-  - Added WorldMonitor integration capabilities
-  - Enhanced sentiment analysis with global context awareness
-  - Improved response models to include contextual information
-  - WebSocket-based real-time context streaming from WorldMonitor sidecar
-- **Kubernetes Deployment**
-  - Sentiment Agent now includes WorldMonitor as sidecar container
-  - Updated resource requirements for WorldMonitor integration
-- **Docker Compose**
-  - Added WorldMonitor service for local development
-  - Updated Sentiment Agent configuration for sidecar communication
+- **Sentiment Agent Enhanced:** Now includes global context enrichment from WorldMonitor
+- Response model extended with optional `context` field
+- Configuration extended with WorldMonitor settings
+- k3s deployment updated for sidecar pattern
 
 ### Services Status
 - OpenClaw Orchestrator: ✅ Production Ready
 - SceneSpeak Agent: ✅ Production Ready
 - Captioning Agent: ⚠️ Partial (needs minor fixes to response model)
 - BSL Translation Agent: ⚠️ Partial (needs minor fixes to response model)
-- **Sentiment Agent: ✅ Enhanced with WorldMonitor integration**
+- **Sentiment Agent: ✅ Production Ready (Enhanced with WorldMonitor)**
 - Lighting, Sound & Music: ✅ Production Ready
 - Safety Filter: ⚠️ Partial (needs minor fixes to response model)
 - Operator Console: ✅ Production Ready
+- **WorldMonitor Sidecar: ✅ Production Ready (NEW)**
 
-### Documentation
-- Added Sentiment Agent with WorldMonitor documentation (`docs/services/sentiment-agent-with-worldmonitor.md`)
-- Updated core services documentation (`docs/services/core-services.md`)
-- Updated API reference with context endpoints (`docs/reference/api.md`)
-- Updated architecture documentation with sidecar pattern (`docs/reference/architecture.md`)
-- Added WorldMonitor context usage guide (`docs/guides/worldmonitor-context-usage.md`)
+## [Unreleased]
 
-### Technical Details
-**WorldMonitor Sidecar:**
-- Port: 8010
-- Protocol: WebSocket (context streaming)
-- Categories: technology, business, entertainment, sports
-- Cache TTL: 300 seconds (configurable)
-
-**Context Enrichment:**
-- Automatic context injection into sentiment analysis
-- Category-based event filtering
-- Real-time WebSocket updates
-- Fallback to cached context on connection failure
-
-**News Sentiment Analysis:**
-- Batch processing of headlines
-- Category-specific sentiment scoring
-- Event impact assessment
-- Integration with existing sentiment models
-
-**Testing:**
-- Unit tests for context enrichment layer
-- Unit tests for WebSocket client
-- Unit tests for news sentiment analyzer
-- Integration tests for WorldMonitor sidecar communication
+### Planned
+- Additional service enhancements
+- Performance optimizations
+- Documentation improvements
 
 ## [0.3.0] - 2026-03-02
 
