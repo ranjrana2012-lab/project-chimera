@@ -15,13 +15,14 @@
 
 ---
 
-## Completed Tasks (24/87)
+## Completed Tasks (25/87)
 
 ### Work Stream 1: Service Fixes - ✅ COMPLETE
 
 - [x] **Task 2.1.1:** Design scene state machine ✅
 - [x] **Task 2.1.2:** Define scene configuration schema ✅
 - [x] **Task 2.1.3:** Implement scene state manager ✅
+- [x] **Task 2.1.4:** Add Redis persistence for scene state ✅
 
 - [x] **Task 1.1.1:** Create Captioning agent error handling specification ✅
 - [x] **Task 1.1.2:** Implement Whisper API failure fallback logic ✅
@@ -49,19 +50,18 @@
 
 ## Current Task
 
-**Task ID:** 2.1.4
-**Title:** Add Redis persistence for scene state
+**Task ID:** 2.1.5
+**Title:** Implement scene recovery logic
 **Status:** ⏳ IN PROGRESS
-**Started:** 2026-03-04 00:30:00 UTC
+**Started:** 2026-03-04 01:00:00 UTC
 
 **Definition of Done:**
-- [ ] Create scene_store.py module
-- [ ] Implement Redis persistence layer
-- [ ] Save scene state to Redis on change
-- [ ] Load scene state from Redis
-- [ ] Implement Redis key namespace
-- [ ] Add TTL for completed scenes
-- [ ] Write tests verifying state survives restart
+- [ ] Create recovery.py module
+- [ ] Implement scene recovery on startup
+- [ ] Load active scenes from Redis
+- [ ] Resume scenes from saved state
+- [ ] Handle recovery failures gracefully
+- [ ] Write tests for recovery scenarios
 
 ---
 
@@ -73,8 +73,8 @@
 - Last Commit: da4dade
 
 ### Work Stream 2: Multi-Scene Support
-- Status: 🔄 IN PROGRESS (Task 2.1.4 active)
-- Progress: 3/18 tasks complete (17%)
+- Status: 🔄 IN PROGRESS (Task 2.1.5 active)
+- Progress: 4/18 tasks complete (22%)
 - Blockers: None
 
 ### Work Streams 3-4: Queued
@@ -92,8 +92,9 @@
 [2026-03-03 23:50] Task 2.1.1 complete - Scene state machine designed
 [2026-03-04 00:00] Task 2.1.2 complete - Scene config schema defined
 [2026-03-04 00:30] Task 2.1.3 complete - Scene state manager implemented (45 tests passing)
-[2026-03-04 00:30] Starting Task 2.1.4: Add Redis persistence
-[2026-03-04 00:30] Remote sync active - pushing after each task
+[2026-03-04 01:00] Task 2.1.4 complete - Redis persistence for scene state (36 tests passing)
+[2026-03-04 01:00] Starting Task 2.1.5: Implement scene recovery logic
+[2026-03-04 01:00] Remote sync active - pushing after each task
 ```
 
 ---
@@ -108,7 +109,7 @@
 
 ## Remote Sync Status
 
-- **Last Push:** Pending (committing Task 2.1.3)
+- **Last Push:** Pending (committing Task 2.1.4)
 - **Branch:** main
 - **Status:** 🔄 Committing
 

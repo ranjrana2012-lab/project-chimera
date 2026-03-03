@@ -166,7 +166,7 @@ This plan breaks down the v0.5.0 requirements into atomic, executable tasks. Eac
   - **Tests:** Unit test for each state transition
   - **Estimated:** 3 hours
 
-- [ ] **Task 2.1.4:** Add Redis persistence for scene state
+- [x] **Task 2.1.4:** Add Redis persistence for scene state ✅
   - **DoD:** Scene state saved to Redis on change
   - **Files:** `services/openclaw-orchestrator/persistence/scene_store.py`
   - **Tests:** Verify state survives restart
