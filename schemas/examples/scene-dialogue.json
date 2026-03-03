@@ -1,0 +1,134 @@
+{
+  "scene_id": "scene-002-dialogue",
+  "name": "Interactive Dialogue",
+  "description": "A conversation between two characters influenced by audience input",
+  "version": "1.0.0",
+  "scene_type": "dialogue",
+  "metadata": {
+    "author": "Project Chimera Team",
+    "tags": ["dialogue", "interaction", "audience-participation"],
+    "created_at": "2026-03-03T00:00:00Z",
+    "updated_at": "2026-03-03T00:00:00Z",
+    "estimated_duration": 600
+  },
+  "agents": {
+    "scenespeak": {
+      "enabled": true,
+      "config": {
+        "character_focus": "multiple",
+        "dialogue_style": "natural"
+      },
+      "model": "gpt-4",
+      "temperature": 0.8,
+      "max_tokens": 300
+    },
+    "sentiment": {
+      "enabled": true,
+      "config": {
+        "analysis_interval": 3
+      },
+      "timeout": 10
+    },
+    "captioning": {
+      "enabled": true,
+      "timeout": 30
+    },
+    "bsl": {
+      "enabled": true,
+      "config": {
+        "region": "london"
+      }
+    },
+    "lighting": {
+      "enabled": true,
+      "config": {
+        "initial_state": "balanced",
+        "mood": "conversational"
+      }
+    },
+    "safety": {
+      "enabled": true,
+      "config": {
+        "content_policy": "family"
+      }
+    }
+  },
+  "characters": [
+    {
+      "id": "character-a",
+      "name": "Alex",
+      "personality": "curious, friendly, optimistic",
+      "voice_style": "energetic"
+    },
+    {
+      "id": "character-b",
+      "name": "Jordan",
+      "personality": "thoughtful, cautious, witty",
+      "voice_style": "measured"
+    }
+  ],
+  "timing": {
+    "min_duration": 300,
+    "max_duration": 900,
+    "auto_transition": false,
+    "warn_before_end": 60
+  },
+  "transitions": {
+    "entry": {
+      "type": "crossfade",
+      "duration": 2,
+      "effect": {
+        "audio": {
+          "fade_out": true,
+          "volume": 0.8
+        },
+        "visual": {
+          "lighting": "dim"
+        }
+      }
+    },
+    "exit": {
+      "type": "fade",
+      "duration": 2,
+      "effect": {
+        "audio": {
+          "fade_out": true,
+          "volume": 1
+        }
+      }
+    },
+    "next_scene_id": "scene-003-finale",
+    "fallback_scene_id": "scene-000-emergency"
+  },
+  "audience": {
+    "interaction_enabled": true,
+    "input_methods": ["console", "mobile", "voice"],
+    "sentiment_thresholds": {
+      "positive": 0.6,
+      "negative": -0.4,
+      "transition_on_threshold": false
+    },
+    "max_participants": 100
+  },
+  "safety": {
+    "content_policy": "family",
+    "moderate_generated_content": true,
+    "moderate_audience_input": true
+  },
+  "accessibility": {
+    "captioning": {
+      "enabled": true,
+      "style": "standard"
+    },
+    "bsl": {
+      "enabled": true,
+      "region": "london"
+    },
+    "audio_description": false
+  },
+  "resources": {
+    "cpu_limit": "1000m",
+    "memory_limit": "1Gi",
+    "priority": 80
+  }
+}

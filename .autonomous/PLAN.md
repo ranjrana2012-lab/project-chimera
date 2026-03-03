@@ -154,7 +154,7 @@ This plan breaks down the v0.5.0 requirements into atomic, executable tasks. Eac
   - **Files:** `docs/architecture/scene-state-machine.md`
   - **Estimated:** 1 hour
 
-- [ ] **Task 2.1.2:** Define scene configuration schema
+- [x] **Task 2.1.2:** Define scene configuration schema ✅
   - **DoD:** JSON Schema for scene config
   - **Files:** `schemas/scene-config.json`
   - **Tests:** Validate sample configs against schema

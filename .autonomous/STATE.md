@@ -15,11 +15,12 @@
 
 ---
 
-## Completed Tasks (22/87)
+## Completed Tasks (23/87)
 
 ### Work Stream 1: Service Fixes - ✅ COMPLETE
 
 - [x] **Task 2.1.1:** Design scene state machine ✅
+- [x] **Task 2.1.2:** Define scene configuration schema ✅
 
 - [x] **Task 1.1.1:** Create Captioning agent error handling specification ✅
 - [x] **Task 1.1.2:** Implement Whisper API failure fallback logic ✅
@@ -47,19 +48,19 @@
 
 ## Current Task
 
-**Task ID:** 2.1.2
-**Title:** Define scene configuration schema
+**Task ID:** 2.1.3
+**Title:** Implement scene state manager
 **Status:** ⏳ IN PROGRESS
-**Started:** 2026-03-04 00:00:00 UTC
+**Started:** 2026-03-04 00:10:00 UTC
 
 **Definition of Done:**
-- [ ] Create JSON Schema for scene configuration
-- [ ] Define scene properties (id, name, description, type)
-- [ ] Define agent configurations per scene
-- [ ] Define transition rules
-- [ ] Define timing constraints
-- [ ] Save to schemas/scene-config.json
-- [ ] Validate sample configs against schema
+- [ ] Create scene_manager.py module
+- [ ] Implement SceneState enum
+- [ ] Implement SceneManager class with state transitions
+- [ ] Add state validation before transitions
+- [ ] Add state change callbacks
+- [ ] Write unit tests for each state transition
+- [ ] Test invalid transitions are rejected
 
 ---
 
@@ -71,8 +72,8 @@
 - Last Commit: da4dade
 
 ### Work Stream 2: Multi-Scene Support
-- Status: 🔄 IN PROGRESS (Task 2.1.2 active)
-- Progress: 1/18 tasks complete (6%)
+- Status: 🔄 IN PROGRESS (Task 2.1.3 active)
+- Progress: 2/18 tasks complete (11%)
 - Blockers: None
 
 ### Work Streams 3-4: Queued
@@ -88,8 +89,9 @@
 [2026-03-03 23:45] Pushed commit da4dade - Safety Filter complete
 [2026-03-03 23:45] Work Stream 1 complete! (21/21 tasks)
 [2026-03-03 23:50] Task 2.1.1 complete - Scene state machine designed
-[2026-03-04 00:00] Starting Work Stream 2 - Task 2.1.2: Scene config schema
-[2026-03-04 00:00] Remote sync active - pushing after each task
+[2026-03-04 00:00] Task 2.1.2 complete - Scene config schema defined
+[2026-03-04 00:10] Starting Task 2.1.3: Implement scene state manager
+[2026-03-04 00:10] Remote sync active - pushing after each task
 ```
 
 ---
@@ -104,7 +106,7 @@
 
 ## Remote Sync Status
 
-- **Last Push:** Pending (committing Task 2.1.1)
+- **Last Push:** Pending (committing Task 2.1.2)
 - **Branch:** main
 - **Status:** 🔄 Committing
 

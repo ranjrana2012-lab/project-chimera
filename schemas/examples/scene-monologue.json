@@ -1,0 +1,127 @@
+{
+  "scene_id": "scene-001-opening",
+  "name": "Opening Monologue",
+  "description": "The protagonist introduces the story and sets the mood for the performance",
+  "version": "1.0.0",
+  "scene_type": "monologue",
+  "metadata": {
+    "author": "Project Chimera Team",
+    "tags": ["opening", "introduction", "monologue"],
+    "created_at": "2026-03-03T00:00:00Z",
+    "updated_at": "2026-03-03T00:00:00Z",
+    "estimated_duration": 180
+  },
+  "agents": {
+    "scenespeak": {
+      "enabled": true,
+      "config": {
+        "character_focus": "protagonist"
+      },
+      "model": "gpt-4",
+      "temperature": 0.7,
+      "max_tokens": 500
+    },
+    "sentiment": {
+      "enabled": true,
+      "config": {
+        "analysis_interval": 5
+      },
+      "timeout": 10
+    },
+    "captioning": {
+      "enabled": true,
+      "timeout": 30
+    },
+    "bsl": {
+      "enabled": true,
+      "config": {
+        "region": "london"
+      }
+    },
+    "lighting": {
+      "enabled": true,
+      "config": {
+        "initial_state": "spotlight-center",
+        "mood": "dramatic"
+      }
+    },
+    "safety": {
+      "enabled": true,
+      "config": {
+        "content_policy": "family"
+      }
+    }
+  },
+  "characters": [
+    {
+      "id": "protagonist",
+      "name": "The Protagonist",
+      "personality": "thoughtful, introspective, hopeful",
+      "voice_style": "warm, measured"
+    }
+  ],
+  "timing": {
+    "min_duration": 120,
+    "max_duration": 300,
+    "auto_transition": false,
+    "warn_before_end": 30
+  },
+  "transitions": {
+    "entry": {
+      "type": "fade",
+      "duration": 2,
+      "effect": {
+        "audio": {
+          "fade_out": false,
+          "volume": 0.8
+        },
+        "visual": {
+          "lighting": "fade-to-black"
+        }
+      }
+    },
+    "exit": {
+      "type": "crossfade",
+      "duration": 3,
+      "effect": {
+        "audio": {
+          "fade_out": true,
+          "volume": 1
+        }
+      }
+    },
+    "next_scene_id": "scene-002-dialogue",
+    "fallback_scene_id": "scene-000-emergency"
+  },
+  "audience": {
+    "interaction_enabled": true,
+    "input_methods": ["console", "mobile"],
+    "sentiment_thresholds": {
+      "positive": 0.7,
+      "negative": -0.5,
+      "transition_on_threshold": false
+    },
+    "max_participants": 50
+  },
+  "safety": {
+    "content_policy": "family",
+    "moderate_generated_content": true,
+    "moderate_audience_input": true
+  },
+  "accessibility": {
+    "captioning": {
+      "enabled": true,
+      "style": "standard"
+    },
+    "bsl": {
+      "enabled": true,
+      "region": "london"
+    },
+    "audio_description": false
+  },
+  "resources": {
+    "cpu_limit": "500m",
+    "memory_limit": "512Mi",
+    "priority": 70
+  }
+}

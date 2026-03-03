@@ -1,0 +1,435 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://project-chimera.io/schemas/scene-config.json",
+  "title": "Scene Configuration Schema",
+  "description": "Configuration schema for Project Chimera theatre scenes",
+  "type": "object",
+  "required": [
+    "scene_id",
+    "name",
+    "version",
+    "scene_type",
+    "agents",
+    "timing"
+  ],
+  "properties": {
+    "scene_id": {
+      "type": "string",
+      "description": "Unique identifier for the scene",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$",
+      "examples": ["scene-001", "opening-monologue", "interactive-dialogue"]
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable scene name",
+      "minLength": 1,
+      "maxLength": 100,
+      "examples": ["Opening Monologue", "Interactive Dialogue", "Finale"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the scene purpose",
+      "maxLength": 1000
+    },
+    "version": {
+      "type": "string",
+      "description": "Scene configuration version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["1.0.0", "2.1.3"]
+    },
+    "scene_type": {
+      "type": "string",
+      "description": "Type of scene",
+      "enum": ["monologue", "dialogue", "interactive", "transition", "finale", "intermission"],
+      "enumDescriptions": {
+        "monologue": "Single character speaking",
+        "dialogue": "Conversation between characters",
+        "interactive": "Audience participation scene",
+        "transition": "Scene transition/handoff",
+        "finale": "Closing scene",
+        "intermission": "Pause between acts"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional scene metadata",
+      "properties": {
+        "author": {
+          "type": "string",
+          "description": "Scene creator"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Scene tags for categorization",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "uniqueItems": true
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of creation"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last update"
+        },
+        "estimated_duration": {
+          "type": "number",
+          "description": "Estimated scene duration in seconds",
+          "minimum": 0,
+          "maximum": 7200
+        }
+      }
+    },
+    "agents": {
+      "type": "object",
+      "description": "Agent-specific configurations for this scene",
+      "required": ["scenespeak", "sentiment", "captioning"],
+      "properties": {
+        "scenespeak": {
+          "$ref": "#/definitions/agentConfig"
+        },
+        "sentiment": {
+          "$ref": "#/definitions/agentConfig"
+        },
+        "captioning": {
+          "$ref": "#/definitions/agentConfig"
+        },
+        "bsl": {
+          "$ref": "#/definitions/agentConfig"
+        },
+        "lighting": {
+          "$ref": "#/definitions/agentConfig"
+        },
+        "safety": {
+          "$ref": "#/definitions/agentConfig"
+        }
+      }
+    },
+    "characters": {
+      "type": "array",
+      "description": "Characters present in this scene",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "personality": {
+            "type": "string",
+            "description": "Character personality traits for SceneSpeak"
+          },
+          "voice_style": {
+            "type": "string",
+            "description": "Preferred voice style"
+          }
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "description": "Scene timing and scheduling",
+      "required": ["max_duration"],
+      "properties": {
+        "max_duration": {
+          "type": "number",
+          "description": "Maximum scene duration in seconds",
+          "minimum": 10,
+          "maximum": 7200
+        },
+        "min_duration": {
+          "type": "number",
+          "description": "Minimum scene duration in seconds",
+          "minimum": 10,
+          "maximum": 7200
+        },
+        "scheduled_start": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Scheduled start time (ISO 8601)"
+        },
+        "scheduled_end": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Scheduled end time (ISO 8601)"
+        },
+        "auto_transition": {
+          "type": "boolean",
+          "description": "Automatically transition after max_duration",
+          "default": false
+        },
+        "warn_before_end": {
+          "type": "number",
+          "description": "Seconds before end to send warning",
+          "minimum": 0,
+          "default": 60
+        }
+      }
+    },
+    "transitions": {
+      "type": "object",
+      "description": "Scene transition configuration",
+      "properties": {
+        "entry": {
+          "$ref": "#/definitions/transitionConfig"
+        },
+        "exit": {
+          "$ref": "#/definitions/transitionConfig"
+        },
+        "next_scene_id": {
+          "type": "string",
+          "description": "Default next scene after exit"
+        },
+        "fallback_scene_id": {
+          "type": "string",
+          "description": "Fallback scene if error occurs"
+        }
+      }
+    },
+    "audience": {
+      "type": "object",
+      "description": "Audience interaction settings",
+      "properties": {
+        "interaction_enabled": {
+          "type": "boolean",
+          "description": "Enable audience input for this scene",
+          "default": true
+        },
+        "input_methods": {
+          "type": "array",
+          "description": "Allowed audience input methods",
+          "items": {
+            "type": "string",
+            "enum": ["console", "voice", "gesture", "mobile"]
+          },
+          "uniqueItems": true
+        },
+        "sentiment_thresholds": {
+          "type": "object",
+          "description": "Sentiment-based triggers",
+          "properties": {
+            "positive": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Positive sentiment threshold (0-1)"
+            },
+            "negative": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 0,
+              "description": "Negative sentiment threshold (-1 to 0)"
+            },
+            "transition_on_threshold": {
+              "type": "boolean",
+              "description": "Trigger transition when threshold reached"
+            }
+          }
+        },
+        "max_participants": {
+          "type": "integer",
+          "description": "Maximum concurrent audience participants",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 100
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "Safety and content filtering",
+      "properties": {
+        "content_policy": {
+          "type": "string",
+          "enum": ["family", "teen", "adult", "unrestricted"],
+          "description": "Content safety policy level",
+          "default": "family"
+        },
+        "moderate_generated_content": {
+          "type": "boolean",
+          "description": "Apply safety filter to AI-generated content",
+          "default": true
+        },
+        "moderate_audience_input": {
+          "type": "boolean",
+          "description": "Apply safety filter to audience input",
+          "default": true
+        },
+        "blocked_words_override": {
+          "type": "array",
+          "description": "Additional blocked words for this scene",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "description": "Accessibility features",
+      "properties": {
+        "captioning": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "style": {
+              "type": "string",
+              "enum": ["standard", "large", "high-contrast"],
+              "default": "standard"
+            }
+          }
+        },
+        "bsl": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "region": {
+              "type": "string",
+              "enum": ["northern", "southern", "london"],
+              "default": "london"
+            }
+          }
+        },
+        "audio_description": {
+          "type": "boolean",
+          "description": "Generate audio descriptions of visual content",
+          "default": false
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "description": "Scene resource requirements",
+      "properties": {
+        "cpu_limit": {
+          "type": "string",
+          "pattern": "^[0-9]+m?$",
+          "description": "CPU limit (e.g., '500m', '2')"
+        },
+        "memory_limit": {
+          "type": "string",
+          "pattern": "^[0-9]+(Mi|Gi)?$",
+          "description": "Memory limit (e.g., '512Mi', '2Gi')"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Scene priority (0-100, higher is more important)",
+          "default": 50
+        }
+      }
+    }
+  },
+  "definitions": {
+    "agentConfig": {
+      "type": "object",
+      "description": "Agent-specific configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable this agent for the scene",
+          "default": true
+        },
+        "config": {
+          "type": "object",
+          "description": "Agent-specific configuration parameters"
+        },
+        "model": {
+          "type": "string",
+          "description": "AI model to use (for ML agents)"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2,
+          "description": "AI model temperature (0-2)"
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32000,
+          "description": "Maximum tokens for generation"
+        },
+        "system_prompt": {
+          "type": "string",
+          "description": "Override system prompt for this scene"
+        },
+        "timeout": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 300,
+          "description": "Agent timeout in seconds",
+          "default": 30
+        }
+      }
+    },
+    "transitionConfig": {
+      "type": "object",
+      "description": "Transition configuration",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["cut", "fade", "crossfade"],
+          "description": "Transition type",
+          "default": "cut"
+        },
+        "duration": {
+          "type": "number",
+          "description": "Transition duration in seconds",
+          "minimum": 0.1,
+          "maximum": 10,
+          "default": 1
+        },
+        "effect": {
+          "type": "object",
+          "description": "Transition audio/visual effects",
+          "properties": {
+            "audio": {
+              "type": "object",
+              "properties": {
+                "fade_out": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "volume": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 1
+                }
+              }
+            },
+            "visual": {
+              "type": "object",
+              "properties": {
+                "lighting": {
+                  "type": "string",
+                  "enum": ["fade-to-black", "fade-to-white", "dim"],
+                  "default": "fade-to-black"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
