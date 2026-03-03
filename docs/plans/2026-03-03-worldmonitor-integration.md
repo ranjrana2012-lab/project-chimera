@@ -3351,15 +3351,13 @@ kubectl logs -f sentiment-agent-lsm -c sentiment-agent -n chimera
 
 ## Related Documentation
 
-- [Design Document](../../plans/2026-03-03-worldmonitor-integration-design.md)
-- [Implementation Plan](../../plans/2026-03-03-worldmonitor-integration.md)
-- [API Reference](../../reference/api.md#sentiment-agent)
-- [Architecture](../../reference/architecture.md)
+- [Design Document](2026-03-03-worldmonitor-integration-design.md)
+- [API Reference](../reference/api.md#sentiment-agent)
+- [Architecture](../reference/architecture.md)
 
 ---
 
 **For support and questions:**
-- GitHub Issues: https://github.com/project-chimera/project-chimera/issues
 - Documentation: [../README.md](../README.md)
 EOF
 ```
