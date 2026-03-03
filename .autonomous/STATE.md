@@ -15,7 +15,7 @@
 
 ---
 
-## Completed Tasks (27/87)
+## Completed Tasks (28/87)
 
 ### Work Stream 1: Service Fixes - ✅ COMPLETE
 
@@ -25,6 +25,9 @@
 - [x] **Task 2.1.4:** Add Redis persistence for scene state ✅
 - [x] **Task 2.1.5:** Implement scene recovery logic ✅
 - [x] **Task 2.1.6:** Add scene validation pre-checks ✅
+- [x] **Task 2.1.7:** Implement multi-scene orchestration ✅
+
+### Phase 2.1: Scene State Management - ✅ COMPLETE (8/8 tasks)
 
 - [x] **Task 1.1.1:** Create Captioning agent error handling specification ✅
 - [x] **Task 1.1.2:** Implement Whisper API failure fallback logic ✅
@@ -52,18 +55,18 @@
 
 ## Current Task
 
-**Task ID:** 2.1.7
-**Title:** Implement multi-scene orchestration
+**Task ID:** 2.2.1
+**Title:** Design transition trigger system
 **Status:** ⏳ IN PROGRESS
-**Started:** 2026-03-04 02:00:00 UTC
+**Started:** 2026-03-04 02:30:00 UTC
 
 **Definition of Done:**
-- [ ] Create multi_scene.py module
-- [ ] Implement multi-scene orchestrator
-- [ ] Manage concurrent scenes
-- [ ] Enforce scene limits (max 5 concurrent)
-- [ ] Scene isolation and coordination
-- [ ] Test with 5 concurrent scenes
+- [ ] Create transition-triggers.md design doc
+- [ ] Define time-based triggers
+- [ ] Define event-based triggers
+- [ ] Define manual triggers
+- [ ] Define trigger priorities
+- [ ] Save to docs/architecture/transition-triggers.md
 
 ---
 
@@ -75,6 +78,14 @@
 - Last Commit: da4dade
 
 ### Work Stream 2: Multi-Scene Support
+- Status: 🔄 IN PROGRESS (Task 2.2.1 active)
+- Progress: 7/18 tasks complete (39%)
+- Blockers: None
+
+### Phase 2.1 (Scene State Management): ✅ COMPLETE (8/8 tasks)
+### Phase 2.2 (Scene Transition System): 1/10 tasks
+
+### Work Streams 3-4: Queued
 - Status: 🔄 IN PROGRESS (Task 2.1.7 active)
 - Progress: 6/18 tasks complete (33%)
 - Blockers: None

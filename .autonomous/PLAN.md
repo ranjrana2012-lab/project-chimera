@@ -184,7 +184,7 @@ This plan breaks down the v0.5.0 requirements into atomic, executable tasks. Eac
   - **Tests:** Test validation with valid/invalid configs
   - **Estimated:** 2 hours
 
-- [ ] **Task 2.1.7:** Implement multi-scene orchestration
+- [x] **Task 2.1.7:** Implement multi-scene orchestration ✅
   - **DoD:** Orchestrator manages multiple concurrent scenes
   - **Files:** `services/openclaw-orchestrator/core/multi_scene.py`
   - **Tests:** Test with 5 concurrent scenes
