@@ -13,6 +13,7 @@ from datetime import datetime
 from .sentiment_analyzer import SentimentAnalyzer
 from .aggregator import SentimentAggregator
 from .context_enrichment import ContextEnricher
+from .news_sentiment_analyzer import NewsSentimentAnalyzer
 from ..models.context import ContextEnrichmentOptions
 
 
@@ -33,6 +34,7 @@ class SentimentHandler:
         self.analyzer: Optional[SentimentAnalyzer] = None
         self.aggregator: Optional[SentimentAggregator] = None
         self.context_enricher: Optional[ContextEnricher] = None
+        self.news_sentiment_analyzer: Optional[NewsSentimentAnalyzer] = None
         self._initialized = False
 
         # Get aggregation window from settings
@@ -55,6 +57,14 @@ class SentimentHandler:
         if getattr(self.settings, 'context_enrichment_enabled', False):
             sidecar_url = getattr(self.settings, 'worldmonitor_sidecar_url', 'http://localhost:3001')
             self.context_enricher = ContextEnricher(sidecar_url)
+
+        # Initialize news sentiment analyzer if enabled
+        if getattr(self.settings, 'news_sentiment_enabled', False):
+            sidecar_url = getattr(self.settings, 'worldmonitor_sidecar_url', 'http://localhost:3001')
+            self.news_sentiment_analyzer = NewsSentimentAnalyzer(
+                sidecar_url=sidecar_url,
+                sentiment_analyzer=self.analyzer
+            )
 
         self._initialized = True
 
@@ -314,6 +324,9 @@ class SentimentHandler:
 
         if self.context_enricher:
             await self.context_enricher.close()
+
+        if self.news_sentiment_analyzer:
+            await self.news_sentiment_analyzer.close()
 
         self._initialized = False
 
