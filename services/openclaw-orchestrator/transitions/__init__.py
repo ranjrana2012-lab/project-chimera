@@ -57,6 +57,13 @@ from transitions.audience_context import (
     ContextPriority
 )
 
+from transitions.undo_redo import (
+    TransitionRecord,
+    TransitionHistory,
+    UndoRedoManager,
+    UndoRedoResult
+)
+
 # Re-export TriggerState from manual_triggers
 from transitions.manual_triggers import TriggerState
 
@@ -96,5 +103,9 @@ __all__ = [
     "ContextDiff",
     "ContextMergeStrategy",
     "ContextMergeResult",
-    "ContextPriority"
+    "ContextPriority",
+    "TransitionRecord",
+    "TransitionHistory",
+    "UndoRedoManager",
+    "UndoRedoResult"
 ]
