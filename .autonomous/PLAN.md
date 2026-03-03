@@ -172,7 +172,7 @@ This plan breaks down the v0.5.0 requirements into atomic, executable tasks. Eac
   - **Tests:** Verify state survives restart
   - **Estimated:** 2 hours
 
-- [ ] **Task 2.1.5:** Implement scene recovery logic
+- [x] **Task 2.1.5:** Implement scene recovery logic ✅
   - **DoD:** On startup, restore active scene from Redis
   - **Files:** `services/openclaw-orchestrator/core/recovery.py`
   - **Tests:** Test recovery from crash

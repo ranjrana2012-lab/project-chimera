@@ -15,7 +15,7 @@
 
 ---
 
-## Completed Tasks (25/87)
+## Completed Tasks (26/87)
 
 ### Work Stream 1: Service Fixes - ✅ COMPLETE
 
@@ -23,6 +23,7 @@
 - [x] **Task 2.1.2:** Define scene configuration schema ✅
 - [x] **Task 2.1.3:** Implement scene state manager ✅
 - [x] **Task 2.1.4:** Add Redis persistence for scene state ✅
+- [x] **Task 2.1.5:** Implement scene recovery logic ✅
 
 - [x] **Task 1.1.1:** Create Captioning agent error handling specification ✅
 - [x] **Task 1.1.2:** Implement Whisper API failure fallback logic ✅
@@ -50,18 +51,18 @@
 
 ## Current Task
 
-**Task ID:** 2.1.5
-**Title:** Implement scene recovery logic
+**Task ID:** 2.1.6
+**Title:** Add scene validation pre-checks
 **Status:** ⏳ IN PROGRESS
-**Started:** 2026-03-04 01:00:00 UTC
+**Started:** 2026-03-04 01:30:00 UTC
 
 **Definition of Done:**
-- [ ] Create recovery.py module
-- [ ] Implement scene recovery on startup
-- [ ] Load active scenes from Redis
-- [ ] Resume scenes from saved state
-- [ ] Handle recovery failures gracefully
-- [ ] Write tests for recovery scenarios
+- [ ] Create scene_validator.py module
+- [ ] Implement scene config validation
+- [ ] Add pre-transition validation checks
+- [ ] Validate agent configurations
+- [ ] Validate timing constraints
+- [ ] Test with valid/invalid configs
 
 ---
 
@@ -73,8 +74,8 @@
 - Last Commit: da4dade
 
 ### Work Stream 2: Multi-Scene Support
-- Status: 🔄 IN PROGRESS (Task 2.1.5 active)
-- Progress: 4/18 tasks complete (22%)
+- Status: 🔄 IN PROGRESS (Task 2.1.6 active)
+- Progress: 5/18 tasks complete (28%)
 - Blockers: None
 
 ### Work Streams 3-4: Queued
@@ -93,8 +94,9 @@
 [2026-03-04 00:00] Task 2.1.2 complete - Scene config schema defined
 [2026-03-04 00:30] Task 2.1.3 complete - Scene state manager implemented (45 tests passing)
 [2026-03-04 01:00] Task 2.1.4 complete - Redis persistence for scene state (36 tests passing)
-[2026-03-04 01:00] Starting Task 2.1.5: Implement scene recovery logic
-[2026-03-04 01:00] Remote sync active - pushing after each task
+[2026-03-04 01:30] Task 2.1.5 complete - Scene recovery logic implemented (18 tests passing)
+[2026-03-04 01:30] Starting Task 2.1.6: Add scene validation pre-checks
+[2026-03-04 01:30] Remote sync active - pushing after each task
 ```
 
 ---
@@ -109,7 +111,7 @@
 
 ## Remote Sync Status
 
-- **Last Push:** Pending (committing Task 2.1.4)
+- **Last Push:** Pending (committing Task 2.1.5)
 - **Branch:** main
 - **Status:** 🔄 Committing
 
