@@ -178,7 +178,7 @@ This plan breaks down the v0.5.0 requirements into atomic, executable tasks. Eac
   - **Tests:** Test recovery from crash
   - **Estimated:** 2 hours
 
-- [ ] **Task 2.1.6:** Add scene validation pre-checks
+- [x] **Task 2.1.6:** Add scene validation pre-checks ✅
   - **DoD:** Validate scene config before transition
   - **Files:** `services/openclaw-orchestrator/validation/scene_validator.py`
   - **Tests:** Test validation with valid/invalid configs
