@@ -27,6 +27,14 @@ from .coverage import (
     CoverageDisplay
 )
 
+from .alerts import (
+    Alert,
+    AlertSeverity,
+    Incident,
+    IncidentStatus,
+    AlertManager
+)
+
 __all__ = [
     "ServiceHealth",
     "HealthConfig",
@@ -43,5 +51,10 @@ __all__ = [
     "CoverageRecord",
     "CoverageSnapshot",
     "CoverageTracker",
-    "CoverageDisplay"
+    "CoverageDisplay",
+    "Alert",
+    "AlertSeverity",
+    "Incident",
+    "IncidentStatus",
+    "AlertManager"
 ]
