@@ -16,6 +16,7 @@ Welcome to the Project Chimera documentation hub. This is your central navigatio
 
 ### Guides
 - [GitHub Workflow](./github-workflow.md) - Contribution workflow
+- [WorldMonitor Context Usage](./worldmonitor-context-usage.md) - Using global context enrichment
 - [Development](../DEVELOPMENT.md) - Development setup and practices
 - [Deployment](../DEPLOYMENT.md) - Deployment guide
 
@@ -57,6 +58,15 @@ Unified audio-visual control service consolidating:
 
 [Read more](../services/lighting-sound-music.md) | [Migration Guide](../plans/lsm-migration-summary.md)
 
+### WorldMonitor Integration (v0.4.0)
+Real-time global context enrichment for sentiment analysis:
+- **WorldMonitor Sidecar** - Global events streaming
+- **Context-Aware Sentiment** - Enriched analysis with world events
+- **News Sentiment Analysis** - Understand current events impact
+- **Category Filtering** - Focus on specific event categories
+
+[Read more](./worldmonitor-context-usage.md) | [Architecture](../reference/architecture.md#sidecar-pattern)
+
 ## Documentation Structure
 
 ```
@@ -71,6 +81,7 @@ docs/
 │   └── music-generation.md
 ├── guides/              # How-to guides
 │   ├── github-workflow.md
+│   ├── worldmonitor-context-usage.md
 │   └── README.md        # This file
 ├── reference/           # Reference documentation
 │   ├── api.md
@@ -98,6 +109,7 @@ When making changes to documentation:
 
 ## Version History
 
+- **v0.4.0** (2026-03-03) - WorldMonitor Integration, global context enrichment
 - **v0.3.0** (2026-03-02) - LSM Integration, unified audio-visual control
 - **v0.2.0** (2026-03-01) - Music generation platform, student automation
 - **v0.1.0** (2026-02-28) - Initial 8-core microservices
