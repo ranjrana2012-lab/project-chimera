@@ -35,6 +35,13 @@ from .alerts import (
     AlertManager
 )
 
+from .cicd import (
+    PipelineStatus,
+    PipelineRun,
+    CICDTracker,
+    CICDDisplay
+)
+
 __all__ = [
     "ServiceHealth",
     "HealthConfig",
@@ -56,5 +63,9 @@ __all__ = [
     "AlertSeverity",
     "Incident",
     "IncidentStatus",
-    "AlertManager"
+    "AlertManager",
+    "PipelineStatus",
+    "PipelineRun",
+    "CICDTracker",
+    "CICDDisplay"
 ]
