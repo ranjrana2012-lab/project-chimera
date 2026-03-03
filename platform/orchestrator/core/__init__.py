@@ -25,6 +25,13 @@ from .aggregator import (
     ServiceTrend
 )
 
+from .coverage import (
+    CoverageCollector,
+    CoverageReport,
+    CoverageData,
+    FileCoverage
+)
+
 __all__ = [
     "TestDiscovery",
     "TestCatalog",
@@ -39,5 +46,9 @@ __all__ = [
     "AggregatedResult",
     "TrendAnalysis",
     "TestTrend",
-    "ServiceTrend"
+    "ServiceTrend",
+    "CoverageCollector",
+    "CoverageReport",
+    "CoverageData",
+    "FileCoverage"
 ]
