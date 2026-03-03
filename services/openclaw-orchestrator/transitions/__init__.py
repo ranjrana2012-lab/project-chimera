@@ -18,9 +18,21 @@ from transitions.event_triggers import (
     EventCondition,
     EventTriggerConfig,
     EventTrigger,
-    EventTriggerScheduler,
-    TriggerState
+    EventTriggerScheduler
 )
+
+from transitions.manual_triggers import (
+    ManualTransitionRequest,
+    ManualTriggerConfig,
+    ManualTrigger,
+    ManualTriggerRegistry,
+    TransitionRequestValidator,
+    get_registry,
+    create_manual_transition_request
+)
+
+# Re-export TriggerState from manual_triggers
+from transitions.manual_triggers import TriggerState
 
 __all__ = [
     "TimeTriggerType",
@@ -33,5 +45,12 @@ __all__ = [
     "EventTriggerConfig",
     "EventTrigger",
     "EventTriggerScheduler",
+    "ManualTransitionRequest",
+    "ManualTriggerConfig",
+    "ManualTrigger",
+    "ManualTriggerRegistry",
+    "TransitionRequestValidator",
+    "get_registry",
+    "create_manual_transition_request",
     "TriggerState"
 ]
