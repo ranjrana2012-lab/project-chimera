@@ -8,17 +8,30 @@ for scene management.
 from transitions.time_triggers import (
     TimeTriggerType,
     TransitionType,
-    TriggerState,
     TimeTriggerConfig,
     TimeTrigger,
     TimeTriggerScheduler
 )
 
+from transitions.event_triggers import (
+    EventType,
+    EventCondition,
+    EventTriggerConfig,
+    EventTrigger,
+    EventTriggerScheduler,
+    TriggerState
+)
+
 __all__ = [
     "TimeTriggerType",
     "TransitionType",
-    "TriggerState",
     "TimeTriggerConfig",
     "TimeTrigger",
-    "TimeTriggerScheduler"
+    "TimeTriggerScheduler",
+    "EventType",
+    "EventCondition",
+    "EventTriggerConfig",
+    "EventTrigger",
+    "EventTriggerScheduler",
+    "TriggerState"
 ]
