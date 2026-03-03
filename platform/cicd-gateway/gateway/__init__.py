@@ -11,9 +11,20 @@ from .webhook import (
     WebhookLogger
 )
 
+from .trigger import (
+    PipelineTrigger,
+    TriggerResult,
+    PipelineTriggerService,
+    get_services_from_files
+)
+
 __all__ = [
     "verify_github_signature",
     "WebhookEvent",
     "WebhookHandler",
-    "WebhookLogger"
+    "WebhookLogger",
+    "PipelineTrigger",
+    "TriggerResult",
+    "PipelineTriggerService",
+    "get_services_from_files"
 ]
