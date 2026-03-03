@@ -1,0 +1,212 @@
+{{- if .Values.networkPolicies.enabled }}
+---
+# Default deny all ingress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: network-policy
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+---
+# Default deny all egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: network-policy
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+# Allow ingress from ingress-nginx
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8000  # OpenClaw
+    - protocol: TCP
+      port: 8001  # SceneSpeak
+    - protocol: TCP
+      port: 8002  # Captioning
+    - protocol: TCP
+      port: 8003  # BSL
+    - protocol: TCP
+      port: 8004  # Sentiment
+    - protocol: TCP
+      port: 8005  # Lighting
+    - protocol: TCP
+      port: 8006  # Safety
+    - protocol: TCP
+      port: 8007  # Console
+    - protocol: TCP
+      port: 8010  # Dashboard
+    - protocol: TCP
+      port: 8012  # CI/CD Gateway
+---
+# Allow egress to DNS
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+# Allow inter-service communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-inter-service
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: {{ .Release.Name }}
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: {{ .Release.Name }}
+---
+{{- if .Values.redis.enabled }}
+# Allow egress to Redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-redis
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: {{ .Values.namespace.name | default "chimera-live" }}
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+{{- end }}
+---
+{{- if .Values.kafka.enabled }}
+# Allow egress to Kafka
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kafka
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: {{ .Values.namespace.name | default "chimera-live" }}
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+{{- end }}
+---
+{{- if .Values.monitoring.enabled }}
+# Allow metrics scraping by Prometheus
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-metrics
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: {{ .Values.namespace.name | default "chimera-live" }}
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus
+    ports:
+    - protocol: TCP
+      port: 9090  # Prometheus metrics
+{{- end }}
+{{- end }}

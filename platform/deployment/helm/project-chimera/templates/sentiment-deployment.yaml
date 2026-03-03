@@ -1,0 +1,86 @@
+{{- if .Values.sentiment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-sentiment
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: sentiment
+spec:
+  replicas: {{ .Values.sentiment.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "project-chimera.selectorLabels" . | nindent 6 }}
+      component: sentiment
+  template:
+    metadata:
+      labels:
+        {{- include "project-chimera.selectorLabels" . | nindent 8 }}
+        component: sentiment
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: sentiment
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.global.imageRegistry }}/{{ .Values.sentiment.image.repository }}:{{ .Values.sentiment.image.tag | default .Values.images.tag }}"
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.sentiment.service.port }}
+          protocol: TCP
+        env:
+        - name: SENTIMENT_PORT
+          value: "{{ .Values.sentiment.service.port }}"
+        - name: SENTIMENT_MODEL
+          value: distilbert-base-uncased
+        - name: SENTIMENT_LOG_LEVEL
+          value: INFO
+        resources:
+          {{- toYaml .Values.sentiment.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      nodeSelector:
+        accelerator: nvidia-gpu
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-sentiment
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: sentiment
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: {{ .Values.sentiment.service.port }}
+    targetPort: http
+    protocol: TCP
+  selector:
+    {{- include "project-chimera.selectorLabels" . | nindent 4 }}
+    component: sentiment
+{{- end }}

@@ -1,0 +1,393 @@
+{{- if .Values.platform.enabled }}
+---
+{{- if .Values.platform.testOrchestrator.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-test-history
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: test-orchestrator
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.global.storageClass }}
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-coverage-reports
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: test-orchestrator
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.global.storageClass }}
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-test-orchestrator
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: test-orchestrator
+spec:
+  replicas: {{ .Values.platform.testOrchestrator.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "project-chimera.selectorLabels" . | nindent 6 }}
+      component: test-orchestrator
+  template:
+    metadata:
+      labels:
+        {{- include "project-chimera.selectorLabels" . | nindent 8 }}
+        component: test-orchestrator
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: test-orchestrator
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.global.imageRegistry }}/test-orchestrator:{{ .Values.images.tag }}"
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.platform.testOrchestrator.service.port }}
+          protocol: TCP
+        - name: websocket
+          containerPort: 8081
+          protocol: TCP
+        env:
+        - name: ORCHESTRATOR_PORT
+          value: "{{ .Values.platform.testOrchestrator.service.port }}"
+        - name: ORCHESTRATOR_WS_PORT
+          value: "8081"
+        - name: ORCHESTRATOR_LOG_LEVEL
+          value: INFO
+        resources:
+          {{- toYaml .Values.platform.testOrchestrator.resources | nindent 10 }}
+        volumeMounts:
+        - name: test-history
+          mountPath: /data/history
+        - name: coverage-reports
+          mountPath: /data/coverage
+        - name: tmp
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: test-history
+        persistentVolumeClaim:
+          claimName: {{ include "project-chimera.fullname" . }}-test-history
+      - name: coverage-reports
+        persistentVolumeClaim:
+          claimName: {{ include "project-chimera.fullname" . }}-coverage-reports
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-test-orchestrator
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: test-orchestrator
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: {{ .Values.platform.testOrchestrator.service.port }}
+    targetPort: http
+    protocol: TCP
+  - name: websocket
+    port: 8081
+    targetPort: websocket
+    protocol: TCP
+  selector:
+    {{- include "project-chimera.selectorLabels" . | nindent 4 }}
+    component: test-orchestrator
+{{- end }}
+---
+{{- if .Values.platform.dashboard.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-dashboard
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: dashboard
+spec:
+  replicas: {{ .Values.platform.dashboard.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "project-chimera.selectorLabels" . | nindent 6 }}
+      component: dashboard
+  template:
+    metadata:
+      labels:
+        {{- include "project-chimera.selectorLabels" . | nindent 8 }}
+        component: dashboard
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: dashboard
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.global.imageRegistry }}/dashboard-service:{{ .Values.images.tag }}"
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.platform.dashboard.service.port }}
+          protocol: TCP
+        - name: websocket
+          containerPort: 8082
+          protocol: TCP
+        env:
+        - name: DASHBOARD_PORT
+          value: "{{ .Values.platform.dashboard.service.port }}"
+        - name: DASHBOARD_WS_PORT
+          value: "8082"
+        - name: DASHBOARD_LOG_LEVEL
+          value: INFO
+        resources:
+          {{- toYaml .Values.platform.dashboard.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-dashboard
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: dashboard
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: {{ .Values.platform.dashboard.service.port }}
+    targetPort: http
+    protocol: TCP
+  - name: websocket
+    port: 8082
+    targetPort: websocket
+    protocol: TCP
+  selector:
+    {{- include "project-chimera.selectorLabels" . | nindent 4 }}
+    component: dashboard
+{{- end }}
+---
+{{- if .Values.platform.cicdGateway.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-cicd-gateway
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: cicd-gateway
+spec:
+  replicas: {{ .Values.platform.cicdGateway.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "project-chimera.selectorLabels" . | nindent 6 }}
+      component: cicd-gateway
+  template:
+    metadata:
+      labels:
+        {{- include "project-chimera.selectorLabels" . | nindent 8 }}
+        component: cicd-gateway
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: cicd-gateway
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.global.imageRegistry }}/cicd-gateway:{{ .Values.images.tag }}"
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.platform.cicdGateway.service.port }}
+          protocol: TCP
+        - name: webhook
+          containerPort: 8083
+          protocol: TCP
+        env:
+        - name: CICD_PORT
+          value: "{{ .Values.platform.cicdGateway.service.port }}"
+        - name: CICD_WEBHOOK_PORT
+          value: "8083"
+        - name: CICD_LOG_LEVEL
+          value: INFO
+        resources:
+          {{- toYaml .Values.platform.cicdGateway.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-cicd-gateway
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: cicd-gateway
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: {{ .Values.platform.cicdGateway.service.port }}
+    targetPort: http
+    protocol: TCP
+  - name: webhook
+    port: 8083
+    targetPort: webhook
+    protocol: TCP
+  selector:
+    {{- include "project-chimera.selectorLabels" . | nindent 4 }}
+    component: cicd-gateway
+{{- end }}
+---
+{{- if .Values.platform.qualityGate.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-quality-gate
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: quality-gate
+spec:
+  replicas: {{ .Values.platform.qualityGate.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "project-chimera.selectorLabels" . | nindent 6 }}
+      component: quality-gate
+  template:
+    metadata:
+      labels:
+        {{- include "project-chimera.selectorLabels" . | nindent 8 }}
+        component: quality-gate
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: quality-gate
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        image: "{{ .Values.global.imageRegistry }}/quality-gate:{{ .Values.images.tag }}"
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8013
+          protocol: TCP
+        env:
+        - name: QUALITY_PORT
+          value: "8013"
+        - name: QUALITY_LOG_LEVEL
+          value: INFO
+        resources:
+          {{- toYaml .Values.platform.qualityGate.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-quality-gate
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: quality-gate
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8013
+    targetPort: http
+    protocol: TCP
+  selector:
+    {{- include "project-chimera.selectorLabels" . | nindent 4 }}
+    component: quality-gate
+{{- end }}
+{{- end }}

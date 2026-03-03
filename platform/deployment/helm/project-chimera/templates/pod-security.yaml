@@ -1,0 +1,15 @@
+{{- if .Values.podSecurity.enabled }}
+---
+# Pod Security Policy for restricted workloads
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    name: {{ .Values.namespace.name | default "chimera-live" }}
+    project: chimera
+    environment: live
+    pod-security.kubernetes.io/enforce: {{ .Values.podSecurity.standard | default "restricted" }}
+    pod-security.kubernetes.io/audit: {{ .Values.podSecurity.standard | default "restricted" }}
+    pod-security.kubernetes.io/warn: {{ .Values.podSecurity.standard | default "restricted" }}
+{{- end }}

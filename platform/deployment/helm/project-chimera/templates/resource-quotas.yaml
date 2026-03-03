@@ -1,0 +1,44 @@
+{{- if .Values.resourceQuotas.enabled }}
+---
+# Resource quota for live namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-live-quota
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: resource-quota
+spec:
+  hard:
+    requests.cpu: {{ .Values.resourceQuotas.live.requests.cpu | default "40" }}
+    requests.memory: {{ .Values.resourceQuotas.live.requests.memory | default "96Gi" }}
+    limits.cpu: {{ .Values.resourceQuotas.live.limits.cpu | default "80" }}
+    limits.memory: {{ .Values.resourceQuotas.live.limits.memory | default "128Gi" }}
+    requests.nvidia.com/gpu: {{ .Values.resourceQuotas.live.requests.nvidia_com_gpu | default "7" }}
+    limits.nvidia.com/gpu: {{ .Values.resourceQuotas.live.limits.nvidia_com_gpu | default "8" }}
+    persistentvolumeclaims: "10"
+    services: "20"
+    secrets: "10"
+    configmaps: "10"
+---
+# Resource quota for platform namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-platform-quota
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: resource-quota
+spec:
+  hard:
+    requests.cpu: {{ .Values.resourceQuotas.platform.requests.cpu | default "5" }}
+    requests.memory: {{ .Values.resourceQuotas.platform.requests.memory | default "12Gi" }}
+    limits.cpu: {{ .Values.resourceQuotas.platform.limits.cpu | default "10" }}
+    limits.memory: {{ .Values.resourceQuotas.platform.limits.memory | default "16Gi" }}
+    persistentvolumeclaims: "5"
+    services: "10"
+    secrets: "10"
+    configmaps: "10"
+{{- end }}
