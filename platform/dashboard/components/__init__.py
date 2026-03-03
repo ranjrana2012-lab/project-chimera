@@ -19,6 +19,14 @@ from .results import (
     ResultsDisplay
 )
 
+from .coverage import (
+    FileCoverage,
+    CoverageRecord,
+    CoverageSnapshot,
+    CoverageTracker,
+    CoverageDisplay
+)
+
 __all__ = [
     "ServiceHealth",
     "HealthConfig",
@@ -30,5 +38,10 @@ __all__ = [
     "ServiceTestResults",
     "TrendData",
     "ResultsTracker",
-    "ResultsDisplay"
+    "ResultsDisplay",
+    "FileCoverage",
+    "CoverageRecord",
+    "CoverageSnapshot",
+    "CoverageTracker",
+    "CoverageDisplay"
 ]
