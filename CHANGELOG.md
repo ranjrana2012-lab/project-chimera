@@ -76,7 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit tests for news sentiment analyzer
 - Integration tests for WorldMonitor sidecar communication
 
-## [Unreleased]
+## [0.3.0] - 2026-03-02
 
 ### Added
 - **Lighting, Sound & Music (LSM)** - Unified audio-visual control service (port 8005)
@@ -99,16 +99,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `services/music-generation` - Merged into LSM service
 - `services/music-orchestration` - Merged into LSM service
 
-**Migration Notes:**
+### Migration Notes
 - All lighting functionality preserved: `/v1/lighting/*` → `/lighting/*`
 - All music generation preserved with ACE-Step-1.5: `/generate` → `/music/generate`
 - All orchestration preserved in cues module: `/cues/*`
-
-### Documentation
-- Added comprehensive LSM service documentation (`docs/services/lighting-sound-music.md`)
-- Updated core services documentation (`docs/services/core-services.md`)
-- Created deprecation notices for migrated services
-- Added test validation report (`services/lighting-sound-music/TEST_VALIDATION.md`)
 
 ### Services Status
 - OpenClaw Orchestrator: ✅ Production Ready
@@ -205,6 +199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Milvus vector database
 - MinIO for object storage
 
-[0.4.0]: https://github.com/project-chimera/project-chimera/compare/v0.2.0...v0.4.0
+[0.4.0]: https://github.com/project-chimera/project-chimera/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/project-chimera/project-chimera/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/project-chimera/project-chimera/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/project-chimera/project-chimera/releases/tag/v0.1.0
