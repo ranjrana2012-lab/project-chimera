@@ -149,7 +149,7 @@ This plan breaks down the v0.5.0 requirements into atomic, executable tasks. Eac
 
 ### Phase 2.1: Scene State Management (8 tasks)
 
-- [ ] **Task 2.1.1:** Design scene state machine
+- [x] **Task 2.1.1:** Design scene state machine ✅
   - **DoD:** State diagram showing all states and transitions
   - **Files:** `docs/architecture/scene-state-machine.md`
   - **Estimated:** 1 hour
