@@ -1,0 +1,24 @@
+{{- if .Values.openclaw.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-openclaw
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: openclaw
+spec:
+  type: {{ .Values.openclaw.service.type }}
+  ports:
+  - name: http
+    port: {{ .Values.openclaw.service.port }}
+    targetPort: http
+    protocol: TCP
+  - name: websocket
+    port: 8080
+    targetPort: websocket
+    protocol: TCP
+  selector:
+    {{- include "project-chimera.selectorLabels" . | nindent 4 }}
+    component: openclaw
+{{- end }}

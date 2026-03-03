@@ -1,0 +1,10 @@
+{{- if .Values.namespace.create }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    name: {{ .Values.namespace.name | default "chimera-live" }}
+    project: chimera
+    environment: live
+{{- end }}

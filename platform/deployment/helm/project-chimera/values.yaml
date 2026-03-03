@@ -1,0 +1,361 @@
+# Project Chimera Helm Values
+
+global:
+  imageRegistry: ghcr.io/project-chimera
+  imagePullSecrets: []
+  storageClass: local-path
+
+# Image tag versions
+images:
+  tag: "v0.5.0"
+  pullPolicy: IfNotPresent
+
+# Namespace configuration
+namespace:
+  create: true
+  name: chimera-live
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  host: chimera.local
+  tls: []
+  #  - secretName: chimera-tls
+  #    hosts:
+  #      - chimera.local
+
+# OpenClaw Orchestrator
+openclaw:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: openclaw-orchestrator
+    tag: null  # Uses global tag
+
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+      nvidia.com/gpu: "2"
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+      nvidia.com/gpu: "4"
+
+  persistence:
+    size: 100Gi
+    storageClass: local-path
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  ingress:
+    enabled: true
+    path: /openclaw
+
+# SceneSpeak Agent
+scenespeak:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: scenespeak-agent
+    tag: null
+
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+      nvidia.com/gpu: "1"
+    limits:
+      cpu: 4000m
+      memory: 16Gi
+      nvidia.com/gpu: "2"
+
+  modelCache:
+    enabled: true
+    size: 200Gi
+    storageClass: local-path
+
+  service:
+    port: 8001
+
+  ingress:
+    enabled: true
+    path: /api/scenespeak
+
+# Captioning Agent
+captioning:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: captioning-agent
+    tag: null
+
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 4Gi
+      nvidia.com/gpu: "0.5"
+    limits:
+      cpu: 2000m
+      memory: 8Gi
+      nvidia.com/gpu: "1"
+
+  service:
+    port: 8002
+
+  ingress:
+    enabled: true
+    path: /api/captioning
+
+# BSL Agent
+bsl:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: bsl-agent
+    tag: null
+
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 8Gi
+      nvidia.com/gpu: "1"
+    limits:
+      cpu: 4000m
+      memory: 16Gi
+      nvidia.com/gpu: "1"
+
+  service:
+    port: 8003
+
+  ingress:
+    enabled: true
+    path: /api/bsl
+
+# Sentiment Agent
+sentiment:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: sentiment-agent
+    tag: null
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+      nvidia.com/gpu: "0.5"
+    limits:
+      cpu: 1000m
+      memory: 4Gi
+      nvidia.com/gpu: "1"
+
+  service:
+    port: 8004
+
+  ingress:
+    enabled: true
+    path: /api/sentiment
+
+# Lighting Service
+lighting:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: lighting-service
+    tag: null
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  service:
+    port: 8005
+
+  ingress:
+    enabled: true
+    path: /api/lighting
+
+# Safety Filter
+safety:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: safety-filter
+    tag: null
+
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+  service:
+    port: 8006
+
+  ingress:
+    enabled: true
+    path: /api/safety
+
+# Operator Console
+console:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: operator-console
+    tag: null
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  service:
+    port: 8007
+
+  ingress:
+    enabled: true
+    path: /console
+
+# Platform Services (Quality Platform)
+platform:
+  enabled: true
+
+  testOrchestrator:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+    service:
+      port: 8011
+
+  dashboard:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    service:
+      port: 8010
+    ingress:
+      enabled: true
+      path: /dashboard
+
+  cicdGateway:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    service:
+      port: 8012
+    ingress:
+      enabled: true
+      path: /cicd
+
+  qualityGate:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+# Shared Services
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      size: 10Gi
+      storageClass: local-path
+
+kafka:
+  enabled: true
+  controller:
+    replicaCount: 1
+  broker:
+    replicaCount: 1
+    persistence:
+      size: 50Gi
+      storageClass: local-path
+
+# Monitoring (Prometheus + Grafana)
+monitoring:
+  enabled: true
+
+  prometheus:
+    enabled: true
+    retention: 15d
+    persistence:
+      size: 20Gi
+      storageClass: local-path
+
+  grafana:
+    enabled: true
+    persistence:
+      size: 5Gi
+      storageClass: local-path
+    adminPassword: changeme
+
+# Resource Quotas
+resourceQuotas:
+  enabled: true
+  live:
+    requests.cpu: "40"
+    requests.memory: 96Gi
+    limits.cpu: "80"
+    limits.memory: 128Gi
+  platform:
+    requests.cpu: "5"
+    requests.memory: 12Gi
+    limits.cpu: "10"
+    limits.memory: 16Gi
+
+# Network Policies
+networkPolicies:
+  enabled: true
+  defaultDeny: true
+
+# Pod Security
+podSecurity:
+  enabled: true
+  standard: restricted

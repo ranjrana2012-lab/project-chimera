@@ -1,0 +1,17 @@
+{{- if or .Values.scenespeak.enabled .Values.bsl.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "project-chimera.fullname" . }}-model-cache
+  namespace: {{ .Values.namespace.name | default "chimera-live" }}
+  labels:
+    {{- include "project-chimera.labels" . | nindent 4 }}
+    component: model-cache
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: {{ .Values.global.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.scenespeak.modelCache.size | default "200Gi" }}
+{{- end }}

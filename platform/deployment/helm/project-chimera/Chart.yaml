@@ -1,0 +1,27 @@
+apiVersion: v2
+name: project-chimera
+description: A Helm chart for Project Chimera - AI-powered live theatre platform
+type: application
+version: 0.5.0
+appVersion: "0.5.0"
+keywords:
+  - ai
+  - theatre
+  - kubernetes
+  - k3s
+maintainers:
+  - name: Project Chimera Team
+    email: tech@project-chimera.org
+dependencies:
+  - name: redis
+    version: "~17.3.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: kafka
+    version: "~25.0.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: kafka.enabled
+  - name: ingress-nginx
+    version: "~4.8.0"
+    repository: "https://kubernetes.github.io/ingress-nginx"
+    condition: ingress-nginx.enabled

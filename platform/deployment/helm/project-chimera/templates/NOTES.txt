@@ -1,0 +1,31 @@
+Thank you for installing Project Chimera v{{ .Chart.AppVersion }}!
+
+Your release is named {{ .Release.Name }}.
+
+To verify the deployment, run:
+
+  kubectl get pods -n {{ .Values.namespace.name | default "chimera-live" }}
+
+To check service status:
+
+  kubectl get svc -n {{ .Values.namespace.name | default "chimera-live" }}
+
+To access the services:
+
+  OpenClaw Orchestrator: http://{{ .Values.ingress.host }}/openclaw
+  Operator Console:     http://{{ .Values.ingress.host }}/console
+  Dashboard:            http://{{ .Values.ingress.host }}/dashboard
+
+To view logs:
+
+  kubectl logs -n {{ .Values.namespace.name | default "chimera-live" }} -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+To upgrade the release:
+
+  helm upgrade {{ .Release.Name }} . -n {{ .Values.namespace.name | default "chimera-live" }}
+
+To rollback to a previous revision:
+
+  helm rollback {{ .Release.Name }} -n {{ .Values.namespace.name | default "chimera-live" }}
+
+For more information, visit: https://github.com/project-chimera/project-chimera
