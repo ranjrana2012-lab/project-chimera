@@ -38,6 +38,15 @@ from transitions.transition_effects import (
     get_executor
 )
 
+from transitions.agent_handoff import (
+    AgentHandoffConfig,
+    AgentHandoff,
+    HandoffResult,
+    HandoffState,
+    AgentHandoffOrchestrator,
+    AgentStateSnapshot
+)
+
 # Re-export TriggerState from manual_triggers
 from transitions.manual_triggers import TriggerState
 
@@ -64,5 +73,11 @@ __all__ = [
     "TransitionEffectExecutor",
     "EffectState",
     "get_executor",
-    "TriggerState"
+    "TriggerState",
+    "AgentHandoffConfig",
+    "AgentHandoff",
+    "HandoffResult",
+    "HandoffState",
+    "AgentHandoffOrchestrator",
+    "AgentStateSnapshot"
 ]
