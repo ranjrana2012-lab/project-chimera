@@ -17,6 +17,14 @@ from .executor import (
     ExecutorState
 )
 
+from .aggregator import (
+    ResultAggregator,
+    AggregatedResult,
+    TrendAnalysis,
+    TestTrend,
+    ServiceTrend
+)
+
 __all__ = [
     "TestDiscovery",
     "TestCatalog",
@@ -26,5 +34,10 @@ __all__ = [
     "ExecutionConfig",
     "TestExecutionResult",
     "ServiceExecutionResult",
-    "ExecutorState"
+    "ExecutorState",
+    "ResultAggregator",
+    "AggregatedResult",
+    "TrendAnalysis",
+    "TestTrend",
+    "ServiceTrend"
 ]
