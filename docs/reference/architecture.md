@@ -76,6 +76,104 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 └──────────────────────────────────────────────────────────────────┘
 ```
 
+## Sidecar Pattern
+
+Project Chimera uses the sidecar pattern for cross-cutting concerns and service augmentation. A sidecar container runs alongside the main application container in the same Pod, sharing resources and local communication.
+
+### WorldMonitor Sidecar (v0.4.0)
+
+The Sentiment Agent employs a WorldMonitor sidecar to provide real-time global context enrichment:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Kubernetes Pod                               │
+│                  sentiment-agent-xxxxx                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │           Main Container                                │    │
+│  │     sentiment-agent (Port 8004)                         │    │
+│  │  ┌─────────────────────────────────────────────────┐    │    │
+│  │  │  FastAPI Application                           │    │    │
+│  │  │  - Sentiment Analysis Engine                    │    │    │
+│  │  │  - Context Enrichment Layer                     │    │    │
+│  │  │  - News Sentiment Analyzer                      │    │    │
+│  │  │  - REST API Endpoints                           │    │    │
+│  │  └─────────────────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                           │ localhost:8010                      │
+│                           │ WebSocket                           │
+│                           ▼                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │           Sidecar Container                             │    │
+│  │     worldmonitor-sidecar (Port 8010)                    │    │
+│  │  ┌─────────────────────────────────────────────────┐    │    │
+│  │  │  WorldMonitor Service                          │    │    │
+│  │  │  - Global Events Stream                         │    │    │
+│  │  │  - News Headlines Aggregator                    │    │    │
+│  │  │  - Category Filtering                           │    │    │
+│  │  │  - WebSocket Server                             │    │    │
+│  │  └─────────────────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+         │                              │
+         │ Kubernetes Service            │ Kubernetes Service
+         ▼                              ▼
+  sentiment-agent:8004           worldmonitor:8010
+         │                              ▲
+         └──────────────────────────────┘
+              Cluster Communication
+```
+
+**Benefits of the Sidecar Pattern:**
+
+1. **Separation of Concerns** - Global context fetching is isolated from sentiment analysis
+2. **Independent Scaling** - Sidecar can be updated without changing the main service
+3. **Local Communication** - Zero-latency communication via localhost
+4. **Shared Lifecycle** - Sidecar starts/stops with the main container
+5. **Resource Sharing** - Efficient use of Pod resources
+
+**Communication Flow:**
+
+```
+1. Sentiment Agent starts
+   │
+   ▼
+2. WorldMonitor sidecar starts
+   │
+   ▼
+3. Sentiment Agent connects to ws://localhost:8010/ws
+   │
+   ▼
+4. WorldMonitor streams global events via WebSocket
+   │
+   ▼
+5. Sentiment Agent caches events (TTL: 300s)
+   │
+   ▼
+6. API requests enriched with context from cache
+```
+
+**Environment Configuration:**
+
+```yaml
+env:
+  # Main container
+  - name: WORLDMONITOR_HOST
+    value: localhost
+  - name: WORLDMONITOR_PORT
+    value: "8010"
+  - name: SENTIMENT_CONTEXT_ENABLED
+    value: "true"
+
+  # Sidecar container
+  - name: WORLDMONITOR_CATEGORIES
+    value: "technology,business,entertainment,sports,science"
+  - name: WORLDMONITOR_CACHE_TTL
+    value: "300"
+```
+
 ## Component Overview
 
 ### Core Services
