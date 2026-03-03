@@ -12,6 +12,9 @@ from datetime import datetime
 
 from .sentiment_analyzer import SentimentAnalyzer
 from .aggregator import SentimentAggregator
+from .context_enrichment import ContextEnricher
+from .news_sentiment_analyzer import NewsSentimentAnalyzer
+from ..models.context import ContextEnrichmentOptions
 
 
 class SentimentHandler:
@@ -30,6 +33,8 @@ class SentimentHandler:
         self.settings = settings
         self.analyzer: Optional[SentimentAnalyzer] = None
         self.aggregator: Optional[SentimentAggregator] = None
+        self.context_enricher: Optional[ContextEnricher] = None
+        self.news_sentiment_analyzer: Optional[NewsSentimentAnalyzer] = None
         self._initialized = False
 
         # Get aggregation window from settings
@@ -48,12 +53,26 @@ class SentimentHandler:
         max_samples = getattr(self.settings, 'max_aggregation_samples', 10000)
         self.aggregator = SentimentAggregator(max_samples=max_samples)
 
+        # Initialize context enricher if enabled
+        if getattr(self.settings, 'context_enrichment_enabled', False):
+            sidecar_url = getattr(self.settings, 'worldmonitor_sidecar_url', 'http://localhost:3001')
+            self.context_enricher = ContextEnricher(sidecar_url)
+
+        # Initialize news sentiment analyzer if enabled
+        if getattr(self.settings, 'news_sentiment_enabled', False):
+            sidecar_url = getattr(self.settings, 'worldmonitor_sidecar_url', 'http://localhost:3001')
+            self.news_sentiment_analyzer = NewsSentimentAnalyzer(
+                sidecar_url=sidecar_url,
+                sentiment_analyzer=self.analyzer
+            )
+
         self._initialized = True
 
     async def analyze(
         self,
         text: str,
         options: Optional[Dict[str, Any]] = None,
+        context_options: Optional[ContextEnrichmentOptions] = None,
         request_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Analyze sentiment of a single text.
@@ -61,6 +80,7 @@ class SentimentHandler:
         Args:
             text: Text to analyze
             options: Analysis options dictionary
+            context_options: Context enrichment options
             request_id: Optional request identifier
 
         Returns:
@@ -105,6 +125,11 @@ class SentimentHandler:
             aggregation_window = options.get('aggregation_window', self.aggregation_window)
             trend = await self.analyzer.get_trend(window_seconds=aggregation_window)
 
+        # Get context if enricher is available and options provided
+        context = None
+        if self.context_enricher and context_options:
+            context = await self.context_enricher.get_context(context_options)
+
         processing_time = (time.time() - start_time) * 1000
 
         # Build response
@@ -127,6 +152,7 @@ class SentimentHandler:
             'sentiment': sentiment_score,
             'emotions': emotions,
             'trend': trend,
+            'context': context,
             'processing_time_ms': processing_time,
             'model_version': getattr(self.settings, 'model_version', 'distilbert-sst-2-v0.1.0'),
             'timestamp': datetime.now()
@@ -295,6 +321,12 @@ class SentimentHandler:
 
         if self.aggregator:
             await self.aggregator.clear()
+
+        if self.context_enricher:
+            await self.context_enricher.close()
+
+        if self.news_sentiment_analyzer:
+            await self.news_sentiment_analyzer.close()
 
         self._initialized = False
 

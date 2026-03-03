@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from ..models.request import SentimentRequest, SentimentBatchRequest
 from ..models.response import SentimentResponse, SentimentBatchResponse
+from ..models.context import ContextEnrichmentOptions
 
 router = APIRouter()
 
@@ -45,9 +46,15 @@ async def analyze_sentiment(request: SentimentRequest) -> SentimentResponse:
         # Convert options to dict
         options = request.options.model_dump() if request.options else {}
 
+        # Extract context options if provided
+        context_options = None
+        if hasattr(request, 'context_options') and request.context_options:
+            context_options = request.context_options
+
         result = await handler.analyze(
             text=request.text,
             options=options,
+            context_options=context_options,
             request_id=request.request_id
         )
 

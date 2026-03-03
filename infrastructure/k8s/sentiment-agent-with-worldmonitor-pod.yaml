@@ -1,0 +1,210 @@
+# Kubernetes Pod Configuration for Sentiment Agent with WorldMonitor Sidecar
+# This configuration deploys the Sentiment Agent with a WorldMonitor sidecar container
+# for local development and testing purposes.
+#
+# For production deployments, use the full Deployment and Service configurations.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sentiment-agent-lsm
+  namespace: chimera
+  labels:
+    app: sentiment-agent
+    version: v0.4.0
+    component: sentiment-analysis
+  annotations:
+    description: "Sentiment Agent with WorldMonitor sidecar for context enrichment"
+spec:
+  # Use restart policy for development/testing
+  restartPolicy: Always
+
+  # Shared volume for cache and communication between containers
+  volumes:
+  - name: shared-cache
+    emptyDir:
+      sizeLimit: "100Mi"
+      medium: Memory
+  - name: logs
+    emptyDir:
+      sizeLimit: "500Mi"
+
+  containers:
+  # ============================================
+  # Main Sentiment Agent Container
+  # ============================================
+  - name: sentiment-agent
+    image: ghcr.io/project-chimera/sentiment-agent:v0.4.0
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 8004
+      name: http
+      protocol: TCP
+    env:
+    - name: PYTHONUNBUFFERED
+      value: "1"
+    - name: LOG_LEVEL
+      value: "INFO"
+    - name: WORLDMONITOR_SIDECAR_URL
+      value: "http://localhost:3001"
+    - name: REDIS_HOST
+      value: "redis.shared.svc.cluster.local"
+    - name: REDIS_PORT
+      value: "6379"
+    - name: KAFKA_BOOTSTRAP_SERVERS
+      value: "kafka.shared.svc.cluster.local:9092"
+    - name: ENABLE_WORLD_MONITOR
+      value: "true"
+    - name: ENABLE_WEBSOCKET_CONTEXT
+      value: "true"
+    volumeMounts:
+    - name: shared-cache
+      mountPath: /app/shared
+    - name: logs
+      mountPath: /app/logs
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8004
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8004
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+
+  # ============================================
+  # WorldMonitor Sidecar Container
+  # ============================================
+  - name: worldmonitor-sidecar
+    image: ghcr.io/project-chimera/worldmonitor-sidecar:v1.0.0
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 3001
+      name: http
+      protocol: TCP
+    env:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "3001"
+    - name: LOG_LEVEL
+      value: "info"
+    - name: WS_BROADCAST_URL
+      value: "ws://sentiment-agent:8004/api/v1/context/stream"
+    - name: REDIS_HOST
+      value: "redis.shared.svc.cluster.local"
+    - name: REDIS_PORT
+      value: "6379"
+    - name: CACHE_TTL
+      value: "300"
+    - name: ENABLE_WEBSOCKET
+      value: "true"
+    volumeMounts:
+    - name: shared-cache
+      mountPath: /app/shared
+    - name: logs
+      mountPath: /app/logs
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 3001
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 3001
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+
+  # ============================================
+  # Init Container for Dependency Check
+  # ============================================
+  initContainers:
+  - name: check-redis
+    image: busybox:1.36
+    command:
+    - sh
+    - -c
+    - |
+      until nc -z -v -w30 redis.shared.svc.cluster.local 6379
+      do
+        echo "Waiting for Redis..."
+        sleep 2
+      done
+      echo "Redis is available"
+  - name: check-kafka
+    image: busybox:1.36
+    command:
+    - sh
+    - -c
+    - |
+      until nc -z -v -w30 kafka.shared.svc.cluster.local 9092
+      do
+        echo "Waiting for Kafka..."
+        sleep 2
+      done
+      echo "Kafka is available"
+
+---
+# Service for the Sentiment Agent
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentiment-agent-lsm
+  namespace: chimera
+  labels:
+    app: sentiment-agent
+spec:
+  type: ClusterIP
+  selector:
+    app: sentiment-agent
+  ports:
+  - name: http
+    port: 8004
+    targetPort: 8004
+    protocol: TCP
+
+---
+# Service for the WorldMonitor Sidecar (for internal communication)
+apiVersion: v1
+kind: Service
+metadata:
+  name: worldmonitor-sidecar-lsm
+  namespace: chimera
+  labels:
+    app: worldmonitor-sidecar
+spec:
+  type: ClusterIP
+  selector:
+    app: sentiment-agent
+  ports:
+  - name: http
+    port: 3001
+    targetPort: 3001
+    protocol: TCP

@@ -100,9 +100,13 @@ async def general_exception_handler(
 # Routes
 from .routes.health import router as health_router
 from .routes.analysis import router as analysis_router
+from .routes.context import router as context_router
+from .routes.news_sentiment import router as news_sentiment_router
 
 app.include_router(health_router, prefix="/health", tags=["Health"])
 app.include_router(analysis_router, prefix="/api/v1", tags=["Analysis"])
+app.include_router(context_router, prefix="/api/v1/context", tags=["Context"])
+app.include_router(news_sentiment_router, prefix="/api/v1", tags=["News Sentiment"])
 
 # Metrics endpoint
 metrics_app = make_asgi_app()

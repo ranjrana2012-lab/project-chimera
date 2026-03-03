@@ -31,3 +31,14 @@ opentelemetry-instrumentation-fastapi>=0.43b0,<1.0.0
 torch>=2.1.0
 transformers>=4.36.0
 accelerate>=0.25.0
+
+# WebSocket client
+websockets>=12.0
+
+# Testing
+pytest>=7.4.0,<8.0.0
+pytest-asyncio>=0.21.0,<1.0.0
+pytest-cov>=4.1.0,<5.0.0
+pytest-mock>=3.12.0,<4.0.0
+coverage[toml]>=7.3.0,<8.0.0
+

@@ -37,11 +37,9 @@ scenespeak-agent.live.svc.cluster.local:8001
 captioning-agent.live.svc.cluster.local:8002
 bsl-text2gloss-agent.live.svc.cluster.local:8003
 sentiment-agent.live.svc.cluster.local:8004
-lighting-control.live.svc.cluster.local:8005
+lighting-sound-music.live.svc.cluster.local:8005
 safety-filter.live.svc.cluster.local:8006
 operator-console.live.svc.cluster.local:8007
-music-generation.live.svc.cluster.local:8011
-music-orchestration.live.svc.cluster.local:8012
 ```
 
 For local development, services run on `localhost` with their respective ports.
@@ -546,26 +544,358 @@ Analyze sentiment of text.
 
 Batch process multiple texts.
 
+**POST /api/v1/analyze-with-context**
+
+Analyze sentiment with global context enrichment.
+
+**Request:**
+```json
+{
+  "texts": [
+    "The tech references feel very timely!"
+  ],
+  "include_context": true,
+  "context_categories": ["technology"]
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "text": "The tech references feel very timely!",
+      "sentiment": "positive",
+      "scores": {
+        "positive": 0.88,
+        "negative": 0.05,
+        "neutral": 0.07
+      },
+      "confidence": 0.86
+    }
+  ],
+  "context": {
+    "global_events": [
+      {
+        "event_id": "evt_123",
+        "headline": "Tech breakthrough announced",
+        "description": "Major advancement in quantum computing",
+        "categories": ["technology"],
+        "sentiment": "positive"
+      }
+    ],
+    "news_sentiment": {
+      "overall": "positive",
+      "by_category": {
+        "technology": 0.85
+      }
+    }
+  }
+}
+```
+
+#### News Sentiment Analysis
+
+**POST /api/v1/news-sentiment**
+
+Analyze sentiment of news headlines.
+
+**Request:**
+```json
+{
+  "headlines": [
+    "New AI model revolutionizes healthcare",
+    "Economic concerns rise globally"
+  ],
+  "categories": ["technology", "business"]
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "headline": "New AI model revolutionizes healthcare",
+      "sentiment": "positive",
+      "score": 0.92,
+      "category": "technology"
+    },
+    {
+      "headline": "Economic concerns rise globally",
+      "sentiment": "negative",
+      "score": 0.78,
+      "category": "business"
+    }
+  ],
+  "overall_sentiment": "neutral",
+  "category_summary": {
+    "technology": {
+      "sentiment": "positive",
+      "average_score": 0.92
+    },
+    "business": {
+      "sentiment": "negative",
+      "average_score": 0.78
+    }
+  }
+}
+```
+
+**GET /api/v1/news-sentiment/stats**
+
+Get news sentiment statistics.
+
+**Response:**
+```json
+{
+  "statistics": {
+    "total_analyzed": 150,
+    "overall_sentiment": "positive",
+    "category_breakdown": {
+      "technology": {
+        "count": 45,
+        "average_score": 0.78
+      },
+      "business": {
+        "count": 38,
+        "average_score": 0.62
+      }
+    }
+  }
+}
+```
+
+#### Context API
+
+**GET /api/v1/context**
+
+Get current global context from WorldMonitor.
+
+**Query Parameters:**
+- `category` (optional) - Filter by category
+- `refresh` (optional) - Force cache refresh (true/false)
+
+**Response:**
+```json
+{
+  "events": [
+    {
+      "event_id": "evt_123",
+      "timestamp": "2026-03-03T12:00:00Z",
+      "headline": "Tech breakthrough announced",
+      "description": "Major advancement in quantum computing",
+      "categories": ["technology", "science"],
+      "severity": "high",
+      "sentiment": "positive"
+    }
+  ],
+  "metadata": {
+    "total_events": 1,
+    "last_updated": "2026-03-03T12:00:00Z",
+    "cache_age_seconds": 45
+  }
+}
+```
+
+**GET /api/v1/context/stats**
+
+Get context statistics.
+
+**Response:**
+```json
+{
+  "statistics": {
+    "total_events": 15,
+    "by_category": {
+      "technology": 5,
+      "business": 3,
+      "entertainment": 4,
+      "sports": 3
+    },
+    "by_severity": {
+      "high": 2,
+      "medium": 8,
+      "low": 5
+    },
+    "sentiment_distribution": {
+      "positive": 8,
+      "neutral": 5,
+      "negative": 2
+    }
+  },
+  "cache_info": {
+    "last_updated": "2026-03-03T12:00:00Z",
+    "cache_age_seconds": 45,
+    "using_cached": true
+  }
+}
+```
+
+**GET /api/v1/context/categories**
+
+List available context categories.
+
+**Response:**
+```json
+{
+  "categories": [
+    "technology",
+    "business",
+    "entertainment",
+    "sports",
+    "science",
+    "health",
+    "politics"
+  ]
+}
+```
+
 ---
 
-### Lighting Control
+### Lighting, Sound & Music (LSM) Service
 
-**Base URL:** `http://lighting-control:8005`
+**Base URL:** `http://lighting-sound-music:8005`
 
-DMX/OSC stage automation.
+Unified audio-visual control service for theatrical experiences.
 
 #### Health Endpoints
 
 ```bash
 GET /health/live
 GET /health/ready
+GET /health
 ```
 
-#### Scene Management
+#### Lighting Module
 
-**POST /v1/lighting/set**
+**POST /lighting/set**
 
-Set a lighting scene.
+Set lighting values.
+
+**Request:**
+```json
+{
+  "channels": {"1": 255, "2": 200},
+  "fade_time_ms": 1000
+}
+```
+
+**GET /lighting/status**
+
+Get lighting system status.
+
+**POST /lighting/blackout**
+
+Emergency blackout.
+
+**GET /lighting/fixtures**
+
+List all fixtures.
+
+#### Sound Module
+
+**POST /sound/play**
+
+Play a sound effect.
+
+**Request:**
+```json
+{
+  "name": "thunder",
+  "volume": 0.8,
+  "loop": false,
+  "fade_ms": 500
+}
+```
+
+**POST /sound/stop**
+
+Stop all sounds.
+
+**POST /sound/volume**
+
+Set master volume (0.0-1.0).
+
+**GET /sound/sounds**
+
+List available sounds.
+
+#### Music Module
+
+**GET /music/models**
+
+List available ACE-Step-1.5 models.
+
+**POST /music/generate**
+
+Generate music with AI.
+
+**Request:**
+```json
+{
+  "prompt": "upbeat electronic",
+  "model": "ace-step-turbo",
+  "duration_seconds": 30,
+  "use_case": "marketing"
+}
+```
+
+**Response:**
+```json
+{
+  "request_id": "uuid",
+  "status": "generating"
+}
+```
+
+**GET /music/generate/{request_id}**
+
+Check generation status.
+
+**POST /music/play**
+
+Play a track.
+
+**POST /music/stop**
+
+Stop playback.
+
+**WebSocket /music/ws/generate/{request_id}**
+
+Real-time generation progress.
+
+#### Cues Module
+
+**GET /cues/library**
+
+List all saved cues.
+
+**POST /cues/library**
+
+Save a cue.
+
+**Request:**
+```json
+{
+  "name": "dramatic_entrance",
+  "lighting": {"channels": {"1": 255}},
+  "sound": {"name": "dramatic_swel"},
+  "music": {"track_id": "uuid"},
+  "timeline": [
+    {"time": 0, "action": "lighting", "value": {"channels": {"1": 255}}},
+    {"time": 2000, "action": "sound", "value": {"name": "dramatic_swel"}}
+  ]
+}
+```
+
+**POST /cues/execute**
+
+Execute a cue.
+
+**WebSocket /cues/ws/execute**
+
+Real-time execution updates.
 
 **Request:**
 ```json
@@ -820,34 +1150,11 @@ Rate limiting is not currently enforced but will be added in future versions:
 - Default: 100 requests per minute per IP
 - WebSocket connections: 10 concurrent connections per IP
 
-## Music Generation Service (Port 8011)
 
-**Base URL:** `http://music-generation:8011`
 
 AI-powered music generation with multiple use cases.
 
-### Health Endpoints
 
-```bash
-GET /health/live
-GET /health/ready
-```
-
-### Generate Music
-
-**POST /api/v1/music/generate`
-
-Generate music using AI models.
-
-**Request:**
-```json
-{
-  "prompt": "upbeat electronic music",
-  "use_case": "marketing",
-  "duration_seconds": 30,
-  "format": "mp3"
-}
-```
 
 **Response:**
 ```json
@@ -859,51 +1166,11 @@ Generate music using AI models.
 }
 ```
 
-### Get Music Status
 
-**GET /api/v1/music/{music_id}`
 
-Get generation status and download URL.
 
-**Response:**
-```json
-{
-  "music_id": "uuid",
-  "status": "completed",
-  "audio_url": "https://...",
-  "duration_seconds": 30,
-  "format": "mp3"
-}
-```
 
-## Music Orchestration Service (Port 8012)
 
-**Base URL:** `http://music-orchestration:8012`
-
-Music orchestration with caching and approval workflow.
-
-### Health Endpoints
-
-```bash
-GET /health/live
-GET /health/ready
-```
-
-### Generate Music (with caching)
-
-**POST /api/v1/music/generate`
-
-Generate music with caching and approval workflow.
-
-**Request:**
-```json
-{
-  "prompt": "dramatic underscore",
-  "use_case": "show",
-  "duration_seconds": 60,
-  "format": "wav"
-}
-```
 
 **Response:**
 ```json
@@ -916,22 +1183,6 @@ Generate music with caching and approval workflow.
 }
 ```
 
-### WebSocket Progress Streaming
-
-**WebSocket /ws/music/{request_id}`
-
-Real-time progress updates during generation.
-
-**Message:**
-```json
-{
-  "request_id": "uuid",
-  "type": "progress",
-  "progress": 45,
-  "stage": "generating",
-  "eta_seconds": 30
-}
-```
 
 ## WebSocket APIs
 

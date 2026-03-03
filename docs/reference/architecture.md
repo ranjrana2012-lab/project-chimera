@@ -52,12 +52,12 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 └────┬─────────┬─────────┬─────────┬─────────┬─────────┬───────────┘
      │         │         │         │         │         │
      ▼         ▼         ▼         ▼         ▼         ▼
-┌─────────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌─────────┐ ┌─────────┐
-│SceneSpeak│ │Caption│ │ BSL  │ │Sentiment│ │Lighting│ │Safety  │
-│  Agent   │ │ Agent │ │Agent │ │ Agent  │ │Control │ │Filter  │
-└────┬─────┘ └───┬──┘ └───┬──┘ └───┬────┘ └────┬────┘ └────┬────┘
-     │          │       │       │           │           │
-     └──────────┴───────┴───────┴───────────┴───────────┘
+┌─────────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌────────┐ ┌─────────┐
+│SceneSpeak│ │Caption│ │ BSL  │ │Sentiment│ │   LSM  │ │Safety  │
+│  Agent   │ │ Agent │ │Agent │ │ Agent  │ │Service │ │Filter  │
+└────┬─────┘ └───┬──┘ └───┬──┘ └───┬────┘ └────┬───┘ └────┬────┘
+     │          │       │       │           │            │
+     └──────────┴───────┴───────┴───────────┴────────────┘
                             │
 ┌───────────────────────────▼───────────────────────────────────────┐
 │                      Infrastructure Layer                          │
@@ -137,29 +137,60 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 
 #### Sentiment Agent
 
-**Purpose:** Audience sentiment analysis from social media
+**Purpose:** Audience sentiment analysis from social media with WorldMonitor context integration
 
 **Responsibilities:**
-- Sentiment classification
-- Batch processing
+- Sentiment classification using DistilBERT SST-2
+- Batch processing with trend analysis
 - Social media integration
+- **WorldMonitor Integration** (v0.4.0):
+  - Real-time global context enrichment via WebSocket
+  - News sentiment analysis
+  - Context-aware sentiment scoring
+  - Category-based event filtering
+  - Context caching with TTL
 
-**Technology:** Transformers, RoBERTa
+**Technology:** Transformers, DistilBERT, FastAPI, WebSocket
 
-**Scale:** 2 replicas (CPU)
+**Scale:** 2 replicas (CPU) with WorldMonitor sidecar
 
-#### Lighting Control
+**Sidecar Pattern:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Sentiment Agent Pod                            │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │              Sentiment Agent (8004)                    │  │
+│  │  - Sentiment Analysis Engine                          │  │
+│  │  - Context Enrichment Layer                          │  │
+│  │  - News Sentiment Analyzer                           │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                           │ WebSocket                       │
+│                           ▼                                 │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │          WorldMonitor Sidecar (8010)                   │  │
+│  │  - Real-time global events                           │  │
+│  │  - News headlines streaming                          │  │
+│  │  - Category filtering                                │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
 
-**Purpose:** DMX/OSC stage automation
+#### Lighting, Sound & Music (LSM)
+
+**Purpose:** Unified audio-visual control for theatrical experiences
 
 **Responsibilities:**
-- DMX/OSC protocol handling
-- Scene management
-- Approval gating for safety
+- DMX/sACN lighting control with fixture management
+- Sound effects playback with concurrent mixing (max 8 sounds)
+- AI music generation using ACE-Step-1.5 models
+- Coordinated cues for synchronized multi-media scenes
+- WebSocket support for real-time generation and execution updates
 
-**Technology:** DMX libraries, OSC protocols
+**Technology:** FastAPI, ACE-Step-1.5, DMX/sACN libraries, WebSocket
 
-**Scale:** 1 replica (with hardware access)
+**Scale:** 1 replica (GPU for music generation, hardware access for DMX)
+
+**Note:** Consolidates Lighting Control, Music Generation, and Music Orchestration services
 
 #### Safety Filter
 
@@ -175,21 +206,21 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 
 **Scale:** 2 replicas (CPU)
 
-#### Music Generation Platform
+#### Music Generation (Integrated into LSM)
 
-**Music Generation Service** (port 8011)
-- AI music generation using Meta MusicGen and ACE-Step models
+**Music functionality is now part of the Lighting, Sound & Music service (port 8005)**
+
+**Features:**
+- AI music generation using ACE-Step-1.5 models (base, sft, turbo, mlx)
 - Model pool management with VRAM-aware loading
 - Async generation with cancellation support
-
-**Music Orchestration Service** (port 8012)
 - Request routing with cache-first approach
 - Redis caching with 7-day TTL
 - Staged approval pipeline (marketing=auto, show=manual)
 - WebSocket progress streaming
 - MinIO storage for audio files
 
-**Scale:** 2 replicas (GPU for generation service)
+**Scale:** Handled by LSM service scaling
 
 #### GitHub Student Automation
 

@@ -73,15 +73,28 @@ curl http://localhost:8001/health/live
 
 ### Sentiment Agent (Port 8004)
 
-**Purpose:** Audience sentiment analysis from social media
+**Purpose:** Audience sentiment analysis from social media with WorldMonitor context integration
 
 **Key Features:**
 - DistilBERT SST-2 model
 - Batch text processing
 - Trend analysis
 - Emotion detection
+- **WorldMonitor Integration (v0.4.0)**:
+  - Real-time global context enrichment
+  - News sentiment analysis
+  - Context-aware sentiment scoring
+  - WebSocket-based context streaming
+  - Category-based event filtering
+  - Context caching with TTL
 
-**Status:** ⚠️ Partial - Needs minor fixes to response model
+**Status:** ✅ Enhanced with WorldMonitor integration
+
+**WorldMonitor Sidecar:**
+- Port: 8010
+- Connection: WebSocket (localhost:8010)
+- Categories: technology, business, entertainment, sports
+- Cache TTL: 300 seconds (5 minutes)
 
 ### Lighting, Sound & Music (Port 8005)
 

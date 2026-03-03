@@ -1,7 +1,10 @@
 """Request models for Sentiment Agent."""
 
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from models.context import ContextEnrichmentOptions
 
 
 class SentimentAnalysisOptions(BaseModel):
@@ -133,6 +136,58 @@ class SentimentBatchRequest(BaseModel):
                         "aggregation_window": 60
                     },
                     "request_id": "batch-123456"
+                }
+            ]
+        }
+    }
+
+
+class AnalysisRequest(BaseModel):
+    """Request for sentiment analysis with context enrichment.
+
+    Attributes:
+        text: Text to analyze (1-5000 characters)
+        options: Analysis options
+        context_options: Context enrichment options
+        request_id: Optional unique request identifier
+    """
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000,
+        description="Text to analyze for sentiment"
+    )
+    options: Optional[SentimentAnalysisOptions] = Field(
+        default_factory=SentimentAnalysisOptions,
+        description="Analysis options"
+    )
+    context_options: Optional["ContextEnrichmentOptions"] = Field(
+        default=None,
+        description="Context enrichment options"
+    )
+    request_id: Optional[str] = Field(
+        default=None,
+        description="Unique request identifier for tracking"
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "text": "I absolutely loved the performance! The actors were amazing and the set design was breathtaking.",
+                    "options": {
+                        "include_emotions": True,
+                        "include_trend": False,
+                        "aggregation_window": 60,
+                        "min_confidence": 0.5
+                    },
+                    "context_options": {
+                        "include_context": True,
+                        "include_threats": True,
+                        "include_events": True,
+                        "include_cii": True
+                    },
+                    "request_id": "req-123456"
                 }
             ]
         }
