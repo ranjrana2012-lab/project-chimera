@@ -222,6 +222,63 @@ resources:
     nvidia.com/gpu: 1
 ```
 
+### WorldMonitor Sidecar Deployment
+
+The Sentiment Agent includes a WorldMonitor sidecar for real-time global context enrichment.
+
+```bash
+# Deploy Sentiment Agent with WorldMonitor sidecar
+kubectl apply -f infrastructure/kubernetes/services/sentiment-agent/
+
+# Verify WorldMonitor sidecar is running
+kubectl get pods -n live -l app=sentiment-agent
+kubectl logs deployment/sentiment-agent -c worldmonitor-sidecar -n live
+```
+
+**Environment Variables:**
+
+```bash
+# WorldMonitor connection
+WORLDMONITOR_HOST=worldmonitor
+WORLDMONITOR_PORT=8010
+WORLDMONITOR_WS_PATH=/ws
+
+# Context filtering
+WORLDMONITOR_CATEGORIES=technology,business,entertainment,sports,science
+WORLDMONITOR_CACHE_TTL=300
+
+# Enable context enrichment
+SENTIMENT_CONTEXT_ENABLED=true
+```
+
+**Verify WorldMonitor Connection:**
+
+```bash
+# Check health endpoint
+kubectl exec -n live deployment/sentiment-agent -- curl http://localhost:8004/health/ready
+
+# Should include: "worldmonitor_connected": true
+
+# Test context retrieval
+kubectl exec -n live deployment/sentiment-agent -- curl http://localhost:8004/api/v1/context
+```
+
+**Troubleshooting WorldMonitor:**
+
+```bash
+# Check sidecar logs
+kubectl logs deployment/sentiment-agent -c worldmonitor-sidecar -n live --tail=50 -f
+
+# Verify WebSocket connection
+kubectl exec -n live deployment/sentiment-agent -c worldmonitor-sidecar -- curl -i -N \
+  -H "Connection: Upgrade" \
+  -H "Upgrade: websocket" \
+  http://worldmonitor:8010/ws
+
+# Check context cache stats
+kubectl exec -n live deployment/sentiment-agent -- curl http://localhost:8004/api/v1/context/stats
+```
+
 ## Cloud Deployment
 
 ### AWS EKS
