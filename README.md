@@ -27,7 +27,7 @@ Project Chimera is an open-source, student-run Dynamic Performance Hub that uses
 - **SceneSpeak Agent** - Real-time dialogue generation using local LLMs
 - **Captioning Agent** - Live speech-to-text with accessibility descriptions
 - **BSL-Text2Gloss Agent** - British Sign Language gloss notation translation
-- **Sentiment Agent** - Audience sentiment analysis from social media
+- **Sentiment Agent** - Audience sentiment analysis enhanced with WorldMonitor global intelligence for context-enriched responses
 - **Lighting Control** - DMX/OSC stage automation
 - **Safety Filter** - Multi-layer content moderation
 - **Operator Console** - Human oversight and approval interface
