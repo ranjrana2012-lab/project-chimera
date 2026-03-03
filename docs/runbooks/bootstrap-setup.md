@@ -25,7 +25,7 @@ Expected runtime: 15-20 minutes
 
 ## What Bootstrap Does
 
-1. **Installs k3s** - Lightweight Kubernetes distribution
+1. **Installs k3s** - Lightweight k3s distribution
 2. **Sets up local registry** - Container registry at localhost:30500
 3. **Builds all images** - Docker images for 8 services
 4. **Deploys infrastructure** - Redis, Kafka, Milvus

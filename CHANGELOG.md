@@ -5,6 +5,88 @@ All notable changes to Project Chimera will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-03-03
+
+### Added
+- **WorldMonitor Integration** - Global intelligence platform integration with Sentiment Agent
+  - WorldMonitor sidecar service (Node.js) for news aggregation and context calculation
+  - Country Instability Index (CII) scoring for sentiment context
+  - Real-time context updates via WebSocket streaming
+  - News sentiment analysis using aggregated news feeds
+  - Sidecar deployment pattern for service integration
+  - Context-aware sentiment responses with global context
+  - Comprehensive test coverage (38 tests passing)
+
+### New API Endpoints
+- `GET /api/v1/context/global` - Global context with CII scores, threats, events
+- `GET /api/v1/context/country/{code}` - Country-specific context
+- `WebSocket /api/v1/context/stream` - Real-time context updates
+- `POST /api/v1/news/sentiment` - News sentiment analysis
+
+### Changed
+- **Sentiment Agent Enhanced:** Now includes global context enrichment from WorldMonitor
+- Response model extended with optional `context` field
+- Configuration extended with WorldMonitor settings
+- k3s deployment updated for sidecar pattern
+
+### Services Status
+- OpenClaw Orchestrator: ✅ Production Ready
+- SceneSpeak Agent: ✅ Production Ready
+- Captioning Agent: ⚠️ Partial (needs minor fixes to response model)
+- BSL Translation Agent: ⚠️ Partial (needs minor fixes to response model)
+- **Sentiment Agent: ✅ Production Ready (Enhanced with WorldMonitor)**
+- Lighting, Sound & Music: ✅ Production Ready
+- Safety Filter: ⚠️ Partial (needs minor fixes to response model)
+- Operator Console: ✅ Production Ready
+- **WorldMonitor Sidecar: ✅ Production Ready (NEW)**
+
+## [Unreleased]
+
+### Planned
+- Additional service enhancements
+- Performance optimizations
+- Documentation improvements
+
+## [0.3.0] - 2026-03-02
+
+### Added
+- **Lighting, Sound & Music (LSM)** - Unified audio-visual control service (port 8005)
+  - Consolidated Lighting Control, Music Generation, and Music Orchestration into single service
+  - Integrated ACE-Step-1.5 models (base, sft, turbo, mlx) for AI music generation
+  - Coordinated cues module for synchronized multi-media scenes
+  - Sound effects library with playback and mixing capabilities
+  - Flat API structure: `/lighting/*`, `/sound/*`, `/music/*`, `/cues/*`
+  - WebSocket support for real-time generation and execution updates
+  - Kubernetes deployment manifests with PVCs for models and audio
+  - Comprehensive configuration management (config.yaml + env vars)
+
+### Changed
+- **8 Core Pillars Updated:** Lighting Control (port 8005) → Lighting, Sound & Music
+- Simplified student onboarding with single audio-visual component instead of three
+- Improved API consistency with flat route structure across all modules
+
+### Deprecated
+- `services/lighting-control` - Merged into LSM service
+- `services/music-generation` - Merged into LSM service
+- `services/music-orchestration` - Merged into LSM service
+
+### Migration Notes
+- All lighting functionality preserved: `/v1/lighting/*` → `/lighting/*`
+- All music generation preserved with ACE-Step-1.5: `/generate` → `/music/generate`
+- All orchestration preserved in cues module: `/cues/*`
+
+### Services Status
+- OpenClaw Orchestrator: ✅ Production Ready
+- SceneSpeak Agent: ✅ Production Ready
+- Captioning Agent: ⚠️ Partial (needs minor fixes to response model)
+- BSL Translation Agent: ⚠️ Partial (needs minor fixes to response model)
+- Sentiment Agent: ⚠️ Partial (needs minor fixes to response model)
+- **Lighting, Sound & Music: ✅ Production Ready (NEW - replaces 3 services)**
+- Safety Filter: ⚠️ Partial (needs minor fixes to response model)
+- Operator Console: ✅ Production Ready
+
+---
+
 ## [0.2.0] - 2026-03-01
 
 ### Added
@@ -88,5 +170,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Milvus vector database
 - MinIO for object storage
 
+[0.4.0]: https://github.com/project-chimera/project-chimera/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/project-chimera/project-chimera/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/project-chimera/project-chimera/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/project-chimera/project-chimera/releases/tag/v0.1.0

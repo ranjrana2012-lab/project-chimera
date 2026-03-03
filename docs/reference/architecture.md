@@ -52,12 +52,12 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 └────┬─────────┬─────────┬─────────┬─────────┬─────────┬───────────┘
      │         │         │         │         │         │
      ▼         ▼         ▼         ▼         ▼         ▼
-┌─────────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌─────────┐ ┌─────────┐
-│SceneSpeak│ │Caption│ │ BSL  │ │Sentiment│ │Lighting│ │Safety  │
-│  Agent   │ │ Agent │ │Agent │ │ Agent  │ │Control │ │Filter  │
-└────┬─────┘ └───┬──┘ └───┬──┘ └───┬────┘ └────┬────┘ └────┬────┘
-     │          │       │       │           │           │
-     └──────────┴───────┴───────┴───────────┴───────────┘
+┌─────────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌────────┐ ┌─────────┐
+│SceneSpeak│ │Caption│ │ BSL  │ │Sentiment│ │   LSM  │ │Safety  │
+│  Agent   │ │ Agent │ │Agent │ │ Agent  │ │Service │ │Filter  │
+└────┬─────┘ └───┬──┘ └───┬──┘ └───┬────┘ └────┬───┘ └────┬────┘
+     │          │       │       │           │            │
+     └──────────┴───────┴───────┴───────────┴────────────┘
                             │
 ┌───────────────────────────▼───────────────────────────────────────┐
 │                      Infrastructure Layer                          │
@@ -74,6 +74,104 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 │  │  Metrics    │  │ Dashboards  │  │   Tracing   │               │
 │  └─────────────┘  └─────────────┘  └─────────────┘               │
 └──────────────────────────────────────────────────────────────────┘
+```
+
+## Sidecar Pattern
+
+Project Chimera uses the sidecar pattern for cross-cutting concerns and service augmentation. A sidecar container runs alongside the main application container in the same Pod, sharing resources and local communication.
+
+### WorldMonitor Sidecar (v0.4.0)
+
+The Sentiment Agent employs a WorldMonitor sidecar to provide real-time global context enrichment:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Kubernetes Pod                               │
+│                  sentiment-agent-xxxxx                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │           Main Container                                │    │
+│  │     sentiment-agent (Port 8004)                         │    │
+│  │  ┌─────────────────────────────────────────────────┐    │    │
+│  │  │  FastAPI Application                           │    │    │
+│  │  │  - Sentiment Analysis Engine                    │    │    │
+│  │  │  - Context Enrichment Layer                     │    │    │
+│  │  │  - News Sentiment Analyzer                      │    │    │
+│  │  │  - REST API Endpoints                           │    │    │
+│  │  └─────────────────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                           │ localhost:8010                      │
+│                           │ WebSocket                           │
+│                           ▼                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │           Sidecar Container                             │    │
+│  │     worldmonitor-sidecar (Port 8010)                    │    │
+│  │  ┌─────────────────────────────────────────────────┐    │    │
+│  │  │  WorldMonitor Service                          │    │    │
+│  │  │  - Global Events Stream                         │    │    │
+│  │  │  - News Headlines Aggregator                    │    │    │
+│  │  │  - Category Filtering                           │    │    │
+│  │  │  - WebSocket Server                             │    │    │
+│  │  └─────────────────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+         │                              │
+         │ Kubernetes Service            │ Kubernetes Service
+         ▼                              ▼
+  sentiment-agent:8004           worldmonitor:8010
+         │                              ▲
+         └──────────────────────────────┘
+              Cluster Communication
+```
+
+**Benefits of the Sidecar Pattern:**
+
+1. **Separation of Concerns** - Global context fetching is isolated from sentiment analysis
+2. **Independent Scaling** - Sidecar can be updated without changing the main service
+3. **Local Communication** - Zero-latency communication via localhost
+4. **Shared Lifecycle** - Sidecar starts/stops with the main container
+5. **Resource Sharing** - Efficient use of Pod resources
+
+**Communication Flow:**
+
+```
+1. Sentiment Agent starts
+   │
+   ▼
+2. WorldMonitor sidecar starts
+   │
+   ▼
+3. Sentiment Agent connects to ws://localhost:8010/ws
+   │
+   ▼
+4. WorldMonitor streams global events via WebSocket
+   │
+   ▼
+5. Sentiment Agent caches events (TTL: 300s)
+   │
+   ▼
+6. API requests enriched with context from cache
+```
+
+**Environment Configuration:**
+
+```yaml
+env:
+  # Main container
+  - name: WORLDMONITOR_HOST
+    value: localhost
+  - name: WORLDMONITOR_PORT
+    value: "8010"
+  - name: SENTIMENT_CONTEXT_ENABLED
+    value: "true"
+
+  # Sidecar container
+  - name: WORLDMONITOR_CATEGORIES
+    value: "technology,business,entertainment,sports,science"
+  - name: WORLDMONITOR_CACHE_TTL
+    value: "300"
 ```
 
 ## Component Overview
@@ -137,29 +235,60 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 
 #### Sentiment Agent
 
-**Purpose:** Audience sentiment analysis from social media
+**Purpose:** Audience sentiment analysis from social media with WorldMonitor context integration
 
 **Responsibilities:**
-- Sentiment classification
-- Batch processing
+- Sentiment classification using DistilBERT SST-2
+- Batch processing with trend analysis
 - Social media integration
+- **WorldMonitor Integration** (v0.4.0):
+  - Real-time global context enrichment via WebSocket
+  - News sentiment analysis
+  - Context-aware sentiment scoring
+  - Category-based event filtering
+  - Context caching with TTL
 
-**Technology:** Transformers, RoBERTa
+**Technology:** Transformers, DistilBERT, FastAPI, WebSocket
 
-**Scale:** 2 replicas (CPU)
+**Scale:** 2 replicas (CPU) with WorldMonitor sidecar
 
-#### Lighting Control
+**Sidecar Pattern:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Sentiment Agent Pod                            │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │              Sentiment Agent (8004)                    │  │
+│  │  - Sentiment Analysis Engine                          │  │
+│  │  - Context Enrichment Layer                          │  │
+│  │  - News Sentiment Analyzer                           │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                           │ WebSocket                       │
+│                           ▼                                 │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │          WorldMonitor Sidecar (8010)                   │  │
+│  │  - Real-time global events                           │  │
+│  │  - News headlines streaming                          │  │
+│  │  - Category filtering                                │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
 
-**Purpose:** DMX/OSC stage automation
+#### Lighting, Sound & Music (LSM)
+
+**Purpose:** Unified audio-visual control for theatrical experiences
 
 **Responsibilities:**
-- DMX/OSC protocol handling
-- Scene management
-- Approval gating for safety
+- DMX/sACN lighting control with fixture management
+- Sound effects playback with concurrent mixing (max 8 sounds)
+- AI music generation using ACE-Step-1.5 models
+- Coordinated cues for synchronized multi-media scenes
+- WebSocket support for real-time generation and execution updates
 
-**Technology:** DMX libraries, OSC protocols
+**Technology:** FastAPI, ACE-Step-1.5, DMX/sACN libraries, WebSocket
 
-**Scale:** 1 replica (with hardware access)
+**Scale:** 1 replica (GPU for music generation, hardware access for DMX)
+
+**Note:** Consolidates Lighting Control, Music Generation, and Music Orchestration services
 
 #### Safety Filter
 
@@ -175,21 +304,21 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 
 **Scale:** 2 replicas (CPU)
 
-#### Music Generation Platform
+#### Music Generation (Integrated into LSM)
 
-**Music Generation Service** (port 8011)
-- AI music generation using Meta MusicGen and ACE-Step models
+**Music functionality is now part of the Lighting, Sound & Music service (port 8005)**
+
+**Features:**
+- AI music generation using ACE-Step-1.5 models (base, sft, turbo, mlx)
 - Model pool management with VRAM-aware loading
 - Async generation with cancellation support
-
-**Music Orchestration Service** (port 8012)
 - Request routing with cache-first approach
 - Redis caching with 7-day TTL
 - Staged approval pipeline (marketing=auto, show=manual)
 - WebSocket progress streaming
 - MinIO storage for audio files
 
-**Scale:** 2 replicas (GPU for generation service)
+**Scale:** Handled by LSM service scaling
 
 #### GitHub Student Automation
 
@@ -221,9 +350,9 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 
 ### Infrastructure Components
 
-#### Kubernetes (k3s)
+#### k3s
 
-Lightweight Kubernetes distribution for development and production.
+Lightweight k3s distribution for development and production.
 
 **Namespaces:**
 - `live` - Production services
@@ -324,7 +453,7 @@ Vector database for semantic search and retrieval.
 
 ### Infrastructure
 
-- **Orchestration:** Kubernetes (k3s)
+- **Orchestration:** k3s
 - **Messaging:** Apache Kafka
 - **Caching:** Redis 7+
 - **Vector DB:** Milvus 2.3+

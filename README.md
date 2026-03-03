@@ -2,7 +2,7 @@
 
 > An AI-powered live theatre platform creating performances that adapt in real-time to audience input.
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.4.0-blue)
 ![Status](https://img.shields.io/badge/status-alpha-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.10+-blue)
@@ -27,7 +27,7 @@ Project Chimera is an open-source, student-run Dynamic Performance Hub that uses
 - **SceneSpeak Agent** - Real-time dialogue generation using local LLMs
 - **Captioning Agent** - Live speech-to-text with accessibility descriptions
 - **BSL-Text2Gloss Agent** - British Sign Language gloss notation translation
-- **Sentiment Agent** - Audience sentiment analysis from social media
+- **Sentiment Agent** - Audience sentiment analysis enhanced with WorldMonitor global intelligence for context-enriched responses
 - **Lighting Control** - DMX/OSC stage automation
 - **Safety Filter** - Multi-layer content moderation
 - **Operator Console** - Human oversight and approval interface
@@ -252,15 +252,16 @@ Project Chimera is built on open-source technologies and would not be possible w
 
 ## Roadmap
 
-### v0.2.0 (Current - March 2026)
+### v0.4.0 (Current - March 2026)
 
-- Music Generation Platform implemented
-- GitHub Student Contribution Automation implemented
-- Monday demo documentation complete
+- WorldMonitor integration for enhanced sentiment analysis
+- Global context enrichment for real-time audience feedback
+- WebSocket-based context streaming
+- Category-based event filtering
 
-### v0.3.0 (Planned)
+### v0.5.0 (Planned)
 
-- Complete service fixes (Captioning, BSL, Sentiment, Safety)
+- Complete service fixes (Captioning, BSL, Safety)
 - Multi-scene support
 - Enhanced accessibility features
 

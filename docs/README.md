@@ -2,6 +2,8 @@
 
 Welcome to the Project Chimera documentation. Use this hub to find what you need.
 
+> **New in v0.4.0:** [WorldMonitor Integration](services/core-services.md#sentiment-agent-port-8004) - Enhanced sentiment analysis with global context. [Read more](plans/2026-03-03-worldmonitor-integration.md)
+
 ## Quick Links
 
 | I want to... | Go to |
@@ -9,57 +11,59 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | Get started with Project Chimera | [Getting Started](getting-started/) |
 | Set up my development environment | [Quick Start](getting-started/quick-start.md) |
 | Learn about the services | [Services Overview](services/) |
-| Contribute code | [Contributing Guide](guides/contributing.md) |
+| Explore documentation hub | [Documentation Hub](guides/README.md) |
+| Contribute code | [Contributing Guide](../CONTRIBUTING.md) |
 | Understand the GitHub workflow | [GitHub Workflow](guides/github-workflow.md) |
 | Read the API docs | [API Reference](reference/api.md) |
-| Deploy to production | [Deployment Runbook](reference/runbooks/deployment.md) |
+| Deploy to production | [Deployment Guide](DEPLOYMENT.md) |
 
 ## By Audience
 
 ### Students
 - [Quick Start Guide](getting-started/quick-start.md)
 - [Your Role](getting-started/roles.md)
-- [First Steps](getting-started/first-steps.md)
+- [FAQ](getting-started/faq.md)
 - [Monday Demo](getting-started/monday-demo/)
 
 ### Developers
-- [Development Guide](../DEVELOPMENT.md)
-- [Contributing Guide](guides/contributing.md)
+- [Development Guide](DEVELOPMENT.md)
+- [Contributing Guide](../CONTRIBUTING.md)
 - [GitHub Workflow](guides/github-workflow.md)
 - [API Reference](reference/api.md)
 
 ### Operators
-- [Deployment Guide](reference/runbooks/deployment.md)
-- [Monitoring](reference/runbooks/monitoring.md)
-- [Incident Response](reference/runbooks/incident-response.md)
+- [Deployment Guide](runbooks/deployment.md)
+- [Monitoring](runbooks/monitoring.md)
+- [Incident Response](runbooks/incident-response.md)
 
 ## Documentation Index
 
 ### Getting Started
 - [Quick Start](getting-started/quick-start.md) - Set up your environment
-- [Installation](getting-started/installation.md) - Detailed installation
-- [First Steps](getting-started/first-steps.md) - Your first contribution
+- [Communication Channels](getting-started/communication-channels.md) - How we communicate
+- [First Steps](getting-started/quick-start.md) - Your first contribution
 - [Roles](getting-started/roles.md) - Student role assignments
 - [Monday Demo](getting-started/monday-demo/) - Demo documentation
 
 ### Services
 - [Core Services](services/core-services.md) - 8 AI agents overview
-- [Music Generation](services/music-generation.md) - Music platform
-- [Quality Platform](services/quality-platform.md) - Testing infrastructure
+- [Lighting, Sound & Music](services/lighting-sound-music.md) - Unified audio-visual control (NEW)
+- [Music Generation](services/music-generation.md) - Music platform (now part of LSM)
+- [Quality Platform](quality-platform/README.md) - Testing infrastructure
 
 ### Guides
-- [Contributing](guides/contributing.md) - How to contribute
-- [GitHub Workflow](guides/github-workflow.md) - GitHub automation
-- [Testing](guides/testing.md) - Testing guide
+- [Documentation Hub](guides/README.md) - Central navigation for all guides
+- [GitHub Workflow](guides/github-workflow.md) - GitHub automation and contribution
+- [WorldMonitor Context Usage](guides/worldmonitor-context-usage.md) - WorldMonitor integration guide
 
 ### Reference
 - [Architecture](reference/architecture.md) - System architecture
 - [API](reference/api.md) - API documentation
-- [Runbooks](reference/runbooks/) - Operational docs
+- [Runbooks](runbooks/) - Operational docs
 
 ### Plans
 - Design and implementation documents
 
 ---
 
-**Need help?** [Open an issue](https://github.com/project-chimera/project-chimera/issues) or [start a discussion](https://github.com/project-chimera/project-chimera/discussions).
+**Need help?** Check out our [FAQ](getting-started/faq.md) or [Office Hours](getting-started/office-hours.md).

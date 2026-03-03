@@ -14,6 +14,7 @@ Quick reference guide for all Project Chimera services, ports, endpoints, and he
 | **Lighting Control** | 8005 | `/health`, `/` | `/v1/lighting/*`, `/v1/cues/*`, `/v1/presets/*`, `/metrics` | CPU | ✅ Built |
 | **Safety Filter** | 8006 | `/health`, `/` | `/api/v1/check`, `/api/v1/filter`, `/api/v1/policies`, `/stats`, `/metrics` | CPU | ✅ Built |
 | **Operator Console** | 8007 | `/health`, `/` | `/console`, `/events`, `/approvals`, `/` (UI) | CPU | ✅ Built |
+| **WorldMonitor Sidecar** | 8010 | `/health`, `/` | `/ws/context` (WebSocket), `/api/v1/context`, `/metrics` | CPU | ✅ Built |
 
 ## Infrastructure Services
 
@@ -55,9 +56,10 @@ SERVICES=(
   "8002:Captioning Agent"
   "8003:BSL Text2Gloss Agent"
   "8004:Sentiment Agent"
-  "8005:Lighting Control"
+  "8005:Lighting, Sound & Music"
   "8006:Safety Filter"
   "8007:Operator Console"
+  "8010:WorldMonitor Sidecar"
 )
 
 # Infrastructure services
@@ -146,6 +148,9 @@ curl http://localhost:8006/health
 
 # Operator Console
 curl http://localhost:8007/health
+
+# WorldMonitor Sidecar
+curl http://localhost:8010/health
 ```
 
 ### Infrastructure Health Checks
@@ -163,7 +168,7 @@ curl http://localhost:9090/-/healthy
 curl http://localhost:3000/api/health
 
 # All service metrics
-for port in 8000 8001 8002 8003 8004 8005 8006 8007; do
+for port in 8000 8001 8002 8003 8004 8005 8006 8007 8010; do
   echo "Port $port metrics:"
   curl -s http://localhost:$port/metrics | head -5
   echo ""
@@ -343,6 +348,7 @@ kubectl rollout restart deployment/<service-name> -n live
 | API Docs (Sentiment) | http://localhost:8004/docs | None |
 | API Docs (Safety) | http://localhost:8006/docs | None |
 | Operator Console | http://localhost:8007 | None |
+| API Docs (WorldMonitor) | http://localhost:8010/docs | None |
 
 ## Status Legend
 
@@ -358,10 +364,13 @@ All 8 core services are built and ready:
 2. ✅ SceneSpeak Agent
 3. ✅ Captioning Agent
 4. ✅ BSL Text2Gloss Agent
-5. ✅ Sentiment Agent
-6. ✅ Lighting Control
+5. ✅ Sentiment Agent (enhanced with WorldMonitor integration)
+6. ✅ Lighting, Sound & Music (unified service)
 7. ✅ Safety Filter
 8. ✅ Operator Console
+
+Plus support services:
+9. ✅ WorldMonitor Sidecar (global context enrichment)
 
 ## Next Steps
 

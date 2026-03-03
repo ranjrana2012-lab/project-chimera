@@ -7,7 +7,7 @@ This guide covers deploying Project Chimera in various environments, from local 
 - [Prerequisites](#prerequisites)
 - [Deployment Scenarios](#deployment-scenarios)
 - [Local Deployment](#local-deployment)
-- [Kubernetes Deployment](#kubernetes-deployment)
+- [k3s Deployment](#k3s-deployment)
 - [Cloud Deployment](#cloud-deployment)
 - [Configuration Management](#configuration-management)
 - [Monitoring Setup](#monitoring-setup)
@@ -34,7 +34,7 @@ This guide covers deploying Project Chimera in various environments, from local 
 
 - **OS:** Ubuntu 22.04 LTS or macOS 12+
 - **Container Runtime:** Docker 24.0+
-- **Kubernetes:** k3s 1.25+ or Kubernetes 1.25+
+- **Orchestration:** k3s 1.25+ (lightweight Kubernetes)
 - **CLI Tools:**
   - kubectl
   - helm (optional, for charts)
@@ -43,7 +43,7 @@ This guide covers deploying Project Chimera in various environments, from local 
 ### Network Requirements
 
 - Ports 8000-8007 available for services
-- Port 6443 for Kubernetes API
+- Port 6443 for k3s API
 - Port 3000 for Grafana (optional)
 - Port 9090 for Prometheus (optional)
 
@@ -55,8 +55,8 @@ This guide covers deploying Project Chimera in various environments, from local 
 |----------|-------------|----------|
 | Local Development | k3s on localhost | Development, testing |
 | Single-Node Production | k3s on dedicated server | Small venue deployment |
-| Multi-Node Production | Kubernetes cluster | Large venue, high availability |
-| Cloud Deployment | Managed Kubernetes | University cloud deployment |
+| Multi-Node Production | k3s cluster | Large venue, high availability |
+| Cloud Deployment | Managed k3s | University cloud deployment |
 
 ## Local Deployment
 
@@ -128,7 +128,7 @@ kubectl get pods -n shared
 kubectl get pods -n monitoring
 ```
 
-## Kubernetes Deployment
+## k3s Deployment
 
 ### Cluster Setup
 
@@ -144,9 +144,9 @@ curl -sfL https://get.k3s.io | sh - \
   --disable servicelb
 ```
 
-#### Multi-Node (Kubernetes)
+#### Multi-Node (k3s)
 
-For larger deployments, use a standard Kubernetes cluster:
+For larger deployments, use a multi-node k3s cluster:
 
 ```bash
 # On control plane
@@ -220,6 +220,63 @@ resources:
     nvidia.com/gpu: 1
   requests:
     nvidia.com/gpu: 1
+```
+
+### WorldMonitor Sidecar Deployment
+
+The Sentiment Agent includes a WorldMonitor sidecar for real-time global context enrichment.
+
+```bash
+# Deploy Sentiment Agent with WorldMonitor sidecar
+kubectl apply -f infrastructure/kubernetes/services/sentiment-agent/
+
+# Verify WorldMonitor sidecar is running
+kubectl get pods -n live -l app=sentiment-agent
+kubectl logs deployment/sentiment-agent -c worldmonitor-sidecar -n live
+```
+
+**Environment Variables:**
+
+```bash
+# WorldMonitor connection
+WORLDMONITOR_HOST=worldmonitor
+WORLDMONITOR_PORT=8010
+WORLDMONITOR_WS_PATH=/ws
+
+# Context filtering
+WORLDMONITOR_CATEGORIES=technology,business,entertainment,sports,science
+WORLDMONITOR_CACHE_TTL=300
+
+# Enable context enrichment
+SENTIMENT_CONTEXT_ENABLED=true
+```
+
+**Verify WorldMonitor Connection:**
+
+```bash
+# Check health endpoint
+kubectl exec -n live deployment/sentiment-agent -- curl http://localhost:8004/health/ready
+
+# Should include: "worldmonitor_connected": true
+
+# Test context retrieval
+kubectl exec -n live deployment/sentiment-agent -- curl http://localhost:8004/api/v1/context
+```
+
+**Troubleshooting WorldMonitor:**
+
+```bash
+# Check sidecar logs
+kubectl logs deployment/sentiment-agent -c worldmonitor-sidecar -n live --tail=50 -f
+
+# Verify WebSocket connection
+kubectl exec -n live deployment/sentiment-agent -c worldmonitor-sidecar -- curl -i -N \
+  -H "Connection: Upgrade" \
+  -H "Upgrade: websocket" \
+  http://worldmonitor:8010/ws
+
+# Check context cache stats
+kubectl exec -n live deployment/sentiment-agent -- curl http://localhost:8004/api/v1/context/stats
 ```
 
 ## Cloud Deployment
@@ -302,7 +359,7 @@ kubectl create configmap chimera-config \
 | Environment | Config Location |
 |-------------|-----------------|
 | Development | `.env` file |
-| Staging | Kubernetes ConfigMaps |
+| Staging | k3s ConfigMaps |
 | Production | Sealed Secrets |
 
 ## Monitoring Setup
@@ -436,7 +493,7 @@ kubectl rollout status deployment/scenespeak-agent -n live
 # Backup etcd (k3s)
 sudo cp /var/lib/rancher/k3s/server/db/snapshots/* /backup/
 
-# Backup Kubernetes resources
+# Backup k3s resources
 kubectl get all -n live -o yaml > backup-live.yaml
 ```
 
@@ -472,7 +529,7 @@ kubectl get pods -n live -o jsonpath='{.items[*].status.phase}'
 ### Security
 
 - Use network policies to restrict traffic
-- Enable RBAC for Kubernetes
+- Enable RBAC for k3s
 - Use Sealed Secrets for sensitive data
 - Regular security updates
 
@@ -492,7 +549,7 @@ kubectl get pods -n live -o jsonpath='{.items[*].status.phase}'
 ---
 
 For more information:
-- [Architecture Documentation](ARCHITECTURE.md)
+- [Architecture Documentation](reference/architecture.md)
 - [Development Guide](DEVELOPMENT.md)
 - [Monitoring Runbook](runbooks/monitoring.md)
 - [Incident Response](runbooks/incident-response.md)
