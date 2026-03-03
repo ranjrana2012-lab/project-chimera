@@ -160,7 +160,7 @@ This plan breaks down the v0.5.0 requirements into atomic, executable tasks. Eac
   - **Tests:** Validate sample configs against schema
   - **Estimated:** 1 hour
 
-- [ ] **Task 2.1.3:** Implement scene state manager
+- [x] **Task 2.1.3:** Implement scene state manager ✅
   - **DoD:** Python class managing scene state transitions
   - **Files:** `services/openclaw-orchestrator/core/scene_manager.py`
   - **Tests:** Unit test for each state transition
