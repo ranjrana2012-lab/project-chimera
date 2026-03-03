@@ -80,6 +80,28 @@ class Settings(BaseSettings):
     metrics_enabled: bool = True
     tracing_enabled: bool = False
 
+    # WorldMonitor Sidecar Integration
+    worldmonitor_enabled: bool = True
+    worldmonitor_sidecar_url: str = "http://localhost:3001"
+    worldmonitor_ws_endpoint: str = "ws://localhost:3001/context/stream"
+    context_enrichment_enabled: bool = True
+    context_cache_ttl: int = 300  # 5 minutes
+
+    # WorldMonitor Context Settings
+    context_include_cii: bool = True
+    context_include_threats: bool = True
+    context_include_events: bool = True
+    context_include_news_summary: bool = True
+    default_context_country: str = "GB"
+
+    # News Sentiment Analysis
+    news_sentiment_enabled: bool = True
+    news_sentiment_max_articles: int = 500
+    news_sentiment_categories: List[str] = Field(
+        default=["geopolitical", "tech", "finance"],
+        description="News categories for sentiment analysis"
+    )
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | List[str]) -> List[str]:

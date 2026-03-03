@@ -31,3 +31,7 @@ opentelemetry-instrumentation-fastapi>=0.43b0,<1.0.0
 torch>=2.1.0
 transformers>=4.36.0
 accelerate>=0.25.0
+
+# WebSocket client
+websockets>=12.0
+
