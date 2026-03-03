@@ -47,6 +47,16 @@ from transitions.agent_handoff import (
     AgentStateSnapshot
 )
 
+from transitions.audience_context import (
+    AudienceContext,
+    AudienceContextSnapshot,
+    AudienceContextManager,
+    ContextDiff,
+    ContextMergeStrategy,
+    ContextMergeResult,
+    ContextPriority
+)
+
 # Re-export TriggerState from manual_triggers
 from transitions.manual_triggers import TriggerState
 
@@ -79,5 +89,12 @@ __all__ = [
     "HandoffResult",
     "HandoffState",
     "AgentHandoffOrchestrator",
-    "AgentStateSnapshot"
+    "AgentStateSnapshot",
+    "AudienceContext",
+    "AudienceContextSnapshot",
+    "AudienceContextManager",
+    "ContextDiff",
+    "ContextMergeStrategy",
+    "ContextMergeResult",
+    "ContextPriority"
 ]
