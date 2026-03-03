@@ -137,16 +137,43 @@ Project Chimera is a microservices-based AI theatre platform that creates live p
 
 #### Sentiment Agent
 
-**Purpose:** Audience sentiment analysis from social media
+**Purpose:** Audience sentiment analysis from social media with WorldMonitor context integration
 
 **Responsibilities:**
-- Sentiment classification
-- Batch processing
+- Sentiment classification using DistilBERT SST-2
+- Batch processing with trend analysis
 - Social media integration
+- **WorldMonitor Integration** (v0.4.0):
+  - Real-time global context enrichment via WebSocket
+  - News sentiment analysis
+  - Context-aware sentiment scoring
+  - Category-based event filtering
+  - Context caching with TTL
 
-**Technology:** Transformers, RoBERTa
+**Technology:** Transformers, DistilBERT, FastAPI, WebSocket
 
-**Scale:** 2 replicas (CPU)
+**Scale:** 2 replicas (CPU) with WorldMonitor sidecar
+
+**Sidecar Pattern:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Sentiment Agent Pod                            │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │              Sentiment Agent (8004)                    │  │
+│  │  - Sentiment Analysis Engine                          │  │
+│  │  - Context Enrichment Layer                          │  │
+│  │  - News Sentiment Analyzer                           │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                           │ WebSocket                       │
+│                           ▼                                 │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │          WorldMonitor Sidecar (8010)                   │  │
+│  │  - Real-time global events                           │  │
+│  │  - News headlines streaming                          │  │
+│  │  - Category filtering                                │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
 
 #### Lighting, Sound & Music (LSM)
 

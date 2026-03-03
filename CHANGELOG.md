@@ -7,6 +7,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-03
+
+### Added
+- **WorldMonitor Integration for Sentiment Agent** - Real-time global context enrichment
+  - WorldMonitor sidecar service (port 8010) for global events streaming
+  - Context enrichment layer with WebSocket client for real-time updates
+  - News sentiment analyzer for headline and event impact analysis
+  - Context API endpoints: `/api/v1/context`, `/api/v1/context/stats`, `/api/v1/context/categories`
+  - News sentiment endpoint: `/api/v1/news-sentiment`
+  - Context-aware sentiment analysis with global event correlation
+  - Category-based filtering (technology, business, entertainment, sports)
+  - Context caching with configurable TTL (default: 300 seconds)
+  - Enhanced response models with contextual metadata
+
+### Changed
+- **Sentiment Agent Enhanced** (port 8004)
+  - Added WorldMonitor integration capabilities
+  - Enhanced sentiment analysis with global context awareness
+  - Improved response models to include contextual information
+  - WebSocket-based real-time context streaming from WorldMonitor sidecar
+- **Kubernetes Deployment**
+  - Sentiment Agent now includes WorldMonitor as sidecar container
+  - Updated resource requirements for WorldMonitor integration
+- **Docker Compose**
+  - Added WorldMonitor service for local development
+  - Updated Sentiment Agent configuration for sidecar communication
+
+### Services Status
+- OpenClaw Orchestrator: ✅ Production Ready
+- SceneSpeak Agent: ✅ Production Ready
+- Captioning Agent: ⚠️ Partial (needs minor fixes to response model)
+- BSL Translation Agent: ⚠️ Partial (needs minor fixes to response model)
+- **Sentiment Agent: ✅ Enhanced with WorldMonitor integration**
+- Lighting, Sound & Music: ✅ Production Ready
+- Safety Filter: ⚠️ Partial (needs minor fixes to response model)
+- Operator Console: ✅ Production Ready
+
+### Documentation
+- Added Sentiment Agent with WorldMonitor documentation (`docs/services/sentiment-agent-with-worldmonitor.md`)
+- Updated core services documentation (`docs/services/core-services.md`)
+- Updated API reference with context endpoints (`docs/reference/api.md`)
+- Updated architecture documentation with sidecar pattern (`docs/reference/architecture.md`)
+- Added WorldMonitor context usage guide (`docs/guides/worldmonitor-context-usage.md`)
+
+### Technical Details
+**WorldMonitor Sidecar:**
+- Port: 8010
+- Protocol: WebSocket (context streaming)
+- Categories: technology, business, entertainment, sports
+- Cache TTL: 300 seconds (configurable)
+
+**Context Enrichment:**
+- Automatic context injection into sentiment analysis
+- Category-based event filtering
+- Real-time WebSocket updates
+- Fallback to cached context on connection failure
+
+**News Sentiment Analysis:**
+- Batch processing of headlines
+- Category-specific sentiment scoring
+- Event impact assessment
+- Integration with existing sentiment models
+
+**Testing:**
+- Unit tests for context enrichment layer
+- Unit tests for WebSocket client
+- Unit tests for news sentiment analyzer
+- Integration tests for WorldMonitor sidecar communication
+
+## [Unreleased]
+
 ### Added
 - **Lighting, Sound & Music (LSM)** - Unified audio-visual control service (port 8005)
   - Consolidated Lighting Control, Music Generation, and Music Orchestration into single service
@@ -134,5 +205,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Milvus vector database
 - MinIO for object storage
 
+[0.4.0]: https://github.com/project-chimera/project-chimera/compare/v0.2.0...v0.4.0
 [0.2.0]: https://github.com/project-chimera/project-chimera/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/project-chimera/project-chimera/releases/tag/v0.1.0

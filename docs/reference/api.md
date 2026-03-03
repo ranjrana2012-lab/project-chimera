@@ -544,6 +544,213 @@ Analyze sentiment of text.
 
 Batch process multiple texts.
 
+**POST /api/v1/analyze-with-context**
+
+Analyze sentiment with global context enrichment.
+
+**Request:**
+```json
+{
+  "texts": [
+    "The tech references feel very timely!"
+  ],
+  "include_context": true,
+  "context_categories": ["technology"]
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "text": "The tech references feel very timely!",
+      "sentiment": "positive",
+      "scores": {
+        "positive": 0.88,
+        "negative": 0.05,
+        "neutral": 0.07
+      },
+      "confidence": 0.86
+    }
+  ],
+  "context": {
+    "global_events": [
+      {
+        "event_id": "evt_123",
+        "headline": "Tech breakthrough announced",
+        "description": "Major advancement in quantum computing",
+        "categories": ["technology"],
+        "sentiment": "positive"
+      }
+    ],
+    "news_sentiment": {
+      "overall": "positive",
+      "by_category": {
+        "technology": 0.85
+      }
+    }
+  }
+}
+```
+
+#### News Sentiment Analysis
+
+**POST /api/v1/news-sentiment**
+
+Analyze sentiment of news headlines.
+
+**Request:**
+```json
+{
+  "headlines": [
+    "New AI model revolutionizes healthcare",
+    "Economic concerns rise globally"
+  ],
+  "categories": ["technology", "business"]
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "headline": "New AI model revolutionizes healthcare",
+      "sentiment": "positive",
+      "score": 0.92,
+      "category": "technology"
+    },
+    {
+      "headline": "Economic concerns rise globally",
+      "sentiment": "negative",
+      "score": 0.78,
+      "category": "business"
+    }
+  ],
+  "overall_sentiment": "neutral",
+  "category_summary": {
+    "technology": {
+      "sentiment": "positive",
+      "average_score": 0.92
+    },
+    "business": {
+      "sentiment": "negative",
+      "average_score": 0.78
+    }
+  }
+}
+```
+
+**GET /api/v1/news-sentiment/stats**
+
+Get news sentiment statistics.
+
+**Response:**
+```json
+{
+  "statistics": {
+    "total_analyzed": 150,
+    "overall_sentiment": "positive",
+    "category_breakdown": {
+      "technology": {
+        "count": 45,
+        "average_score": 0.78
+      },
+      "business": {
+        "count": 38,
+        "average_score": 0.62
+      }
+    }
+  }
+}
+```
+
+#### Context API
+
+**GET /api/v1/context**
+
+Get current global context from WorldMonitor.
+
+**Query Parameters:**
+- `category` (optional) - Filter by category
+- `refresh` (optional) - Force cache refresh (true/false)
+
+**Response:**
+```json
+{
+  "events": [
+    {
+      "event_id": "evt_123",
+      "timestamp": "2026-03-03T12:00:00Z",
+      "headline": "Tech breakthrough announced",
+      "description": "Major advancement in quantum computing",
+      "categories": ["technology", "science"],
+      "severity": "high",
+      "sentiment": "positive"
+    }
+  ],
+  "metadata": {
+    "total_events": 1,
+    "last_updated": "2026-03-03T12:00:00Z",
+    "cache_age_seconds": 45
+  }
+}
+```
+
+**GET /api/v1/context/stats**
+
+Get context statistics.
+
+**Response:**
+```json
+{
+  "statistics": {
+    "total_events": 15,
+    "by_category": {
+      "technology": 5,
+      "business": 3,
+      "entertainment": 4,
+      "sports": 3
+    },
+    "by_severity": {
+      "high": 2,
+      "medium": 8,
+      "low": 5
+    },
+    "sentiment_distribution": {
+      "positive": 8,
+      "neutral": 5,
+      "negative": 2
+    }
+  },
+  "cache_info": {
+    "last_updated": "2026-03-03T12:00:00Z",
+    "cache_age_seconds": 45,
+    "using_cached": true
+  }
+}
+```
+
+**GET /api/v1/context/categories**
+
+List available context categories.
+
+**Response:**
+```json
+{
+  "categories": [
+    "technology",
+    "business",
+    "entertainment",
+    "sports",
+    "science",
+    "health",
+    "politics"
+  ]
+}
+```
+
 ---
 
 ### Lighting, Sound & Music (LSM) Service
