@@ -11,11 +11,14 @@ from .quality import (
     QualityGateService,
     QualityReporter
 )
+from .slo_gate import SloQualityGate, GateResult
 
 __all__ = [
     "GateStatus",
     "QualityThresholds",
     "QualityGateResult",
     "QualityGateService",
-    "QualityReporter"
+    "QualityReporter",
+    "SloQualityGate",
+    "GateResult"
 ]
