@@ -19,10 +19,17 @@ from core.safety import (
     ContentSeverity
 )
 
+# Import tracing
+from api.tracing import get_tracer, trace_safety_check, trace_batch_check
+from shared.tracing import instrument_fastapi, add_span_attributes, record_error
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Setup tracing
+tracer = get_tracer()
 
 
 # Metrics
@@ -51,6 +58,9 @@ app = FastAPI(
     description="Multi-layer content safety filtering with policy templates",
     version="0.5.0"
 )
+
+# Instrument FastAPI with tracing
+instrument_fastapi(app)
 
 
 @app.get("/health")
@@ -95,22 +105,41 @@ async def check_content(request_data: dict):
         content_id = request_data.get("content_id")
         policy = request_data.get("policy", "family")
 
-        # Use requested policy
-        original_policy = service_instance.policy.name
-        if policy != original_policy:
+        # Trace safety check operation
+        with trace_safety_check(content=content, policy=policy, content_id=content_id) as span:
+            # Use requested policy
+            original_policy = service_instance.policy.name
+            if policy != original_policy:
+                from core.safety import POLICY_TEMPLATES
+                service_instance.policy = POLICY_TEMPLATES.get(policy, POLICY_TEMPLATES["family"])
+
+            result = service_instance.check_content(content, content_id)
+
+            # Restore original policy
             from core.safety import POLICY_TEMPLATES
-            service_instance.policy = POLICY_TEMPLATES.get(policy, POLICY_TEMPLATES["family"])
+            service_instance.policy = POLICY_TEMPLATES.get(original_policy, POLICY_TEMPLATES["family"])
 
-        result = service_instance.check_content(content, content_id)
+            # Record safety result on span
+            from api.tracing import record_safety_result
+            action = "allow" if result.is_safe else "block"
+            record_safety_result(
+                span,
+                is_safe=result.is_safe,
+                action=action,
+                matched_patterns=result.matched_terms if not result.is_safe else None,
+                severity=result.severity.value if hasattr(result, 'severity') else None
+            )
 
-        # Restore original policy
-        from core.safety import POLICY_TEMPLATES
-        service_instance.policy = POLICY_TEMPLATES.get(original_policy, POLICY_TEMPLATES["family"])
+            # Record additional attributes
+            add_span_attributes(span, {
+                "safety.confidence": result.confidence,
+                "safety.layer": result.layer.value if hasattr(result, 'layer') else "unknown"
+            })
 
-        if result.is_safe:
-            safety_checks.labels(endpoint="check", result="safe").inc()
-        else:
-            safety_checks.labels(endpoint="check", result="blocked").inc()
+            if result.is_safe:
+                safety_checks.labels(endpoint="check", result="safe").inc()
+            else:
+                safety_checks.labels(endpoint="check", result="blocked").inc()
 
         return {
             "is_safe": result.is_safe,
@@ -126,6 +155,9 @@ async def check_content(request_data: dict):
     except Exception as e:
         logger.error(f"Safety check error: {e}")
         safety_checks.labels(endpoint="check", result="error").inc()
+        # Record error on current span
+        current_span = tracer.start_as_current_span("error_handler")
+        record_error(current_span.__enter__(), e, {"safety.endpoint": "check"})
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -165,26 +197,39 @@ async def filter_content(request_data: dict):
     content = request_data.get("content", "")
     policy = request_data.get("policy", "family")
 
-    # Check content
-    result = check_content_safety(content, policy)
+    # Trace safety check for filter endpoint
+    with trace_safety_check(content=content, policy=policy, content_id="filter") as span:
+        # Check content
+        result = check_content_safety(content, policy)
 
-    allowed = result["is_safe"]
+        allowed = result["is_safe"]
 
-    if allowed:
-        safety_checks.labels(endpoint="filter", result="allowed").inc()
-        return {
-            "allowed": True,
-            "content": content,
-            "filter_result": result
-        }
-    else:
-        safety_checks.labels(endpoint="filter", result="blocked").inc()
-        return {
-            "allowed": False,
-            "content": None,  # Don't return unsafe content
-            "filter_result": result,
-            "suggestion": f"Content blocked due to: {result['reasoning']}"
-        }
+        # Record safety result on span
+        from api.tracing import record_safety_result
+        action = "allow" if allowed else "block"
+        record_safety_result(
+            span,
+            is_safe=allowed,
+            action=action,
+            matched_patterns=result.get("matched_terms", []) if not allowed else None,
+            severity=result.get("severity", "unknown")
+        )
+
+        if allowed:
+            safety_checks.labels(endpoint="filter", result="allowed").inc()
+            return {
+                "allowed": True,
+                "content": content,
+                "filter_result": result
+            }
+        else:
+            safety_checks.labels(endpoint="filter", result="blocked").inc()
+            return {
+                "allowed": False,
+                "content": None,  # Don't return unsafe content
+                "filter_result": result,
+                "suggestion": f"Content blocked due to: {result['reasoning']}"
+            }
 
 
 @app.get("/api/v1/policies")

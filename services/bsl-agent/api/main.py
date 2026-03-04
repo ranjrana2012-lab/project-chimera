@@ -21,6 +21,10 @@ from core.translation import (
     translate_and_enrich
 )
 
+# Import tracing
+from api.tracing import get_tracer, trace_translation, trace_batch_translation
+from shared.tracing import instrument_fastapi, add_span_attributes
+
 # Import business metrics to register them with Prometheus
 import core.business_metrics
 
@@ -28,6 +32,9 @@ import core.business_metrics
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Setup tracing
+tracer = get_tracer()
 
 
 # Metrics
@@ -56,6 +63,9 @@ app = FastAPI(
     description="British Sign Language gloss notation translation service",
     version="0.5.0"
 )
+
+# Instrument FastAPI with tracing
+instrument_fastapi(app)
 
 
 @app.get("/health")
@@ -105,9 +115,23 @@ async def translate(request_data: dict):
             region=request_data.get("region")
         )
 
-        result = translator_instance.translate(request)
+        # Trace translation operation
+        with trace_translation(
+            request_id=request.text[:50],  # Use first 50 chars as ID
+            source_language=request.language,
+            sign_language="bsl"
+        ) as span:
+            result = translator_instance.translate(request)
 
-        translation_requests.labels(endpoint="translate", status="success").inc()
+            # Record additional span attributes
+            add_span_attributes(span, {
+                "translation.gloss_format": result.gloss_format,
+                "translation.confidence": result.confidence,
+                "translation.from_cache": result.from_cache or False,
+                "translation.region": result.region or "default"
+            })
+
+            translation_requests.labels(endpoint="translate", status="success").inc()
 
         return {
             "request_id": result.request_id,
@@ -128,6 +152,10 @@ async def translate(request_data: dict):
     except Exception as e:
         logger.error(f"Translation error: {e}")
         translation_requests.labels(endpoint="translate", status="error").inc()
+        # Record error on current span
+        from shared.tracing import record_error
+        current_span = tracer.start_as_current_span("error_handler")
+        record_error(current_span.__enter__(), e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -155,7 +183,7 @@ async def translate_batch(requests_data: dict):
         translator_instance = get_translator()
 
         texts = requests_data.get("texts", [])
-        translation_requests = []
+        translation_requests_list = []
 
         for item in texts:
             request = TranslationRequest(
@@ -164,15 +192,23 @@ async def translate_batch(requests_data: dict):
                 gloss_format=GlossFormat(item.get("gloss_format", "singspell")),
                 region=item.get("region")
             )
-            translation_requests.append(request)
+            translation_requests_list.append(request)
 
-        start_time = asyncio.get_event_loop().time()
+        # Trace batch translation
+        with trace_batch_translation(request_count=len(translation_requests_list)) as span:
+            start_time = asyncio.get_event_loop().time()
 
-        results = translator_instance.translate_batch(translation_requests)
+            results = translator_instance.translate_batch(translation_requests_list)
 
-        duration = asyncio.get_event_loop().time() - start_time
+            duration = asyncio.get_event_loop().time() - start_time
 
-        translation_requests.labels(endpoint="batch", status="success").inc()
+            # Record batch result on span
+            add_span_attributes(span, {
+                "batch.duration_ms": int(duration * 1000),
+                "batch.success_count": len([r for r in results if not r.error])
+            })
+
+            translation_requests.labels(endpoint="batch", status="success").inc()
 
         return {
             "translations": [

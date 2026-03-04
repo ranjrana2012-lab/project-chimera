@@ -15,12 +15,17 @@ from prometheus_client import Counter, Histogram, generate_latest
 from starlette.responses import Response
 
 from api.streaming import get_streaming_service, get_manager
+from api.tracing import get_tracer, trace_transcription, trace_streaming_session
 from core.transcription import TranscriptionService
 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+# Setup tracing
+tracer = get_tracer()
 
 
 # Prometheus metrics
@@ -77,6 +82,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Instrument FastAPI with tracing
+from shared.tracing import instrument_fastapi
+instrument_fastapi(app)
+
 
 @app.get("/health")
 async def health_check():
@@ -118,15 +127,27 @@ async def transcribe(audio_data: dict):
         language = audio_data.get("language")
         audio_hash = hashlib.md5(audio_bytes).hexdigest()
 
-        start_time = asyncio.get_event_loop().time()
+        # Trace transcription operation
+        with trace_transcription(audio_size_bytes=len(audio_bytes), language=language) as span:
+            result = transcription_service.transcribe(audio_bytes, audio_hash, language)
 
-        result = transcription_service.transcribe(audio_bytes, audio_hash, language)
+            # Record additional span attributes
+            from shared.tracing import add_span_attributes
+            add_span_attributes(span, {
+                "transcription.confidence": result.confidence,
+                "transcription.from_cache": result.from_cache or False,
+                "transcription.model": result.model_version or "unknown"
+            })
 
-        duration = asyncio.get_event_loop().time() - start_time
-        transcription_duration.observe(duration)
+            duration = result.processing_time_ms / 1000.0 if result.processing_time_ms else 0
+            transcription_duration.observe(duration)
 
         if result.error:
             transcription_requests.labels(status="error").inc()
+            # Record error on span
+            from shared.tracing import record_error
+            if result.error:
+                span.record_exception(Exception(result.error))
         else:
             transcription_requests.labels(status="success").inc()
 
@@ -175,7 +196,9 @@ async def stream_captions(websocket: WebSocket):
     session_id = f"session_{asyncio.get_event_loop().time()}"
 
     try:
-        await streaming_service.handle_client(websocket, session_id)
+        # Trace streaming session
+        with trace_streaming_session(session_id):
+            await streaming_service.handle_client(websocket, session_id)
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected: {session_id}")
     except Exception as e:
