@@ -1,0 +1,478 @@
+{
+  "dashboard": {
+    "title": "Project Chimera - Audience Engagement",
+    "tags": ["chimera", "audience", "engagement", "business"],
+    "timezone": "UTC",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Audience Sentiment Trend",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "sentiment_audience_avg{time_window=\"5m\"}",
+            "legendFormat": "{{show_id}} - 5m avg",
+            "refId": "A"
+          },
+          {
+            "expr": "avg_over_time(sentiment_audience_avg{time_window=\"1m\"}[5m])",
+            "legendFormat": "{{show_id}} - smoothed",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "min": -1,
+            "max": 1,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": -1},
+                {"color": "orange", "value": -0.3},
+                {"color": "yellow", "value": 0.3},
+                {"color": "green", "value": 0.7}
+              ]
+            }
+          }
+        },
+        "options": {
+          "legend": {"displayMode": "table", "placement": "bottom"}
+        }
+      },
+      {
+        "id": 2,
+        "title": "Current Audience Sentiment",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "sentiment_audience_avg{time_window=\"1m\"}",
+            "legendFormat": "Sentiment Score",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "min": -1,
+            "max": 1,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": -1},
+                {"color": "orange", "value": -0.3},
+                {"color": "yellow", "value": 0.3},
+                {"color": "green", "value": 0.7}
+              ]
+            },
+            "mappings": [
+              {
+                "type": "range",
+                "options": {
+                  "from": -1,
+                  "to": -0.3,
+                  "result": {"text": "Negative", "color": "red"}
+                }
+              },
+              {
+                "type": "range",
+                "options": {
+                  "from": -0.3,
+                  "to": 0.3,
+                  "result": {"text": "Neutral", "color": "yellow"}
+                }
+              },
+              {
+                "type": "range",
+                "options": {
+                  "from": 0.3,
+                  "to": 1,
+                  "result": {"text": "Positive", "color": "green"}
+                }
+              }
+            ]
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true
+        }
+      },
+      {
+        "id": 3,
+        "title": "Peak Engagement Moments",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 18, "y": 0},
+        "targets": [
+          {
+            "expr": "rate(sentiment_emotion_joy_total[5m])",
+            "legendFormat": "Joy spikes - {{show_id}}",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(sentiment_emotion_surprise_total[5m])",
+            "legendFormat": "Surprise spikes - {{show_id}}",
+            "refId": "B"
+          },
+          {
+            "expr": "sentiment_audience_avg",
+            "legendFormat": "Sentiment - {{show_id}}",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          }
+        },
+        "options": {
+          "legend": {"displayMode": "table", "placement": "bottom"},
+          "tooltip": {"mode": "multi"}
+        },
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.7], "type": "gt"},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Peak engagement detected!",
+          "name": "Peak Engagement Alert",
+          "noDataState": "no_data"
+        }
+      },
+      {
+        "id": 4,
+        "title": "Emotion Distribution",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "sum(sentiment_emotion_joy_total) by (show_id)",
+            "legendFormat": "Joy",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(sentiment_emotion_surprise_total) by (show_id)",
+            "legendFormat": "Surprise",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(sentiment_emotion_neutral_total) by (show_id)",
+            "legendFormat": "Neutral",
+            "refId": "C"
+          },
+          {
+            "expr": "sum(sentiment_emotion_sadness_total) by (show_id)",
+            "legendFormat": "Sadness",
+            "refId": "D"
+          },
+          {
+            "expr": "sum(sentiment_emotion_anger_total) by (show_id)",
+            "legendFormat": "Anger",
+            "refId": "E"
+          },
+          {
+            "expr": "sum(sentiment_emotion_fear_total) by (show_id)",
+            "legendFormat": "Fear",
+            "refId": "F"
+          }
+        ],
+        "options": {
+          "legend": {"displayMode": "table", "placement": "right"},
+          "pieType": "pie",
+          "tooltip": {"mode": "single"}}
+      },
+      {
+        "id": 5,
+        "title": "Caption Usage Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(captioning_delivered_total[5m])",
+            "legendFormat": "Captions/min - {{show_id}}",
+            "refId": "A"
+          },
+          {
+            "expr": "captioning_active_users",
+            "legendFormat": "Active users",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "options": {
+          "legend": {"displayMode": "table", "placement": "bottom"}
+        }
+      },
+      {
+        "id": 6,
+        "title": "Caption Usage Stats",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+        "targets": [
+          {
+            "expr": "sum(captioning_delivered_total)",
+            "legendFormat": "Total Captions",
+            "refId": "A"
+          },
+          {
+            "expr": "captioning_active_users",
+            "legendFormat": "Active Users",
+            "refId": "B"
+          },
+          {
+            "expr": "avg(captioning_accuracy_score)",
+            "legendFormat": "Avg Accuracy",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0,
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "options": {
+          "displayMode": "auto",
+          "orientation": "horizontal",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 7,
+        "title": "BSL Avatar Active Sessions",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "bsl_active_sessions",
+            "legendFormat": "Active Sessions",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(bsl_gestures_rendered_total[5m])",
+            "legendFormat": "Gestures/sec - {{show_id}}",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "options": {
+          "legend": {"displayMode": "table", "placement": "bottom"}
+        }
+      },
+      {
+        "id": 8,
+        "title": "BSL Avatar Performance",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "avg(bsl_avatar_frame_rate) by (session_id)",
+            "legendFormat": "Avg FPS - {{session_id}}",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(bsl_translation_latency_seconds_bucket[5m])) by (le))",
+            "legendFormat": "P95 Translation Latency",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(bsl_gestures_rendered_total)",
+            "legendFormat": "Total Gestures",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 1,
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 20},
+                {"color": "green", "value": 24}
+              ]
+            }
+          }
+        },
+        "options": {
+          "displayMode": "auto",
+          "orientation": "horizontal",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 9,
+        "title": "Sentiment vs Caption Usage Correlation",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+        "targets": [
+          {
+            "expr": "sentiment_audience_avg{time_window=\"5m\"}",
+            "legendFormat": "Sentiment - {{show_id}}",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(captioning_delivered_total[5m]) / 10",
+            "legendFormat": "Caption Rate (scaled) - {{show_id}}",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 0
+            }
+          }
+        },
+        "options": {
+          "legend": {"displayMode": "table", "placement": "bottom"}
+        }
+      },
+      {
+        "id": 10,
+        "title": "Show Engagement Summary",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "targets": [
+          {
+            "expr": "sentiment_audience_avg",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {"Time": true, "__name__": true},
+              "indexByName": {},
+              "renameByName": {
+                "show_id": "Show ID",
+                "time_window": "Time Window",
+                "Value": "Sentiment Score"
+              }
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": -1},
+                {"color": "orange", "value": -0.3},
+                {"color": "yellow", "value": 0.3},
+                {"color": "green", "value": 0.7}
+              ]
+            },
+            "custom": {"align": "left"}
+          }
+        },
+        "options": {}
+      },
+      {
+        "id": 11,
+        "title": "Caption Latency Distribution",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(captioning_latency_seconds_bucket[5m])) by (le, show_id))",
+            "legendFormat": "P50 - {{show_id}}",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(captioning_latency_seconds_bucket[5m])) by (le, show_id))",
+            "legendFormat": "P95 - {{show_id}}",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(captioning_latency_seconds_bucket[5m])) by (le, show_id))",
+            "legendFormat": "P99 - {{show_id}}",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "options": {
+          "legend": {"displayMode": "table", "placement": "bottom"}
+        }
+      },
+      {
+        "id": 12,
+        "title": "BSSL Translation Latency",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(bsl_translation_latency_seconds_bucket[5m])) by (le))",
+            "legendFormat": "P50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(bsl_translation_latency_seconds_bucket[5m])) by (le))",
+            "legendFormat": "P95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(bsl_translation_latency_seconds_bucket[5m])) by (le))",
+            "legendFormat": "P99",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          }
+        },
+        "options": {
+          "legend": {"displayMode": "table", "placement": "bottom"}
+        }
+      }
+    ]
+  }
+}
