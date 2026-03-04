@@ -1,0 +1,99 @@
+{
+  "dashboard": {
+    "title": "Project Chimera - System Overview",
+    "tags": ["chimera", "overview"],
+    "timezone": "UTC",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Cluster Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=~\"chimera-.*\"}",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{job=~\"chimera-.*\"}[5m])) by (job)",
+            "legendFormat": "{{job}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "P95 Latency",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Latency"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_errors_total[5m])) / sum(rate(http_requests_total[5m]))",
+            "legendFormat": "Error Rate"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Pod Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "kube_pod_status_phase{namespace=~\"chimera-.*\"}",
+            "legendFormat": "{{phase}}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "GPU Utilization",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "nvidia_gpu_utilization",
+            "legendFormat": "GPU"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100,
+            "min": 0
+          }
+        }
+      }
+    ]
+  }
+}

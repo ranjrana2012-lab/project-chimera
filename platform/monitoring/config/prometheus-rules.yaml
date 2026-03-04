@@ -1,0 +1,111 @@
+# Prometheus Alert Rules for Project Chimera
+
+groups:
+  - name: chimera_critical
+    interval: 30s
+    rules:
+      # Service is down
+      - alert: ServiceDown
+        expr: up{job=~"chimera-.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: |
+          rate(http_requests_errors_total{job=~"chimera-.*"}[5m]) 
+          / rate(http_requests_total{job=~"chimera-.*"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "High error rate for {{ $labels.job }}"
+          description: "Error rate is > 5% for more than 5 minutes"
+
+      # Quality gate failed
+      - alert: QualityGateFailed
+        expr: quality_gate_status{gate_id=~".+"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Quality gate failed"
+          description: "Quality gate {{ $labels.gate_id }} has failed"
+
+  - name: chimera_warnings
+    interval: 30s
+    rules:
+      # High latency
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(http_request_duration_seconds_bucket{job=~"chimera-.*"}[5m])) by (le, job)
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "High P95 latency for {{ $labels.job }}"
+          description: "P95 latency is > 2s for more than 10 minutes"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          container_memory_usage_bytes{namespace=~"chimera-.*"} 
+          / container_spec_memory_limit_bytes{namespace=~"chimera-.*"} > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage for {{ $labels.pod }}"
+          description: "Memory usage is > 90% for more than 10 minutes"
+
+      # GPU saturation
+      - alert: GPUSaturation
+        expr: nvidia_gpu_utilization > 0.95
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU utilization is very high"
+          description: "GPU utilization has been > 95% for more than 15 minutes"
+
+      # Flaky tests detected
+      - alert: FlakyTestsDetected
+        expr: flaky_test_rate > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Flaky tests detected"
+          description: "Flaky test rate is > 5%"
+
+  - name: chimera_info
+    interval: 1m
+    rules:
+      # New deployment
+      - alert: NewDeployment
+        expr: |
+          count_changes(kube_pod_info{namespace=~"chimera-.*", pod_template_hash=~".+"}[5m]) > 0
+        labels:
+          severity: info
+        annotations:
+          summary: "New deployment detected"
+          description: "A new deployment has been detected in {{ $labels.namespace }}"
+
+      # Quality gate passed
+      - alert: QualityGatePassed
+        expr: quality_gate_status{gate_id=~".+"} == 1
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "Quality gate passed"
+          description: "Quality gate {{ $labels.gate_id }} has passed"

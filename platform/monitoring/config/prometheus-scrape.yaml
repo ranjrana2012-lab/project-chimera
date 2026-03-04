@@ -1,0 +1,196 @@
+# Prometheus Scrape Configuration for Project Chimera
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'chimera-k3s'
+    environment: 'production'
+
+scrape_configs:
+  # Chimera services
+  - job_name: 'chimera-openclaw'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live, chimera-preprod]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: openclaw
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8000
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+
+  - job_name: 'chimera-scenespeak'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live, chimera-preprod]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: scenespeak
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8001
+
+  - job_name: 'chimera-captioning'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live, chimera-preprod]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: captioning
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8002
+
+  - job_name: 'chimera-bsl'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live, chimera-preprod]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: bsl
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8003
+
+  - job_name: 'chimera-sentiment'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live, chimera-preprod]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: sentiment
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8004
+
+  - job_name: 'chimera-lighting'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live, chimera-preprod]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: lighting
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8005
+
+  - job_name: 'chimera-safety'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live, chimera-preprod]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: safety
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8006
+
+  - job_name: 'chimera-console'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live, chimera-preprod]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: console
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8007
+
+  # Platform services
+  - job_name: 'chimera-test-orchestrator'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: test-orchestrator
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8011
+
+  - job_name: 'chimera-dashboard'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: dashboard
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8010
+
+  - job_name: 'chimera-cicd-gateway'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: cicd-gateway
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8012
+
+  - job_name: 'chimera-quality-gate'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [chimera-live]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: quality-gate
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:8013
+
+  # Kubernetes components
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.*):10250'
+        target_label: __address__
+        replacement: '${1}:9100'
+
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
