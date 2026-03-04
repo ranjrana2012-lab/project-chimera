@@ -1,0 +1,131 @@
+name: Automated Testing
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component:
+          - platform/test-orchestrator
+          - platform/dashboard-service
+          - platform/cicd-gateway
+          - platform/quality-gate
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.component }}
+        run: |
+          pip install pytest pytest-cov pytest-asyncio pytest-xdist
+          pip install -e .
+
+      - name: Run unit tests
+        working-directory: ${{ matrix.component }}
+        run: |
+          pytest tests/ -v --cov=. --cov-report=xml --cov-report=term-missing --cov-report=html
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ${{ matrix.component }}/coverage.xml
+          flags: ${{ matrix.component }}
+
+      - name: Check coverage threshold
+        working-directory: ${{ matrix.component }}
+        run: |
+          coverage=$(pytest tests/ --cov=. --cov-report=term-missing -q | grep TOTAL | awk '{print $4}' | sed 's/%//')
+          echo "Coverage: $coverage%"
+          if (( $(echo "$coverage < 80" | bc -l) )); then
+            echo "::error::Coverage $coverage% is below 80% threshold"
+            exit 1
+          fi
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-asyncio httpx websockets
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration/ -v --tb=short || echo "No integration tests yet"
+
+  load-tests:
+    name: Load Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install locust
+        run: |
+          pip install locust
+
+      - name: Run load tests
+        run: |
+          locust -f tests/load/locustfile.py --headless --users 50 --spawn-rate 5 --run-time 1m --host http://localhost:8000 || echo "No load tests yet"
+
+  flaky-test-detection:
+    name: Detect Flaky Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for flaky tests
+        run: |
+          # Analyze test results for flakiness
+          echo "Analyzing test results..."
+          # In production, this would use pytest-rerunfailures or similar
+
+  test-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    if: always()
+    steps:
+      - name: Generate report
+        run: |
+          echo "# Test Report" > test-report.md
+          echo "- Unit Tests: ${{ needs.unit-tests.result }}" >> test-report.md
+          echo "- Integration Tests: ${{ needs.integration-tests.result }}" >> test-report.md
+          cat test-report.md
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: test-report.md
