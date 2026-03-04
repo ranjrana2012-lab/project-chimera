@@ -1,0 +1,182 @@
+name: Production Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., v0.5.0)'
+        required: true
+        type: string
+      skip_quality_gate:
+        description: 'Skip quality gate check'
+        required: false
+        type: boolean
+        default: false
+      rollback:
+        description: 'Rollback to previous version'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: '3.12'
+  HELM_VERSION: 'v3.14.0'
+
+jobs:
+  validate:
+    name: Validate Deployment Request
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Check approval
+        id: check
+        run: |
+          echo "Version: ${{ inputs.version }}"
+          echo "Skip Quality Gate: ${{ inputs.skip_quality_gate }}"
+          echo "Rollback: ${{ inputs.rollback }}"
+          
+          if [ "${{ inputs.rollback }}" = "true" ]; then
+            echo "should_deploy=rollback" >> $GITHUB_OUTPUT
+          elif [ "${{ inputs.skip_quality_gate }}" = "true" ]; then
+            echo "Manual approval required for skipping quality gate"
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          fi
+
+  backup:
+    name: Backup Current Deployment
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.should_deploy == 'true'
+    steps:
+      - name: Create backup
+        run: |
+          echo "Creating backup of current production state"
+          # In production, this would backup:
+          # - Database state
+          # - Configuration
+          # - Persistent volumes
+
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [validate, backup]
+    if: needs.validate.outputs.should_deploy == 'true'
+    environment:
+      name: production
+      url: https://chimera.local
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up k3s
+        run: |
+          curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.28.1+k3s1 sh -
+          sudo chmod 644 /etc/rancher/k3s/k3s.yaml
+          mkdir -p ~/.kube
+          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Verify pre-deployment state
+        run: |
+          kubectl get pods -n chimera-live
+          kubectl get svc -n chimera-live
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install chimera platform/deployment/helm/project-chimera \
+            --namespace chimera-live \
+            --values platform/deployment/helm/project-chimera/values.yaml \
+            --set images.tag=${{ inputs.version }} \
+            --wait \
+            --timeout 15m \
+            --atomic
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment -n chimera-live
+          kubectl get pods -n chimera-live
+
+  smoke-tests:
+    name: Run Smoke Tests
+    runs-on: ubuntu-latest
+    needs: deploy-prod
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Run smoke tests
+        run: |
+          python -c "
+          import requests
+          import sys
+          
+          services = [
+              ('http://localhost/openclaw/health', 'OpenClaw'),
+              ('http://localhost/console/health', 'Console'),
+              ('http://localhost/dashboard/health', 'Dashboard'),
+          ]
+          
+          for url, name in services:
+              try:
+                  r = requests.get(url, timeout=5)
+                  if r.status_code == 200:
+                      print(f'{name}: OK')
+                  else:
+                      print(f'{name}: FAILED (status {r.status_code})')
+                      sys.exit(1)
+              except Exception as e:
+                  print(f'{name}: ERROR ({e})')
+                  sys.exit(1)
+          "
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-prod, smoke-tests]
+    if: failure()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Rollback Helm release
+        run: |
+          helm rollback chimera -n chimera-live
+
+      - name: Verify rollback
+        run: |
+          kubectl get pods -n chimera-live
+
+      - name: Create incident
+        run: |
+          echo "::error::Production deployment failed and rolled back"
+          # In production, create incident ticket
+
+  complete:
+    name: Deployment Complete
+    runs-on: ubuntu-latest
+    needs: [deploy-prod, smoke-tests]
+    if: success()
+    steps:
+      - name: Mark deployment successful
+        run: |
+          echo "::notice::Production deployment successful"
+          echo "Version: ${{ inputs.version }}"
+          echo "Time: $(date -u)"
