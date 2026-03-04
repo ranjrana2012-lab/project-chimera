@@ -1,0 +1,73 @@
+# SLO Alerting Rules for Project Chimera
+#
+# These alerting rules define when to fire alerts based on SLO burn rate and
+# error budget exhaustion. Following Google SRE practices:
+# - Burn rate warning at 2x: investigate, consider deployment freeze
+# - Burn rate critical at 10x: page on-call, block deployments immediately
+#
+# Full specification: docs/plans/2026-03-04-production-observability-implementation.md
+
+groups:
+- name: chimera.slo.alerting
+  interval: 1m
+  rules:
+  # SLO breach - burn rate warning (2x)
+  # Alert when error budget is burning at 2x the normal rate
+  - alert: ErrorBudgetBurnRateWarning
+    expr: slo:error_burn_rate > 2
+    for: 5m
+    labels:
+      severity: warning
+      category: slo
+    annotations:
+      summary: "Error budget burning 2x faster than normal"
+      description: "Service {{ $labels.service }} error budget burn rate is {{ $value }}x"
+      runbook: "https://docs/runbooks/slo-response.html#burn-rate"
+      action: "Assess impact, consider deployment freeze"
+
+  # SLO breach - burn rate critical (10x)
+  # Alert when error budget is burning at 10x the normal rate
+  - alert: ErrorBudgetBurnRateCritical
+    expr: slo:error_burn_rate > 10
+    for: 1m
+    labels:
+      severity: critical
+      category: slo
+    annotations:
+      summary: "Error budget burning 10x faster than normal"
+      description: "Service {{ $labels.service }} is consuming error budget at {{ $value }}x"
+      runbook: "https://docs/runbooks/slo-response.html#burn-rate"
+      action: "Block deployments, page on-call, investigate immediately"
+
+  # SLO not met
+  # Alert when any service SLO falls below its target threshold
+  - alert: SLONotMet
+    expr: |
+      slo:orchestration_success_rate:30d < 0.999
+      or slo:generation_success_rate:30d < 0.995
+      or slo:captioning_delivery_rate:30d < 0.995
+      or slo:bsl_translation_rate:30d < 0.99
+      or slo:safety_availability:30d < 0.999
+    for: 5m
+    labels:
+      severity: critical
+      category: slo
+    annotations:
+      summary: "SLO not met for {{ $labels.service }}"
+      description: "{{ $labels.service }} SLO compliance is {{ $value | humanizePercentage }}"
+      runbook: "https://docs/runbooks/slo-response.html#slo-breach"
+      action: "Block all deployments, investigate root cause"
+
+  # Error budget exhausted (less than 10% remaining)
+  # Alert when error budget is nearly depleted
+  - alert: ErrorBudgetExhausted
+    expr: slo:error_budget_remaining:30d < 0.10
+    for: 1m
+    labels:
+      severity: critical
+      category: slo
+    annotations:
+      summary: "Error budget nearly exhausted for {{ $labels.service }}"
+      description: "Only {{ $value | humanizePercentage }} budget remaining"
+      runbook: "https://docs/runbooks/slo-response.html#budget-exhausted"
+      action: "Block deployments, emergency review required"
