@@ -22,7 +22,7 @@ permissions:
 jobs:
   create-onboarding-issues:
     runs-on: ubuntu-latest
-    if: github.event.inputs.create_issues == 'true'
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.create_issues == 'true' || github.event.inputs.create_issues == '')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
