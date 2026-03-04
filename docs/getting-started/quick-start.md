@@ -1,9 +1,9 @@
 # Student Quick Start Guide
 ## Project Chimera: Development Environment Setup
 
-**Version:** 2.0.0
+**Version:** 3.0.0
 **Audience:** AI Students joining Project Chimera
-**Last Updated:** February 2026
+**Last Updated:** March 2026
 
 ---
 
@@ -19,24 +19,27 @@ As an AI student contributor, you may work on:
 - **AI Agents:** Containerised services for dialogue generation, captioning, sentiment analysis, BSL translation
 - **Model Pipelines:** Fine-tuning, evaluation, and inference optimisation
 - **Infrastructure:** Kubernetes manifests, CI/CD pipelines, monitoring
+- **Platform Services:** Quality platform including test orchestration, dashboards, CI/CD gateway
+- **Performance Optimization:** Profiling, caching, resource monitoring
 - **Testing:** Unit tests, integration tests, load tests, safety tests
+- **Documentation:** API docs, runbooks, architecture documentation
 
 ### Student Role Assignments
 
 Project Chimera is divided into 10 focus areas. Each student will be assigned ownership of one component:
 
-| # | Role | Component | Description |
-|---|------|-----------|-------------|
-| 1 | OpenClaw Orchestrator Lead | `openclaw-orchestrator` | Skill routing, agent coordination |
-| 2 | SceneSpeak Agent Lead | `scenespeak-agent` | LLM dialogue generation |
-| 3 | Captioning Agent Lead | `captioning-agent` | Speech-to-text, live captions |
-| 4 | BSL Translation Lead | `bsl-text2gloss-agent` | Text-to-BSL gloss translation |
-| 5 | Sentiment Analysis Lead | `sentiment-agent` | Audience emotion analysis |
-| 6 | Lighting Control Lead | `lighting-control` | DMX/sACN lighting integration |
-| 7 | Safety Filter Lead | `safety-filter` | Content moderation, guardrails |
-| 8 | Operator Console Lead | `operator-console` | Human oversight interface |
-| 9 | Infrastructure & DevOps Lead | `infrastructure/` | k3s, Kubernetes, monitoring |
-| 10 | QA & Documentation Lead | `tests/`, `docs/`, `platform/` | Testing, QA, Quality Platform |
+| # | Role | Component | Port | Description |
+|---|------|-----------|------|-------------|
+| 1 | OpenClaw Orchestrator Lead | `openclaw-orchestrator` | 8000 | Skill routing, agent coordination |
+| 2 | SceneSpeak Agent Lead | `scenespeak-agent` | 8001 | LLM dialogue generation with LoRA adapters |
+| 3 | Captioning Agent Lead | `captioning-agent` | 8002 | Speech-to-text, live captions |
+| 4 | BSL Translation Lead | `bsl-agent` | 8003 | Text-to-BSL gloss + avatar rendering |
+| 5 | Sentiment Analysis Lead | `sentiment-agent` | 8004 | Audience emotion analysis |
+| 6 | Lighting Control Lead | `lighting-service` | 8005 | DMX/sACN lighting integration |
+| 7 | Safety Filter Lead | `safety-filter` | 8006 | ML-based multi-layer content moderation |
+| 8 | Operator Console Lead | `operator-console` | 8007 | Real-time oversight dashboard with WebSocket updates |
+| 9 | Infrastructure & DevOps Lead | `infrastructure/` | - | k3s, Kubernetes, monitoring, CI/CD |
+| 10 | QA & Documentation Lead | `platform/` | 8010-8013 | Test orchestration, dashboard, CI/CD gateway, quality gate |
 
 ---
 
@@ -211,41 +214,42 @@ xdg-open htmlcov/index.html  # Linux
 project-chimera/
 ├── services/                    # AI Service Implementations
 │   ├── openclaw-orchestrator/   # Skill orchestration (port 8000)
-│   ├── scenespeak-agent/        # Dialogue generation (port 8001)
+│   ├── scenespeak-agent/        # Dialogue generation (port 8001) + LoRA adapters
 │   ├── captioning-agent/        # Speech-to-text (port 8002)
-│   ├── bsl-text2gloss-agent/    # BSL translation (port 8003)
+│   ├── bsl-agent/               # BSL translation (port 8003) + avatar renderer
 │   ├── sentiment-agent/         # Sentiment analysis (port 8004)
-│   ├── lighting-control/        # DMX/sACN control (port 8005)
-│   ├── safety-filter/           # Content moderation (port 8006)
-│   └── operator-console/        # Human oversight (port 8007)
+│   ├── lighting-service/        # DMX/sACN control (port 8005)
+│   ├── safety-filter/           # ML-based safety (port 8006) + multi-layer filtering
+│   └── operator-console/        # Human oversight (port 8007) + real-time updates
+├── platform/                    # Chimera Quality Platform (NEW)
+│   ├── test-orchestrator/       # Test orchestration (port 8011)
+│   ├── dashboard-service/       # Quality dashboard (port 8010)
+│   ├── cicd-gateway/           # CI/CD webhook gateway (port 8012)
+│   ├── quality-gate/            # Quality threshold enforcement
+│   ├── shared/                 # Shared utilities
+│   ├── deployment/             # Helm charts, deployment scripts
+│   ├── monitoring/             # Prometheus configs, Grafana dashboards
+│   └── perf-optimizer/         # Performance profiling utilities
 ├── skills/                      # OpenClaw skill definitions
-│   ├── scenespeak-skill/
-│   ├── captioning-skill/
-│   ├── bsl-text2gloss-skill/
-│   ├── sentiment-skill/
-│   ├── lighting-control-skill/
-│   ├── safety-filter-skill/
-│   └── operator-console-skill/
 ├── models/                      # AI models and prompts
 │   ├── prompts/                 # LLM prompt templates
-│   └── lora-adapters/           # Fine-tuned adapters
+│   └── lora-adapters/           # Fine-tuned LoRA adapters
 ├── infrastructure/              # Kubernetes configurations
-│   └── kubernetes/
-│       ├── base/                # Base manifests
-│       └── overlays/            # Environment overlays
-├── scripts/
-│   └── bootstrap/               # Bootstrap scripts
-├── tests/                       # Test suites
+│   └── kubernetes/              # Helm charts for deployment
+├── scripts/                     # Automation scripts
+│   ├── bootstrap/               # Bootstrap scripts
+│   ├── operations/              # Deployment and runbook scripts
+│   └── cicd/pipelines/          # CI/CD pipeline scripts
+├── tests/                       # Test suites (300+ tests passing)
+│   ├── platform/                # Platform service tests
+│   └── services/                # Service tests
 ├── docs/                        # Documentation
-├── platform/                    # Chimera Quality Platform
-│   ├── orchestrator/            # Test orchestration service
-│   ├── dashboard/               # Quality dashboard service
-│   ├── ci_gateway/              # CI/CD webhook gateway
-│   ├── shared/                  # Shared utilities and models
-│   ├── database/                # Database schema
-│   ├── testengines/             # Advanced test engines
-│   └── tests/                   # Platform tests
-└── Makefile                     # Build automation
+│   ├── getting-started/         # Student guides
+│   ├── architecture/            # Architecture decisions
+│   ├── api/                     # API documentation
+│   └── runbooks/                # Operations runbooks
+└── .github/                     # GitHub workflows
+    └── workflows/              # CI/CD, PR validation, automated tests
 ```
 
 ---
@@ -500,48 +504,227 @@ open http://localhost:8007
 
 ---
 
+## New Features in v3.0.0
+
+Project Chimera v3.0.0 introduces significant enhancements across multiple services:
+
+### Performance Optimization
+
+The `platform/perf-optimizer/` module provides performance profiling and optimization utilities:
+
+```python
+from platform.perf_optimizer.performance import PerformanceProfiler, CacheManager
+
+# Profile function performance
+profiler = PerformanceProfiler()
+
+@profiler.profile("dialogue_generation")
+def generate_dialogue(context):
+    # Your code here
+    pass
+
+# View profiling results
+print(profiler.get_results())
+# {'dialogue_generation': {'calls': 100, 'avg_time': 0.05, 'max_time': 0.12}}
+
+# Use caching for expensive operations
+cache = CacheManager(redis_url="redis://localhost:6379")
+
+@cache.cached(ttl=300)
+def expensive_computation(input_data):
+    # Cached for 5 minutes
+    return complex_calculation(input_data)
+```
+
+### SceneSpeak LoRA Adapters
+
+SceneSpeak now supports LoRA (Low-Rank Adaptation) adapters for efficient model fine-tuning:
+
+```bash
+# List available adapters
+curl http://localhost:8001/v1/adapters
+
+# Load a specific adapter
+curl -X POST http://localhost:8001/v1/adapters/load \
+  -H "Content-Type: application/json" \
+  -d '{"name": "dramatic-theatre"}'
+
+# Switch between adapters
+curl -X POST http://localhost:8001/v1/adapters/switch \
+  -H "Content-Type: application/json" \
+  -d '{"from": "dramatic-theatre", "to": "comedy"}'
+
+# Generate with loaded adapter
+curl -X POST http://localhost:8001/v1/generate \
+  -H "Content-Type: application/json" \
+  -d '{"context": "Scene: A garden", "adapter": "dramatic-theatre"}'
+```
+
+### Multi-Layer Safety Filtering
+
+The safety filter now uses three-layer filtering for better content moderation:
+
+1. **Pattern Matching** - Blocks known harmful patterns
+2. **ML Classification** - Classifies content into toxic/hateful/sexual/violent categories
+3. **Context-Aware Analysis** - Transformer-based context understanding
+
+```bash
+# Test safety filtering
+curl -X POST http://localhost:8006/api/v1/check \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Test message",
+    "conversation_history": [
+      {"user": "Hello"},
+      {"assistant": "Hi there!"}
+    ]
+  }'
+
+# Response:
+# {
+#   "action": "allow",
+#   "layer": "audit",
+#   "confidence": 1.0,
+#   "reason": "Content passed all safety checks"
+# }
+```
+
+### BSL Avatar Rendering
+
+BSL agent now includes real-time avatar rendering for sign language visualization:
+
+```bash
+# Queue text for avatar signing
+curl -X POST http://localhost:8003/api/v1/avatar/sign \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello, welcome to the theatre!",
+    "session_id": "user123"
+  }'
+
+# Get avatar state
+curl http://localhost:8003/api/v1/avatar/state?session_id=user123
+
+# Response:
+# {
+#   "state": "signing",
+#   "current_gesture": {...},
+#   "metrics": {
+#     "frames_rendered": 150,
+#     "avg_frame_time": 0.033
+#   }
+# }
+```
+
+### Real-Time Console Updates
+
+Operator console now supports WebSocket-based real-time updates:
+
+```javascript
+// Connect to WebSocket
+const ws = new WebSocket('ws://localhost:8007/ws/realtime');
+
+// Subscribe to metrics
+ws.send(JSON.stringify({
+  action: 'subscribe',
+  channels: ['metrics:scenespeak-agent', 'alerts']
+}));
+
+// Receive updates
+ws.onmessage = (event) => {
+  const update = JSON.parse(event.data);
+  console.log(update);
+  // {
+  //   "type": "metric",
+  //   "service": "scenespeak-agent",
+  //   "metric": "cpu_percent",
+  //   "value": 45.2,
+  //   "unit": "%"
+  // }
+};
+```
+
+---
+
 ## Quality Platform Services
 
-### Test Orchestrator (Port 8008)
+The Chimera Quality Platform provides comprehensive testing, monitoring, and quality assurance tools:
+
+### Dashboard Service (Port 8010)
+
+Web-based quality dashboards and visualization:
 
 ```bash
 # Port forward to local
-kubectl port-forward -n quality svc/orchestrator 8008:8008
-
-# Access API
-curl http://localhost:8008/health
-
-# View logs
-kubectl logs -f -n quality deployment/orchestrator
-```
-
-### Dashboard Service (Port 8009)
-
-```bash
-# Port forward to local
-kubectl port-forward -n quality svc/dashboard 8009:8009
+kubectl port-forward -n quality svc/dashboard-service 8010:8010
 
 # Access web interface
-open http://localhost:8009
+open http://localhost:8010
+
+# View logs
+kubectl logs -f -n quality deployment/dashboard-service
 ```
 
-### CI/CD Gateway (Port 8010)
+### Test Orchestrator (Port 8011)
+
+Test discovery, execution, and reporting:
 
 ```bash
 # Port forward to local
-kubectl port-forward -n quality svc/ci-gateway 8010:8010
+kubectl port-forward -n quality svc/test-orchestrator 8011:8011
 
-# Test webhook endpoint
-curl -X POST http://localhost:8010/health
+# Run all tests
+curl -X POST http://localhost:8011/api/v1/tests/run
+
+# Run specific test suite
+curl -X POST http://localhost:8011/api/v1/tests/run \
+  -H "Content-Type: application/json" \
+  -d '{"suite": "unit", "module": "services/scenespeak-agent"}'
+
+# Get test results
+curl http://localhost:8011/api/v1/results/latest
+```
+
+### CI/CD Gateway (Port 8012)
+
+GitHub/GitLab webhook integration for CI/CD:
+
+```bash
+# Port forward to local
+kubectl port-forward -n quality svc/cicd-gateway 8012:8012
+
+# Test health
+curl http://localhost:8012/health
+
+# Trigger deployment manually
+curl -X POST http://localhost:8012/api/v1/deploy \
+  -H "Content-Type: application/json" \
+  -d '{"environment": "staging", "ref": "main"}'
+```
+
+### Quality Gate (Port 8013)
+
+Quality threshold enforcement and reporting:
+
+```bash
+# Port forward to local
+kubectl port-forward -n quality svc/quality-gate 8013:8013
+
+# Check quality gate status
+curl http://localhost:8013/api/v1/gate/check
+
+# Get quality metrics
+curl http://localhost:8013/api/v1/metrics
 ```
 
 **Platform Quick Reference:**
 
 | Component | Port | Description |
 |-----------|-----|-------------|
-| Test Orchestrator | 8008 | Test discovery and execution |
-| Dashboard Service | 8009 | Quality dashboards and visualization |
-| CI/CD Gateway | 8010 | GitHub/GitLab webhook integration |
+| Dashboard Service | 8010 | Quality dashboards and visualization |
+| Test Orchestrator | 8011 | Test discovery and execution |
+| CI/CD Gateway | 8012 | GitHub/GitLab webhook integration |
+| Quality Gate | 8013 | Quality threshold enforcement |
 
 **Running Platform Tests:**
 
@@ -555,6 +738,30 @@ pytest tests/unit/ --cov=platform --cov-report=html
 
 # View coverage report
 xdg-open htmlcov/index.html
+```
+
+**Testing New Features:**
+
+```bash
+# Test performance optimizer
+cd platform/perf-optimizer
+python -m pytest tests/ -v
+
+# Test LoRA adapters
+cd services/scenespeak-agent
+python -m pytest tests/test_lora_adapter.py -v
+
+# Test ML safety filter
+cd services/safety-filter
+python -m pytest tests/test_ml_safety.py -v
+
+# Test BSL avatar renderer
+cd services/bsl-agent
+python -m pytest tests/test_avatar_renderer.py -v
+
+# Test real-time updates
+cd services/operator-console
+python -m pytest tests/test_realtime_updates.py -v
 ```
 
 ---
@@ -848,13 +1055,17 @@ After completing this setup:
 | Service | Local Port | Description |
 |---------|-----------|-------------|
 | OpenClaw | 8000 | Orchestrator API |
-| SceneSpeak | 8001 | Dialogue generation |
+| SceneSpeak | 8001 | Dialogue generation (with LoRA adapters) |
 | Captioning | 8002 | Speech-to-text |
-| BSL-Text2Gloss | 8003 | BSL translation |
+| BSL-Text2Gloss | 8003 | BSL translation + avatar rendering |
 | Sentiment | 8004 | Sentiment analysis |
 | Lighting | 8005 | DMX/sACN control |
-| Safety Filter | 8006 | Content moderation |
-| Operator Console | 8007 | Oversight UI |
+| Safety Filter | 8006 | ML-based multi-layer content moderation |
+| Operator Console | 8007 | Oversight UI with WebSocket updates |
+| Dashboard Service | 8010 | Quality platform dashboards |
+| Test Orchestrator | 8011 | Test discovery and execution |
+| CI/CD Gateway | 8012 | GitHub/GitLab webhook integration |
+| Quality Gate | 8013 | Quality threshold enforcement |
 | Grafana | 3000 | Monitoring dashboards |
 | Prometheus | 9090 | Metrics |
 | Jaeger | 16686 | Distributed tracing |
