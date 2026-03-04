@@ -21,6 +21,9 @@ from core.translation import (
     translate_and_enrich
 )
 
+# Import business metrics to register them with Prometheus
+import core.business_metrics
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
