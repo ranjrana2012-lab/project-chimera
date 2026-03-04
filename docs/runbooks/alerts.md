@@ -283,7 +283,266 @@ This document outlines standard procedures for responding to alerts from the Pro
 - After any alert rule changes
 - After monitoring system upgrades
 
+## AlertManager Procedures
+
+### AlertManager Overview
+
+AlertManager is responsible for deduplicating, grouping, and routing alerts to the appropriate receivers (Slack channels, email, etc.). It handles alert silencing, inhibition, and notification management.
+
+**Access AlertManager:**
+- Web UI: `http://alertmanager.shared.svc.cluster.local:9093` (from cluster)
+- Web UI: `http://localhost:9093` (after port-forward)
+- API: `http://alertmanager.shared.svc.cluster.local:9093/api/v2`
+
+### AlertManager Alert Workflow
+
+1. **Prometheus fires alert** → AlertManager receives it
+2. **Grouping** → Similar alerts grouped together
+3. **Inhibition** → Dependent alerts suppressed
+4. **Silencing** → Matched alerts silenced
+5. **Routing** → Sent to appropriate receiver
+6. **Notification** → Delivered via Slack/email/PagerDuty
+
+### Managing Alert Silences
+
+Silences temporarily mute alerts matching specific criteria. Use silences during:
+- Planned maintenance windows
+- Known issues being worked on
+- Deployment activities
+- Testing/debugging
+
+#### Creating Silences via Web UI
+
+1. Access AlertManager UI: `kubectl port-forward -n shared svc/alertmanager 9093:9093`
+2. Navigate to http://localhost:9093
+3. Click "Silence" → "New Silence"
+4. Configure matcher(s):
+   - **alertname**: Name of the alert to silence
+   - **service**: Specific service
+   - **severity**: Alert severity level
+5. Set duration and optional comment
+6. Click "Create"
+
+#### Creating Silences via CLI/API
+
+```bash
+# Set AlertManager URL
+export ALERTMANAGER_URL="http://alertmanager.shared.svc.cluster.local:9093"
+
+# Silence a specific alert for 1 hour
+curl -s -X POST "$ALERTMANAGER_URL/api/v2/silences" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "matchers": [
+      {"name": "alertname", "value": "SceneSpeakHighErrorRate", "isRegex": false}
+    ],
+    "startsAt": "'$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)'",
+    "endsAt": "'$(date -u -d '+1 hour' +%Y-%m-%dT%H:%M:%S.%3NZ)'",
+    "createdBy": "oncall@example.com",
+    "comment": "Maintenance window - investigating GPU issue"
+  }' | jq .
+
+# Silence all warnings for a service
+curl -s -X POST "$ALERTMANAGER_URL/api/v2/silences" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "matchers": [
+      {"name": "service", "value": "scenespeak-agent", "isRegex": false},
+      {"name": "severity", "value": "warning", "isRegex": false}
+    ],
+    "startsAt": "'$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)'",
+    "endsAt": "'$(date -u -d '+2 hours' +%Y-%m-%dT%H:%M:%S.%3NZ)'",
+    "createdBy": "oncall@example.com",
+    "comment": "Planned deployment - ignore warnings"
+  }'
+
+# Silence with regex pattern (silence multiple alerts)
+curl -s -X POST "$ALERTMANAGER_URL/api/v2/silences" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "matchers": [
+      {"name": "alertname", "value": ".*HighLatency", "isRegex": true}
+    ],
+    "startsAt": "'$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)'",
+    "endsAt": "'$(date -u -d '+30 minutes' +%Y-%m-%dT%H:%M:%S.%3NZ)'",
+    "createdBy": "oncall@example.com",
+    "comment": "Performance testing - ignore latency alerts"
+  }'
+```
+
+#### Viewing and Managing Silences
+
+```bash
+# List all active silences
+curl -s "$ALERTMANAGER_URL/api/v2/silences" | jq '.[] | select(.status.state == "active")'
+
+# List expired silences
+curl -s "$ALERTMANAGER_URL/api/v2/silences" | jq '.[] | select(.status.state == "expired")'
+
+# Get specific silence details
+SILENCE_ID="<silence_id>"
+curl -s "$ALERTMANAGER_URL/api/v2/silences/$SILENCE_ID" | jq .
+
+# Delete (expire) a silence
+curl -X DELETE "$ALERTMANAGER_URL/api/v2/silences/$SILENCE_ID"
+
+# View silences in browser
+echo "Open: http://localhost:9093/#/silences"
+```
+
+### Alert Notification Channels
+
+#### Slack Integration
+
+AlertManager sends notifications to Slack channels based on severity:
+
+| Receiver | Channel | Purpose |
+|----------|---------|---------|
+| critical-alerts | #chimera-critical | Critical alerts requiring immediate attention |
+| warning-alerts | #chimera-alerts | Warning and informational alerts |
+| default | #chimera-alerts | All other alerts |
+
+**Testing Slack Integration:**
+
+```bash
+# Trigger test alert
+kubectl exec -n shared deployment/prometheus -- \
+  wget -qO- --post-data='' \
+  'http://localhost:9090/api/v1/alerts' \
+  --header='Content-Type: application/json'
+
+# Verify AlertManager received it
+kubectl logs -n shared deployment/alertmanager --tail=50
+```
+
+### AlertManager Troubleshooting
+
+#### Alerts Not Firing
+
+1. Check Prometheus rules are loaded:
+   ```bash
+   kubectl exec -n shared deployment/prometheus -- \
+     wget -qO- http://localhost:9090/api/v1/rules | jq .
+   ```
+
+2. Check AlertManager is receiving from Prometheus:
+   ```bash
+   kubectl exec -n shared deployment/prometheus -- \
+     wget -qO- http://localhost:9090/api/v1/alertmanagers | jq .
+   ```
+
+3. Check AlertManager logs:
+   ```bash
+   kubectl logs -n shared deployment/alertmanager --tail=100
+   ```
+
+#### Notifications Not Delivered
+
+1. Check AlertManager status:
+   ```bash
+   kubectl port-forward -n shared svc/alertmanager 9093:9093
+   # Open http://localhost:9093/#/status
+   ```
+
+2. Verify webhook configuration:
+   ```bash
+   kubectl get configmap alertmanager-config -n shared -o yaml
+   ```
+
+3. Test webhook directly:
+   ```bash
+   # Test Slack webhook
+   curl -X POST $SLACK_WEBHOOK_URL \
+     -H 'Content-Type: application/json' \
+     -d '{"text":"Test notification from AlertManager"}'
+   ```
+
+### AlertManager Configuration
+
+**Location:** `platform/monitoring/config/alertmanager.yaml`
+
+**Key Settings:**
+- `group_wait`: Time to wait before sending first notification
+- `group_interval`: Time to wait before sending notification about new alerts
+- `repeat_interval`: Time to wait before resending notification
+- `resolve_timeout`: Time after which alerts are auto-resolved
+
+**Reloading Configuration:**
+
+```bash
+# Update ConfigMap
+kubectl create configmap alertmanager-config \
+  -n shared \
+  --from-file=platform/monitoring/config/alertmanager.yaml \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Restart AlertManager to pick up changes
+kubectl rollout restart deployment/alertmanager -n shared
+
+# Verify configuration loaded
+kubectl logs -n shared deployment/alertmanager --tail=20 | grep "Completed loading"
+```
+
+### Alert Inhibition
+
+AlertManager uses inhibition rules to suppress certain alerts when others are firing:
+
+```yaml
+# If a critical alert is firing, suppress warning alerts for same service
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  equal: ['alertname', 'service']
+```
+
+This prevents alert spam during major incidents.
+
+### Best Practices
+
+1. **Always add comments** to silences explaining why they were created
+2. **Set appropriate durations** - don't create permanent silences
+3. **Use specific matchers** - avoid broad silences that mute important alerts
+4. **Clean up expired silences** - review and remove them periodically
+5. **Document planned maintenance** - create silences before starting work
+6. **Test notification channels** - verify Slack/webhook integration regularly
+
+### AlertManager Alerting Flow Diagram
+
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│  Prometheus │────▶│ AlertManager │────▶│    Slack    │
+│  ( firing  )│     │ (grouping)   │     │ (#critical) │
+└─────────────┘     └──────────────┘     └─────────────┘
+                          │
+                          ├─── Inhibition (suppressed)
+                          │
+                          └─── Silences (muted)
+```
+
 ## Useful Commands
+
+### AlertManager Commands
+
+```bash
+# Port-forward to access AlertManager UI
+kubectl port-forward -n shared svc/alertmanager 9093:9093
+
+# Get all active silences
+export ALERTMANAGER_URL="http://alertmanager.shared.svc.cluster.local:9093"
+curl -s "$ALERTMANAGER_URL/api/v2/silences" | jq '.[] | select(.status.state == "active")'
+
+# Get AlertManager status
+curl -s "$ALERTMANAGER_URL/api/v2/status" | jq .
+
+# Get alert groups
+curl -s "$ALERTMANAGER_URL/api/v2/alerts/groups" | jq .
+
+# Get receiver information
+curl -s "$ALERTMANAGER_URL/api/v2/receivers" | jq .
+```
+
+### Prometheus Commands
 
 ```bash
 # Get alert status from Prometheus
@@ -294,16 +553,16 @@ kubectl exec -n shared deployment/prometheus -- \
 kubectl exec -n shared deployment/prometheus -- \
   wget -qO- http://localhost:9090/api/v1/alerts | jq '.data.alerts[] | select(.state=="firing")'
 
-# Silence an alert
-curl -X POST http://prometheus.shared.svc.cluster.local:9090/api/v1/silences \
-  -d '{"matchers":[{"name":"alertname","value":"SceneSpeakHighErrorRate"}],"startsAt":"now","duration":"1h"}'
-
 # View ServiceMonitor resources
 kubectl get servicemonitor -n shared
 
 # Check Prometheus targets
 kubectl exec -n shared deployment/prometheus -- \
   wget -qO- http://localhost:9090/api/v1/targets | jq .
+
+# Check Prometheus to AlertManager connectivity
+kubectl exec -n shared deployment/prometheus -- \
+  wget -qO- http://localhost:9090/api/v1/alertmanagers | jq .
 ```
 
 ## Contact Information
@@ -320,8 +579,10 @@ kubectl exec -n shared deployment/prometheus -- \
 - [Monitoring Runbook](monitoring.md)
 - [Incident Response](incident-response.md)
 - [Deployment Guide](deployment.md)
+- [AlertManager Documentation](https://prometheus.io/docs/alerting/latest/alertmanager/)
+- [AlertManager API](https://prometheus.io/docs/alerting/latest/api/)
 
 ---
 
-**Last Updated**: 2026-02-27
-**Version**: 1.0
+**Last Updated**: 2026-03-04
+**Version**: 2.0
