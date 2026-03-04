@@ -1,0 +1,78 @@
+# SLO Recording Rules for Project Chimera
+#
+# These rules calculate 30-day rolling Service Level Objectives (SLOs)
+# for all core services in the Chimera platform.
+#
+# SLO Targets:
+# - OpenClaw Orchestration: 99.9% success rate
+# - SceneSpeak Generation: 99.5% success rate
+# - Captioning Delivery: 99.5% delivery rate
+# - BSL Translation: 99% success rate
+# - Safety Filter: 99.9% availability
+#
+# Metrics are computed as 30-day rolling averages to provide
+# stable, long-term reliability measurements.
+
+groups:
+  - name: chimera.slo.recording
+    interval: 30s
+    rules:
+      # OpenClaw SLO: 99.9% success rate (30-day rolling)
+      # Measures the percentage of successful orchestration requests
+      - record: slo:orchestration_success_rate:30d
+        expr: |
+          sum(rate(orchestration_success_total{job="chimera-openclaw"}[30d]))
+          /
+          sum(rate(orchestration_total{job="chimera-openclaw"}[30d]))
+
+      # SceneSpeak SLO: 99.5% success rate (30-day rolling)
+      # Measures the percentage of successful dialogue generations
+      - record: slo:generation_success_rate:30d
+        expr: |
+          sum(rate(scenespeak_generation_success_total[30d]))
+          /
+          sum(rate(scenespeak_generation_total[30d]))
+
+      # Captioning SLO: 99.5% delivery rate (30-day rolling)
+      # Measures the percentage of captions successfully delivered
+      - record: slo:captioning_delivery_rate:30d
+        expr: |
+          sum(rate(captioning_delivered_total[30d]))
+          /
+          sum(rate(captioning_requested_total[30d]))
+
+      # BSL SLO: 99% success rate (30-day rolling)
+      # Measures the percentage of successful BSL translations
+      - record: slo:bsl_translation_rate:30d
+        expr: |
+          sum(rate(bsl_translation_success_total[30d]))
+          /
+          sum(rate(bsl_translation_total[30d]))
+
+      # Safety SLO: 99.9% availability (30-day rolling)
+      # Measures the percentage of successful safety filter checks
+      - record: slo:safety_availability:30d
+        expr: |
+          sum(rate(safety_filter_success_total[30d]))
+          /
+          sum(rate(safety_filter_total[30d]))
+
+      # Sentiment SLO: 99% success rate (30-day rolling)
+      # Measures the percentage of successful sentiment analyses
+      - record: slo:sentiment_success_rate:30d
+        expr: |
+          sum(rate(sentiment_analysis_success_total[30d]))
+          /
+          sum(rate(sentiment_analysis_total[30d]))
+
+      # Error budget remaining calculation (30-day)
+      # Shows what percentage of the error budget is still available
+      - record: slo:error_budget_remaining:30d
+        expr: |
+          (slo_target - slo_actual_success_rate) / slo_target
+
+      # Error burn rate calculation
+      # How fast the error budget is being consumed relative to normal
+      - record: slo:error_burn_rate
+        expr: |
+          (current_error_rate - allowed_error_rate) / allowed_error_rate
