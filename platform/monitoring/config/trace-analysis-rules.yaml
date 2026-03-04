@@ -1,0 +1,81 @@
+# Anomaly Detection Rules for Project Chimera
+# These rules detect unusual patterns in metrics that may indicate issues
+
+groups:
+- name: chimera.anomaly_detection
+  interval: 1m
+  rules:
+  # Latency anomaly - sudden spike
+  - alert: LatencyAnomalyDetected
+    expr: |
+      (
+        rate(request_duration_seconds_sum{service="scenespeak-agent"}[5m])
+        /
+        rate(request_duration_seconds_count{service="scenespeak-agent"}[5m])
+      )
+      >
+      (
+        avg_over_time(
+          rate(request_duration_seconds_sum{service="scenespeak-agent"}[1h])
+          /
+          rate(request_duration_seconds_count{service="scenespeak-agent"}[1h])
+        ) * 2
+      )
+    for: 5m
+    labels:
+      severity: warning
+      category: anomaly
+    annotations:
+      summary: "Latency anomaly detected for {{ $labels.service }}"
+      description: "Latency is 2x higher than 1-hour average"
+      investigation: "http://jaeger:16686/search?minDuration=2000&service={{ $labels.service }}"
+
+  # Error pattern spike
+  - alert: ErrorPatternAnomaly
+    expr: |
+      rate(error_pattern_total[5m])
+      >
+      avg_over_time(rate(error_pattern_total[1h])) * 3
+    for: 5m
+    labels:
+      severity: warning
+      category: anomaly
+    annotations:
+      summary: "Error rate spike detected"
+      description: "Error rate is 3x higher than hourly average"
+
+  # Unusual traffic drop
+  - alert: TrafficDropAnomaly
+    expr: |
+      rate(http_requests_total[5m])
+      <
+      avg_over_time(rate(http_requests_total[1h])) * 0.5
+    for: 10m
+    labels:
+      severity: warning
+      category: anomaly
+    annotations:
+      summary: "Unusual traffic drop for {{ $labels.service }}"
+      description: "Request rate is 50% below hourly average"
+
+  # Cache hit rate drop
+  - alert: CacheHitRateDrop
+    expr: |
+      (
+        sum(rate(cache_hits_total{service="scenespeak-agent"}[5m]))
+        /
+        (
+          sum(rate(cache_hits_total{service="scenespeak-agent"}[5m]))
+          +
+          sum(rate(cache_misses_total{service="scenespeak-agent"}[5m]))
+        )
+      )
+      <
+      0.5
+    for: 10m
+    labels:
+      severity: warning
+      category: performance
+    annotations:
+      summary: "Cache hit rate dropped below 50%"
+      description: "Investigate cache configuration or data"
