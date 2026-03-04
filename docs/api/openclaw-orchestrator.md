@@ -1,98 +1,157 @@
-# OpenClaw Orchestrator API
+# OpenClaw Orchestrator API Documentation
 
-Base URL: `http://openclaw-orchestrator.live.svc.cluster.local:8000`
+**Version:** 3.0.0
+**Base URL:** `http://localhost:8000`
+**Service:** Skill routing and agent coordination
 
-## Health Endpoints
+---
 
-### GET /health/live
-Liveness probe - checks if service is running.
+## Overview
 
-**Response:**
+OpenClaw Orchestrator routes requests to appropriate skills and coordinates between AI agents.
+
+---
+
+## Endpoints
+
+### 1. Orchestrate Request
+
+Execute orchestration through available skills.
+
+**Endpoint:** `POST /v1/orchestrate`
+
+**Request Body:**
+
 ```json
 {
-  "status": "healthy"
-}
-```
-
-### GET /health/ready
-Readiness probe - checks if service can accept traffic.
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "model_loaded": true,
-  "cache_connected": true
-}
-```
-
-## Orchestration Endpoints
-
-### POST /api/v1/orchestration/invoke
-Invoke a single skill.
-
-**Request:**
-```json
-{
-  "skill_name": "scenespeak",
+  "skill": "dialogue_generator",
   "input": {
-    "current_scene": {"title": "Scene 1"},
-    "dialogue_context": []
-  },
-  "timeout_ms": 3000
+    "scene_context": "A garden at sunset",
+    "sentiment": 0.7
+  }
 }
 ```
 
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `skill` | string | Yes | Name of the skill to invoke |
+| `input` | object | Yes | Skill-specific input data |
+| `context` | object | No | Additional orchestration context |
+
 **Response:**
+
 ```json
 {
-  "skill_name": "scenespeak",
-  "success": true,
-  "output": {
-    "proposed_lines": "CHARACTER: [Looking around] Hello world.",
-    "stage_cues": ["[LIGHTING: Warm blue wash]"]
+  "result": {
+    "dialogue": "ROMEO: What light through yonder window breaks?"
   },
-  "metadata": {...},
-  "latency_ms": 450
+  "skill_used": "dialogue_generator",
+  "execution_time": 0.15,
+  "metadata": {}
 }
 ```
 
-## Skills Endpoints
+---
 
-### GET /api/v1/skills
-List all available skills.
+### 2. List Available Skills
+
+Get list of all available skills.
+
+**Endpoint:** `GET /skills`
 
 **Response:**
+
 ```json
 {
   "skills": [
     {
-      "name": "scenespeak",
+      "name": "dialogue_generator",
+      "description": "Generate contextual dialogue",
       "version": "1.0.0",
-      "description": "Generates real-time dialogue",
+      "enabled": true
+    },
+    {
+      "name": "sentiment_analyzer",
+      "description": "Analyze audience sentiment",
+      "version": "1.0.0",
       "enabled": true
     }
   ],
-  "total": 7
+  "total": 10,
+  "enabled": 10
 }
 ```
 
-### GET /api/v1/skills/{name}
+---
+
+### 3. Get Skill Metadata
+
 Get metadata for a specific skill.
 
-## Pipelines Endpoints
+**Endpoint:** `GET /skills/{skill_name}`
 
-### POST /api/v1/pipelines/execute
-Execute a pipeline of skills.
+**Response:**
 
-**Request:**
 ```json
 {
-  "steps": [
-    {"skill_name": "sentiment", "input_mapping": {}},
-    {"skill_name": "scenespeak", "input_mapping": {"sentiment": "sentiment_output"}}
-  ],
-  "input": {"social_posts": ["Amazing!", "Great!"]},
-  "parallel": false
+  "name": "dialogue_generator",
+  "description": "Generate contextual dialogue",
+  "version": "1.0.0",
+  "enabled": true,
+  "parameters": {
+    "scene_context": {"type": "string", "required": true},
+    "sentiment": {"type": "float", "required": false, "default": 0.0}
+  }
 }
 ```
+
+---
+
+### 4. Health Checks
+
+**Endpoint:** `GET /health/live`
+
+**Response:** `OK`
+
+**Endpoint:** `GET /health/ready`
+
+**Response:** `OK`
+
+---
+
+### 5. Metrics
+
+**Endpoint:** `GET /metrics`
+
+**Response:** Prometheus metrics in plain text format.
+
+---
+
+## Examples
+
+### Orchestrate Dialogue Generation
+
+```bash
+curl -X POST http://localhost:8000/v1/orchestrate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "skill": "dialogue_generator",
+    "input": {
+      "scene_context": "A garden at sunset",
+      "sentiment": 0.7
+    }
+  }'
+```
+
+### List Skills
+
+```bash
+curl http://localhost:8000/skills
+```
+
+---
+
+*Last Updated: March 2026*
+*OpenClaw Orchestrator v3.0.0*
