@@ -398,3 +398,9 @@ Use the provided PR template and fill in:
 Contributors will be acknowledged in the project documentation and release notes.
 
 Thank you for contributing to Project Chimera!
+
+## Documentation Contributions
+
+For detailed documentation contribution guidelines, see [Documentation Contribution Guide](docs/contributing/documentation.md).
+
+Documentation PRs follow the same review process with additional documentation-specific criteria in the guide.
