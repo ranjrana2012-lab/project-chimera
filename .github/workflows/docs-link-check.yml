@@ -1,0 +1,43 @@
+name: Documentation Link Check
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '*.md'
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - '*.md'
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check for broken markdown links
+        run: |
+          echo "Checking for broken markdown links..."
+
+          # Find all markdown links
+          grep -r "\[.*\](.*.md)" docs/ --include="*.md" | grep -v "Binary file" > /tmp/all-links.txt
+
+          # Check each link
+          BROKEN=0
+          while IFS= read -r line; do
+            link=$(echo "$line" | sed -n 's/.*](\([^)]*\)).*/\1/p')
+            if [[ ! "$link" =~ ^http ]] && [[ ! -f "docs/$link" ]] && [[ ! -f "$link" ]]; then
+              echo "BROKEN: $link"
+              ((BROKEN++))
+            fi
+          done < /tmp/all-links.txt
+
+          if [ $BROKEN -gt 0 ]; then
+            echo "::error::Found $BROKEN broken markdown links"
+            exit 1
+          fi
+
+          echo "✅ No broken links found"
