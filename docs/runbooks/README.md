@@ -17,6 +17,14 @@ This directory contains operational runbooks for Project Chimera.
 - [Alerts](alerts.md) - Alert types and responses
 - **[Testing Guide](testing-guide.md)** - Comprehensive testing procedures (NEW)
 
+### Observability Runbooks
+
+- [On-Call Procedures](on-call.md) - On-call rotation and response procedures
+- [SLO Handbook](slo-handbook.md) - Service Level Objectives and error budgets
+- [SLO Response](slo-response.md) - SLO breach response procedures
+- [Distributed Tracing](distributed-tracing.md) - OpenTelemetry and Jaeger guide
+- [Performance Analysis](performance-analysis.md) - Performance investigation guide
+
 ---
 
 ## Quick Reference
