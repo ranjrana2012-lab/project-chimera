@@ -81,3 +81,17 @@ For issues or questions:
 - Check relevant runbook
 - Contact on-call engineer
 - Escalate to Technical Lead
+
+## Cross-References
+
+### Related Runbooks
+- [Alerting Runbook](runbooks/alerts.md) - AlertManager procedures
+- [On-Call Procedures](runbooks/on-call.md) - On-call rotation and response
+- [SLO Handbook](runbooks/slo-handbook.md) - SLO definitions and error budgets
+- [Distributed Tracing](runbooks/distributed-tracing.md) - Tracing guide
+- [Performance Analysis](runbooks/performance-analysis.md) - Performance investigation
+
+### Architecture Documentation
+- [ADR-006: Production Observability Platform](architecture/006-observability-platform.md)
+- [ADR-007: SLO Framework](architecture/007-slo-framework.md)
+- [ADR-008: OpenTelemetry Integration](architecture/008-opentelemetry.md)
