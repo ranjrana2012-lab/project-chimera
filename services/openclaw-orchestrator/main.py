@@ -12,17 +12,17 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # Initialize tracing
-tracer = setup_telemetry("openclaw-orchestrator")
-init_service_info("openclaw-orchestrator", "1.0.0")
+tracer = setup_telemetry(settings.service_name, settings.otlp_endpoint)
+init_service_info(settings.service_name, "1.0.0")
 
 # Agent registry (will be used for readiness checks)
 AGENTS = {
-    "scenespeak-agent": "http://localhost:8001",
-    "captioning-agent": "http://localhost:8002",
-    "bsl-agent": "http://localhost:8003",
-    "sentiment-agent": "http://localhost:8004",
-    "lighting-sound-music": "http://localhost:8005",
-    "safety-filter": "http://localhost:8006",
+    "scenespeak-agent": settings.scenespeak_agent_url,
+    "captioning-agent": settings.captioning_agent_url,
+    "bsl-agent": settings.bsl_agent_url,
+    "sentiment-agent": settings.sentiment_agent_url,
+    "lighting-sound-music": settings.lighting_sound_music_url,
+    "safety-filter": settings.safety_filter_url,
 }
 
 @asynccontextmanager
