@@ -39,6 +39,15 @@ Project Chimera is an open-source, student-run Dynamic Performance Hub that uses
   - Dashboard Service (port 8009) - Real-time visualization
   - CI/CD Gateway (port 8010) - GitHub/GitLab integration
 
+### Observability Platform
+
+- **Production Monitoring** - Prometheus, Grafana, AlertManager for metrics and alerting
+- **Distributed Tracing** - OpenTelemetry and Jaeger for request tracing
+- **SLO Framework** - Service Level Objectives and error budget tracking
+- **Business Metrics** - Real-time dashboards for show operations, dialogue quality, audience engagement
+
+For complete observability documentation, see [Observability Guide](docs/observability.md).
+
 ### Music Generation Platform
 
 - **Music Generation Service** - AI-powered music generation using Meta MusicGen and ACE-Step models
