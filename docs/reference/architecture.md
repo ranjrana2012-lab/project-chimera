@@ -579,48 +579,253 @@ kubectl scale deployment/Captioning Agent --replicas=4 -n live
 
 ## Monitoring and Observability
 
+Project Chimera implements a comprehensive production observability platform with 4 core components: Alerting Foundation, Business Metrics, SLO Framework, and Distributed Tracing.
+
+### Architecture Overview
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                      OBSERVABILITY PLATFORM                           │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐ │
+│  │  AlertManager    │  │   Prometheus     │  │     Grafana      │ │
+│  │  (Routing)       │  │   (Metrics)      │  │  (Dashboards)    │ │
+│  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘ │
+│           │                     │                     │             │
+│           │    ┌────────────────┴────────────────┐               │
+│           │    │                                 │               │
+│           ▼    ▼                                 ▼               │
+│  ┌────────────────────────────────────────────────────────┐        │
+│  │              Business Metrics Dashboards              │        │
+│  │  • Show Overview Dashboard                             │        │
+│  │  • Dialogue Quality Dashboard                           │        │
+│  │  • Audience Engagement Dashboard                        │        │
+│  └────────────────────────────────────────────────────────┘        │
+│                                                                      │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐ │
+│  │   SLO Framework  │  │   OpenTelemetry  │  │     Jaeger      │ │
+│  │  (Reliability)   │  │   (Tracing)      │  │  (Analysis)     │ │
+│  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘ │
+│           │                     │                     │             │
+│           ▼                     ▼                     ▼             │
+│  ┌────────────────────────────────────────────────────────┐        │
+│  │              Quality Gate Deployment Blocking          │        │
+│  └────────────────────────────────────────────────────────┘        │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+### Component Details
+
+#### 1. Alerting Foundation
+
+**AlertManager** provides intelligent alert routing and notification management:
+
+**Features:**
+- Intelligent alert routing by severity
+- Slack integration for real-time notifications
+- Alert aggregation and deduplication
+- Silence management for planned maintenance
+- On-call rotation support
+
+**Critical Alert Rules:**
+- Service down (Pod not ready)
+- High error rate (>5% over 5m)
+- Elevated latency (p95 >5s over 5m)
+- GPU exhaustion (>95% utilization)
+- Safety filter trigger rate >10%
+
+**Configuration:** `platform/monitoring/config/alert-rules-critical.yaml`
+
+#### 2. Business Metrics
+
+**Prometheus** collects metrics with **Grafana** dashboards for real-time visualization:
+
+**Show Overview Dashboard:**
+- Active show status
+- Scene progression
+- Audience engagement metrics
+- System health indicators
+
+**Dialogue Quality Dashboard:**
+- Dialogue coherence score
+- Lines generated per scene
+- Token usage efficiency
+- Cache hit rates
+
+**Audience Engagement Dashboard:**
+- Real-time sentiment score
+- Emotion breakdown (joy, surprise, neutral, sadness, anger, fear)
+- Engagement trends
+- Social media mention volume
+
+**Configuration:** `platform/monitoring/config/grafana-dashboards/`
+
+#### 3. SLO Framework
+
+Service Level Objectives with automated error budget tracking:
+
+**SLO Targets:**
+- OpenClaw: 99.9% (43.2min/month error budget)
+- SceneSpeak: 99.5% (3.6hrs/month error budget)
+- Captioning: 99.5% (3.6hrs/month error budget)
+- BSL: 99% (7.2hrs/month error budget)
+- Safety: 99.9% (43.2min/month error budget)
+- Console: 99.5% (3.6hrs/month error budget)
+
+**Error Budget Burn Rate:**
+- Burn Rate 1x = On track
+- Burn Rate 2x = Warning (5m threshold)
+- Burn Rate 10x = Critical (1m threshold)
+
+**Quality Gate:** Blocks deployments when:
+- SLO compliance <95%
+- Error budget remaining <10%
+
+**Configuration:** `platform/monitoring/config/slo-*.yaml`
+
+#### 4. Distributed Tracing
+
+**OpenTelemetry** instrumentation across all services with **Jaeger** for analysis:
+
+**Instrumentation Standard:**
+- 10% sampling for production
+- Consistent span attributes per service
+- Rich business context (show_id, scene_number, tokens, etc.)
+
+**Trace Analyzer Service:**
+- CLI tool for trace analysis
+- Service dependency mapping
+- Performance bottleneck identification
+
+**Scripts:**
+- `scripts/analyze-trace.py` - Analyze specific trace
+- `scripts/dependency-graph.py` - Generate dependency graph
+
 ### Metrics
 
-**System Metrics:**
+#### System Metrics
 - CPU, Memory, GPU utilization
 - Network I/O
 - Disk I/O
 
-**Application Metrics:**
+#### Application Metrics
 - Request rate, latency, errors
 - Cache hit rate
 - Queue depths
 - GPU utilization
 
-**Business Metrics:**
+#### Business Metrics
 - Dialogue generation rate
 - Caption accuracy
 - Safety filter triggers
+- Audience sentiment
+- Show progression
 
 ### Tracing
 
-Distributed tracing with Jaeger for:
+Distributed tracing with Jaeger and OpenTelemetry for:
 - Request flows across services
 - Performance bottleneck identification
 - Error root cause analysis
+- Service dependency mapping
+
+**Per-Service Span Attributes:**
+
+**SceneSpeak Agent:**
+- `show.id` - Show identifier
+- `scene.number` - Scene number
+- `adapter.name` - Adapter used
+- `tokens.input` - Input token count
+- `tokens.output` - Output token count
+- `dialogue.lines_count` - Lines generated
+
+**Captioning Agent:**
+- `caption_latency_ms` - Caption processing latency
+
+**BSL Agent:**
+- `translation.request_id` - Translation request ID
+- `sign_language` - Sign language variant
+
+**Sentiment Agent:**
+- `sentiment.score` - Sentiment value
+- `audience.size` - Audience count
+
+**Safety Filter:**
+- `safety.action` - Action taken (allow/block/flag)
+- `pattern.matched` - Pattern that matched
+- `content.length` - Content length
 
 ### Logging
 
 Structured JSON logs with:
-- Correlation IDs
-- Timestamps
+- Correlation IDs (trace_id from OpenTelemetry)
+- Timestamps (ISO 8601)
 - Service name
-- Log levels
+- Log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 - Contextual metadata
+
+**Log Format:**
+```json
+{
+  "timestamp": "2026-03-05T12:00:00Z",
+  "level": "INFO",
+  "service": "scenespeak-agent",
+  "trace_id": "abc123def456",
+  "span_id": "789ghi012",
+  "message": "Dialogue generated successfully",
+  "show_id": "show-2026-03-05",
+  "scene_number": 3,
+  "tokens_used": 450,
+  "adapter": "gpt-4"
+}
+```
 
 ### Alerting
 
-Alerts configured for:
-- High error rates
-- Elevated latency
-- Service unavailability
-- GPU exhaustion
-- Safety filter triggers
+Alerts configured via AlertManager for:
+
+**Critical Alerts (fire immediately):**
+- Service down (Pod not Ready for >1m)
+- High error rate (>5% over 5m)
+- Elevated latency (p95 >5s over 5m)
+- GPU exhaustion (>95% for >5m)
+- Safety filter trigger rate >10%
+
+**Warning Alerts (aggregated):**
+- Elevated error rate (>1% over 15m)
+- High memory usage (>80% for >10m)
+- Cache miss rate spike (>50% increase)
+
+**SLO Alerts (burn rate based):**
+- Burn Rate 2x (5 minute threshold)
+- Burn Rate 10x (1 minute threshold)
+- Error budget <25% remaining
+- Error budget <10% remaining (blocks deployment)
+
+**Notification Channels:**
+- Slack for real-time alerts
+- Email for daily summaries
+- Operator Console for active shows
+
+### Quick Links
+
+| Tool | URL | Credentials |
+|------|-----|-------------|
+| Grafana Dashboards | http://localhost:3000 | admin/admin |
+| Prometheus | http://localhost:9090 | - |
+| AlertManager | http://localhost:9093 | - |
+| Jaeger UI | http://localhost:16686 | - |
+
+### Related Documentation
+
+- [Observability Guide](../observability.md) - Complete observability documentation
+- [ADR-006: Production Observability Platform](../architecture/006-observability-platform.md) - Observability architecture
+- [ADR-007: SLO Framework](../architecture/007-slo-framework.md) - SLO framework design
+- [ADR-008: OpenTelemetry Integration](../architecture/008-opentelemetry.md) - Tracing standard
+- [Alerting Runbook](../runbooks/alerts.md) - Alert response procedures
+- [SLO Handbook](../runbooks/slo-handbook.md) - SLO definitions and error budgets
+- [Distributed Tracing Runbook](../runbooks/distributed-tracing.md) - Tracing guide
 
 ## Architecture Decision Records
 
