@@ -280,3 +280,24 @@ Current limits (local development):
 
 *Last Updated: March 2026*
 *SceneSpeak Agent v0.4.0*
+
+## Metrics
+
+The SceneSpeak Agent exposes Prometheus metrics at the `/metrics` endpoint:
+
+### Business Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `scenespeak_dialogue_quality` | Gauge | adapter | Dialogue coherence score (0-1) |
+| `scenespeak_lines_generated_total` | Counter | show_id | Total lines generated |
+| `scenespeak_tokens_per_line` | Histogram | - | Token count per line |
+| `scenespeak_generation_duration_seconds` | Histogram | adapter | Generation time |
+| `scenespeak_cache_hits_total` | Counter | adapter | Cache hit count |
+| `scenespeak_cache_misses_total` | Counter | adapter | Cache miss count |
+
+### Tracing
+
+The SceneSpeak Agent uses OpenTelemetry for distributed tracing. See:
+- [Distributed Tracing Runbook](../runbooks/distributed-tracing.md)
+- [ADR-008: OpenTelemetry Integration](../architecture/008-opentelemetry.md)

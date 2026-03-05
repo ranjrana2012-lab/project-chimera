@@ -110,3 +110,22 @@ ws.onmessage = (event) => {
 
 *Last Updated: March 2026*
 *Captioning Agent v0.4.0*
+
+## Metrics
+
+The Captioning Agent exposes Prometheus metrics at the `/metrics` endpoint:
+
+### Business Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `captioning_latency_seconds` | Histogram | - | Time from speech to caption |
+| `captioning_delivered_total` | Counter | show_id | Captions delivered |
+| `captioning_accuracy_score` | Gauge | show_id | Accuracy score (0-1) |
+| `captioning_active_users` | Gauge | - | Users viewing captions |
+
+### Tracing
+
+The Captioning Agent uses OpenTelemetry for distributed tracing. See:
+- [Distributed Tracing Runbook](../runbooks/distributed-tracing.md)
+- [ADR-008: OpenTelemetry Integration](../architecture/008-opentelemetry.md)

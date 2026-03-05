@@ -167,3 +167,27 @@ Get aggregated emotion breakdown.
 
 *Last Updated: March 2026*
 *Sentiment Agent v0.4.0*
+
+## Metrics
+
+The Sentiment Agent exposes Prometheus metrics at the `/metrics` endpoint:
+
+### Business Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `sentiment_audience_avg` | Gauge | show_id, time_window | Average audience sentiment |
+| `sentiment_emotion_joy_total` | Counter | show_id | Joy emotion count |
+| `sentiment_emotion_surprise_total` | Counter | show_id | Surprise emotion count |
+| `sentiment_emotion_neutral_total` | Counter | show_id | Neutral emotion count |
+| `sentiment_emotion_sadness_total` | Counter | show_id | Sadness emotion count |
+| `sentiment_emotion_anger_total` | Counter | show_id | Anger emotion count |
+| `sentiment_emotion_fear_total` | Counter | show_id | Fear emotion count |
+| `sentiment_analysis_queue_size` | Gauge | - | Texts awaiting analysis |
+| `sentiment_analysis_duration_seconds` | Gauge | - | Analysis time |
+
+### Tracing
+
+The Sentiment Agent uses OpenTelemetry for distributed tracing. See:
+- [Distributed Tracing Runbook](../runbooks/distributed-tracing.md)
+- [ADR-008: OpenTelemetry Integration](../architecture/008-opentelemetry.md)

@@ -324,3 +324,22 @@ All error responses follow this format:
 
 *Last Updated: March 2026*
 *BSL Agent v0.4.0*
+
+## Metrics
+
+The BSL Agent exposes Prometheus metrics at the `/metrics` endpoint:
+
+### Business Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `bsl_active_sessions` | Gauge | - | Active BSL avatar rendering sessions |
+| `bsl_gestures_rendered_total` | Counter | show_id | Total gestures rendered |
+| `bsl_avatar_frame_rate` | Gauge | session_id | Avatar rendering FPS |
+| `bsl_translation_latency_seconds` | Histogram | - | Time to translate text to BSL gloss |
+
+### Tracing
+
+The BSL Agent uses OpenTelemetry for distributed tracing. See:
+- [Distributed Tracing Runbook](../runbooks/distributed-tracing.md)
+- [ADR-008: OpenTelemetry Integration](../architecture/008-opentelemetry.md)
