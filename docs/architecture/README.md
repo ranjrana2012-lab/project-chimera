@@ -38,7 +38,7 @@ This directory contains Architecture Decision Records (ADRs) for Project Chimera
 
 ---
 
-### Platform & Features (v3.0.0)
+### Platform & Features (v0.4.0)
 
 ### [ADR-004: Chimera Quality Platform](./004-quality-platform.md)
 
@@ -47,7 +47,7 @@ This directory contains Architecture Decision Records (ADRs) for Project Chimera
 **Context:** Need for centralized quality assurance
 **Decision:** Implement Dashboard, Test Orchestrator, CI/CD Gateway, Quality Gate
 
-### [ADR-005: v3.0.0 Feature Enhancements](./005-v3-features.md)
+### [ADR-005: v0.4.0 Feature Enhancements](./005-v3-features.md)
 
 **Status:** Accepted
 **Date:** 2026-03-04
@@ -80,7 +80,7 @@ This directory contains Architecture Decision Records (ADRs) for Project Chimera
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      Project Chimera v3.0.0                      │
+│                      Project Chimera v0.4.0                      │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                   │
 │  ┌───────────────────────────────────────────────────────────┐   │
@@ -107,7 +107,7 @@ This directory contains Architecture Decision Records (ADRs) for Project Chimera
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### v3.0.0 Features
+### v0.4.0 Features
 
 | Feature | Service | Description |
 |---------|---------|-------------|
@@ -175,4 +175,4 @@ When proposing a significant architectural change:
 ---
 
 *Architecture Decision Records*
-*Project Chimera v3.0.0*
+*Project Chimera v0.4.0*

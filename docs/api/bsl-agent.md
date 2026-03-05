@@ -323,4 +323,4 @@ All error responses follow this format:
 ---
 
 *Last Updated: March 2026*
-*BSL Agent v3.0.0*
+*BSL Agent v0.4.0*

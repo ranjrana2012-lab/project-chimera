@@ -313,4 +313,4 @@ The safety filter can be configured with:
 ---
 
 *Last Updated: March 2026*
-*Safety Filter v3.0.0*
+*Safety Filter v0.4.0*

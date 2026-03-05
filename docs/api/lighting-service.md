@@ -102,4 +102,4 @@ Blackout all lighting immediately.
 ---
 
 *Last Updated: March 2026*
-*Lighting Service v3.0.0*
+*Lighting Service v0.4.0*

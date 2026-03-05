@@ -154,4 +154,4 @@ curl http://localhost:8000/skills
 ---
 
 *Last Updated: March 2026*
-*OpenClaw Orchestrator v3.0.0*
+*OpenClaw Orchestrator v0.4.0*

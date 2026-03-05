@@ -8,7 +8,7 @@
 
 ## Overview
 
-This guide covers testing procedures for all components of Project Chimera, including core services, platform services, and new v3.0.0 features.
+This guide covers testing procedures for all components of Project Chimera, including core services, platform services, and new v0.4.0 features.
 
 ---
 
@@ -346,7 +346,7 @@ curl "http://localhost:8013/api/v1/report?format=json"
 
 ---
 
-## New v3.0.0 Feature Testing
+## New v0.4.0 Feature Testing
 
 ### LoRA Adapter Testing
 
@@ -589,4 +589,4 @@ Before considering testing complete:
 ---
 
 *Last Updated: March 2026*
-*Testing Guide v3.0.0*
+*Testing Guide v0.4.0*

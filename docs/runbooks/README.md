@@ -40,7 +40,7 @@ The [Testing Guide](testing-guide.md) covers:
 - **Integration Tests** - Service integration testing
 - **Load Tests** - Performance and load testing
 - **Service-Specific Testing** - Each service's test procedures
-- **New v3.0.0 Features** - Testing for LoRA adapters, ML safety, BSL avatar, real-time updates
+- **New v0.4.0 Features** - Testing for LoRA adapters, ML safety, BSL avatar, real-time updates
 - **Troubleshooting** - Common test issues and solutions
 
 ---
@@ -113,4 +113,4 @@ kubectl logs -f -n live deployment/scenespeak-agent
 ---
 
 *Last Updated: March 2026*
-*Runbooks v3.0.0*
+*Runbooks v0.4.0*

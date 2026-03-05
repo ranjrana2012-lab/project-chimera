@@ -374,4 +374,4 @@ All error responses follow this format:
 ---
 
 *Last Updated: March 2026*
-*Operator Console v3.0.0*
+*Operator Console v0.4.0*

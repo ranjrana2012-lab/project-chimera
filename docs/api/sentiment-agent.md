@@ -166,4 +166,4 @@ Get aggregated emotion breakdown.
 ---
 
 *Last Updated: March 2026*
-*Sentiment Agent v3.0.0*
+*Sentiment Agent v0.4.0*

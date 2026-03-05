@@ -109,4 +109,4 @@ ws.onmessage = (event) => {
 ---
 
 *Last Updated: March 2026*
-*Captioning Agent v3.0.0*
+*Captioning Agent v0.4.0*

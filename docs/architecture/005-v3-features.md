@@ -1,14 +1,14 @@
-# ADR-005: v3.0.0 Feature Enhancements
+# ADR-005: v0.4.0 Feature Enhancements
 
 **Status:** Accepted
 **Date:** 2026-03-04
-**Context:** Project Chimera v3.0.0
+**Context:** Project Chimera v0.4.0
 
 ---
 
 ## Context
 
-Project Chimera v3.0.0 introduces significant feature enhancements across multiple services to improve AI capabilities, content moderation, accessibility, and operator oversight.
+Project Chimera v0.4.0 introduces significant feature enhancements across multiple services to improve AI capabilities, content moderation, accessibility, and operator oversight.
 
 ### Problems Being Solved
 
@@ -301,4 +301,4 @@ metrics = monitor.get_metrics()
 ---
 
 *Decision Record: ADR-005*
-*Project Chimera v3.0.0*
+*Project Chimera v0.4.0*

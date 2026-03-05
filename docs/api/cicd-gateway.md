@@ -225,4 +225,4 @@ curl "http://localhost:8012/api/v1/runs?limit=10&status=completed"
 ---
 
 *Last Updated: March 2026*
-*CI/CD Gateway v3.0.0*
+*CI/CD Gateway v0.4.0*

@@ -106,7 +106,7 @@ This directory contains API documentation for Project Chimera services.
 
 ---
 
-## New Features in v3.0.0
+## New Features in v0.4.0
 
 ### SceneSpeak LoRA Adapters
 ```bash

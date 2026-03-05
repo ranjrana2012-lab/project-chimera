@@ -272,4 +272,4 @@ Overall gate status:
 ---
 
 *Last Updated: March 2026*
-*Quality Gate v3.0.0*
+*Quality Gate v0.4.0*

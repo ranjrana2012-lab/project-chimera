@@ -279,4 +279,4 @@ Current limits (local development):
 ---
 
 *Last Updated: March 2026*
-*SceneSpeak Agent v3.0.0*
+*SceneSpeak Agent v0.4.0*

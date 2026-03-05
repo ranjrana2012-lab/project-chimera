@@ -1,7 +1,7 @@
 # Student Quick Start Guide
 ## Project Chimera: Development Environment Setup
 
-**Version:** 3.0.0
+**Version:** 0.4.0
 **Audience:** AI Students joining Project Chimera
 **Last Updated:** March 2026
 
@@ -504,9 +504,9 @@ open http://localhost:8007
 
 ---
 
-## New Features in v3.0.0
+## New Features in v0.4.0
 
-Project Chimera v3.0.0 introduces significant enhancements across multiple services:
+Project Chimera v0.4.0 introduces significant enhancements across multiple services:
 
 ### Performance Optimization
 

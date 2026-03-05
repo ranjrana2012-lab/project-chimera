@@ -184,4 +184,4 @@ curl http://localhost:8010/api/v1/services/scenespeak-agent
 ---
 
 *Last Updated: March 2026*
-*Dashboard Service v3.0.0*
+*Dashboard Service v0.4.0*
