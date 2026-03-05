@@ -173,7 +173,7 @@ curl http://localhost:8007/health/live
 ## Related Documentation
 
 - [Lighting, Sound & Music Service](lighting-sound-music.md) - Unified audio-visual control
-- [Architecture](../reference/architecture.md) - System architecture
+- [Architecture](../docs/reference/architecture.md) - System architecture
 - [API Reference](../reference/api.md) - Complete API docs
 - [Quality Platform](quality-platform.md) - Testing infrastructure
 

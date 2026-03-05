@@ -191,7 +191,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | Set up my development environment | [Quick Start](getting-started/quick-start.md) |
 | Learn about the services | [Services Overview](services/) |
 | Contribute code | [Contributing Guide](guides/contributing.md) |
-| Understand the GitHub workflow | [GitHub Workflow](guides/github-workflow.md) |
+| Understand the GitHub workflow | [GitHub Workflow](docs/contributing/github-workflow.md) |
 | Read the API docs | [API Reference](reference/api.md) |
 | Deploy to production | [Deployment Runbook](reference/runbooks/deployment.md) |
 
@@ -206,7 +206,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 ### Developers
 - [Development Guide](DEVELOPMENT.md)
 - [Contributing Guide](guides/contributing.md)
-- [GitHub Workflow](guides/github-workflow.md)
+- [GitHub Workflow](docs/contributing/github-workflow.md)
 - [API Reference](reference/api.md)
 
 ### Operators
@@ -230,11 +230,11 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 
 ### Guides
 - [Contributing](guides/contributing.md) - How to contribute
-- [GitHub Workflow](guides/github-workflow.md) - GitHub automation
+- [GitHub Workflow](docs/contributing/github-workflow.md) - GitHub automation
 - [Testing](guides/testing.md) - Testing guide
 
 ### Reference
-- [Architecture](reference/architecture.md) - System architecture
+- [Architecture](docs/reference/architecture.md) - System architecture
 - [API](reference/api.md) - API documentation
 - [Runbooks](reference/runbooks/) - Operational docs
 
@@ -256,8 +256,8 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | `getting-started/monday-demo/github-setup-guide.md` | `docs/getting-started/monday-demo/github-setup-guide.md` |
 | `getting-started/monday-demo/demo-script.md` | `docs/getting-started/monday-demo/demo-script.md` |
 | `getting-started/monday-demo/pre-monday-checklist.md` | `docs/getting-started/monday-demo/pre-monday-checklist.md` |
-| `reference/architecture.md` | `docs/reference/architecture.md` |
-| `reference/api.md` | `docs/reference/api.md` |
+| `docs/reference/architecture.md` | `docs/docs/reference/architecture.md` |
+| `reference/api.md` | `docs/api/README.md` |
 | `reference/runbooks/deployment.md` | `docs/reference/runbooks/deployment.md` |
 | `reference/runbooks/` | `docs/reference/runbooks/` |
 
@@ -556,7 +556,7 @@ curl http://localhost:8007/health/live
 
 ## Related Documentation
 
-- [Architecture](../reference/architecture.md) - System architecture
+- [Architecture](../docs/reference/architecture.md) - System architecture
 - [API Reference](../reference/api.md) - Complete API docs
 - [Quality Platform](quality-platform.md) - Testing infrastructure
 ```
@@ -667,9 +667,9 @@ curl http://localhost:8012/api/v1/music/{music_id}
 | `getting-started/quick-start.md` | `docs/getting-started/quick-start.md` |
 | `docs/STUDENT_ROLES.md` | `docs/getting-started/roles.md` |
 | N/A | `docs/services/music-generation.md` |
-| N/A | `docs/guides/github-workflow.md` |
+| N/A | `docs/docs/contributing/github-workflow.md` |
 
-### reference/architecture.md Updates
+### docs/reference/architecture.md Updates
 
 - Add Music Generation Platform services
 - Add GitHub automation workflows
@@ -784,7 +784,7 @@ Simulate user journeys:
 - All files in `getting-started/monday-demo/` (moves)
 - `getting-started/quick-start.md` (move)
 - `docs/STUDENT_ROLES.md` (move)
-- `reference/architecture.md`
+- `docs/reference/architecture.md`
 - `reference/api.md`
 - `reference/runbooks/deployment.md`
 - `docs/DEVELOPMENT.md`

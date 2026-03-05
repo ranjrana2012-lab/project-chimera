@@ -317,7 +317,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ## Task 6: Standardize k3s Terminology in runbooks
 
 **Files:**
-- Modify: `docs/runbooks/deployment.md`
+- Modify: `docs/runbooks/README.md#deployment`
 - Modify: `docs/runbooks/bootstrap-setup.md`
 
 **Step 1: Update deployment.md**
@@ -342,7 +342,7 @@ Expected: k3s used consistently in descriptive text
 **Step 4: Commit**
 
 ```bash
-git add docs/runbooks/deployment.md docs/runbooks/bootstrap-setup.md
+git add docs/runbooks/README.md#deployment docs/runbooks/bootstrap-setup.md
 git commit -m "docs(runbooks): standardize to k3s terminology
 
 Update deployment and bootstrap runbooks to use k3s terminology
@@ -356,7 +356,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ## Task 7: Standardize k3s Terminology in reference docs
 
 **Files:**
-- Modify: `docs/reference/architecture.md`
+- Modify: `docs/docs/reference/architecture.md`
 
 **Step 1: Find and replace in architecture.md**
 
@@ -366,13 +366,13 @@ Replace in descriptive text:
 
 **Step 2: Verify API specifications unchanged**
 
-Run: `grep "apiVersion" docs/reference/architecture.md`
+Run: `grep "apiVersion" docs/docs/reference/architecture.md`
 Expected: API versions still reference k8s.io appropriately
 
 **Step 3: Commit**
 
 ```bash
-git add docs/reference/architecture.md
+git add docs/docs/reference/architecture.md
 git commit -m "docs(architecture): standardize to k3s terminology
 
 Update architecture documentation to use k3s terminology
@@ -475,7 +475,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ## Task 10: Update Architecture Docs with Sidecar Pattern
 
 **Files:**
-- Modify: `docs/reference/architecture.md`
+- Modify: `docs/docs/reference/architecture.md`
 
 **Step 1: Add sidecar pattern section**
 
@@ -520,13 +520,13 @@ Add to Sentiment Agent section:
 
 **Step 3: Verify formatting**
 
-Run: `grep -A5 "Sidecar Pattern" docs/reference/architecture.md`
+Run: `grep -A5 "Sidecar Pattern" docs/docs/reference/architecture.md`
 Expected: ASCII diagram renders correctly
 
 **Step 4: Commit**
 
 ```bash
-git add docs/reference/architecture.md
+git add docs/docs/reference/architecture.md
 git commit -m "docs(architecture): add WorldMonitor sidecar pattern
 
 Add sidecar pattern architecture diagram and communication flow
@@ -540,7 +540,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ## Task 11: Update API Reference for New Endpoints
 
 **Files:**
-- Modify: `docs/reference/api.md`
+- Modify: `docs/api/README.md`
 
 **Step 1: Verify new endpoints are documented**
 
@@ -577,7 +577,7 @@ Response includes global context from WorldMonitor.
 **Step 3: Commit**
 
 ```bash
-git add docs/reference/api.md
+git add docs/api/README.md
 git commit -m "docs(api): verify WorldMonitor endpoint documentation
 
 Ensure all new WorldMonitor integration endpoints are documented
@@ -693,15 +693,15 @@ cat > /tmp/doc-audit-summary.md << 'EOF'
 
 ### Phase 2: Terminology Standardization
 - docs/DEPLOYMENT.md - k8s → k3s
-- docs/runbooks/deployment.md - k8s → k3s
+- docs/runbooks/README.md#deployment - k8s → k3s
 - docs/runbooks/bootstrap-setup.md - k8s → k3s
-- docs/reference/architecture.md - k8s → k3s
+- docs/docs/reference/architecture.md - k8s → k3s
 - docs/quality-platform/DEPLOYMENT.md - k8s → k3s
 
 ### Phase 3: WorldMonitor Integration
 - docs/DEPLOYMENT.md - Added sidecar deployment
-- docs/reference/architecture.md - Added sidecar pattern diagram
-- docs/reference/api.md - Verified new endpoints
+- docs/docs/reference/architecture.md - Added sidecar pattern diagram
+- docs/api/README.md - Verified new endpoints
 - docs/guides/README.md - Added WorldMonitor guide link
 
 ### Phase 4: Validation

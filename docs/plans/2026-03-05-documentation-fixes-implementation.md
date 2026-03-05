@@ -97,7 +97,7 @@ cat > DEPLOYMENT.md << 'EOF'
 **Status:** TODO - This documentation needs to be created
 
 For deployment information, see:
-- [Runbooks - Deployment](docs/runbooks/deployment.md)
+- [Runbooks - Deployment](docs/runbooks/README.md#deployment)
 - [Quick Start Guide](docs/getting-started/quick-start.md)
 EOF
 
@@ -159,16 +159,16 @@ cat > scripts/fix/fix-links.sh << 'EOF'
 
 echo "Fixing broken links..."
 
-# Fix reference/architecture.md → docs/reference/architecture.md
-find docs -name "*.md" -type f -exec sed -i 's|reference/architecture\.md|docs/reference/architecture.md|g' {} \;
+# Fix docs/reference/architecture.md → docs/docs/reference/architecture.md
+find docs -name "*.md" -type f -exec sed -i 's|reference/architecture\.md|docs/docs/reference/architecture.md|g' {} \;
 
-# Fix docs/reference/api.md → docs/api/README.md
+# Fix docs/api/README.md → docs/api/README.md
 find docs -name "*.md" -type f -exec sed -i 's|docs/reference/api\.md|docs/api/README.md|g' {} \;
 
-# Fix docs/runbooks/deployment.md → docs/runbooks/README.md#deployment
+# Fix docs/runbooks/README.md#deployment → docs/runbooks/README.md#deployment
 find docs -name "*.md" -type f -exec sed -i 's|docs/runbooks/deployment\.md|docs/runbooks/README.md#deployment|g' {} \;
 
-# Fix guides/github-workflow.md → docs/contributing/github-workflow.md
+# Fix docs/contributing/github-workflow.md → docs/contributing/github-workflow.md
 find docs -name "*.md" -type f -exec sed -i 's|guides/github-workflow\.md|docs/contributing/github-workflow.md|g' {} \;
 
 echo "Link fixes applied"
@@ -189,10 +189,10 @@ git add scripts/fix/fix-links.sh
 git add -A
 git commit -m "fix(docs): update broken documentation links
 
-- Fix reference/architecture.md → docs/reference/architecture.md
-- Fix docs/reference/api.md → docs/api/README.md
-- Fix docs/runbooks/deployment.md → docs/runbooks/README.md#deployment
-- Fix guides/github-workflow.md → docs/contributing/github-workflow.md"
+- Fix docs/reference/architecture.md → docs/docs/reference/architecture.md
+- Fix docs/api/README.md → docs/api/README.md
+- Fix docs/runbooks/README.md#deployment → docs/runbooks/README.md#deployment
+- Fix docs/contributing/github-workflow.md → docs/contributing/github-workflow.md"
 ```
 
 ---
@@ -1082,7 +1082,7 @@ These TODOs were identified during the documentation audit and need resolution:
 
 ## Medium Priority
 
-5. [ ] Expand docs/reference/architecture.md with observability section
+5. [ ] Expand docs/docs/reference/architecture.md with observability section
 6. [ ] Add architecture diagrams to service READMEs
 7. [ ] Create evaluation criteria documentation
 8. [ ] Create sprint definitions documentation

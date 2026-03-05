@@ -1086,7 +1086,7 @@ curl http://localhost:8007/health/live  # Operator
 | `getting-started/quick-start.md` | Setup guide |
 | `docs/STUDENT_ROLES.md` | Role assignments |
 | `reference/api.md` | Complete API reference |
-| `reference/architecture.md` | System architecture |
+| `docs/reference/architecture.md` | System architecture |
 | `Makefile` | Build automation |
 | `scripts/bootstrap/` | Bootstrap scripts for k3s setup |
 

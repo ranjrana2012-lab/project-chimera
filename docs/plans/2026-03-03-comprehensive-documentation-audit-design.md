@@ -87,9 +87,9 @@ Comprehensive documentation audit and update to reflect all completed work throu
 
 **Files to update:**
 - `docs/DEPLOYMENT.md` - Multiple k8s references
-- `docs/runbooks/deployment.md`
+- `docs/runbooks/README.md#deployment`
 - `docs/runbooks/bootstrap-setup.md`
-- `docs/reference/architecture.md`
+- `docs/docs/reference/architecture.md`
 - `docs/quality-platform/DEPLOYMENT.md`
 - `docs/music-platform/COMPLETION_SUMMARY.md`
 - Any other files with k8s/kubernetes in descriptive text
@@ -105,7 +105,7 @@ Comprehensive documentation audit and update to reflect all completed work throu
    - Include sidecar pod configuration
    - Add k3s deployment commands for WorldMonitor
 
-2. **`docs/reference/architecture.md`**
+2. **`docs/docs/reference/architecture.md`**
    - Add sidecar pattern architecture diagram
    - Document WorldMonitor sidecar responsibilities
    - Update Sentiment Agent section
@@ -114,7 +114,7 @@ Comprehensive documentation audit and update to reflect all completed work throu
    - Add link to WorldMonitor context usage guide
    - Update navigation structure
 
-4. **`docs/reference/api.md`**
+4. **`docs/api/README.md`**
    - Verify all new endpoints documented:
      - GET /api/v1/context/global
      - GET /api/v1/context/country/{code}
@@ -215,14 +215,14 @@ Comprehensive documentation audit and update to reflect all completed work throu
 - docs/services/core-services.md
 
 **docs/reference/:**
-- docs/reference/api.md
-- docs/reference/architecture.md
+- docs/api/README.md
+- docs/docs/reference/architecture.md
 
 **docs/guides/:**
 - docs/guides/README.md
 
 **docs/runbooks/:**
-- docs/runbooks/deployment.md
+- docs/runbooks/README.md#deployment
 - docs/runbooks/bootstrap-setup.md
 
 **docs/quality-platform/:**

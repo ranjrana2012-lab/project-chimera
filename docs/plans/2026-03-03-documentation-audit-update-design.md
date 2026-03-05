@@ -41,9 +41,9 @@ Comprehensive documentation audit and update to reflect all completed work throu
 
 **Files to update:**
 - `docs/DEPLOYMENT.md`
-- `docs/runbooks/deployment.md`
+- `docs/runbooks/README.md#deployment`
 - `docs/runbooks/bootstrap-setup.md`
-- `docs/reference/architecture.md`
+- `docs/docs/reference/architecture.md`
 - `docs/quality-platform/DEPLOYMENT.md`
 - Any other files with k8s/kubernetes references in descriptive text
 
@@ -51,9 +51,9 @@ Comprehensive documentation audit and update to reflect all completed work throu
 
 **Files to update:**
 - `docs/DEPLOYMENT.md` - Add WorldMonitor sidecar deployment
-- `docs/reference/architecture.md` - Add sidecar pattern diagram
+- `docs/docs/reference/architecture.md` - Add sidecar pattern diagram
 - `docs/guides/README.md` - Link to WorldMonitor usage guide
-- `docs/reference/api.md` - Verify all new endpoints documented
+- `docs/api/README.md` - Verify all new endpoints documented
 
 **New files to ensure are linked:**
 - `docs/services/sentiment-agent-with-worldmonitor.md`

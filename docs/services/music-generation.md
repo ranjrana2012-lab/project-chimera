@@ -135,5 +135,5 @@ The following services have been consolidated:
 
 - [Lighting, Sound & Music Service](./lighting-sound-music.md) - Complete LSM documentation
 - [API Reference](../reference/api.md#lighting-sound--music-lsm-service) - API endpoints
-- [Architecture](../reference/architecture.md) - System architecture
+- [Architecture](../docs/reference/architecture.md) - System architecture
 - [Migration Summary](../plans/lsm-migration-summary.md) - Complete migration details

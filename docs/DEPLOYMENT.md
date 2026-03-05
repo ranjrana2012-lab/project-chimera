@@ -549,7 +549,7 @@ kubectl get pods -n live -o jsonpath='{.items[*].status.phase}'
 ---
 
 For more information:
-- [Architecture Documentation](reference/architecture.md)
+- [Architecture Documentation](docs/reference/architecture.md)
 - [Development Guide](DEVELOPMENT.md)
 - [Monitoring Runbook](runbooks/monitoring.md)
 - [Incident Response](runbooks/incident-response.md)

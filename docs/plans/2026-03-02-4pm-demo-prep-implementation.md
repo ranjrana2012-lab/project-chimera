@@ -982,7 +982,7 @@ jobs:
           ### Learn More
           - API Documentation: http://localhost:$port/docs
           - Source Code: \`services/[your-service]/main.py\`
-          - Architecture: \`docs/reference/architecture.md\`
+          - Architecture: \`docs/docs/reference/architecture.md\`
 
           ### Success Criteria
           You've completed this when:

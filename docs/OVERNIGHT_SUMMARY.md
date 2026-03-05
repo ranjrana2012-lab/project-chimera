@@ -152,7 +152,7 @@ dfd5f0e feat(openclaw): add FastAPI routes and main application
 | `docs/MONDAY_DEMO_SUMMARY.md` | Demo guide for students |
 | `docs/STUDENT_ROLES.md` | Role assignments |
 | `docs/SERVICE_STATUS.md` | Quick reference |
-| `reference/architecture.md` | System architecture |
+| `docs/reference/architecture.md` | System architecture |
 | `reference/api.md` | Complete API documentation |
 | `reference/runbooks/deployment.md` | Deployment guide |
 | `docs/DEVELOPMENT.md` | Development setup |

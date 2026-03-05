@@ -65,14 +65,14 @@ Replace lines 92-118 with:
 
 - [Quick Start Guide](docs/getting-started/quick-start.md) - Set up your development environment
 - [Student Roles](docs/getting-started/roles.md) - Component ownership details
-- [GitHub Workflow](docs/guides/github-workflow.md) - GitHub automation and trust system
+- [GitHub Workflow](docs/docs/contributing/github-workflow.md) - GitHub automation and trust system
 - [Contributing Guidelines](docs/guides/contributing.md) - How to contribute
 - [Development Guide](docs/DEVELOPMENT.md) - Development workflow and coding standards
 
 ### Technical Documentation
 
-- [Architecture Overview](docs/reference/architecture.md) - System architecture and design
-- [API Documentation](docs/reference/api.md) - Complete API reference for all services
+- [Architecture Overview](docs/docs/reference/architecture.md) - System architecture and design
+- [API Documentation](docs/api/README.md) - Complete API reference for all services
 - [Deployment Guide](docs/reference/runbooks/deployment.md) - Deployment scenarios and procedures
 
 ### Services Documentation
@@ -401,8 +401,8 @@ Expected: File modified silently
 Run:
 ```bash
 sed -i 's|\[Development Guide\](docs/DEVELOPMENT.md)|[Development Guide](docs/DEVELOPMENT.md)|g' README.md
-sed -i 's|\[Architecture Overview\](reference/architecture.md)|[Architecture Overview](docs/reference/architecture.md)|g' README.md
-sed -i 's|\[API Documentation\](reference/api.md)|[API Documentation](docs/reference/api.md)|g' README.md
+sed -i 's|\[Architecture Overview\](docs/reference/architecture.md)|[Architecture Overview](docs/docs/reference/architecture.md)|g' README.md
+sed -i 's|\[API Documentation\](reference/api.md)|[API Documentation](docs/api/README.md)|g' README.md
 sed -i 's|\[Deployment Guide\](reference/runbooks/deployment.md)|[Deployment Guide](docs/reference/runbooks/deployment.md)|g' README.md
 sed -i 's|\[Monitoring Runbook\](reference/runbooks/monitoring.md)|[Monitoring Runbook](docs/reference/runbooks/monitoring.md)|g' README.md
 sed -i 's|\[Incident Response\](reference/runbooks/incident-response.md)|[Incident Response](docs/reference/runbooks/incident-response.md)|g' README.md
@@ -591,7 +591,7 @@ curl http://localhost:8007/health/live
 
 ## Related Documentation
 
-- [Architecture](../reference/architecture.md) - System architecture
+- [Architecture](../docs/reference/architecture.md) - System architecture
 - [API Reference](../reference/api.md) - Complete API docs
 - [Quality Platform](quality-platform.md) - Testing infrastructure
 ```
@@ -730,7 +730,7 @@ git commit -m "docs: add music generation platform documentation"
 
 **Files:**
 - Create: `docs/guides/`
-- Create: `docs/guides/github-workflow.md`
+- Create: `docs/docs/contributing/github-workflow.md`
 
 **Step 1: Create guides directory**
 
@@ -743,7 +743,7 @@ Expected: Directory created silently
 
 **Step 2: Create github-workflow.md**
 
-Create `docs/guides/github-workflow.md`:
+Create `docs/docs/contributing/github-workflow.md`:
 ```markdown
 # GitHub Workflow Guide
 
@@ -885,7 +885,7 @@ Views:
 
 **Step 3: Verify file created**
 
-Run: `cat docs/guides/github-workflow.md | head -30`
+Run: `cat docs/docs/contributing/github-workflow.md | head -30`
 Expected: File content displayed
 
 **Step 4: Commit**
@@ -918,7 +918,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | Set up my development environment | [Quick Start](getting-started/quick-start.md) |
 | Learn about the services | [Services Overview](services/) |
 | Contribute code | [Contributing Guide](guides/contributing.md) |
-| Understand the GitHub workflow | [GitHub Workflow](guides/github-workflow.md) |
+| Understand the GitHub workflow | [GitHub Workflow](docs/contributing/github-workflow.md) |
 | Read the API docs | [API Reference](reference/api.md) |
 | Deploy to production | [Deployment Runbook](reference/runbooks/deployment.md) |
 
@@ -933,7 +933,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 ### Developers
 - [Development Guide](../DEVELOPMENT.md)
 - [Contributing Guide](guides/contributing.md)
-- [GitHub Workflow](guides/github-workflow.md)
+- [GitHub Workflow](docs/contributing/github-workflow.md)
 - [API Reference](reference/api.md)
 
 ### Operators
@@ -957,11 +957,11 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 
 ### Guides
 - [Contributing](guides/contributing.md) - How to contribute
-- [GitHub Workflow](guides/github-workflow.md) - GitHub automation
+- [GitHub Workflow](docs/contributing/github-workflow.md) - GitHub automation
 - [Testing](guides/testing.md) - Testing guide
 
 ### Reference
-- [Architecture](reference/architecture.md) - System architecture
+- [Architecture](docs/reference/architecture.md) - System architecture
 - [API](reference/api.md) - API documentation
 - [Runbooks](reference/runbooks/) - Operational docs
 
@@ -987,17 +987,17 @@ git commit -m "docs: add documentation index and hub"
 
 ---
 
-## Task 12: Update reference/architecture.md with New Services
+## Task 12: Update docs/reference/architecture.md with New Services
 
 **Files:**
-- Modify: `reference/architecture.md`
+- Modify: `docs/reference/architecture.md`
 
 **Step 1: Backup and move architecture doc**
 
 Run:
 ```bash
 mkdir -p docs/reference
-git mv reference/architecture.md docs/reference/architecture.md
+git mv docs/reference/architecture.md docs/docs/reference/architecture.md
 ```
 
 Expected: File moved silently
@@ -1043,7 +1043,7 @@ Find all occurrences of "8 services" or "8 agents" and update to "10 services" o
 **Step 5: Commit**
 
 ```bash
-git add docs/reference/architecture.md
+git add docs/docs/reference/architecture.md
 git commit -m "docs: move and update ARCHITECTURE.md with Music Platform and GitHub automation"
 ```
 
@@ -1058,7 +1058,7 @@ git commit -m "docs: move and update ARCHITECTURE.md with Music Platform and Git
 
 Run:
 ```bash
-git mv reference/api.md docs/reference/api.md
+git mv reference/api.md docs/api/README.md
 ```
 
 Expected: File moved silently
@@ -1170,7 +1170,7 @@ Add to the ports table:
 **Step 4: Commit**
 
 ```bash
-git add docs/reference/api.md
+git add docs/api/README.md
 git commit -m "docs: move and update API.md with Music Platform endpoints"
 ```
 
@@ -1186,7 +1186,7 @@ git commit -m "docs: move and update API.md with Music Platform endpoints"
 Run:
 ```bash
 # Find and replace old paths
-find docs/ -name "*.md" -type f -exec sed -i 's|reference/architecture.md|reference/architecture.md|g' {} \;
+find docs/ -name "*.md" -type f -exec sed -i 's|docs/reference/architecture.md|docs/reference/architecture.md|g' {} \;
 find docs/ -name "*.md" -type f -exec sed -i 's|reference/api.md|reference/api.md|g' {} \;
 find docs/ -name "*.md" -type f -exec sed -i 's|reference/runbooks/deployment.md|reference/runbooks/deployment.md|g' {} \;
 find docs/ -name "*.md" -type f -exec sed -i 's|reference/runbooks/|reference/runbooks/|g' {} \;
