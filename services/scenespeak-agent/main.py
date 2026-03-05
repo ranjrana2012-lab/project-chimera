@@ -1,167 +1,212 @@
 """
 SceneSpeak Agent - Main Application
 
-Provides dialogue generation services with business metrics integration
-and distributed tracing.
+Provides dialogue generation services with GLM 4.7 API integration,
+local LLM fallback, business metrics, and distributed tracing.
 """
 
 import time
 import logging
 from typing import Optional
-from dataclasses import dataclass
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from opentelemetry import trace
+from fastapi.responses import Response
+from pydantic import BaseModel
 
-from metrics import record_generation
+from config import get_settings
+from glm_client import GLMClient
+from models import GenerateRequest, DialogueResponse, HealthResponse
 from tracing import setup_telemetry, instrument_fastapi, add_dialogue_span_attributes, record_error
+from metrics import record_generation
 
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
-# Set up distributed tracing
+# Initialize components
 tracer = setup_telemetry("scenespeak-agent")
+glm_client = GLMClient()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup/shutdown events"""
+    logger.info("SceneSpeak Agent starting up")
+    logger.info(f"GLM API configured: {bool(settings.glm_api_key)}")
+    logger.info(f"Local model configured: {bool(settings.local_model_path)}")
+    yield
+    logger.info("SceneSpeak Agent shutting down")
+
 
 # Create FastAPI app
 app = FastAPI(
     title="SceneSpeak Agent",
-    description="Dialogue generation service with quality metrics and distributed tracing",
-    version="1.0.0"
+    description="Dialogue generation service with GLM 4.7 API and local LLM fallback",
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Instrument FastAPI with automatic tracing
 instrument_fastapi(app)
 
 
-# Request/Response Models
-@dataclass
-class DialogueMetadata:
-    """Metadata for dialogue generation."""
-    show_id: str
-    quality_score: float = 0.8
-    from_cache: bool = False
-
-
-class GenerateRequest(BaseModel):
-    """Request for dialogue generation."""
-    prompt: str = Field(..., description="The prompt for dialogue generation")
-    adapter: Optional[str] = Field("default", description="The adapter to use")
-    metadata: Optional[dict] = Field(default_factory=dict, description="Additional metadata")
-
-
+# Legacy Request/Response Models (for backward compatibility)
 class GenerateResponse(BaseModel):
-    """Response from dialogue generation."""
-    dialogue: str = Field(..., description="Generated dialogue text")
-    adapter: str = Field(..., description="Adapter used for generation")
-    metadata: dict = Field(default_factory=dict, description="Generation metadata")
-
-
-class HealthResponse(BaseModel):
-    """Health check response."""
-    status: str
-    service: str
+    """Response from dialogue generation (legacy format)."""
+    dialogue: str
+    adapter: str
+    metadata: dict
 
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Health check endpoint."""
-    return HealthResponse(status="healthy", service="scenespeak-agent")
+    """Health check endpoint (legacy)."""
+    return HealthResponse(
+        status="healthy",
+        service="scenespeak-agent",
+        model_available=bool(settings.glm_api_key or settings.local_model_path)
+    )
 
 
-@app.post("/v1/generate", response_model=GenerateResponse)
-async def generate(request: GenerateRequest):
+@app.get("/health/live")
+async def liveness():
+    """Liveness probe for Kubernetes."""
+    return {"status": "alive"}
+
+
+@app.get("/health/ready")
+async def readiness():
+    """Readiness probe for Kubernetes."""
+    model_available = bool(settings.glm_api_key or settings.local_model_path)
+    return {
+        "status": "ready",
+        "service": "scenespeak-agent",
+        "model_available": model_available
+    }
+
+
+@app.post("/v1/generate", response_model=DialogueResponse)
+async def generate_dialogue_v1(request: GenerateRequest) -> DialogueResponse:
     """
-    Generate dialogue based on a prompt.
+    Generate dialogue using GLM 4.7 API with local LLM fallback.
 
-    This endpoint demonstrates integration with business metrics
-    and distributed tracing. In production, this would call an actual LLM service.
+    Args:
+        request: Generation request with prompt and parameters
+
+    Returns:
+        DialogueResponse with generated text and metadata
     """
-    start = time.time()
-
-    # Start tracing span if telemetry is available
-    if tracer is not None:
-        generate_span = tracer.start_as_current_span("generate_dialogue")
-        span = generate_span.__enter__()
-    else:
-        span = None
-        generate_span = None
+    start_time = time.time()
 
     try:
-        # Extract metadata for tracing
-        metadata = request.metadata or {}
-        show_id = metadata.get("show_id", "unknown")
-        scene_number = metadata.get("scene_number")
-        adapter = request.adapter or "default"
+        with tracer.start_as_current_span("generate_dialogue") as span:
+            span.set_attribute("prompt_length", len(request.prompt))
+            span.set_attribute("max_tokens", request.max_tokens)
+            span.set_attribute("temperature", request.temperature)
 
-        # Simulate dialogue generation
-        # In production, this would call the actual LLM adapter
-        await time.sleep(0.1)  # Simulate processing
+            # Extract context for tracing
+            context = request.context or {}
+            show_id = context.get("show_id", "unknown")
+            scene_number = context.get("scene_number")
+            adapter_name = context.get("adapter", "default")
 
-        result_dialogue = f"Generated dialogue for: {request.prompt}"
+            # Generate dialogue
+            response = await glm_client.generate(
+                prompt=request.prompt,
+                max_tokens=request.max_tokens,
+                temperature=request.temperature
+            )
 
-        # Calculate generation time
-        duration = time.time() - start
+            # Calculate metrics
+            duration_ms = (time.time() - start_time) * 1000
+            duration_sec = duration_ms / 1000
 
-        # Estimate tokens (rough approximation: words = tokens/1.3)
-        estimated_tokens_input = int(len(request.prompt.split()) * 1.3)
-        estimated_tokens_output = int(len(result_dialogue.split()) * 1.3)
-        dialogue_lines_count = len(result_dialogue.split('.'))
-
-        # Add span attributes for tracing
-        if span is not None:
+            # Add span attributes for tracing
             add_dialogue_span_attributes(
                 span,
                 show_id=show_id,
                 scene_number=scene_number,
-                adapter_name=adapter,
-                tokens_input=estimated_tokens_input,
-                tokens_output=estimated_tokens_output,
-                dialogue_lines_count=dialogue_lines_count
+                adapter_name=response.source,
+                tokens_input=int(len(request.prompt.split()) * 1.3),
+                tokens_output=response.tokens_used,
+                dialogue_lines_count=len(response.text.split('.'))
             )
 
-        # Create response with metadata
-        response_metadata = {
-            "quality_score": 0.85,  # In production, calculate actual quality
-            "from_cache": False,    # In production, check actual cache
-            "generation_time": duration,
-            "adapter": adapter,
-            "tokens_input": estimated_tokens_input,
-            "tokens_output": estimated_tokens_output
-        }
+            # Record business metrics
+            record_generation(
+                show_id=show_id,
+                adapter=response.source,
+                tokens=response.tokens_used,
+                duration=duration_sec,
+                quality=0.85,  # Will be calculated based on actual metrics
+                cache_hit=False
+            )
+
+            logger.info(
+                f"Generated dialogue for show={show_id}, source={response.source}, "
+                f"tokens={response.tokens_used}, duration={duration_sec:.3f}s"
+            )
+
+            return response
+
+    except Exception as e:
+        logger.error(f"Generation failed: {e}")
+        duration_sec = (time.time() - start_time)
+        record_generation("unknown", "api", 0, duration_sec, 0.0, False)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/v1/generate/legacy", response_model=GenerateResponse)
+async def generate_dialogue_legacy(request: GenerateRequest) -> GenerateResponse:
+    """
+    Legacy endpoint for dialogue generation.
+
+    Maintains backward compatibility with existing integrations.
+    """
+    start_time = time.time()
+
+    try:
+        # Extract context
+        context = request.context or {}
+        show_id = context.get("show_id", "unknown")
+        adapter = context.get("adapter", "default")
+
+        # Generate dialogue
+        response = await glm_client.generate(
+            prompt=request.prompt,
+            max_tokens=request.max_tokens,
+            temperature=request.temperature
+        )
+
+        # Calculate duration
+        duration_sec = (time.time() - start_time)
 
         # Record business metrics
         record_generation(
             show_id=show_id,
-            adapter=adapter,
-            tokens=estimated_tokens_output,
-            duration=duration,
-            quality=response_metadata["quality_score"],
-            cache_hit=response_metadata["from_cache"]
+            adapter=response.source,
+            tokens=response.tokens_used,
+            duration=duration_sec,
+            quality=0.85,
+            cache_hit=False
         )
 
-        logger.info(
-            f"Generated dialogue for show={show_id}, adapter={adapter}, "
-            f"tokens_input={estimated_tokens_input}, tokens_output={estimated_tokens_output}, "
-            f"duration={duration:.3f}s"
-        )
-
+        # Return legacy format
         return GenerateResponse(
-            dialogue=result_dialogue,
-            adapter=adapter,
-            metadata=response_metadata
+            dialogue=response.text,
+            adapter=response.source,
+            metadata={
+                "model": response.model,
+                "tokens_used": response.tokens_used,
+                "duration_ms": response.duration_ms,
+                "generation_time": duration_sec,
+                "source": response.source
+            }
         )
 
     except Exception as e:
         logger.error(f"Dialogue generation failed: {e}")
-
-        # Record error on span
-        if span is not None:
-            record_error(span, e, {"error.endpoint": "/v1/generate"})
-
         raise HTTPException(status_code=500, detail=str(e))
-
-    finally:
-        # Close the span
-        if generate_span is not None:
-            generate_span.__exit__(None, None, None)
 
 
 @app.get("/metrics")
@@ -169,22 +214,10 @@ async def metrics_endpoint():
     """
     Prometheus metrics endpoint.
 
-    In production, this would be served by prometheus_client's start_http_server.
-    For now, we return a simple status.
+    Returns Prometheus metrics in the standard format.
     """
-    return {"status": "metrics available at /metrics via prometheus_client"}
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Application startup."""
-    logger.info("SceneSpeak Agent starting up...")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Application shutdown."""
-    logger.info("SceneSpeak Agent shutting down...")
+    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 if __name__ == "__main__":
@@ -192,10 +225,14 @@ if __name__ == "__main__":
 
     # Configure logging
     logging.basicConfig(
-        level=logging.INFO,
+        level=settings.log_level,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     # Start server
-    # Note: In production, use start_http_server for Prometheus metrics
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=settings.port,
+        log_level=settings.log_level.lower()
+    )
