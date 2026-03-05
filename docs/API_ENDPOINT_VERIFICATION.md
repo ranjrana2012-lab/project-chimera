@@ -49,8 +49,8 @@ This document verifies the actual API endpoints against the documented endpoints
 **Correction:** The routes are mounted with `prefix="/v1"` and included without additional prefix, so the endpoint is `/v1/generate`, not `/api/v1/dialogue/generate`.
 
 **Files:**
-- `services/scenespeak-agent/src/routes/generation.py` - Line 11: `router = APIRouter(prefix="/v1")`
-- `services/scenespeak-agent/src/main.py` - Line 47: `app.include_router(generation.router)`
+- `services/SceneSpeak Agent/src/routes/generation.py` - Line 11: `router = APIRouter(prefix="/v1")`
+- `services/SceneSpeak Agent/src/main.py` - Line 47: `app.include_router(generation.router)`
 
 ---
 
@@ -72,8 +72,8 @@ This document verifies the actual API endpoints against the documented endpoints
 **Correction:** The router is included with `prefix="/api/v1"`, and the routes are defined without the `/captioning` segment.
 
 **Files:**
-- `services/captioning-agent/src/routes/captioning.py` - Routes: `/transcribe`, `/detect-language`, `/stream`
-- `services/captioning-agent/src/main.py` - Line 91: `app.include_router(captioning_router, prefix="/api/v1")`
+- `services/Captioning Agent/src/routes/captioning.py` - Routes: `/transcribe`, `/detect-language`, `/stream`
+- `services/Captioning Agent/src/main.py` - Line 91: `app.include_router(captioning_router, prefix="/api/v1")`
 
 ---
 
@@ -119,8 +119,8 @@ This document verifies the actual API endpoints against the documented endpoints
 **Correction:** The router is included with `prefix="/api/v1"`, and routes are `/analyze`, not `/sentiment/analyze`.
 
 **Files:**
-- `services/sentiment-agent/src/routes/analysis.py` - Routes: `/analyze`, `/analyze-batch`, `/trend`
-- `services/sentiment-agent/src/main.py` - Line 105: `app.include_router(analysis_router, prefix="/api/v1")`
+- `services/Sentiment Agent/src/routes/analysis.py` - Routes: `/analyze`, `/analyze-batch`, `/trend`
+- `services/Sentiment Agent/src/main.py` - Line 105: `app.include_router(analysis_router, prefix="/api/v1")`
 
 ---
 

@@ -427,7 +427,7 @@ Insert after the Sentiment Agent deployment section:
 Deploy the WorldMonitor sidecar service for context enrichment:
 
 ```bash
-kubectl apply -f infrastructure/k8s/sentiment-agent-with-worldmonitor-pod.yaml
+kubectl apply -f infrastructure/k8s/Sentiment Agent-with-worldmonitor-pod.yaml
 ```
 
 Or using the separate sidecar manifest:
@@ -450,7 +450,7 @@ The sidecar runs in the same pod as the Sentiment Agent and provides:
 | WORLDMONITOR_SIDECAR_URL | Sidecar service URL | http://localhost:3001 |
 | REDIS_HOST | Redis host for caching | redis.shared.svc.cluster.local |
 | CONTEXT_CACHE_TTL | Context cache TTL (seconds) | 300 |
-| WS_BROADCAST_URL | WebSocket broadcast URL | ws://sentiment-agent:8004/api/v1/context/stream |
+| WS_BROADCAST_URL | WebSocket broadcast URL | ws://Sentiment Agent:8004/api/v1/context/stream |
 ```
 
 **Step 2: Verify formatting**

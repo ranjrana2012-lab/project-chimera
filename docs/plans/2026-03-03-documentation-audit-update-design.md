@@ -56,7 +56,7 @@ Comprehensive documentation audit and update to reflect all completed work throu
 - `docs/api/README.md` - Verify all new endpoints documented
 
 **New files to ensure are linked:**
-- `docs/services/sentiment-agent-with-worldmonitor.md`
+- `docs/services/Sentiment Agent-with-worldmonitor.md`
 - `docs/guides/worldmonitor-context-usage.md`
 - `docs/plans/2026-03-03-worldmonitor-integration-design.md`
 

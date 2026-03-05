@@ -106,10 +106,10 @@ Builds and pushes 8 service images:
 | Service | Purpose |
 |---------|---------|
 | openclaw-orchestrator | Central orchestration |
-| scenespeak-agent | LLM dialogue generation |
-| captioning-agent | Speech-to-text |
+| SceneSpeak Agent | LLM dialogue generation |
+| Captioning Agent | Speech-to-text |
 | bsl-text2gloss-agent | BSL gloss translation |
-| sentiment-agent | Sentiment analysis |
+| Sentiment Agent | Sentiment analysis |
 | lighting-control | DMX/OSC stage control |
 | safety-filter | Content moderation |
 | operator-console | Human oversight |
@@ -153,10 +153,10 @@ Deploys to `live` namespace:
 | Service | CPU | Memory | GPU | Port |
 |---------|-----|--------|-----|------|
 | openclaw-orchestrator | 4 cores | 16 GB | 1 | 8000 |
-| scenespeak-agent | 8 cores | 32 GB | 1 | 8001 |
-| captioning-agent | 4 cores | 8 GB | 0 | 8002 |
+| SceneSpeak Agent | 8 cores | 32 GB | 1 | 8001 |
+| Captioning Agent | 4 cores | 8 GB | 0 | 8002 |
 | bsl-text2gloss-agent | 2 cores | 8 GB | 0 | 8003 |
-| sentiment-agent | 4 cores | 8 GB | 0 | 8004 |
+| Sentiment Agent | 4 cores | 8 GB | 0 | 8004 |
 | lighting-control | 1 core | 2 GB | 0 | 8005 |
 | safety-filter | 2 cores | 4 GB | 0 | 8006 |
 | operator-console | 1 core | 2 GB | 0 | 8007 |

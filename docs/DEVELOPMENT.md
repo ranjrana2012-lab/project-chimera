@@ -184,7 +184,7 @@ project-chimera/
 │   │   │   └── main.py          # Entry point
 │   │   ├── tests/               # Service tests
 │   │   └── Dockerfile
-│   ├── scenespeak-agent/        # Dialogue generation
+│   ├── SceneSpeak Agent/        # Dialogue generation
 │   └── [other services]/
 ├── skills/                      # OpenClaw skills
 ├── infrastructure/              # Kubernetes manifests
@@ -367,7 +367,7 @@ pip install ipdb
 
 ```bash
 # Forward service port
-kubectl port-forward -n live svc/scenespeak-agent 8001:8001
+kubectl port-forward -n live svc/SceneSpeak Agent 8001:8001
 
 # Now debug locally
 curl http://localhost:8001/health/live
@@ -377,10 +377,10 @@ curl http://localhost:8001/health/live
 
 ```bash
 # Get shell in pod
-kubectl exec -it -n live deployment/scenespeak-agent -- bash
+kubectl exec -it -n live deployment/SceneSpeak Agent -- bash
 
 # View logs
-kubectl logs -f -n live deployment/scenespeak-agent
+kubectl logs -f -n live deployment/SceneSpeak Agent
 
 # View logs for all containers
 kubectl logs -f -n live <pod-name> --all-containers=true

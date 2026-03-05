@@ -380,10 +380,10 @@ cat > /tmp/api-audit.md << 'EOF'
 ### API Documentation Audit
 
 #### Metrics Endpoints
-- [ ] scenespeak-agent metrics documented
-- [ ] sentiment-agent metrics documented
-- [ ] captioning-agent metrics documented
-- [ ] bsl-agent metrics documented
+- [ ] SceneSpeak Agent metrics documented
+- [ ] Sentiment Agent metrics documented
+- [ ] Captioning Agent metrics documented
+- [ ] BSL Agent metrics documented
 
 #### Tracing
 - [ ] OpenTelemetry tracing mentioned

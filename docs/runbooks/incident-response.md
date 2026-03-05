@@ -25,10 +25,10 @@ This runbook covers incident response procedures for Project Chimera.
 curl http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95,rate(scenespeak_generation_duration_seconds_bucket[5m]))
 
 # Check GPU usage
-kubectl exec -n live scenespeak-agent-0 -- nvidia-smi
+kubectl exec -n live SceneSpeak Agent-0 -- nvidia-smi
 
 # Check model loading
-kubectl logs -n live scenespeak-agent-0 --tail=100
+kubectl logs -n live SceneSpeak Agent-0 --tail=100
 ```
 
 **Resolution:**

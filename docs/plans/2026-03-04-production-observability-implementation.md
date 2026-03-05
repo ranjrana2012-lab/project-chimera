@@ -564,14 +564,14 @@ git commit -m "docs(alerting): update alerts runbook with critical alert procedu
 ### Task 6: Add Business Metrics to SceneSpeak
 
 **Files:**
-- Create: `services/scenespeak-agent/src/business_metrics.py`
-- Modify: `services/scenespeak-agent/src/main.py`
-- Create: `services/scenespeak-agent/tests/test_business_metrics.py`
+- Create: `services/SceneSpeak Agent/src/business_metrics.py`
+- Modify: `services/SceneSpeak Agent/src/main.py`
+- Create: `services/SceneSpeak Agent/tests/test_business_metrics.py`
 
 **Step 1: Write test for business metrics**
 
 ```python
-# services/scenespeak-agent/tests/test_business_metrics.py
+# services/SceneSpeak Agent/tests/test_business_metrics.py
 import pytest
 from prometheus_client import REGISTRY
 
@@ -598,13 +598,13 @@ def test_dialogue_quality_labels():
 
 **Step 2: Run tests to verify they fail**
 
-Run: `cd services/scenespeak-agent && pytest tests/test_business_metrics.py -v`
+Run: `cd services/SceneSpeak Agent && pytest tests/test_business_metrics.py -v`
 Expected: `ModuleNotFoundError: src.business_metrics`
 
 **Step 3: Implement business metrics**
 
 ```python
-# services/scenespeak-agent/src/business_metrics.py
+# services/SceneSpeak Agent/src/business_metrics.py
 from prometheus_client import Gauge, Counter, Histogram
 import time
 
@@ -665,12 +665,12 @@ def record_generation(show_id: str, adapter: str, tokens: int, duration: float, 
 
 **Step 4: Run tests to verify they pass**
 
-Run: `cd services/scenespeak-agent && pytest tests/test_business_metrics.py -v`
+Run: `cd services/SceneSpeak Agent && pytest tests/test_business_metrics.py -v`
 Expected: All tests pass
 
 **Step 5: Integrate into main.py**
 
-Edit: `services/scenespeak-agent/src/main.py`
+Edit: `services/SceneSpeak Agent/src/main.py`
 Add import:
 ```python
 from src.business_metrics import record_generation
@@ -700,7 +700,7 @@ async def generate(request: GenerateRequest):
 **Step 6: Commit**
 
 ```bash
-git add services/scenespeak-agent/src/business_metrics.py services/scenespeak-agent/src/main.py
+git add services/SceneSpeak Agent/src/business_metrics.py services/SceneSpeak Agent/src/main.py
 git commit -m "feat(scenespeak): add business metrics for dialogue generation"
 ```
 
@@ -709,14 +709,14 @@ git commit -m "feat(scenespeak): add business metrics for dialogue generation"
 ### Task 7: Add Business Metrics to Sentiment Agent
 
 **Files:**
-- Create: `services/sentiment-agent/src/business_metrics.py`
-- Modify: `services/sentiment-agent/src/main.py`
-- Create: `services/sentiment-agent/tests/test_business_metrics.py`
+- Create: `services/Sentiment Agent/src/business_metrics.py`
+- Modify: `services/Sentiment Agent/src/main.py`
+- Create: `services/Sentiment Agent/tests/test_business_metrics.py`
 
 **Step 1: Write tests**
 
 ```python
-# services/sentiment-agent/tests/test_business_metrics.py
+# services/Sentiment Agent/tests/test_business_metrics.py
 import pytest
 
 def test_audience_sentiment_metric():
@@ -734,13 +734,13 @@ def test_emotion_distribution():
 
 **Step 2: Run tests to verify failure**
 
-Run: `cd services/sentiment-agent && pytest tests/test_business_metrics.py -v`
+Run: `cd services/Sentiment Agent && pytest tests/test_business_metrics.py -v`
 Expected: `ModuleNotFoundError`
 
 **Step 3: Implement metrics**
 
 ```python
-# services/sentiment-agent/src/business_metrics.py
+# services/Sentiment Agent/src/business_metrics.py
 from prometheus_client import Gauge, Counter
 
 # Average audience sentiment
@@ -791,13 +791,13 @@ def record_analysis(show_id: str, sentiment: float, emotions: dict, duration: fl
 
 **Step 4: Run tests to verify pass**
 
-Run: `cd services/sentiment-agent && pytest tests/test_business_metrics.py -v`
+Run: `cd services/Sentiment Agent && pytest tests/test_business_metrics.py -v`
 Expected: All tests pass
 
 **Step 5: Commit**
 
 ```bash
-git add services/sentiment-agent/src/business_metrics.py services/sentiment-agent/src/main.py
+git add services/Sentiment Agent/src/business_metrics.py services/Sentiment Agent/src/main.py
 git commit -m "feat(sentiment): add business metrics for audience sentiment tracking"
 ```
 
@@ -806,13 +806,13 @@ git commit -m "feat(sentiment): add business metrics for audience sentiment trac
 ### Task 8: Add Business Metrics to Captioning Agent
 
 **Files:**
-- Create: `services/captioning-agent/src/business_metrics.py`
-- Modify: `services/captioning-agent/src/main.py`
+- Create: `services/Captioning Agent/src/business_metrics.py`
+- Modify: `services/Captioning Agent/src/main.py`
 
 **Step 1: Implement metrics**
 
 ```python
-# services/captioning-agent/src/business_metrics.py
+# services/Captioning Agent/src/business_metrics.py
 from prometheus_client import Histogram, Counter, Gauge
 
 # Caption latency
@@ -845,12 +845,12 @@ active_caption_users = Gauge(
 
 **Step 2: Integrate into main**
 
-Edit: `services/captioning-agent/src/main.py`
+Edit: `services/Captioning Agent/src/main.py`
 
 **Step 3: Commit**
 
 ```bash
-git add services/captioning-agent/src/business_metrics.py
+git add services/Captioning Agent/src/business_metrics.py
 git commit -m "feat(captioning): add business metrics for captioning latency and accuracy"
 ```
 
@@ -859,12 +859,12 @@ git commit -m "feat(captioning): add business metrics for captioning latency and
 ### Task 9: Add Business Metrics to BSL Agent
 
 **Files:**
-- Create: `services/bsl-agent/src/business_metrics.py`
+- Create: `services/BSL Agent/src/business_metrics.py`
 
 **Step 1: Implement metrics**
 
 ```python
-# services/bsl-agent/src/business_metrics.py
+# services/BSL Agent/src/business_metrics.py
 from prometheus_client import Gauge, Counter, Histogram
 
 # Active BSL avatar sessions
@@ -898,7 +898,7 @@ translation_latency = Histogram(
 **Step 2: Commit**
 
 ```bash
-git add services/bsl-agent/src/business_metrics.py
+git add services/BSL Agent/src/business_metrics.py
 git commit -m "feat(bsl): add business metrics for avatar rendering and translation"
 ```
 
@@ -1330,9 +1330,9 @@ class SloQualityGate:
 
     SLO_THRESHOLDS = {
         "openclaw-orchestrator": {"slo": 0.999, "budget": 0.10},
-        "scenespeak-agent": {"slo": 0.995, "budget": 0.10},
-        "captioning-agent": {"slo": 0.995, "budget": 0.10},
-        "bsl-agent": {"slo": 0.99, "budget": 0.10},
+        "SceneSpeak Agent": {"slo": 0.995, "budget": 0.10},
+        "Captioning Agent": {"slo": 0.995, "budget": 0.10},
+        "BSL Agent": {"slo": 0.99, "budget": 0.10},
         "safety-filter": {"slo": 0.999, "budget": 0.10},
         "operator-console": {"slo": 0.995, "budget": 0.10},
     }
@@ -1425,9 +1425,9 @@ PROMETHEUS_URL = "http://localhost:9090"
 
 SLO_TARGETS = {
     "openclaw-orchestrator": 0.999,
-    "scenespeak-agent": 0.995,
-    "captioning-agent": 0.995,
-    "bsl-agent": 0.99,
+    "SceneSpeak Agent": 0.995,
+    "Captioning Agent": 0.995,
+    "BSL Agent": 0.99,
     "safety-filter": 0.999,
     "operator-console": 0.995,
 }
@@ -1555,7 +1555,7 @@ cat > "$REPORT_FILE" << EOF
 EOF
 
 # Generate for each service
-for service in openclaw-orchestrator scenespeak-agent captioning-agent bsl-agent safety-filter operator-console; do
+for service in openclaw-orchestrator SceneSpeak Agent Captioning Agent BSL Agent safety-filter operator-console; do
     cat >> "$REPORT_FILE" << EOF
 
 ### $service
@@ -1850,7 +1850,7 @@ git commit -m "feat(tracing): add OpenTelemetry instrumentation module"
 ### Task 20: Instrument SceneSpeak Agent with Tracing
 
 **Files:**
-- Modify: `services/scenespeak-agent/src/main.py`
+- Modify: `services/SceneSpeak Agent/src/main.py`
 
 **Step 1: Add tracing setup**
 
@@ -1859,7 +1859,7 @@ git commit -m "feat(tracing): add OpenTelemetry instrumentation module"
 from services.shared.tracing import setup_telemetry, instrument_fastapi, add_span_attributes
 
 # Add before app creation
-tracer = setup_telemetry("scenespeak-agent")
+tracer = setup_telemetry("SceneSpeak Agent")
 
 # Add after app creation
 app = FastAPI()
@@ -1913,7 +1913,7 @@ async def generate(request: GenerateRequest):
 **Step 3: Commit**
 
 ```bash
-git add services/scenespeak-agent/src/main.py
+git add services/SceneSpeak Agent/src/main.py
 git commit -m "feat(tracing): add OpenTelemetry instrumentation to SceneSpeak"
 ```
 
@@ -1922,9 +1922,9 @@ git commit -m "feat(tracing): add OpenTelemetry instrumentation to SceneSpeak"
 ### Task 21: Instrument Other Core Services
 
 **Files:**
-- Modify: `services/sentiment-agent/src/main.py`
-- Modify: `services/captioning-agent/src/main.py`
-- Modify: `services/bsl-agent/src/main.py`
+- Modify: `services/Sentiment Agent/src/main.py`
+- Modify: `services/Captioning Agent/src/main.py`
+- Modify: `services/BSL Agent/src/main.py`
 
 **Step 1: Add tracing to each service**
 
@@ -1933,7 +1933,7 @@ Follow same pattern as SceneSpeak
 **Step 2: Commit**
 
 ```bash
-git add services/sentiment-agent/src/main.py services/captioning-agent/src/main.py services/bsl-agent/src/main.py
+git add services/Sentiment Agent/src/main.py services/Captioning Agent/src/main.py services/BSL Agent/src/main.py
 git commit -m "feat(tracing): add OpenTelemetry instrumentation to sentiment, captioning, BSL"
 ```
 
@@ -2119,16 +2119,16 @@ groups:
   - alert: LatencyAnomalyDetected
     expr: |
       (
-        rate(request_duration_seconds_sum{service="scenespeak-agent"}[5m])
+        rate(request_duration_seconds_sum{service="SceneSpeak Agent"}[5m])
         /
-        rate(request_duration_seconds_count{service="scenespeak-agent"}[5m])
+        rate(request_duration_seconds_count{service="SceneSpeak Agent"}[5m])
       )
       >
       (
         avg_over_time(
-          rate(request_duration_seconds_sum{service="scenespeak-agent"}[1h])
+          rate(request_duration_seconds_sum{service="SceneSpeak Agent"}[1h])
           /
-          rate(request_duration_seconds_count{service="scenespeak-agent"}[1h])
+          rate(request_duration_seconds_count{service="SceneSpeak Agent"}[1h])
         ) * 2
       )
     for: 5m
@@ -2172,12 +2172,12 @@ groups:
   - alert: CacheHitRateDrop
     expr: |
       (
-        sum(rate(cache_hits_total{service="scenespeak-agent"}[5m]))
+        sum(rate(cache_hits_total{service="SceneSpeak Agent"}[5m]))
         /
         (
-          sum(rate(cache_hits_total{service="scenespeak-agent"}[5m]))
+          sum(rate(cache_hits_total{service="SceneSpeak Agent"}[5m]))
           +
-          sum(rate(cache_misses_total{service="scenespeak-agent"}[5m]))
+          sum(rate(cache_misses_total{service="SceneSpeak Agent"}[5m]))
         )
       )
       <

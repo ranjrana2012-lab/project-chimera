@@ -76,7 +76,7 @@ Get results of a test run.
   },
   "results": [
     {
-      "service": "scenespeak-agent",
+      "service": "SceneSpeak Agent",
       "suite": "unit",
       "total": 25,
       "passed": 25,
@@ -154,7 +154,7 @@ Discover all tests in the codebase.
   "tests": [
     {
       "id": "test_scenespeak_generation",
-      "path": "services/scenespeak-agent/tests/test_generation.py",
+      "path": "services/SceneSpeak Agent/tests/test_generation.py",
       "suite": "unit"
     }
   ],
@@ -192,7 +192,7 @@ curl -X POST http://localhost:8011/api/v1/tests/run \
   -H "Content-Type: application/json" \
   -d '{
     "suite": "unit",
-    "module": "services/scenespeak-agent"
+    "module": "services/SceneSpeak Agent"
   }'
 ```
 

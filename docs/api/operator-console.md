@@ -43,7 +43,7 @@ const ws = new WebSocket('ws://localhost:8007/ws/realtime');
 ```json
 {
   "action": "subscribe",
-  "channels": ["metrics:scenespeak-agent", "alerts"]
+  "channels": ["metrics:SceneSpeak Agent", "alerts"]
 }
 ```
 
@@ -64,7 +64,7 @@ const ws = new WebSocket('ws://localhost:8007/ws/realtime');
 ```json
 {
   "type": "metric",
-  "service": "scenespeak-agent",
+  "service": "SceneSpeak Agent",
   "metric": "cpu_percent",
   "value": 45.2,
   "unit": "%",
@@ -81,8 +81,8 @@ const ws = new WebSocket('ws://localhost:8007/ws/realtime');
   "id": "alert_abc123",
   "severity": "warning",
   "title": "High CPU Usage",
-  "message": "scenespeak-agent CPU exceeded 80%",
-  "source": "scenespeak-agent",
+  "message": "SceneSpeak Agent CPU exceeded 80%",
+  "source": "SceneSpeak Agent",
   "timestamp": "2026-03-04T12:00:00Z",
   "acknowledged": false
 }
@@ -93,7 +93,7 @@ const ws = new WebSocket('ws://localhost:8007/ws/realtime');
 ```json
 {
   "type": "status",
-  "service": "sentiment-agent",
+  "service": "Sentiment Agent",
   "status": "up",
   "health_check": "healthy",
   "last_check": "2026-03-04T12:00:00Z"
@@ -188,7 +188,7 @@ Get status of all Chimera services.
       }
     },
     {
-      "name": "scenespeak-agent",
+      "name": "SceneSpeak Agent",
       "status": "up",
       "port": 8001,
       "health_check": "healthy",
@@ -223,8 +223,8 @@ Get all active alerts.
       "id": "alert_001",
       "severity": "warning",
       "title": "High CPU Usage",
-      "message": "scenespeak-agent CPU exceeded 80%",
-      "source": "scenespeak-agent",
+      "message": "SceneSpeak Agent CPU exceeded 80%",
+      "source": "SceneSpeak Agent",
       "timestamp": "2026-03-04T12:00:00Z",
       "acknowledged": false
     },
@@ -232,8 +232,8 @@ Get all active alerts.
       "id": "alert_002",
       "severity": "critical",
       "title": "Service Down",
-      "message": "sentiment-agent is not responding",
-      "source": "sentiment-agent",
+      "message": "Sentiment Agent is not responding",
+      "source": "Sentiment Agent",
       "timestamp": "2026-03-04T11:55:00Z",
       "acknowledged": true
     }

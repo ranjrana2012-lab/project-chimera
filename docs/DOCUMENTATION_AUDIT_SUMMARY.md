@@ -143,10 +143,10 @@ make bootstrap-status
 
 # Port forward to services
 kubectl port-forward -n live svc/openclaw-orchestrator 8000:8000
-kubectl port-forward -n live svc/scenespeak-agent 8001:8001
-kubectl port-forward -n live svc/captioning-agent 8002:8002
+kubectl port-forward -n live svc/SceneSpeak Agent 8001:8001
+kubectl port-forward -n live svc/Captioning Agent 8002:8002
 kubectl port-forward -n live svc/bsl-text2gloss-agent 8003:8003
-kubectl port-forward -n live svc/sentiment-agent 8004:8004
+kubectl port-forward -n live svc/Sentiment Agent 8004:8004
 kubectl port-forward -n live svc/lighting-control 8005:8005
 kubectl port-forward -n live svc/safety-filter 8006:8006
 kubectl port-forward -n live svc/operator-console 8007:8007

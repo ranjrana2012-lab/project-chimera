@@ -262,10 +262,10 @@ VERSION="latest"
 
 SERVICES=(
     "openclaw-orchestrator"
-    "scenespeak-agent"
-    "captioning-agent"
+    "SceneSpeak Agent"
+    "Captioning Agent"
     "bsl-text2gloss-agent"
-    "sentiment-agent"
+    "Sentiment Agent"
     "lighting-control"
     "safety-filter"
     "operator-console"
@@ -484,7 +484,7 @@ NAMESPACE="live"
 echo "⏳ [6/7] Deploying AI services to live namespace..."
 
 # Update image tags in deployments to use local registry
-for service in openclaw-orchestrator scenespeak-agent captioning-agent bsl-text2gloss-agent sentiment-agent lighting-control safety-filter operator-console; do
+for service in openclaw-orchestrator SceneSpeak Agent Captioning Agent bsl-text2gloss-agent Sentiment Agent lighting-control safety-filter operator-console; do
     if [ -f "infrastructure/kubernetes/base/$service/deployment.yaml" ]; then
         echo "⏳ Deploying $service..."
 

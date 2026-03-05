@@ -170,7 +170,7 @@ Operator Console
 {"action": "subscribe", "channels": ["metrics:*", "alerts"]}
 
 // Metric update
-{"type": "metric", "service": "scenespeak-agent",
+{"type": "metric", "service": "SceneSpeak Agent",
  "metric": "cpu_percent", "value": 45.2, "unit": "%"}
 
 // Alert

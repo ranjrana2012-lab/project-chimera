@@ -16,10 +16,10 @@
 
 1. [Phase 1: Infrastructure Setup](#phase-1-infrastructure-setup)
 2. [Phase 2: OpenClaw Orchestrator](#phase-2-openclaw-orchestrator)
-3. [Phase 3: SceneSpeak Agent](#phase-3-scenespeak-agent)
-4. [Phase 4: Captioning Agent](#phase-4-captioning-agent)
+3. [Phase 3: SceneSpeak Agent](#phase-3-SceneSpeak Agent)
+4. [Phase 4: Captioning Agent](#phase-4-Captioning Agent)
 5. [Phase 5: BSL-Text2Gloss Agent](#phase-5-bsl-text2gloss-agent)
-6. [Phase 6: Sentiment Agent](#phase-6-sentiment-agent)
+6. [Phase 6: Sentiment Agent](#phase-6-Sentiment Agent)
 7. [Phase 7: Lighting Control](#phase-7-lighting-control)
 8. [Phase 8: Safety Filter](#phase-8-safety-filter)
 9. [Phase 9: Operator Console](#phase-9-operator-console)
@@ -1418,14 +1418,14 @@ spec:
 ### Task 3.1: Create SceneSpeak Base Models
 
 **Files:**
-- Create: `services/scenespeak-agent/src/models/__init__.py`
-- Create: `services/scenespeak-agent/src/models/request.py`
-- Create: `services/scenespeak-agent/src/models/response.py`
+- Create: `services/SceneSpeak Agent/src/models/__init__.py`
+- Create: `services/SceneSpeak Agent/src/models/request.py`
+- Create: `services/SceneSpeak Agent/src/models/response.py`
 
 **Step 1: Write models**
 
 ```python
-# services/scenespeak-agent/src/models/request.py
+# services/SceneSpeak Agent/src/models/request.py
 
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -1440,7 +1440,7 @@ class GenerationRequest(BaseModel):
     top_p: Optional[float] = Field(default=0.95, ge=0.0, le=1.0)
     use_cache: Optional[bool] = True
 
-# services/scenespeak-agent/src/models/response.py
+# services/SceneSpeak Agent/src/models/response.py
 
 from pydantic import BaseModel
 from typing import Optional
@@ -1471,7 +1471,7 @@ class GenerationResponse(BaseModel):
 ### Task 3.2: Create LLM Engine
 
 **Files:**
-- Create: `services/scenespeak-agent/src/core/llm_engine.py`
+- Create: `services/SceneSpeak Agent/src/core/llm_engine.py`
 
 **Step 1: Write llm_engine.py**
 
@@ -1624,7 +1624,7 @@ Generate a response that fits this scene and mood:"""
 ### Task 3.3: Create Prompt Manager
 
 **Files:**
-- Create: `services/scenespeak-agent/src/core/prompt_manager.py`
+- Create: `services/SceneSpeak Agent/src/core/prompt_manager.py`
 
 **Step 1: Write prompt_manager.py**
 
@@ -1691,7 +1691,7 @@ Generate appropriate dialogue:"""
 ### Task 3.4: Create Cache Layer
 
 **Files:**
-- Create: `services/scenespeak-agent/src/core/cache.py`
+- Create: `services/SceneSpeak Agent/src/core/cache.py`
 
 **Step 1: Write cache.py**
 
@@ -1755,7 +1755,7 @@ class ResponseCache:
 ### Task 3.5: Create SceneSpeak Routes
 
 **Files:**
-- Create: `services/scenespeak-agent/src/routes/generation.py`
+- Create: `services/SceneSpeak Agent/src/routes/generation.py`
 
 **Step 1: Write generation.py**
 
@@ -1838,7 +1838,7 @@ async def generate(
 ### Task 3.6: Update SceneSpeak Config
 
 **Files:**
-- Modify: `services/scenespeak-agent/config.py`
+- Modify: `services/SceneSpeak Agent/config.py`
 
 **Step 1: Update config.py**
 
@@ -1851,7 +1851,7 @@ class Settings(BaseSettings):
     """Application settings."""
 
     # Service
-    app_name: str = "scenespeak-agent"
+    app_name: str = "SceneSpeak Agent"
     app_version: str = "1.0.0"
     debug: bool = False
 
@@ -2174,16 +2174,16 @@ locust -f tests/load/locustfile.py --host=http://localhost:8001
 
 ```bash
 # Build specific service
-make build-service SERVICE=scenespeak-agent
+make build-service SERVICE=SceneSpeak Agent
 
 # Push to local registry
-docker push localhost:30500/project-chimera/scenespeak-agent:latest
+docker push localhost:30500/project-chimera/SceneSpeak Agent:latest
 
 # Deploy specific service
-kubectl rollout restart deployment/scenespeak-agent -n live
+kubectl rollout restart deployment/SceneSpeak Agent -n live
 
 # Check logs
-kubectl logs -f -n live deployment/scenespeak-agent
+kubectl logs -f -n live deployment/SceneSpeak Agent
 ```
 
 ---

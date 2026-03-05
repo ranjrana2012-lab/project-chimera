@@ -17,10 +17,10 @@ Project Chimera is divided into 10 focus areas. Each student owns one component 
 | # | Role | Service | Primary Directory |
 |---|------|---------|-------------------|
 | 1 | OpenClaw Orchestrator Lead | `openclaw-orchestrator` | `services/openclaw-orchestrator/` |
-| 2 | SceneSpeak Agent Lead | `scenespeak-agent` | `services/scenespeak-agent/` |
-| 3 | Captioning Agent Lead | `captioning-agent` | `services/captioning-agent/` |
+| 2 | SceneSpeak Agent Lead | `SceneSpeak Agent` | `services/SceneSpeak Agent/` |
+| 3 | Captioning Agent Lead | `Captioning Agent` | `services/Captioning Agent/` |
 | 4 | BSL Translation Lead | `bsl-text2gloss-agent` | `services/bsl-text2gloss-agent/` |
-| 5 | Sentiment Analysis Lead | `sentiment-agent` | `services/sentiment-agent/` |
+| 5 | Sentiment Analysis Lead | `Sentiment Agent` | `services/Sentiment Agent/` |
 | 6 | Lighting Control Lead | `lighting-control` | `services/lighting-control/` |
 | 7 | Safety Filter Lead | `safety-filter` | `services/safety-filter/` |
 | 8 | Operator Console Lead | `operator-console` | `services/operator-console/` |
@@ -66,7 +66,7 @@ Project Chimera is divided into 10 focus areas. Each student owns one component 
 
 ### Role 2: SceneSpeak Agent Lead
 
-**Component:** `scenespeak-agent`
+**Component:** `SceneSpeak Agent`
 **Port:** 8001
 **GPU:** 1x NVIDIA GPU
 **Resources:** 4-8 CPU, 16-32 GiB RAM
@@ -92,7 +92,7 @@ Project Chimera is divided into 10 focus areas. Each student owns one component 
 - Fine-tune LoRA adapters
 
 **Documentation:**
-- `services/scenespeak-agent/README.md`
+- `services/SceneSpeak Agent/README.md`
 - `skills/scenespeak-skill/README.md`
 - `models/prompts/scenespeak/`
 
@@ -100,7 +100,7 @@ Project Chimera is divided into 10 focus areas. Each student owns one component 
 
 ### Role 3: Captioning Agent Lead
 
-**Component:** `captioning-agent`
+**Component:** `Captioning Agent`
 **Port:** 8002
 **GPU:** None (CPU inference)
 **Resources:** 2-4 CPU, 4-8 GiB RAM
@@ -125,7 +125,7 @@ Project Chimera is divided into 10 focus areas. Each student owns one component 
 - Update language models
 
 **Documentation:**
-- `services/captioning-agent/README.md`
+- `services/Captioning Agent/README.md`
 - `skills/captioning-skill/README.md`
 
 ---
@@ -163,7 +163,7 @@ Project Chimera is divided into 10 focus areas. Each student owns one component 
 
 ### Role 5: Sentiment Analysis Lead
 
-**Component:** `sentiment-agent`
+**Component:** `Sentiment Agent`
 **Port:** 8004
 **GPU:** None (CPU inference)
 **Resources:** 4 CPU, 8 GiB RAM
@@ -188,7 +188,7 @@ Project Chimera is divided into 10 focus areas. Each student owns one component 
 - Tune model thresholds
 
 **Documentation:**
-- `services/sentiment-agent/README.md`
+- `services/Sentiment Agent/README.md`
 - `skills/sentiment-skill/README.md`
 
 ---

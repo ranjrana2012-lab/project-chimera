@@ -42,7 +42,7 @@ Get data for the main dashboard.
   },
   "services": [
     {
-      "name": "scenespeak-agent",
+      "name": "SceneSpeak Agent",
       "status": "healthy",
       "port": 8001,
       "test_pass_rate": 0.98,
@@ -72,7 +72,7 @@ Get detailed metrics for a specific service.
 
 ```json
 {
-  "name": "scenespeak-agent",
+  "name": "SceneSpeak Agent",
   "status": "healthy",
   "metrics": {
     "cpu_percent": 45.2,
@@ -111,7 +111,7 @@ Get test results for all services.
 {
   "results": [
     {
-      "service": "scenespeak-agent",
+      "service": "SceneSpeak Agent",
       "suite": "unit",
       "total": 20,
       "passing": 20,
@@ -178,7 +178,7 @@ curl http://localhost:8010/api/v1/dashboard
 ### Get Service Details
 
 ```bash
-curl http://localhost:8010/api/v1/services/scenespeak-agent
+curl http://localhost:8010/api/v1/services/SceneSpeak Agent
 ```
 
 ---

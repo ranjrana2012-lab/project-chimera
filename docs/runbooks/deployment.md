@@ -35,8 +35,8 @@ kubectl get services -n live
 ### Update a Single Service
 
 ```bash
-kubectl set image deployment/scenespeak-agent \
-  scenespeak-agent=ghcr.io/project-chimera/scenespeak-agent:v1.0.1 \
+kubectl set image deployment/SceneSpeak Agent \
+  SceneSpeak Agent=ghcr.io/project-chimera/SceneSpeak Agent:v1.0.1 \
   -n live
 ```
 
@@ -51,7 +51,7 @@ kubectl set image deployment/scenespeak-agent \
 ### Single Service Rollback
 
 ```bash
-kubectl rollout undo deployment/scenespeak-agent -n live
+kubectl rollout undo deployment/SceneSpeak Agent -n live
 ```
 
 ### Full Rollback

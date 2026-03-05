@@ -9,10 +9,10 @@ Complete API reference for all Project Chimera services.
 - [Common Patterns](#common-patterns)
 - [Service APIs](#service-apis)
   - [OpenClaw Orchestrator](#openclaw-orchestrator)
-  - [SceneSpeak Agent](#scenespeak-agent)
-  - [Captioning Agent](#captioning-agent)
+  - [SceneSpeak Agent](#SceneSpeak Agent)
+  - [Captioning Agent](#Captioning Agent)
   - [BSL-Text2Gloss Agent](#bsl-text2gloss-agent)
-  - [Sentiment Agent](#sentiment-agent)
+  - [Sentiment Agent](#Sentiment Agent)
   - [Lighting Control](#lighting-control)
   - [Safety Filter](#safety-filter)
   - [Operator Console](#operator-console)
@@ -33,15 +33,15 @@ In the Kubernetes cluster, services are accessed via internal DNS:
 ```bash
 # Services in the 'live' namespace
 openclaw-orchestrator.live.svc.cluster.local:8000
-scenespeak-agent.live.svc.cluster.local:8001
-captioning-agent.live.svc.cluster.local:8002
+SceneSpeak Agent.live.svc.cluster.local:8001
+Captioning Agent.live.svc.cluster.local:8002
 bsl-text2gloss-agent.live.svc.cluster.local:8003
-sentiment-agent.live.svc.cluster.local:8004
+Sentiment Agent.live.svc.cluster.local:8004
 lighting-sound-music.live.svc.cluster.local:8005
 safety-filter.live.svc.cluster.local:8006
 operator-console.live.svc.cluster.local:8007
 
-# WorldMonitor sidecar (accessed via sentiment-agent pod)
+# WorldMonitor sidecar (accessed via Sentiment Agent pod)
 worldmonitor-sidecar:8010
 ```
 
@@ -179,7 +179,7 @@ List all available skills.
       "version": "1.0.0",
       "description": "Generates real-time dialogue for theatrical performances",
       "enabled": true,
-      "endpoint": "http://scenespeak-agent:8001",
+      "endpoint": "http://SceneSpeak Agent:8001",
       "capabilities": ["dialogue_generation", "stage_cues"]
     },
     {
@@ -187,7 +187,7 @@ List all available skills.
       "version": "1.0.0",
       "description": "Analyzes audience sentiment from social media",
       "enabled": true,
-      "endpoint": "http://sentiment-agent:8004",
+      "endpoint": "http://Sentiment Agent:8004",
       "capabilities": ["sentiment_analysis", "batch_processing"]
     }
   ],
@@ -206,7 +206,7 @@ Get metadata for a specific skill.
   "version": "1.0.0",
   "description": "Generates real-time dialogue for theatrical performances",
   "enabled": true,
-  "endpoint": "http://scenespeak-agent:8001",
+  "endpoint": "http://SceneSpeak Agent:8001",
   "capabilities": ["dialogue_generation", "stage_cues"],
   "config": {
     "model": "llama-2-7b",
@@ -272,7 +272,7 @@ Delete a pipeline.
 
 ### SceneSpeak Agent
 
-**Base URL:** `http://scenespeak-agent:8001`
+**Base URL:** `http://SceneSpeak Agent:8001`
 
 Real-time dialogue generation using local LLMs.
 
@@ -334,7 +334,7 @@ Standard skill invocation endpoint.
 
 ### Captioning Agent
 
-**Base URL:** `http://captioning-agent:8002`
+**Base URL:** `http://Captioning Agent:8002`
 
 Live speech-to-text with accessibility descriptions.
 
@@ -489,7 +489,7 @@ Standard skill invocation endpoint.
 
 ### Sentiment Agent
 
-**Base URL:** `http://sentiment-agent:8004`
+**Base URL:** `http://Sentiment Agent:8004`
 
 Audience sentiment analysis from social media with WorldMonitor global context integration (v0.4.0).
 
@@ -1077,7 +1077,7 @@ Get pending approvals.
       "id": "approval-001",
       "type": "lighting_scene",
       "description": "Scene: dramatic_spotlight",
-      "requester": "scenespeak-agent",
+      "requester": "SceneSpeak Agent",
       "timestamp": "2024-01-01T12:00:00Z"
     }
   ]
@@ -1199,7 +1199,7 @@ The following services offer WebSocket interfaces:
 ### Connection Pattern
 
 ```javascript
-const ws = new WebSocket('ws://captioning-agent:8002/api/v1/captioning/stream');
+const ws = new WebSocket('ws://Captioning Agent:8002/api/v1/captioning/stream');
 
 // Send configuration
 ws.send(JSON.stringify({

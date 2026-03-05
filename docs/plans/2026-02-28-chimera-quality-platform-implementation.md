@@ -878,11 +878,11 @@ async def test_select_tests_for_commit_filters_changed_tests():
     scheduler = TestScheduler()
 
     # Mock changed files
-    changed_files = ["services/captioning-agent/src/api.py"]
+    changed_files = ["services/Captioning Agent/src/api.py"]
 
     tests = await scheduler.select_tests_for_commit("abc123", changed_files)
 
-    # Should only return tests related to captioning-agent
+    # Should only return tests related to Captioning Agent
     assert all("captioning" in t.test_id.lower() for t in tests)
 ```
 

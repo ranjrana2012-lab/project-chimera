@@ -58,7 +58,7 @@ TIME ELAPSED:    ~2 hours
 
 **What was created:**
 ```
-services/captioning-agent/docs/error-handling.md
+services/Captioning Agent/docs/error-handling.md
 ```
 
 **Key Decisions:**
@@ -89,8 +89,8 @@ services/captioning-agent/docs/error-handling.md
 
 **What was created:**
 ```
-services/captioning-agent/core/transcription.py (360 lines)
-services/captioning-agent/tests/test_transcription.py (340 lines)
+services/Captioning Agent/core/transcription.py (360 lines)
+services/Captioning Agent/tests/test_transcription.py (340 lines)
 ```
 
 **Implementation Details:**
@@ -149,8 +149,8 @@ class TranscriptionResponse:
 
 **What was created:**
 ```
-services/captioning-agent/api/streaming.py (330 lines)
-services/captioning-agent/api/main.py (220 lines)
+services/Captioning Agent/api/streaming.py (330 lines)
+services/Captioning Agent/api/main.py (220 lines)
 ```
 
 **WebSocket Architecture:**

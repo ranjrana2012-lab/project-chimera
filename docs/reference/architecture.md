@@ -87,12 +87,12 @@ The Sentiment Agent employs a WorldMonitor sidecar to provide real-time global c
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Kubernetes Pod                               │
-│                  sentiment-agent-xxxxx                           │
+│                  Sentiment Agent-xxxxx                           │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                   │
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │           Main Container                                │    │
-│  │     sentiment-agent (Port 8004)                         │    │
+│  │     Sentiment Agent (Port 8004)                         │    │
 │  │  ┌─────────────────────────────────────────────────┐    │    │
 │  │  │  FastAPI Application                           │    │    │
 │  │  │  - Sentiment Analysis Engine                    │    │    │
@@ -120,7 +120,7 @@ The Sentiment Agent employs a WorldMonitor sidecar to provide real-time global c
          │                              │
          │ Kubernetes Service            │ Kubernetes Service
          ▼                              ▼
-  sentiment-agent:8004           worldmonitor:8010
+  Sentiment Agent:8004           worldmonitor:8010
          │                              ▲
          └──────────────────────────────┘
               Cluster Communication
@@ -396,13 +396,13 @@ Vector database for semantic search and retrieval.
 1. Audience Input
    │
    ▼
-2. Sentiment Analysis (sentiment-agent)
+2. Sentiment Analysis (Sentiment Agent)
    │
    ▼
 3. Context Building (Redis cache + Milvus)
    │
    ▼
-4. Dialogue Generation (scenespeak-agent)
+4. Dialogue Generation (SceneSpeak Agent)
    │
    ▼
 5. Safety Check (safety-filter)
@@ -424,7 +424,7 @@ Vector database for semantic search and retrieval.
 1. Audio Input
    │
    ▼
-2. Speech-to-Text (captioning-agent)
+2. Speech-to-Text (Captioning Agent)
    │
    ▼
 3. Accessibility Enhancement
@@ -527,10 +527,10 @@ Services can be scaled independently based on load:
 
 ```bash
 # Scale SceneSpeak Agent
-kubectl scale deployment/scenespeak-agent --replicas=3 -n live
+kubectl scale deployment/SceneSpeak Agent --replicas=3 -n live
 
 # Scale Captioning Agent
-kubectl scale deployment/captioning-agent --replicas=4 -n live
+kubectl scale deployment/Captioning Agent --replicas=4 -n live
 ```
 
 ### Resource Allocation

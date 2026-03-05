@@ -169,7 +169,7 @@ services/openclaw-orchestrator/
 ### SceneSpeak Agent
 
 ```
-services/scenespeak-agent/
+services/SceneSpeak Agent/
 ├── src/
 │   ├── core/
 │   │   ├── handler.py              # Main orchestration
@@ -188,7 +188,7 @@ services/scenespeak-agent/
 ### Captioning Agent
 
 ```
-services/captioning-agent/
+services/Captioning Agent/
 ├── src/
 │   └── core/
 │       └── transcriber.py         # Whisper integration
@@ -214,7 +214,7 @@ services/bsl-text2gloss-agent/
 ### Sentiment Agent
 
 ```
-services/sentiment-agent/
+services/Sentiment Agent/
 ├── src/
 │   └── core/
 │       └── sentiment_analyzer.py # Sentiment from text
@@ -482,7 +482,7 @@ Services communicate via Kubernetes DNS:
 ```
 
 Examples:
-- `scenespeak-agent.live.svc.cluster.local:8001`
+- `SceneSpeak Agent.live.svc.cluster.local:8001`
 - `safety-filter.live.svc.cluster.local:8006`
 - `redis.shared.svc.cluster.local:6379`
 
@@ -504,9 +504,9 @@ Examples:
 | Service | CPU | Memory | GPU |
 |---------|-----|--------|-----|
 | openclaw-orchestrator | 4 | 16 GB | **1** |
-| scenespeak-agent | 8 | 32 GB | 1 |
-| captioning-agent | 4 | 8 GB | 0 |
-| sentiment-agent | 4 | 4 GB | 0 |
+| SceneSpeak Agent | 8 | 32 GB | 1 |
+| Captioning Agent | 4 | 8 GB | 0 |
+| Sentiment Agent | 4 | 4 GB | 0 |
 | bsl-text2gloss-agent | 2 | 8 GB | 0 |
 | lighting-control | 1 | 2 GB | 0 |
 | safety-filter | 2 | 4 GB | 0 |
@@ -616,7 +616,7 @@ kubectl describe pod <pod-name> -n live
 ### GPU Issues
 
 ```bash
-kubectl exec -n live scenespeak-agent-0 -- nvidia-smi
+kubectl exec -n live SceneSpeak Agent-0 -- nvidia-smi
 ```
 
 ### View All Resources

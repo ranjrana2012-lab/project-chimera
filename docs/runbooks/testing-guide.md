@@ -47,7 +47,7 @@ tests/
 │   ├── services/           # Service-specific unit tests
 │   │   ├── scenespeak/
 │   │   ├── safety-filter/
-│   │   ├── bsl-agent/
+│   │   ├── BSL Agent/
 │   │   └── operator-console/
 │   └── platform/           # Platform unit tests
 │       ├── test-orchestrator/
@@ -110,7 +110,7 @@ locust -f tests/load/test_dialogue_load.py --host=http://localhost:8001
 
 ```bash
 # SceneSpeak Agent tests
-cd services/scenespeak-agent
+cd services/SceneSpeak Agent
 pytest tests/ -v
 
 # Safety Filter tests
@@ -118,7 +118,7 @@ cd services/safety-filter
 pytest tests/test_ml_safety.py -v
 
 # BSL Avatar tests
-cd services/bsl-agent
+cd services/BSL Agent
 pytest tests/test_avatar_renderer.py -v
 
 # Real-time updates tests
@@ -135,7 +135,7 @@ pytest tests/test_realtime_updates.py -v
 #### Unit Tests
 
 ```bash
-cd services/scenespeak-agent
+cd services/SceneSpeak Agent
 pytest tests/ -v
 ```
 
@@ -227,7 +227,7 @@ curl -X POST http://localhost:8006/api/v1/check \
 #### Unit Tests
 
 ```bash
-cd services/bsl-agent
+cd services/BSL Agent
 pytest tests/test_avatar_renderer.py -v
 ```
 
@@ -316,7 +316,7 @@ websocat ws://localhost:8007/ws/realtime
 curl http://localhost:8010/api/v1/dashboard
 
 # Get service details
-curl http://localhost:8010/api/v1/services/scenespeak-agent
+curl http://localhost:8010/api/v1/services/SceneSpeak Agent
 ```
 
 #### Test Orchestrator (8011)
@@ -422,7 +422,7 @@ curl http://localhost:8003/api/v1/avatar/list
 websocat ws://localhost:8007/ws/realtime
 
 # Subscribe to metrics
-{"action": "subscribe", "channels": ["metrics:scenespeak-agent"]}
+{"action": "subscribe", "channels": ["metrics:SceneSpeak Agent"]}
 
 # Expected: Metric updates every ~33ms (30 FPS)
 ```
@@ -511,10 +511,10 @@ pip install pytest pytest-cov pytest-asyncio pytest-mock
 kubectl get pods -n live | grep scenespeak
 
 # Check service logs
-kubectl logs -f -n live deployment/scenespeak-agent
+kubectl logs -f -n live deployment/SceneSpeak Agent
 
 # Port forward to test locally
-kubectl port-forward -n live svc/scenespeak-agent 8001:8001
+kubectl port-forward -n live svc/SceneSpeak Agent 8001:8001
 ```
 
 ### Redis Connection Issues

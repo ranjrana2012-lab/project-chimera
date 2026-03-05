@@ -102,9 +102,9 @@ Get current quality metrics.
   "coverage": {
     "overall": 82.5,
     "by_service": {
-      "scenespeak-agent": 85.2,
+      "SceneSpeak Agent": 85.2,
       "safety-filter": 88.1,
-      "bsl-agent": 76.5
+      "BSL Agent": 76.5
     }
   },
   "tests": {

@@ -45,10 +45,10 @@ project-chimera/
 │
 ├── services/
 │   ├── openclaw-orchestrator/
-│   ├── scenespeak-agent/
-│   ├── captioning-agent/
+│   ├── SceneSpeak Agent/
+│   ├── Captioning Agent/
 │   ├── bsl-text2gloss-agent/
-│   ├── sentiment-agent/
+│   ├── Sentiment Agent/
 │   ├── lighting-control/
 │   ├── safety-filter/
 │   └── operator-console/
@@ -112,9 +112,9 @@ project-chimera/
 | Service | CPU | Memory | GPU |
 |---------|-----|--------|-----|
 | openclaw-orchestrator | 4 cores | 16 GB | 1 |
-| scenespeak-agent | 8 cores | 32 GB | 1 |
-| captioning-agent | 4 cores | 8 GB | 0 |
-| sentiment-agent | 4 cores | 4 GB | 0 |
+| SceneSpeak Agent | 8 cores | 32 GB | 1 |
+| Captioning Agent | 4 cores | 8 GB | 0 |
+| Sentiment Agent | 4 cores | 4 GB | 0 |
 | bsl-text2gloss-agent | 2 cores | 8 GB | 0 |
 | lighting-control | 1 core | 2 GB | 0 |
 | safety-filter | 2 cores | 4 GB | 0 |

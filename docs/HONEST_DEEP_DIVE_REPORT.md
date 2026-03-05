@@ -67,7 +67,7 @@ After actual deep dive testing (not just syntax checks), here's the REAL status:
 ✅ Timestamp field works
 ```
 
-**File:** `services/scenespeak-agent/src/models/`
+**File:** `services/SceneSpeak Agent/src/models/`
 - `request.py` - ✅ All fields validate correctly
 - `response.py` - ✅ Complete with datetime handling
 

@@ -43,10 +43,10 @@ Project Chimera has been **fully implemented** overnight! All 12 phases, 8 servi
 
 ```
 Port 8000: openclaw-orchestrator     ✅
-Port 8001: scenespeak-agent           ✅
-Port 8002: captioning-agent           ✅
+Port 8001: SceneSpeak Agent           ✅
+Port 8002: Captioning Agent           ✅
 Port 8003: bsl-text2gloss-agent       ✅
-Port 8004: sentiment-agent            ✅
+Port 8004: Sentiment Agent            ✅
 Port 8005: lighting-control           ✅
 Port 8006: safety-filter              ✅
 Port 8007: operator-console           ✅
@@ -110,10 +110,10 @@ All curl commands and examples included in `docs/MONDAY_DEMO_SUMMARY.md`
 | # | Role | Service | Directory |
 |---|------|---------|-----------|
 | 1 | OpenClaw Lead | openclaw-orchestrator | services/openclaw-orchestrator/ |
-| 2 | SceneSpeak Lead | scenespeak-agent | services/scenespeak-agent/ |
-| 3 | Captioning Lead | captioning-agent | services/captioning-agent/ |
+| 2 | SceneSpeak Lead | SceneSpeak Agent | services/SceneSpeak Agent/ |
+| 3 | Captioning Lead | Captioning Agent | services/Captioning Agent/ |
 | 4 | BSL Translation Lead | bsl-text2gloss-agent | services/bsl-text2gloss-agent/ |
-| 5 | Sentiment Lead | sentiment-agent | services/sentiment-agent/ |
+| 5 | Sentiment Lead | Sentiment Agent | services/Sentiment Agent/ |
 | 6 | Lighting Lead | lighting-control | services/lighting-control/ |
 | 7 | Safety Lead | safety-filter | services/safety-filter/ |
 | 8 | Console Lead | operator-console | services/operator-console/ |
@@ -195,13 +195,13 @@ make bootstrap-status
 make test
 
 # Build specific service
-make build-service SERVICE=scenespeak-agent
+make build-service SERVICE=SceneSpeak Agent
 
 # View logs
-kubectl logs -f -n live deployment/scenespeak-agent
+kubectl logs -f -n live deployment/SceneSpeak Agent
 
 # Port forward to service
-kubectl port-forward -n live svc/scenespeak-agent 8001:8001
+kubectl port-forward -n live svc/SceneSpeak Agent 8001:8001
 ```
 
 ---

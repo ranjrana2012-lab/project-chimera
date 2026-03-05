@@ -20,8 +20,8 @@ This document outlines standard procedures for responding to alerts from the Pro
 
 **Response Steps**:
 1. Check Grafana dashboard: Project Chimera - SceneSpeak
-2. Verify service is running: `kubectl get pods -n live -l app=scenespeak-agent`
-3. Check recent logs: `kubectl logs -n live deployment/scenespeak-agent --tail=100`
+2. Verify service is running: `kubectl get pods -n live -l app=SceneSpeak Agent`
+3. Check recent logs: `kubectl logs -n live deployment/SceneSpeak Agent --tail=100`
 4. Verify GPU availability
 5. If GPU unavailable, restart the pod
 6. If error persists, check Redis connectivity
@@ -35,7 +35,7 @@ This document outlines standard procedures for responding to alerts from the Pro
 
 **Response Steps**:
 1. Check current latency in Grafana
-2. Verify GPU memory usage: `kubectl exec -n live deployment/scenespeak-agent -- nvidia-smi`
+2. Verify GPU memory usage: `kubectl exec -n live deployment/SceneSpeak Agent -- nvidia-smi`
 3. Check cache hit rate (should be > 70%)
 4. Consider scaling if under high load
 5. Restart pod if memory is fragmented
@@ -121,7 +121,7 @@ This document outlines standard procedures for responding to alerts from the Pro
 **Response Steps**:
 1. Check processing rate vs arrival rate
 2. Verify workers are healthy
-3. Scale horizontally: `kubectl scale deployment sentiment-agent -n live --replicas=2`
+3. Scale horizontally: `kubectl scale deployment Sentiment Agent -n live --replicas=2`
 4. Monitor queue drain
 5. Adjust worker pool size if needed
 
@@ -347,7 +347,7 @@ curl -s -X POST "$ALERTMANAGER_URL/api/v2/silences" \
   -H 'Content-Type: application/json' \
   -d '{
     "matchers": [
-      {"name": "service", "value": "scenespeak-agent", "isRegex": false},
+      {"name": "service", "value": "SceneSpeak Agent", "isRegex": false},
       {"name": "severity", "value": "warning", "isRegex": false}
     ],
     "startsAt": "'$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)'",

@@ -193,10 +193,10 @@ Closes #
 ```
 # Role-based code ownership
 /services/openclaw-orchestrator/ @technical-lead @student-role-1
-/services/scenespeak-agent/ @technical-lead @student-role-2
-/services/captioning-agent/ @technical-lead @student-role-3
+/services/SceneSpeak Agent/ @technical-lead @student-role-2
+/services/Captioning Agent/ @technical-lead @student-role-3
 /services/bsl-text2gloss-agent/ @technical-lead @student-role-4
-/services/sentiment-agent/ @technical-lead @student-role-5
+/services/Sentiment Agent/ @technical-lead @student-role-5
 /services/lighting-control/ @technical-lead @student-role-6
 /services/safety-filter/ @technical-lead @student-role-7
 /services/operator-console/ @technical-lead @student-role-8

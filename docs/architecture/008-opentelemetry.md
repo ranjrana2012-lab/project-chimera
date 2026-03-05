@@ -59,10 +59,10 @@ platform/monitoring/telemetry/
 └── __init__.py                # setup_telemetry() function
 
 services/*/tracing.py           # Per-service tracing modules
-├── scenespeak-agent/tracing.py
-├── captioning-agent/tracing.py
-├── bsl-agent/tracing.py
-├── sentiment-agent/tracing.py
+├── SceneSpeak Agent/tracing.py
+├── Captioning Agent/tracing.py
+├── BSL Agent/tracing.py
+├── Sentiment Agent/tracing.py
 └── safety-filter/tracing.py
 
 scripts/

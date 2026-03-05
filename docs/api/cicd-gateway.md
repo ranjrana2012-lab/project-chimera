@@ -88,7 +88,7 @@ Manually trigger a deployment.
 {
   "environment": "staging",
   "ref": "main",
-  "services": ["scenespeak-agent", "safety-filter"]
+  "services": ["SceneSpeak Agent", "safety-filter"]
 }
 ```
 
@@ -133,9 +133,9 @@ Get status of a deployment.
   "duration": 300,
   "services": [
     {
-      "name": "scenespeak-agent",
+      "name": "SceneSpeak Agent",
       "status": "deployed",
-      "image": "localhost:30500/project-chimera/scenespeak-agent:abc123"
+      "image": "localhost:30500/project-chimera/SceneSpeak Agent:abc123"
     }
   ]
 }

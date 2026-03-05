@@ -89,9 +89,9 @@ Jaeger provides distributed tracing for all service-to-service communication.
 **Symptom**: Error rate > 5% for 5+ minutes
 
 **Resolution**:
-1. Check model loading status: `kubectl logs -n live deployment/scenespeak-agent`
+1. Check model loading status: `kubectl logs -n live deployment/SceneSpeak Agent`
 2. Verify GPU availability: `kubectl describe nodes | grep nvidia.com/gpu`
-3. Test Redis connectivity: `kubectl exec -n live deployment/scenespeak-agent -- redis-cli -h redis.shared ping`
+3. Test Redis connectivity: `kubectl exec -n live deployment/SceneSpeak Agent -- redis-cli -h redis.shared ping`
 
 ### High Latency
 
@@ -107,8 +107,8 @@ Jaeger provides distributed tracing for all service-to-service communication.
 #### Sentiment Queue Backlog
 
 **Resolution**:
-1. Check worker pod status: `kubectl get pods -n live -l app=sentiment-agent`
-2. Scale horizontally: `kubectl scale deployment sentiment-agent -n live --replicas=2`
+1. Check worker pod status: `kubectl get pods -n live -l app=Sentiment Agent`
+2. Scale horizontally: `kubectl scale deployment Sentiment Agent -n live --replicas=2`
 
 ## Emergency Procedures
 

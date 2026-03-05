@@ -409,10 +409,10 @@ def wait_for_services():
     print("\nWaiting for services to be ready...")
     services = [
         "openclaw-orchestrator",
-        "scenespeak-agent",
-        "captioning-agent",
+        "SceneSpeak Agent",
+        "Captioning Agent",
         "bsl-text2gloss-agent",
-        "sentiment-agent",
+        "Sentiment Agent",
         "lighting-control",
         "safety-filter",
         "operator-console"
@@ -466,7 +466,7 @@ git commit -m "test: configure pytest with service markers and fixtures"
 ### Task 2.1: Fix Captioning Agent Response Model
 
 **Files:**
-- Modify: `services/captioning-agent/src/models/response.py`
+- Modify: `services/Captioning Agent/src/models/response.py`
 - Test: `tests/unit/test_captioning_models_fixed.py`
 
 **Step 1: Write the failing test**
@@ -529,7 +529,7 @@ Expected: FAIL with validation error about missing fields
 
 **Step 3: Fix the model**
 
-Read `services/captioning-agent/src/models/response.py` and update to add missing fields:
+Read `services/Captioning Agent/src/models/response.py` and update to add missing fields:
 
 ```python
 # Add these fields to TranscriptionResponse class
@@ -540,10 +540,10 @@ model_version: str = Field(..., description="Model version used")
 **Step 4: Rebuild and redeploy**
 
 ```bash
-docker build -t localhost:30500/project-chimera/captioning-agent:latest services/captioning-agent/
-docker push localhost:30500/project-chimera/captioning-agent:latest
-kubectl rollout restart deployment/captioning-agent -n live
-kubectl wait --for=condition=available --timeout=60s deployment/captioning-agent -n live
+docker build -t localhost:30500/project-chimera/Captioning Agent:latest services/Captioning Agent/
+docker push localhost:30500/project-chimera/Captioning Agent:latest
+kubectl rollout restart deployment/Captioning Agent -n live
+kubectl wait --for=condition=available --timeout=60s deployment/Captioning Agent -n live
 ```
 
 **Step 5: Run test to verify it passes**
@@ -554,7 +554,7 @@ Expected: PASS
 **Step 6: Commit**
 
 ```bash
-git add services/captioning-agent/src/models/response.py tests/unit/test_captioning_models_fixed.py
+git add services/Captioning Agent/src/models/response.py tests/unit/test_captioning_models_fixed.py
 git commit -m "fix(captioning): add processing_time_ms and model_version to response"
 ```
 
@@ -637,7 +637,7 @@ git commit -m "fix(bsl): add translation_time_ms and model_version to response"
 ### Task 2.3: Fix Sentiment Agent Response Model
 
 **Files:**
-- Modify: `services/sentiment-agent/src/models/response.py`
+- Modify: `services/Sentiment Agent/src/models/response.py`
 - Test: `tests/unit/test_sentiment_models_fixed.py`
 
 **Step 1: Write the failing test**
@@ -676,7 +676,7 @@ Expected: FAIL with validation error
 
 **Step 3: Fix the model**
 
-Read `services/sentiment-agent/src/models/response.py` and ensure:
+Read `services/Sentiment Agent/src/models/response.py` and ensure:
 1. `SentimentScore` model exists with `label` and `score` fields
 2. `SentimentResponse.sentiment` is typed as `SentimentScore` not `str`
 3. Add `processing_time_ms` and `model_version` fields
@@ -698,10 +698,10 @@ model_version: str = Field(..., description="Model version used")
 **Step 4: Rebuild and redeploy**
 
 ```bash
-docker build -t localhost:30500/project-chimera/sentiment-agent:latest services/sentiment-agent/
-docker push localhost:30500/project-chimera/sentiment-agent:latest
-kubectl rollout restart deployment/sentiment-agent -n live
-kubectl wait --for=condition=available --timeout=60s deployment/sentiment-agent -n live
+docker build -t localhost:30500/project-chimera/Sentiment Agent:latest services/Sentiment Agent/
+docker push localhost:30500/project-chimera/Sentiment Agent:latest
+kubectl rollout restart deployment/Sentiment Agent -n live
+kubectl wait --for=condition=available --timeout=60s deployment/Sentiment Agent -n live
 ```
 
 **Step 5: Run test to verify it passes**
@@ -712,7 +712,7 @@ Expected: PASS
 **Step 6: Commit**
 
 ```bash
-git add services/sentiment-agent/src/models/response.py tests/unit/test_sentiment_models_fixed.py
+git add services/Sentiment Agent/src/models/response.py tests/unit/test_sentiment_models_fixed.py
 git commit -m "fix(sentiment): fix sentiment type to SentimentScore, add required fields"
 ```
 

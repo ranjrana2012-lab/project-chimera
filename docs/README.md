@@ -2,7 +2,7 @@
 
 Welcome to the Project Chimera documentation. Use this hub to find what you need.
 
-> **New in v0.4.0:** [WorldMonitor Integration](services/core-services.md#sentiment-agent-port-8004) - Enhanced sentiment analysis with global context. [Read more](plans/2026-03-03-worldmonitor-integration.md)
+> **New in v0.4.0:** [WorldMonitor Integration](services/core-services.md#Sentiment Agent-port-8004) - Enhanced sentiment analysis with global context. [Read more](plans/2026-03-03-worldmonitor-integration.md)
 
 ## Quick Links
 

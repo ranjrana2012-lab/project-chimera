@@ -100,7 +100,7 @@ curl -X POST http://localhost:8000/api/v1/orchestrate \
 **Real-Time Dialogue Generation**
 
 ```
-services/scenespeak-agent/
+services/SceneSpeak Agent/
 ```
 
 **What it does:**
@@ -125,7 +125,7 @@ services/scenespeak-agent/
 **Quick Test:**
 ```bash
 # Port forward
-kubectl port-forward -n live svc/scenespeak-agent 8001:8001
+kubectl port-forward -n live svc/SceneSpeak Agent 8001:8001
 
 # Generate dialogue
 curl -X POST http://localhost:8001/api/v1/dialogue/generate \
@@ -162,7 +162,7 @@ curl -X POST http://localhost:8001/api/v1/dialogue/generate \
 **Live Speech-to-Text with Accessibility**
 
 ```
-services/captioning-agent/
+services/Captioning Agent/
 ```
 
 **What it does:**
@@ -187,7 +187,7 @@ services/captioning-agent/
 **Quick Test:**
 ```bash
 # Port forward
-kubectl port-forward -n live svc/captioning-agent 8002:8002
+kubectl port-forward -n live svc/Captioning Agent 8002:8002
 
 # Transcribe audio
 curl -X POST http://localhost:8002/api/v1/captioning/transcribe \
@@ -258,7 +258,7 @@ curl -X POST http://localhost:8003/api/v1/gloss/translate \
 **Audience Sentiment Analysis**
 
 ```
-services/sentiment-agent/
+services/Sentiment Agent/
 ```
 
 **What it does:**
@@ -283,7 +283,7 @@ services/sentiment-agent/
 **Quick Test:**
 ```bash
 # Port forward
-kubectl port-forward -n live svc/sentiment-agent 8004:8004
+kubectl port-forward -n live svc/Sentiment Agent 8004:8004
 
 # Analyze sentiment
 curl -X POST http://localhost:8004/api/v1/sentiment/analyze \
@@ -577,10 +577,10 @@ make bootstrap-status
 # Expected output:
 # NAME                                   READY   STATUS    RESTARTS   AGE
 # openclaw-orchestrator-xxx              1/1     Running   0          5m
-# scenespeak-agent-xxx                   1/1     Running   0          5m
-# captioning-agent-xxx                   1/1     Running   0          5m
+# SceneSpeak Agent-xxx                   1/1     Running   0          5m
+# Captioning Agent-xxx                   1/1     Running   0          5m
 # bsl-text2gloss-agent-xxx               1/1     Running   0          5m
-# sentiment-agent-xxx                    1/1     Running   0          5m
+# Sentiment Agent-xxx                    1/1     Running   0          5m
 # lighting-control-xxx                   1/1     Running   0          5m
 # safety-filter-xxx                      1/1     Running   0          5m
 # operator-console-xxx                   1/1     Running   0          5m
@@ -600,10 +600,10 @@ make run-captioning    # Captioning: localhost:8002
 
 # Or manually:
 kubectl port-forward -n live svc/openclaw-orchestrator 8000:8000
-kubectl port-forward -n live svc/scenespeak-agent 8001:8001
-kubectl port-forward -n live svc/captioning-agent 8002:8002
+kubectl port-forward -n live svc/SceneSpeak Agent 8001:8001
+kubectl port-forward -n live svc/Captioning Agent 8002:8002
 kubectl port-forward -n live svc/bsl-text2gloss-agent 8003:8003
-kubectl port-forward -n live svc/sentiment-agent 8004:8004
+kubectl port-forward -n live svc/Sentiment Agent 8004:8004
 kubectl port-forward -n live svc/lighting-control 8005:8005
 kubectl port-forward -n live svc/safety-filter 8006:8006
 kubectl port-forward -n live svc/operator-console 8007:8007
@@ -614,10 +614,10 @@ kubectl port-forward -n live svc/operator-console 8007:8007
 | Service | Local Port | Cluster URL | Purpose |
 |---------|-----------|-------------|---------|
 | OpenClaw Orchestrator | 8000 | `openclaw-orchestrator.live.svc.cluster.local:8000` | Central coordination |
-| SceneSpeak Agent | 8001 | `scenespeak-agent.live.svc.cluster.local:8001` | Dialogue generation |
-| Captioning Agent | 8002 | `captioning-agent.live.svc.cluster.local:8002` | Speech-to-text |
+| SceneSpeak Agent | 8001 | `SceneSpeak Agent.live.svc.cluster.local:8001` | Dialogue generation |
+| Captioning Agent | 8002 | `Captioning Agent.live.svc.cluster.local:8002` | Speech-to-text |
 | BSL-Text2Gloss Agent | 8003 | `bsl-text2gloss-agent.live.svc.cluster.local:8003` | BSL translation |
-| Sentiment Agent | 8004 | `sentiment-agent.live.svc.cluster.local:8004` | Sentiment analysis |
+| Sentiment Agent | 8004 | `Sentiment Agent.live.svc.cluster.local:8004` | Sentiment analysis |
 | Lighting Control | 8005 | `lighting-control.live.svc.cluster.local:8005` | DMX/sACN control |
 | Safety Filter | 8006 | `safety-filter.live.svc.cluster.local:8006` | Content moderation |
 | Operator Console | 8007 | `operator-console.live.svc.cluster.local:8007` | Oversight UI |
@@ -855,10 +855,10 @@ Each student owns one component. See `docs/STUDENT_ROLES.md` for details.
 | # | Role | Service | First Task |
 |---|------|---------|------------|
 | 1 | OpenClaw Orchestrator Lead | `openclaw-orchestrator` | Review skill registry, test routing |
-| 2 | SceneSpeak Agent Lead | `scenespeak-agent` | Test dialogue generation, review prompts |
-| 3 | Captioning Agent Lead | `captioning-agent` | Test transcription, accuracy analysis |
+| 2 | SceneSpeak Agent Lead | `SceneSpeak Agent` | Test dialogue generation, review prompts |
+| 3 | Captioning Agent Lead | `Captioning Agent` | Test transcription, accuracy analysis |
 | 4 | BSL Translation Lead | `bsl-text2gloss-agent` | Test translation quality, gloss format |
-| 5 | Sentiment Analysis Lead | `sentiment-agent` | Test sentiment analysis, model tuning |
+| 5 | Sentiment Analysis Lead | `Sentiment Agent` | Test sentiment analysis, model tuning |
 | 6 | Lighting Control Lead | `lighting-control` | Test DMX output, scene presets |
 | 7 | Safety Filter Lead | `safety-filter` | Review filter rules, test edge cases |
 | 8 | Operator Console Lead | `operator-console` | Test approval workflow, dashboard UI |

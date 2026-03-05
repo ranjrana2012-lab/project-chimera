@@ -164,10 +164,10 @@ Create `.github/CODEOWNERS`:
 
 # Core AI Services
 /services/openclaw-orchestrator/ @technical-lead
-/services/scenespeak-agent/ @technical-lead
-/services/captioning-agent/ @technical-lead
+/services/SceneSpeak Agent/ @technical-lead
+/services/Captioning Agent/ @technical-lead
 /services/bsl-text2gloss-agent/ @technical-lead
-/services/sentiment-agent/ @technical-lead
+/services/Sentiment Agent/ @technical-lead
 /services/lighting-control/ @technical-lead
 /services/safety-filter/ @technical-lead
 /services/operator-console/ @technical-lead
@@ -941,7 +941,7 @@ curl http://localhost:8000/skills
 **Service 2: SceneSpeak Agent (port 8001)**
 ```bash
 # Port forward
-kubectl port-forward -n live svc/scenespeak-agent 8001:8001
+kubectl port-forward -n live svc/SceneSpeak Agent 8001:8001
 
 # Generate dialogue
 curl -X POST http://localhost:8001/v1/generate \

@@ -171,22 +171,22 @@ Create the SceneSpeak, Captioning, BSL-Text2Gloss, and Sentiment agent services.
 ### Tasks
 
 #### 4.1 SceneSpeak Agent
-- [ ] `services/scenespeak-agent/src/main.py`
-- [ ] `services/scenespeak-agent/src/config.py`
-- [ ] `services/scenespeak-agent/src/core/handler.py`
-- [ ] `services/scenespeak-agent/src/core/context_builder.py`
-- [ ] `services/scenespeak-agent/src/core/prompt_composer.py`
-- [ ] `services/scenespeak-agent/src/core/inference_engine.py`
-- [ ] `services/scenespeak-agent/src/cache/redis_cache.py`
-- [ ] `services/scenespeak-agent/Dockerfile`
+- [ ] `services/SceneSpeak Agent/src/main.py`
+- [ ] `services/SceneSpeak Agent/src/config.py`
+- [ ] `services/SceneSpeak Agent/src/core/handler.py`
+- [ ] `services/SceneSpeak Agent/src/core/context_builder.py`
+- [ ] `services/SceneSpeak Agent/src/core/prompt_composer.py`
+- [ ] `services/SceneSpeak Agent/src/core/inference_engine.py`
+- [ ] `services/SceneSpeak Agent/src/cache/redis_cache.py`
+- [ ] `services/SceneSpeak Agent/Dockerfile`
 - [ ] `infrastructure/kubernetes/base/scenespeak/deployment.yaml`
 - [ ] `infrastructure/kubernetes/base/scenespeak/service.yaml`
 
 #### 4.2 Captioning Agent
-- [ ] `services/captioning-agent/src/main.py`
-- [ ] `services/captioning-agent/src/core/handler.py`
-- [ ] `services/captioning-agent/src/core/transcriber.py` (Whisper integration)
-- [ ] `services/captioning-agent/Dockerfile`
+- [ ] `services/Captioning Agent/src/main.py`
+- [ ] `services/Captioning Agent/src/core/handler.py`
+- [ ] `services/Captioning Agent/src/core/transcriber.py` (Whisper integration)
+- [ ] `services/Captioning Agent/Dockerfile`
 - [ ] `infrastructure/kubernetes/base/captioning/deployment.yaml`
 - [ ] `infrastructure/kubernetes/base/captioning/service.yaml`
 
@@ -199,10 +199,10 @@ Create the SceneSpeak, Captioning, BSL-Text2Gloss, and Sentiment agent services.
 - [ ] `infrastructure/kubernetes/base/bsl-text2gloss/service.yaml`
 
 #### 4.4 Sentiment Agent
-- [ ] `services/sentiment-agent/src/main.py`
-- [ ] `services/sentiment-agent/src/core/handler.py`
-- [ ] `services/sentiment-agent/src/core/sentiment_analyzer.py`
-- [ ] `services/sentiment-agent/Dockerfile`
+- [ ] `services/Sentiment Agent/src/main.py`
+- [ ] `services/Sentiment Agent/src/core/handler.py`
+- [ ] `services/Sentiment Agent/src/core/sentiment_analyzer.py`
+- [ ] `services/Sentiment Agent/Dockerfile`
 - [ ] `infrastructure/kubernetes/base/sentiment/deployment.yaml`
 - [ ] `infrastructure/kubernetes/base/sentiment/service.yaml`
 
@@ -484,9 +484,9 @@ The phases should be executed in this order:
 | Service | CPU | Memory | GPU |
 |---------|-----|--------|-----|
 | openclaw-orchestrator | 4 cores | 16 GB | 1 |
-| scenespeak-agent | 8 cores | 32 GB | 1 |
-| captioning-agent | 4 cores | 8 GB | 0 |
-| sentiment-agent | 4 cores | 4 GB | 0 |
+| SceneSpeak Agent | 8 cores | 32 GB | 1 |
+| Captioning Agent | 4 cores | 8 GB | 0 |
+| Sentiment Agent | 4 cores | 4 GB | 0 |
 | bsl-text2gloss-agent | 2 cores | 8 GB | 0 |
 | lighting-control | 1 core | 2 GB | 0 |
 | safety-filter | 2 cores | 4 GB | 0 |

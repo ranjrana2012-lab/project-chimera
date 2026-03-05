@@ -801,10 +801,10 @@ platform/monitoring/telemetry/
 └── __init__.py                # setup_telemetry() function
 
 services/*/tracing.py           # Per-service tracing modules
-├── scenespeak-agent/tracing.py
-├── captioning-agent/tracing.py
-├── bsl-agent/tracing.py
-├── sentiment-agent/tracing.py
+├── SceneSpeak Agent/tracing.py
+├── Captioning Agent/tracing.py
+├── BSL Agent/tracing.py
+├── Sentiment Agent/tracing.py
 └── safety-filter/tracing.py
 
 scripts/
@@ -865,16 +865,16 @@ git commit -m "docs(adr): add ADR-008 for OpenTelemetry integration standard
 ### Task 14: Document Service Metrics in API Docs
 
 **Files:**
-- Modify: `docs/api/scenespeak-agent.md`
-- Modify: `docs/api/sentiment-agent.md`
-- Modify: `docs/api/captioning-agent.md`
-- Modify: `docs/api/bsl-agent.md`
+- Modify: `docs/api/SceneSpeak Agent.md`
+- Modify: `docs/api/Sentiment Agent.md`
+- Modify: `docs/api/Captioning Agent.md`
+- Modify: `docs/api/BSL Agent.md`
 
 **Step 1: Add metrics section to SceneSpeak API doc**
 
 ```bash
-# Append to docs/api/scenespeak-agent.md
-cat >> docs/api/scenespeak-agent.md << 'EOF'
+# Append to docs/api/SceneSpeak Agent.md
+cat >> docs/api/SceneSpeak Agent.md << 'EOF'
 
 ## Metrics
 
@@ -902,7 +902,7 @@ EOF
 **Step 2: Add metrics section to Sentiment API doc**
 
 ```bash
-cat >> docs/api/sentiment-agent.md << 'EOF'
+cat >> docs/api/Sentiment Agent.md << 'EOF'
 
 ## Metrics
 
@@ -933,7 +933,7 @@ EOF
 **Step 3: Add metrics section to Captioning API doc**
 
 ```bash
-cat >> docs/api/captioning-agent.md << 'EOF'
+cat >> docs/api/Captioning Agent.md << 'EOF'
 
 ## Metrics
 
@@ -959,7 +959,7 @@ EOF
 **Step 4: Add metrics section to BSL API doc**
 
 ```bash
-cat >> docs/api/bsl-agent.md << 'EOF'
+cat >> docs/api/BSL Agent.md << 'EOF'
 
 ## Metrics
 
@@ -985,7 +985,7 @@ EOF
 **Step 5: Commit**
 
 ```bash
-git add docs/api/scenespeak-agent.md docs/api/sentiment-agent.md docs/api/captioning-agent.md docs/api/bsl-agent.md
+git add docs/api/SceneSpeak Agent.md docs/api/Sentiment Agent.md docs/api/Captioning Agent.md docs/api/BSL Agent.md
 git commit -m "docs(api): add metrics and tracing documentation to service API docs
 
 - Add Prometheus metrics sections to SceneSpeak agent
@@ -1136,13 +1136,13 @@ cat > scripts/fix/standardize-terminology.sh << 'EOF'
 echo "Standardizing terminology..."
 
 # Ensure consistent service names
-find docs -name "*.md" -type f -exec sed -i 's/scenespeak-agent/SceneSpeak Agent/g' {} \;
-find docs -name "*.md" -type f -exec sed -i 's/sentiment-agent/Sentiment Agent/g' {} \;
-find docs -name "*.md" -type f -exec sed -i 's/captioning-agent/Captioning Agent/g' {} \;
-find docs -name "*.md" -type f -exec sed -i 's/bsl-agent/BSL Agent/g' {} \;
+find docs -name "*.md" -type f -exec sed -i 's/SceneSpeak Agent/SceneSpeak Agent/g' {} \;
+find docs -name "*.md" -type f -exec sed -i 's/Sentiment Agent/Sentiment Agent/g' {} \;
+find docs -name "*.md" -type f -exec sed -i 's/Captioning Agent/Captioning Agent/g' {} \;
+find docs -name "*.md" -type f -exec sed -i 's/BSL Agent/BSL Agent/g' {} \;
 
 # Ensure consistent component naming
-find docs -name "*.md" -type f -exec sed -i 's/Alertmanager/AlertManager/g' {} \;
+find docs -name "*.md" -type f -exec sed -i 's/AlertManager/AlertManager/g' {} \;
 find docs -name "*.md" -type f -exec sed -i 's/Prometheus/Prometheus/g' {} \;
 
 echo "Terminology standardized"

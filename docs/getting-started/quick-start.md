@@ -31,10 +31,10 @@ Project Chimera is divided into 10 focus areas. Each student will be assigned ow
 | # | Role | Component | Port | Description |
 |---|------|-----------|------|-------------|
 | 1 | OpenClaw Orchestrator Lead | `openclaw-orchestrator` | 8000 | Skill routing, agent coordination |
-| 2 | SceneSpeak Agent Lead | `scenespeak-agent` | 8001 | LLM dialogue generation with LoRA adapters |
-| 3 | Captioning Agent Lead | `captioning-agent` | 8002 | Speech-to-text, live captions |
-| 4 | BSL Translation Lead | `bsl-agent` | 8003 | Text-to-BSL gloss + avatar rendering |
-| 5 | Sentiment Analysis Lead | `sentiment-agent` | 8004 | Audience emotion analysis |
+| 2 | SceneSpeak Agent Lead | `SceneSpeak Agent` | 8001 | LLM dialogue generation with LoRA adapters |
+| 3 | Captioning Agent Lead | `Captioning Agent` | 8002 | Speech-to-text, live captions |
+| 4 | BSL Translation Lead | `BSL Agent` | 8003 | Text-to-BSL gloss + avatar rendering |
+| 5 | Sentiment Analysis Lead | `Sentiment Agent` | 8004 | Audience emotion analysis |
 | 6 | Lighting Control Lead | `lighting-service` | 8005 | DMX/sACN lighting integration |
 | 7 | Safety Filter Lead | `safety-filter` | 8006 | ML-based multi-layer content moderation |
 | 8 | Operator Console Lead | `operator-console` | 8007 | Real-time oversight dashboard with WebSocket updates |
@@ -170,8 +170,8 @@ make bootstrap-status
 # Namespace: live
 # NAME                                   READY   STATUS    RESTARTS   AGE
 # openclaw-orchestrator-...              1/1     Running   0          5m
-# scenespeak-agent-...                   1/1     Running   0          5m
-# captioning-agent-...                   1/1     Running   0          5m
+# SceneSpeak Agent-...                   1/1     Running   0          5m
+# Captioning Agent-...                   1/1     Running   0          5m
 # ...
 ```
 
@@ -214,10 +214,10 @@ xdg-open htmlcov/index.html  # Linux
 project-chimera/
 ├── services/                    # AI Service Implementations
 │   ├── openclaw-orchestrator/   # Skill orchestration (port 8000)
-│   ├── scenespeak-agent/        # Dialogue generation (port 8001) + LoRA adapters
-│   ├── captioning-agent/        # Speech-to-text (port 8002)
-│   ├── bsl-agent/               # BSL translation (port 8003) + avatar renderer
-│   ├── sentiment-agent/         # Sentiment analysis (port 8004)
+│   ├── SceneSpeak Agent/        # Dialogue generation (port 8001) + LoRA adapters
+│   ├── Captioning Agent/        # Speech-to-text (port 8002)
+│   ├── BSL Agent/               # BSL translation (port 8003) + avatar renderer
+│   ├── Sentiment Agent/         # Sentiment analysis (port 8004)
 │   ├── lighting-service/        # DMX/sACN control (port 8005)
 │   ├── safety-filter/           # ML-based safety (port 8006) + multi-layer filtering
 │   └── operator-console/        # Human oversight (port 8007) + real-time updates
@@ -428,7 +428,7 @@ kubectl logs -f -n live deployment/openclaw-orchestrator
 
 ```bash
 # Port forward to local
-kubectl port-forward -n live svc/scenespeak-agent 8001:8001
+kubectl port-forward -n live svc/SceneSpeak Agent 8001:8001
 
 # Test dialogue generation
 curl -X POST http://localhost:8001/v1/generate \
@@ -440,10 +440,10 @@ curl -X POST http://localhost:8001/v1/generate \
 
 ```bash
 # Port forward to local
-kubectl port-forward -n live svc/captioning-agent 8002:8002
+kubectl port-forward -n live svc/Captioning Agent 8002:8002
 
 # View logs
-kubectl logs -f -n live deployment/captioning-agent
+kubectl logs -f -n live deployment/Captioning Agent
 ```
 
 ### 4. BSL-Text2Gloss Agent (Port 8003)
@@ -462,7 +462,7 @@ curl -X POST http://localhost:8003/api/v1/translate \
 
 ```bash
 # Port forward to local
-kubectl port-forward -n live svc/sentiment-agent 8004:8004
+kubectl port-forward -n live svc/Sentiment Agent 8004:8004
 
 # Test sentiment analysis
 curl -X POST http://localhost:8004/api/v1/analyze \
@@ -627,7 +627,7 @@ const ws = new WebSocket('ws://localhost:8007/ws/realtime');
 // Subscribe to metrics
 ws.send(JSON.stringify({
   action: 'subscribe',
-  channels: ['metrics:scenespeak-agent', 'alerts']
+  channels: ['metrics:SceneSpeak Agent', 'alerts']
 }));
 
 // Receive updates
@@ -636,7 +636,7 @@ ws.onmessage = (event) => {
   console.log(update);
   // {
   //   "type": "metric",
-  //   "service": "scenespeak-agent",
+  //   "service": "SceneSpeak Agent",
   //   "metric": "cpu_percent",
   //   "value": 45.2,
   //   "unit": "%"
@@ -679,7 +679,7 @@ curl -X POST http://localhost:8011/api/v1/tests/run
 # Run specific test suite
 curl -X POST http://localhost:8011/api/v1/tests/run \
   -H "Content-Type: application/json" \
-  -d '{"suite": "unit", "module": "services/scenespeak-agent"}'
+  -d '{"suite": "unit", "module": "services/SceneSpeak Agent"}'
 
 # Get test results
 curl http://localhost:8011/api/v1/results/latest
@@ -748,7 +748,7 @@ cd platform/perf-optimizer
 python -m pytest tests/ -v
 
 # Test LoRA adapters
-cd services/scenespeak-agent
+cd services/SceneSpeak Agent
 python -m pytest tests/test_lora_adapter.py -v
 
 # Test ML safety filter
@@ -756,7 +756,7 @@ cd services/safety-filter
 python -m pytest tests/test_ml_safety.py -v
 
 # Test BSL avatar renderer
-cd services/bsl-agent
+cd services/BSL Agent
 python -m pytest tests/test_avatar_renderer.py -v
 
 # Test real-time updates

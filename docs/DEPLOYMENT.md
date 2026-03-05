@@ -197,7 +197,7 @@ kubectl apply -f infrastructure/kubernetes/services/
 
 # Or deploy individually
 kubectl apply -f infrastructure/kubernetes/services/openclaw-orchestrator/
-kubectl apply -f infrastructure/kubernetes/services/scenespeak-agent/
+kubectl apply -f infrastructure/kubernetes/services/SceneSpeak Agent/
 ```
 
 ### GPU Configuration
@@ -228,11 +228,11 @@ The Sentiment Agent includes a WorldMonitor sidecar for real-time global context
 
 ```bash
 # Deploy Sentiment Agent with WorldMonitor sidecar
-kubectl apply -f infrastructure/kubernetes/services/sentiment-agent/
+kubectl apply -f infrastructure/kubernetes/services/Sentiment Agent/
 
 # Verify WorldMonitor sidecar is running
-kubectl get pods -n live -l app=sentiment-agent
-kubectl logs deployment/sentiment-agent -c worldmonitor-sidecar -n live
+kubectl get pods -n live -l app=Sentiment Agent
+kubectl logs deployment/Sentiment Agent -c worldmonitor-sidecar -n live
 ```
 
 **Environment Variables:**
@@ -255,28 +255,28 @@ SENTIMENT_CONTEXT_ENABLED=true
 
 ```bash
 # Check health endpoint
-kubectl exec -n live deployment/sentiment-agent -- curl http://localhost:8004/health/ready
+kubectl exec -n live deployment/Sentiment Agent -- curl http://localhost:8004/health/ready
 
 # Should include: "worldmonitor_connected": true
 
 # Test context retrieval
-kubectl exec -n live deployment/sentiment-agent -- curl http://localhost:8004/api/v1/context
+kubectl exec -n live deployment/Sentiment Agent -- curl http://localhost:8004/api/v1/context
 ```
 
 **Troubleshooting WorldMonitor:**
 
 ```bash
 # Check sidecar logs
-kubectl logs deployment/sentiment-agent -c worldmonitor-sidecar -n live --tail=50 -f
+kubectl logs deployment/Sentiment Agent -c worldmonitor-sidecar -n live --tail=50 -f
 
 # Verify WebSocket connection
-kubectl exec -n live deployment/sentiment-agent -c worldmonitor-sidecar -- curl -i -N \
+kubectl exec -n live deployment/Sentiment Agent -c worldmonitor-sidecar -- curl -i -N \
   -H "Connection: Upgrade" \
   -H "Upgrade: websocket" \
   http://worldmonitor:8010/ws
 
 # Check context cache stats
-kubectl exec -n live deployment/sentiment-agent -- curl http://localhost:8004/api/v1/context/stats
+kubectl exec -n live deployment/Sentiment Agent -- curl http://localhost:8004/api/v1/context/stats
 ```
 
 ## Cloud Deployment
@@ -412,7 +412,7 @@ kubectl apply -f configs/alerts/prometheus-alerts.yaml
 kubectl get pods -n live
 
 # Check logs
-kubectl logs -n live deployment/scenespeak-agent
+kubectl logs -n live deployment/SceneSpeak Agent
 
 # Describe pod for events
 kubectl describe pod -n live <pod-name>
@@ -445,7 +445,7 @@ kubectl get pods -n kube-system -l k8s-app=kube-dns
 kubectl top pods -n live
 
 # Adjust resource limits
-kubectl edit deployment scenespeak-agent -n live
+kubectl edit deployment SceneSpeak Agent -n live
 ```
 
 ### Debug Mode
@@ -469,8 +469,8 @@ env:
 make build-all
 
 # Deploy new version
-kubectl set image deployment/scenespeak-agent \
-  scenespeak-agent=ghcr.io/project-chimera/scenespeak-agent:v1.0.1 \
+kubectl set image deployment/SceneSpeak Agent \
+  SceneSpeak Agent=ghcr.io/project-chimera/SceneSpeak Agent:v1.0.1 \
   -n live
 
 # Or apply updated manifests
@@ -481,10 +481,10 @@ kubectl apply -k infrastructure/kubernetes/overlays/production
 
 ```bash
 # Rollback deployment
-kubectl rollout undo deployment/scenespeak-agent -n live
+kubectl rollout undo deployment/SceneSpeak Agent -n live
 
 # Check rollout status
-kubectl rollout status deployment/scenespeak-agent -n live
+kubectl rollout status deployment/SceneSpeak Agent -n live
 ```
 
 ### Backup
@@ -501,10 +501,10 @@ kubectl get all -n live -o yaml > backup-live.yaml
 
 ```bash
 # Scale a service
-kubectl scale deployment/scenespeak-agent --replicas=3 -n live
+kubectl scale deployment/SceneSpeak Agent --replicas=3 -n live
 
 # Enable autoscaling
-kubectl autoscale deployment/scenespeak-agent \
+kubectl autoscale deployment/SceneSpeak Agent \
   --min=1 --max=5 --cpu-percent=70 -n live
 ```
 
