@@ -1,0 +1,44 @@
+# Project Chimera Platform - Python Dependencies
+
+# Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Database
+asyncpg>=0.29.0
+sqlalchemy>=2.0.23
+alembic>=1.13.0
+
+# Cache & Messaging
+redis>=5.0.0
+aiohttp>=3.9.0
+
+# Monitoring & Observability
+prometheus-client>=0.19.0
+opentelemetry-api>=1.21.0
+opentelemetry-sdk>=1.21.0
+opentelemetry-instrumentation-fastapi>=0.42b0
+opentelemetry-instrumentation-httpx>=0.42b0
+opentelemetry-exporter-otlp>=1.21.0
+
+# Testing
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+httpx>=0.25.2
+
+# Utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0.1
+requests>=2.31.0
+psutil>=5.9.0
+
+# GitHub Integration (CI/CD Gateway)
+PyGithub>=2.1.1
+GitPython>=3.1.40
+
+# SLO Calculations
+numpy>=1.26.0

@@ -27,11 +27,12 @@ jobs:
       - name: Run platform unit tests
         run: |
           cd platform
-          pytest tests/unit/ \
+          pytest quality-gate/tests/ cicd-gateway/tests/ monitoring/tests/ orchestrator/tests/ \
             --cov=platform \
             --cov-report=xml \
             --cov-report=html \
-            --junitxml=platform-test-results.xml
+            --junitxml=platform-test-results.xml \
+            -v
 
       - name: Check 90% coverage threshold
         run: |
@@ -86,9 +87,11 @@ jobs:
           TESTING: "true"
         run: |
           cd platform
-          pytest tests/integration/ \
+          pytest quality-gate/tests/ cicd-gateway/tests/ monitoring/tests/ \
             --junitxml=platform-integration-results.xml \
-            -v
+            -v \
+            --ignore=quality-gate/tests/test_quality.py \
+            --ignore=cicd-gateway/tests/test_broadcast.py
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
