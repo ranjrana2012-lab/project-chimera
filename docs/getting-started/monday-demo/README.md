@@ -8,8 +8,8 @@
 - [Demo Script](./demo-script.md) - 60-minute agenda
 - [GitHub Setup Guide](./github-setup-guide.md) - Project configuration
 - [Pre-Monday Checklist](./pre-monday-checklist.md) - Verification steps
-- [Student Quick Start](../../getting-started/quick-start.md) - Student guide
-- [Student Roles](../../docs/STUDENT_ROLES.md) - Role assignments
+- [Student Quick Start](../quick-start.md) - Student guide
+- [Student Roles](../roles.md) - Role assignments
 
 ## What Students Will Learn
 

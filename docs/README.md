@@ -13,8 +13,8 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | Learn about the services | [Services Overview](services/) |
 | Explore documentation hub | [Documentation Hub](guides/README.md) |
 | Contribute code | [Contributing Guide](../CONTRIBUTING.md) |
-| Understand the GitHub workflow | [GitHub Workflow](docs/contributing/github-workflow.md) |
-| Read the API docs | [API Reference](reference/api.md) |
+| Understand the GitHub workflow | [GitHub Workflow](guides/github-workflow.md) |
+| Read the API docs | [API Reference](api/) |
 | Deploy to production | [Deployment Guide](DEPLOYMENT.md) |
 
 ## By Audience
@@ -28,8 +28,8 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 ### Developers
 - [Development Guide](DEVELOPMENT.md)
 - [Contributing Guide](../CONTRIBUTING.md)
-- [GitHub Workflow](docs/contributing/github-workflow.md)
-- [API Reference](reference/api.md)
+- [GitHub Workflow](guides/github-workflow.md)
+- [API Reference](api/)
 
 ### Operators
 - [Observability Guide](observability.md) - Production monitoring, tracing, and SLOs
@@ -54,8 +54,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 
 ### Guides
 - [Documentation Hub](guides/README.md) - Central navigation for all guides
-- [GitHub Workflow](docs/contributing/github-workflow.md) - GitHub automation and contribution
-- [WorldMonitor Context Usage](guides/worldmonitor-context-usage.md) - WorldMonitor integration guide
+- [GitHub Workflow](guides/github-workflow.md) - GitHub automation and contribution
 
 ### Observability
 - [Observability Guide](observability.md) - Production monitoring, tracing, and SLOs
@@ -66,8 +65,8 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
   - [SLO Handbook](runbooks/slo-handbook.md) - Service Level Objectives
 
 ### Reference
-- [Architecture](docs/reference/architecture.md) - System architecture
-- [API](reference/api.md) - API documentation
+- [Architecture](reference/architecture.md) - System architecture
+- [API](api/) - API documentation
 - [Runbooks](runbooks/) - Operational docs
 
 ### Plans
