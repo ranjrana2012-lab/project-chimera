@@ -375,3 +375,246 @@ All error responses follow this format:
 
 *Last Updated: March 2026*
 *Operator Console v0.4.0*
+
+---
+
+## Code Examples
+
+### WebSocket Connection (Python)
+
+```python
+import asyncio
+import websockets
+import json
+
+async def connect_operator_console():
+    """Connect to Operator Console WebSocket."""
+    uri = "ws://localhost:8007/ws/realtime"
+    
+    async with websockets.connect(uri) as websocket:
+        # Subscribe to channels
+        subscribe_msg = {
+            "action": "subscribe",
+            "channels": ["metrics:SceneSpeak Agent", "alerts", "status"]
+        }
+        await websocket.send(json.dumps(subscribe_msg))
+        
+        # Listen for messages
+        while True:
+            try:
+                message = await asyncio.wait_for(
+                    websocket.recv(), 
+                    timeout=30.0
+                )
+                data = json.loads(message)
+                
+                # Handle different message types
+                if data["type"] == "metric":
+                    print(f"Metric: {data['service']} - {data['metric']}: {data['value']}")
+                elif data["type"] == "alert":
+                    print(f"ALERT: {data['title']} - {data['message']}")
+                elif data["type"] == "status":
+                    print(f"Status: {data['service']} - {data['status']}")
+                    
+            except asyncio.TimeoutError:
+                # Send ping to keep connection alive
+                await websocket.send(json.dumps({"action": "ping"}))
+
+# Run the connection
+asyncio.run(connect_operator_console())
+```
+
+### WebSocket Connection (JavaScript)
+
+```javascript
+// Connect to Operator Console WebSocket
+const ws = new WebSocket('ws://localhost:8007/ws/realtime');
+
+// Connection opened
+ws.onopen = () => {
+  console.log('Connected to Operator Console');
+  
+  // Subscribe to channels
+  const subscribeMsg = {
+    action: 'subscribe',
+    channels: ['metrics:SceneSpeak Agent', 'alerts', 'status']
+  };
+  ws.send(JSON.stringify(subscribeMsg));
+};
+
+// Handle incoming messages
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  
+  switch (data.type) {
+    case 'metric':
+      updateMetricDisplay(data);
+      break;
+    case 'alert':
+      showAlert(data);
+      break;
+    case 'status':
+      updateStatusDisplay(data);
+      break;
+    default:
+      console.log('Unknown message type:', data.type);
+  }
+};
+
+// Connection closed
+ws.onclose = () => {
+  console.log('Disconnected from Operator Console');
+};
+
+// Connection error
+ws.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};
+
+// Update metric display function
+function updateMetricDisplay(data) {
+  const metricElement = document.getElementById(`metric-${data.service}-${data.metric}`);
+  if (metricElement) {
+    metricElement.textContent = `${data.value} ${data.unit}`;
+    metricElement.className = getMetricClass(data.value);
+  }
+}
+
+// Show alert function
+function showAlert(data) {
+  const alertBox = document.getElementById('alert-box');
+  alertBox.innerHTML = `
+    <div class="alert alert-${data.severity}">
+      <strong>${data.title}</strong><br>
+      ${data.message}<br>
+      <small>${data.source} - ${new Date(data.timestamp).toLocaleString()}</small>
+    </div>
+  `;
+}
+
+// Update status display function
+function updateStatusDisplay(data) {
+  const statusBadge = document.getElementById(`status-${data.service}`);
+  if (statusBadge) {
+    statusBadge.className = `badge badge-${data.status}`;
+    statusBadge.textContent = data.status;
+  }
+}
+```
+
+### REST API Examples
+
+#### Get Dashboard Data
+
+```python
+import requests
+
+# Get dashboard summary
+response = requests.get("http://localhost:8007/api/dashboard")
+dashboard = response.json()
+
+print(f"Overall Health: {dashboard['overall_health']}")
+print(f"Active Shows: {dashboard['active_shows']}")
+print(f"Alerts: {dashboard['alerts']}")
+```
+
+#### Get Service Status
+
+```python
+import requests
+
+# Get all service status
+response = requests.get("http://localhost:8007/api/services/status")
+services = response.json()
+
+for service in services['services']:
+    print(f"{service['name']}: {service['status']} (Port: {service['port']})")
+```
+
+#### Approve Pending Item
+
+```python
+import requests
+
+# Approve a pending safety approval
+item_id = "approval-abc123"
+response = requests.post(
+    f"http://localhost:8007/api/approvals/{item_id}/approve",
+    json={"approver": "operator-name", "notes": "Looks good"}
+)
+
+if response.status_code == 200:
+    print(f"Approved item {item_id}")
+else:
+    print(f"Approval failed: {response.text}")
+```
+
+### Error Handling Examples
+
+#### Python with retry logic
+
+```python
+import requests
+import time
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+# Create session with retry logic
+session = requests.Session()
+retry = Retry(
+    total=3,
+    backoff_factor=1,
+    status_forcelist=[500, 502, 503, 504]
+)
+adapter = HTTPAdapter(max_retries=retry)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
+
+# Connect with retry
+try:
+    response = session.get("http://localhost:8007/api/dashboard", timeout=10)
+    response.raise_for_status()
+    dashboard = response.json()
+    
+except requests.exceptions.Timeout:
+    print("Request timed out")
+except requests.exceptions.ConnectionError:
+    print("Connection failed - is the service running?")
+except requests.exceptions.HTTPError as e:
+    print(f"HTTP error: {e}")
+```
+
+#### JavaScript with fetch and async/await
+
+```javascript
+async function getDashboardData() {
+  try {
+    const response = await fetch('http://localhost:8007/api/dashboard');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const dashboard = await response.json();
+    console.log('Overall Health:', dashboard.overall_health);
+    console.log('Active Shows:', dashboard.active_shows);
+    
+    return dashboard;
+    
+  } catch (error) {
+    console.error('Failed to fetch dashboard:', error);
+    throw error;
+  }
+}
+
+// Auto-refresh dashboard every 5 seconds
+setInterval(async () => {
+  try {
+    const dashboard = await getDashboardData();
+    updateDashboardUI(dashboard);
+  } catch (error) {
+    console.error('Auto-refresh failed:', error);
+  }
+}, 5000);
+```
+
