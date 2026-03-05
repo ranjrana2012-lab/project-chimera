@@ -32,9 +32,10 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 - [API Reference](reference/api.md)
 
 ### Operators
-- [Deployment Guide](runbooks/deployment.md)
-- [Monitoring](runbooks/monitoring.md)
-- [Incident Response](runbooks/incident-response.md)
+- [Observability Guide](observability.md) - Production monitoring, tracing, and SLOs
+- [Monitoring](runbooks/monitoring.md) - Monitoring setup and configuration
+- [Incident Response](runbooks/incident-response.md) - Handling incidents
+- [Deployment Guide](runbooks/deployment.md) - Deployment procedures
 
 ## Documentation Index
 
@@ -55,6 +56,14 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 - [Documentation Hub](guides/README.md) - Central navigation for all guides
 - [GitHub Workflow](docs/contributing/github-workflow.md) - GitHub automation and contribution
 - [WorldMonitor Context Usage](guides/worldmonitor-context-usage.md) - WorldMonitor integration guide
+
+### Observability
+- [Observability Guide](observability.md) - Production monitoring, tracing, and SLOs
+- [Runbooks](runbooks/) - Operational procedures
+  - [Monitoring](runbooks/monitoring.md) - Monitoring setup
+  - [Alerts](runbooks/alerts.md) - Alert types and responses
+  - [On-Call](runbooks/on-call.md) - On-call procedures
+  - [SLO Handbook](runbooks/slo-handbook.md) - Service Level Objectives
 
 ### Reference
 - [Architecture](docs/reference/architecture.md) - System architecture
