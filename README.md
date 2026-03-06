@@ -103,6 +103,27 @@ make bootstrap
 
 For manual setup or custom configurations, see the [Deployment Guide](docs/reference/runbooks/deployment.md).
 
+### Docker Compose (Local Development)
+
+For local development and demos, you can use Docker Compose to run all services:
+
+```bash
+# Start all services in development mode (with hot-reload)
+./scripts/docker-start.sh dev
+
+# Check service status
+./scripts/docker-status.sh
+
+# Stop all services
+./scripts/docker-stop.sh
+```
+
+This will start:
+- 8 Core Services (ports 8000-8007)
+- Infrastructure: Redis, Kafka, Prometheus, Jaeger, Grafana
+
+See [Docker Compose Guide](DOCKER.md) for detailed documentation.
+
 ### Check Status
 
 ```bash

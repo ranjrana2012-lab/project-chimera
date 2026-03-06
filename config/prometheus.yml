@@ -1,0 +1,72 @@
+# Prometheus Configuration for Project Chimera
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'chimera-local'
+    environment: 'development'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Rule files
+rule_files: []
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # OpenClaw Orchestrator
+  - job_name: 'openclaw-orchestrator'
+    static_configs:
+      - targets: ['openclaw-orchestrator:8000']
+    metrics_path: '/metrics'
+
+  # SceneSpeak Agent
+  - job_name: 'scenespeak-agent'
+    static_configs:
+      - targets: ['scenespeak-agent:8001']
+    metrics_path: '/metrics'
+
+  # Captioning Agent
+  - job_name: 'captioning-agent'
+    static_configs:
+      - targets: ['captioning-agent:8002']
+    metrics_path: '/metrics'
+
+  # BSL Agent
+  - job_name: 'bsl-agent'
+    static_configs:
+      - targets: ['bsl-agent:8003']
+    metrics_path: '/metrics'
+
+  # Sentiment Agent
+  - job_name: 'sentiment-agent'
+    static_configs:
+      - targets: ['sentiment-agent:8004']
+    metrics_path: '/metrics'
+
+  # Lighting-Sound-Music Service
+  - job_name: 'lighting-sound-music'
+    static_configs:
+      - targets: ['lighting-sound-music:8005']
+    metrics_path: '/metrics'
+
+  # Safety Filter
+  - job_name: 'safety-filter'
+    static_configs:
+      - targets: ['safety-filter:8006']
+    metrics_path: '/metrics'
+
+  # Operator Console
+  - job_name: 'operator-console'
+    static_configs:
+      - targets: ['operator-console:8007']
+    metrics_path: '/metrics'

@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Development overrides for core services
+  openclaw-orchestrator:
+    volumes:
+      - ./services/openclaw-orchestrator:/app
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  scenespeak-agent:
+    volumes:
+      - ./services/scenespeak-agent:/app
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+  captioning-agent:
+    volumes:
+      - ./services/captioning-agent:/app
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    command: uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+
+  bsl-agent:
+    volumes:
+      - ./services/bsl-agent:/app
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    command: uvicorn main:app --host 0.0.0.0 --port 8003 --reload
+
+  sentiment-agent:
+    volumes:
+      - ./services/sentiment-agent:/app
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    command: uvicorn main:app --host 0.0.0.0 --port 8004 --reload
+
+  lighting-sound-music:
+    volumes:
+      - ./services/lighting-sound-music:/app
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    command: uvicorn main:app --host 0.0.0.0 --port 8005 --reload
+
+  safety-filter:
+    volumes:
+      - ./services/safety-filter:/app
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8006 --reload
+
+  operator-console:
+    volumes:
+      - ./services/operator-console:/app
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    command: uvicorn main:app --host 0.0.0.0 --port 8007 --reload
+
+  # Development tools
+  prometheus:
+    volumes:
+      - ./config/prometheus-dev.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=dev123
+      - GF_LOG_LEVEL=debug

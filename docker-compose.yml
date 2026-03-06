@@ -1,0 +1,348 @@
+version: '3.8'
+
+services:
+  # Infrastructure Services
+  redis:
+    image: redis:7-alpine
+    container_name: chimera-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - chimera-network
+
+  kafka:
+    image: bitnami/kafka:3.6
+    container_name: chimera-kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    volumes:
+      - kafka-data:/bitnami/kafka
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - chimera-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: chimera-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: chimera-jaeger
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:16686"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: chimera-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=chimera
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  # Core Services
+  openclaw-orchestrator:
+    build:
+      context: ./services/openclaw-orchestrator
+      dockerfile: Dockerfile
+    container_name: chimera-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      - SERVICE_NAME=openclaw-orchestrator
+      - PORT=8000
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - OTLP_ENDPOINT=http://jaeger:4317
+      - SCENESPEAK_AGENT_URL=http://scenespeak-agent:8001
+      - CAPTIONING_AGENT_URL=http://captioning-agent:8002
+      - BSL_AGENT_URL=http://bsl-agent:8003
+      - SENTIMENT_AGENT_URL=http://sentiment-agent:8004
+      - LIGHTING_SOUND_MUSIC_URL=http://lighting-sound-music:8005
+      - SAFETY_FILTER_URL=http://safety-filter:8006
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  scenespeak-agent:
+    build:
+      context: ./services/scenespeak-agent
+      dockerfile: Dockerfile
+    container_name: chimera-scenespeak
+    ports:
+      - "8001:8001"
+    environment:
+      - SERVICE_NAME=scenespeak-agent
+      - PORT=8001
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8001/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  captioning-agent:
+    build:
+      context: ./services/captioning-agent
+      dockerfile: Dockerfile
+    container_name: chimera-captioning
+    ports:
+      - "8002:8002"
+    environment:
+      - SERVICE_NAME=captioning-agent
+      - PORT=8002
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8002/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  bsl-agent:
+    build:
+      context: ./services/bsl-agent
+      dockerfile: Dockerfile
+    container_name: chimera-bsl
+    ports:
+      - "8003:8003"
+    environment:
+      - SERVICE_NAME=bsl-agent
+      - PORT=8003
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8003/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  sentiment-agent:
+    build:
+      context: ./services/sentiment-agent
+      dockerfile: Dockerfile
+    container_name: chimera-sentiment
+    ports:
+      - "8004:8004"
+    environment:
+      - SERVICE_NAME=sentiment-agent
+      - PORT=8004
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8004/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  lighting-sound-music:
+    build:
+      context: ./services/lighting-sound-music
+      dockerfile: Dockerfile
+    container_name: chimera-lighting-sound-music
+    ports:
+      - "8005:8005"
+    environment:
+      - SERVICE_NAME=lighting-sound-music
+      - PORT=8005
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8005/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  safety-filter:
+    build:
+      context: ./services/safety-filter
+      dockerfile: Dockerfile
+    container_name: chimera-safety-filter
+    ports:
+      - "8006:8006"
+    environment:
+      - SERVICE_NAME=safety-filter
+      - PORT=8006
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+  operator-console:
+    build:
+      context: ./services/operator-console
+      dockerfile: Dockerfile
+    container_name: chimera-operator-console
+    ports:
+      - "8007:8007"
+    environment:
+      - SERVICE_NAME=operator-console
+      - PORT=8007
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - OTLP_ENDPOINT=http://jaeger:4317
+      - OPENCLAW_ORCHESTRATOR_URL=http://openclaw-orchestrator:8000
+      - SCENESPEAK_AGENT_URL=http://scenespeak-agent:8001
+      - CAPTIONING_AGENT_URL=http://captioning-agent:8002
+      - BSL_AGENT_URL=http://bsl-agent:8003
+      - SENTIMENT_AGENT_URL=http://sentiment-agent:8004
+      - LIGHTING_SOUND_MUSIC_URL=http://lighting-sound-music:8005
+      - SAFETY_FILTER_URL=http://safety-filter:8006
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      openclaw-orchestrator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8007/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - chimera-network
+
+networks:
+  chimera-network:
+    driver: bridge
+    name: chimera-network
+
+volumes:
+  redis-data:
+    name: chimera-redis-data
+  kafka-data:
+    name: chimera-kafka-data
+  prometheus-data:
+    name: chimera-prometheus-data
+  grafana-data:
+    name: chimera-grafana-data
