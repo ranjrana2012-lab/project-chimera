@@ -12,16 +12,19 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY sentiment-agent/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
-COPY src/ /app/src/
+COPY sentiment-agent/src/ /app/src/
+
+# Copy shared tracing module
+COPY shared/ /app/shared/
 
 # Set Python path
-ENV PYTHONPATH=/app/src
+ENV PYTHONPATH=/app/src:/app
 
 # Expose port
 EXPOSE 8004

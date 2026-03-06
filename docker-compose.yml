@@ -18,29 +18,39 @@ services:
       - chimera-network
 
   kafka:
-    image: bitnami/kafka:3.6
+    image: confluentinc/cp-kafka:7.5.0
     container_name: chimera-kafka
     ports:
       - "9092:9092"
-      - "9093:9093"
     environment:
-      - KAFKA_CFG_NODE_ID=0
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
     volumes:
-      - kafka-data:/bitnami/kafka
+      - kafka-data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - zookeeper
+    networks:
+      - chimera-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: chimera-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
     networks:
       - chimera-network
 
@@ -56,7 +66,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -80,7 +90,7 @@ services:
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:16686"]
+      test: ["CMD", "curl", "-f", "http://localhost:16686"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -96,12 +106,11 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=chimera
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -134,7 +143,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -160,7 +169,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8001/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -186,7 +195,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8002/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -212,7 +221,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8003/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -221,8 +230,8 @@ services:
 
   sentiment-agent:
     build:
-      context: ./services/sentiment-agent
-      dockerfile: Dockerfile
+      context: ./services
+      dockerfile: sentiment-agent/Dockerfile
     container_name: chimera-sentiment
     ports:
       - "8004:8004"
@@ -238,7 +247,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8004/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -264,7 +273,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8005/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -290,7 +299,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8006/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -323,9 +332,9 @@ services:
       kafka:
         condition: service_healthy
       openclaw-orchestrator:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8007/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -342,6 +351,10 @@ volumes:
     name: chimera-redis-data
   kafka-data:
     name: chimera-kafka-data
+  zookeeper-data:
+    name: chimera-zookeeper-data
+  zookeeper-logs:
+    name: chimera-zookeeper-logs
   prometheus-data:
     name: chimera-prometheus-data
   grafana-data:

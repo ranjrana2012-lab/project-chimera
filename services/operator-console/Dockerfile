@@ -11,6 +11,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY *.py ./
+RUN mkdir -p static
+COPY static/ ./static/
 
 EXPOSE 8007
 
