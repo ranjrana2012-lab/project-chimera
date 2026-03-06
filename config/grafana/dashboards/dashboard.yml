@@ -1,15 +1,6 @@
-# Grafana Dashboard Configuration
-
 apiVersion: 1
 
 providers:
-  - name: 'Project Chimera'
-    orgId: 1
-    folder: ''
+  - name: 'Chimera Services'
     type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards
-      foldersFromFilesStructure: true
+    path: /etc/grafana/provisioning/dashboards

@@ -10,7 +10,8 @@ from contextlib import asynccontextmanager
 from typing import Dict, Optional
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from httpx import AsyncClient, ConnectError
 from prometheus_client import Counter, generate_latest
 from starlette.responses import Response
@@ -203,6 +204,9 @@ app = FastAPI(
 # Instrument FastAPI
 instrument_fastapi(app)
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Metrics
 health_checks = Counter(
     'operator_console_health_checks_total',
@@ -244,266 +248,11 @@ async def readiness():
     return ReadinessResponse(status=status, checks=checks)
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=RedirectResponse)
 async def dashboard():
-    """Serve the operator console dashboard."""
-    return """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operator Console - Project Chimera</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        h1 { color: #667eea; margin-bottom: 5px; }
-        .subtitle { color: #666; font-size: 0.9em; }
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-left: 10px;
-        }
-        .status-connected { background: #10b981; }
-        .status-disconnected { background: #ef4444; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .card h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-        .service-item {
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .service-name { font-weight: bold; }
-        .service-status {
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 0.8em;
-        }
-        .status-up { background: #d1fae5; color: #065f46; }
-        .status-down { background: #fee2e2; color: #991b1b; }
-        .status-degraded { background: #fef3c7; color: #92400e; }
-        .status-unknown { background: #e5e7eb; color: #374151; }
-        .metric-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .metric-label {
-            font-size: 0.8em;
-            color: #666;
-        }
-        .alert {
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border-left: 4px solid;
-        }
-        .alert-critical {
-            background: #fee2e2;
-            border-color: #ef4444;
-        }
-        .alert-warning {
-            background: #fef3c7;
-            border-color: #f59e0b;
-        }
-        .alert-info {
-            background: #dbeafe;
-            border-color: #3b82f6;
-        }
-        .alert-title { font-weight: bold; margin-bottom: 3px; }
-        .alert-message { font-size: 0.9em; color: #666; }
-        .connection-info {
-            text-align: center;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>
-                Operator Console
-                <span class="status-indicator status-disconnected" id="statusIndicator"></span>
-            </h1>
-            <p class="subtitle">Project Chimera - Real-time Monitoring Dashboard</p>
-        </header>
+    """Redirect to the static dashboard."""
+    return RedirectResponse(url="/static/dashboard.html")
 
-        <div class="connection-info">
-            <span id="connectionStatus">Connecting...</span> |
-            Services: <span id="serviceCount">0</span> |
-            Active Alerts: <span id="alertCount">0</span>
-        </div>
-
-        <div class="grid">
-            <div class="card">
-                <h2>Services</h2>
-                <div id="servicesList"></div>
-            </div>
-
-            <div class="card">
-                <h2>System Metrics</h2>
-                <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                    <div style="text-align: center;">
-                        <div class="metric-value" id="avgCpu">--</div>
-                        <div class="metric-label">Avg CPU %</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div class="metric-value" id="avgMemory">--</div>
-                        <div class="metric-label">Avg Memory MB</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div class="metric-value" id="totalRequests">--</div>
-                        <div class="metric-label">Total Requests/s</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div class="metric-value" id="avgErrorRate">--</div>
-                        <div class="metric-label">Avg Error Rate %</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>Active Alerts</h2>
-                <div id="alertsList"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const ws = new WebSocket(`ws://${window.location.host}/ws`);
-        const services = new Map();
-        const alerts = new Map();
-        const metrics = new Map();
-
-        ws.onopen = () => {
-            document.getElementById('statusIndicator').className = 'status-indicator status-connected';
-            document.getElementById('connectionStatus').textContent = 'Connected';
-        };
-
-        ws.onclose = () => {
-            document.getElementById('statusIndicator').className = 'status-indicator status-disconnected';
-            document.getElementById('connectionStatus').textContent = 'Disconnected';
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-
-            if (data.type === 'status') {
-                services.set(data.data.service, data.data);
-            } else if (data.type === 'metric') {
-                const key = `${data.data.service}:${data.data.metric}`;
-                metrics.set(key, data.data);
-            } else if (data.type === 'alert') {
-                alerts.set(data.data.id, data.data);
-            }
-
-            updateUI();
-        };
-
-        function updateUI() {
-            // Update services list
-            const servicesList = document.getElementById('servicesList');
-            servicesList.innerHTML = '';
-            services.forEach((data, name) => {
-                const item = document.createElement('div');
-                item.className = 'service-item';
-                item.innerHTML = `
-                    <span class="service-name">${name}</span>
-                    <span class="service-status status-${data.status}">${data.status}</span>
-                `;
-                servicesList.appendChild(item);
-            });
-            document.getElementById('serviceCount').textContent = services.size;
-
-            // Update alerts
-            const alertsList = document.getElementById('alertsList');
-            alertsList.innerHTML = '';
-            const activeAlerts = Array.from(alerts.values()).filter(a => !a.acknowledged);
-            activeAlerts.forEach(alert => {
-                const item = document.createElement('div');
-                item.className = `alert alert-${alert.severity}`;
-                item.innerHTML = `
-                    <div class="alert-title">${alert.title}</div>
-                    <div class="alert-message">${alert.message}</div>
-                `;
-                alertsList.appendChild(item);
-            });
-            document.getElementById('alertCount').textContent = activeAlerts.length;
-
-            // Update metrics
-            let totalCpu = 0, cpuCount = 0;
-            let totalMemory = 0, memoryCount = 0;
-            let totalRequests = 0;
-            let totalErrors = 0, errorCount = 0;
-
-            metrics.forEach((data) => {
-                if (data.metric === 'cpu_percent') {
-                    totalCpu += data.value;
-                    cpuCount++;
-                } else if (data.metric === 'memory_mb') {
-                    totalMemory += data.value;
-                    memoryCount++;
-                } else if (data.metric === 'request_rate') {
-                    totalRequests += data.value;
-                } else if (data.metric === 'error_rate') {
-                    totalErrors += data.value;
-                    errorCount++;
-                }
-            });
-
-            document.getElementById('avgCpu').textContent = cpuCount > 0 ? (totalCpu / cpuCount).toFixed(1) : '--';
-            document.getElementById('avgMemory').textContent = memoryCount > 0 ? (totalMemory / memoryCount).toFixed(0) : '--';
-            document.getElementById('totalRequests').textContent = totalRequests > 0 ? totalRequests.toFixed(1) : '--';
-            document.getElementById('avgErrorRate').textContent = errorCount > 0 ? ((totalErrors / errorCount) * 100).toFixed(2) : '--';
-        }
-
-        // Initial UI update
-        updateUI();
-    </script>
-</body>
-</html>
-"""
 
 
 @app.get("/api/services", response_model=ServiceList)

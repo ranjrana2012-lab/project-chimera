@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Chimera - Operator Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .status-online { background-color: #10b981; }
+        .status-offline { background-color: #ef4444; }
+        .status-degraded { background-color: #f59e0b; }
+        .alert-critical { border-left: 4px solid #ef4444; }
+        .alert-warning { border-left: 4px solid #f59e0b; }
+        .alert-info { border-left: 4px solid #3b82f6; }
+        .event-feed { max-height: 300px; overflow-y: auto; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-2xl font-bold text-cyan-400">Project Chimera</h1>
+                <span class="text-gray-400">|</span>
+                <span class="text-lg">Operator Console</span>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-2">
+                    <div id="connection-status" class="w-3 h-3 rounded-full status-offline"></div>
+                    <span id="connection-text" class="text-sm text-gray-400">Disconnected</span>
+                </div>
+                <div class="text-sm text-gray-400">
+                    <span id="current-time">--:--:--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Service Status Panel -->
+            <div class="lg:col-span-2 bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-400">Service Status</h2>
+                <div id="service-status" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Service cards will be dynamically inserted -->
+                </div>
+            </div>
+
+            <!-- Alerts Console -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 text-red-400">Alerts Console</h2>
+                <div id="alerts-console" class="space-y-3 max-h-96 overflow-y-auto">
+                    <!-- Alerts will be dynamically inserted -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <h2 class="text-xl font-semibold mb-4 text-green-400">Control Panel</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <button onclick="sendCommand('start_all')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                    Start All Services
+                </button>
+                <button onclick="sendCommand('stop_all')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                    Stop All Services
+                </button>
+                <button onclick="sendCommand('restart_degraded')" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                    Restart Degraded
+                </button>
+                <button onclick="sendCommand('refresh_status')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                    Refresh Status
+                </button>
+            </div>
+        </div>
+
+        <!-- Metrics Section -->
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- CPU Usage Chart -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4 text-purple-400">CPU Usage (%)</h3>
+                <canvas id="cpu-chart"></canvas>
+            </div>
+
+            <!-- Memory Usage Chart -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4 text-blue-400">Memory Usage (MB)</h3>
+                <canvas id="memory-chart"></canvas>
+            </div>
+
+            <!-- Request Rate Chart -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4 text-green-400">Request Rate (req/s)</h3>
+                <canvas id="request-chart"></canvas>
+            </div>
+
+            <!-- Error Rate Chart -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4 text-red-400">Error Rate (%)</h3>
+                <canvas id="error-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Event Feed -->
+        <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <h2 class="text-xl font-semibold mb-4 text-yellow-400">Event Feed</h2>
+            <div id="event-feed" class="event-feed font-mono text-sm">
+                <!-- Events will be dynamically inserted -->
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>
