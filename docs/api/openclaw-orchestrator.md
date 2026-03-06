@@ -129,6 +129,58 @@ Get metadata for a specific skill.
 
 ---
 
+## Configuration
+
+The OpenClaw Orchestrator uses environment variables for configuration. Create a `.env` file in the service directory or set these variables in your deployment environment.
+
+### Environment Variables
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `SERVICE_NAME` | string | `openclaw-orchestrator` | Service identifier for logging and monitoring |
+| `PORT` | integer | `8000` | HTTP server port |
+| `DEBUG` | boolean | `false` | Enable debug mode (verbose logging) |
+| `SCENESPEAK_AGENT_URL` | string | `http://localhost:8001` | SceneSpeak agent service URL |
+| `CAPTIONING_AGENT_URL` | string | `http://localhost:8002` | Captioning agent service URL |
+| `BSL_AGENT_URL` | string | `http://localhost:8003` | BSL (sign language) agent service URL |
+| `SENTIMENT_AGENT_URL` | string | `http://localhost:8004` | Sentiment analysis agent service URL |
+| `LIGHTING_SOUND_MUSIC_URL` | string | `http://localhost:8005` | Lighting, sound, and music agent service URL |
+| `SAFETY_FILTER_URL` | string | `http://localhost:8006` | Safety filter agent service URL |
+| `OTLP_ENDPOINT` | string | `http://localhost:4317` | OpenTelemetry protocol endpoint for tracing |
+| `LOG_LEVEL` | string | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL) |
+
+### Example .env File
+
+```bash
+# Service Configuration
+SERVICE_NAME=openclaw-orchestrator
+PORT=8000
+DEBUG=false
+
+# Agent URLs (use localhost for development, service names for K8s)
+SCENESPEAK_AGENT_URL=http://localhost:8001
+CAPTIONING_AGENT_URL=http://localhost:8002
+BSL_AGENT_URL=http://localhost:8003
+SENTIMENT_AGENT_URL=http://localhost:8004
+LIGHTING_SOUND_MUSIC_URL=http://localhost:8005
+SAFETY_FILTER_URL=http://localhost:8006
+
+# OpenTelemetry Configuration
+OTLP_ENDPOINT=http://localhost:4317
+
+# Logging Configuration
+LOG_LEVEL=INFO
+```
+
+### Configuration Notes
+
+- **Agent URLs**: For local development, use `localhost` with the appropriate port. For Kubernetes deployments, use the service names (e.g., `http://scenespeak-agent:8001`)
+- **OpenTelemetry**: Set `OTLP_ENDPOINT` to your OTLP collector address. Disable tracing by omitting this variable or setting it to an empty string
+- **Debug Mode**: When `DEBUG=true`, additional logging is enabled and detailed error messages are returned
+- **Environment Priority**: Environment variables take precedence over defaults defined in `config.py`
+
+---
+
 ## Examples
 
 ### Orchestrate Dialogue Generation

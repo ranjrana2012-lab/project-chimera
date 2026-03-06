@@ -168,6 +168,41 @@ Get aggregated emotion breakdown.
 *Last Updated: March 2026*
 *Sentiment Agent v0.4.0*
 
+## Configuration
+
+The Sentiment Agent uses environment-based configuration with pydantic-settings.
+
+### Service Configuration
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `SERVICE_NAME` | string | `sentiment-agent` | Service identifier for logging and tracing |
+| `PORT` | integer | `8004` | HTTP server port |
+| `HOST` | string | `0.0.0.0` | Server bind address |
+| `LOG_LEVEL` | string | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+
+### Model Configuration
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `USE_ML_MODEL` | boolean | `false` | Enable DistilBERT model for enhanced sentiment analysis |
+| `MODEL_PATH` | string | `null` | Path to DistilBERT model files (optional) |
+| `MODEL_CACHE_DIR` | string | `./models_cache` | Directory for cached model files |
+
+### Processing Configuration
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `MAX_TEXT_LENGTH` | integer | `10000` | Maximum text length to process (characters) |
+| `BATCH_SIZE` | integer | `32` | Maximum batch size for processing multiple texts |
+
+### OpenTelemetry Configuration
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `OTLP_ENDPOINT` | string | `http://localhost:4317` | OpenTelemetry protocol endpoint |
+| `ENABLE_TRACING` | boolean | `true` | Enable distributed tracing |
+
 ## Metrics
 
 The Sentiment Agent exposes Prometheus metrics at the `/metrics` endpoint:

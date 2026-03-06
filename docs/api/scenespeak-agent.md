@@ -221,6 +221,34 @@ Benchmark adapter performance for comparison.
 
 ---
 
+## Configuration
+
+The SceneSpeak Agent can be configured with the following environment variables:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `SERVICE_NAME` | scenespeak-agent | Service identifier for logging and tracing |
+| `PORT` | 8001 | Service port number |
+| `LOG_LEVEL` | INFO | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `GLM_API_KEY` | - | API key for GLM 4.7 (required) |
+| `GLM_API_BASE` | https://open.bigmodel.cn/api/paas/v4/ | GLM API base URL |
+| `LOCAL_MODEL_PATH` | - | Optional path to local model files |
+| `OTLP_ENDPOINT` | http://localhost:4317 | OpenTelemetry endpoint for tracing |
+
+### Example Configuration
+
+```bash
+export SERVICE_NAME="scenespeak-agent"
+export PORT=8001
+export LOG_LEVEL="INFO"
+export GLM_API_KEY="your-api-key-here"
+export GLM_API_BASE="https://open.bigmodel.cn/api/paas/v4/"
+export LOCAL_MODEL_PATH="/models/scenespeak"
+export OTLP_ENDPOINT="http://localhost:4317"
+```
+
+---
+
 ## Examples
 
 ### Basic Dialogue Generation

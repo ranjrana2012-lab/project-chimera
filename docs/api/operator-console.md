@@ -289,6 +289,89 @@ Acknowledge an alert.
 
 ---
 
+## Configuration
+
+The Operator Console uses environment-based configuration with pydantic-settings. All parameters can be set via environment variables or in a `.env` file.
+
+### Service Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SERVICE_NAME` | `operator-console` | Service identifier for logging and tracing |
+| `PORT` | `8007` | HTTP server port |
+| `LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `ENVIRONMENT` | `development` | Deployment environment |
+
+### Service URLs
+
+The Operator Console requires URLs to all Chimera services for health checks and metrics collection:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENCLAW_ORCHESTRATOR_URL` | `http://localhost:8000` | Orchestrator service URL |
+| `SCENESPEAK_AGENT_URL` | `http://localhost:8001` | SceneSpeak Agent URL |
+| `CAPTIONING_AGENT_URL` | `http://localhost:8002` | Captioning Agent URL |
+| `BSL_AGENT_URL` | `http://localhost:8003` | BSL Agent URL |
+| `SENTIMENT_AGENT_URL` | `http://localhost:8004` | Sentiment Agent URL |
+| `LIGHTING_SOUND_MUSIC_URL` | `http://localhost:8005` | Lighting/Sound/Music service URL |
+| `SAFETY_FILTER_URL` | `http://localhost:8006` | Safety Filter URL |
+
+**Note:** In Docker deployments, use service names instead of localhost (e.g., `http://openclaw-orchestrator:8000`).
+
+### Metrics Collection
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `METRICS_POLL_INTERVAL` | `5.0` | Seconds between metrics collection cycles |
+
+### Alert Thresholds
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ALERT_CPU_THRESHOLD` | `80.0` | CPU percentage that triggers warning alert |
+| `ALERT_MEMORY_THRESHOLD` | `2000.0` | Memory usage (MB) that triggers warning alert |
+| `ALERT_ERROR_RATE_THRESHOLD` | `0.05` | Error rate (5%) that triggers warning alert |
+| `ALERT_REQUEST_RATE_MINIMUM` | `0.1` | Minimum requests/second before low-rate alert |
+
+### OpenTelemetry
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OTLP_ENDPOINT` | `http://localhost:4317` | OpenTelemetry Protocol endpoint for traces |
+
+### Example Configuration File
+
+```bash
+# Service Configuration
+SERVICE_NAME=operator-console
+PORT=8007
+LOG_LEVEL=INFO
+ENVIRONMENT=production
+
+# Service URLs
+OPENCLAW_ORCHESTRATOR_URL=http://openclaw-orchestrator:8000
+SCENESPEAK_AGENT_URL=http://scenespeak-agent:8001
+CAPTIONING_AGENT_URL=http://captioning-agent:8002
+BSL_AGENT_URL=http://bsl-agent:8003
+SENTIMENT_AGENT_URL=http://sentiment-agent:8004
+LIGHTING_SOUND_MUSIC_URL=http://lighting-sound-music:8005
+SAFETY_FILTER_URL=http://safety-filter:8006
+
+# Metrics Collection
+METRICS_POLL_INTERVAL=5.0
+
+# Alert Thresholds
+ALERT_CPU_THRESHOLD=80.0
+ALERT_MEMORY_THRESHOLD=2000.0
+ALERT_ERROR_RATE_THRESHOLD=0.05
+ALERT_REQUEST_RATE_MINIMUM=0.1
+
+# OpenTelemetry
+OTLP_ENDPOINT=http://jaeger:4317
+```
+
+---
+
 ## Examples
 
 ### WebSocket Connection

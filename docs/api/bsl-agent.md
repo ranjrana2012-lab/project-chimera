@@ -247,6 +247,64 @@ List all active avatar instances.
 
 ---
 
+## Configuration
+
+The BSL Agent uses environment-based configuration with pydantic-settings. All configuration is loaded from environment variables or a `.env` file.
+
+### Service Configuration
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `service_name` | string | `bsl-agent` | Service identifier for logging and metrics |
+| `port` | integer | `8003` | HTTP server port |
+| `log_level` | string | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `environment` | string | `development` | Deployment environment (development, staging, production) |
+
+### Avatar Rendering
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `avatar_model_path` | string | `/models/bsl_avatar` | Path to avatar model files |
+| `avatar_resolution` | string | `1920x1080` | Video resolution (width x height) |
+| `avatar_fps` | integer | `30` | Frames per second for avatar animation |
+| `enable_facial_expressions` | boolean | `true` | Enable facial expression rendering |
+| `enable_body_language` | boolean | `true` | Enable body language gestures |
+
+### Translation
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `cache_ttl` | integer | `86400` | Translation cache TTL in seconds (24 hours) |
+
+### OpenTelemetry
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `otlp_endpoint` | string | `http://localhost:4317` | OTLP gRPC endpoint for metrics and traces |
+
+### Environment File Example
+
+```bash
+# Service
+SERVICE_NAME=bsl-agent
+PORT=8003
+LOG_LEVEL=INFO
+ENVIRONMENT=development
+
+# Avatar Rendering
+AVATAR_MODEL_PATH=/models/bsl_avatar
+AVATAR_RESOLUTION=1920x1080
+AVATAR_FPS=30
+ENABLE_FACIAL_EXPRESSIONS=true
+ENABLE_BODY_LANGUAGE=true
+
+# Translation
+CACHE_TTL=86400
+
+# OpenTelemetry
+OTLP_ENDPOINT=http://localhost:4317
+```
+
 ## Examples
 
 ### Basic Translation

@@ -108,6 +108,61 @@ ws.onmessage = (event) => {
 
 ---
 
+## Configuration
+
+The Captioning Agent can be configured via environment variables or `.env` file. Create a `.env` file in the service directory to override defaults.
+
+### Service Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SERVICE_NAME` | `captioning-agent` | Service identifier |
+| `SERVICE_VERSION` | `1.0.0` | Service version |
+| `PORT` | `8002` | HTTP server port |
+| `DEBUG` | `false` | Enable debug mode |
+
+### Whisper Model Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WHISPER_MODEL_SIZE` | `base` | Model size: `tiny`, `base`, `small`, `medium`, `large` |
+| `WHISPER_DEVICE` | `cpu` | Computation device: `cpu` or `cuda` |
+| `WHISPER_COMPUTE_TYPE` | `float32` | Precision: `float32`, `float16`, `int8` |
+
+**Note:** Larger models provide better accuracy but require more memory and compute time. Use `base` for balanced performance, or `tiny` for fastest transcription.
+
+### File Upload Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MAX_FILE_SIZE` | `26214400` (25MB) | Maximum audio file size in bytes |
+
+**Supported formats:** `.wav`, `.mp3`, `.ogg`, `.flac`, `.m4a`
+
+### WebSocket Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WEBSOCKET_CHUNK_SIZE` | `4096` | Audio chunk size for streaming (bytes) |
+| `WEBSOCKET_SAMPLE_RATE` | `16000` | Audio sample rate (Hz) |
+
+### OpenTelemetry Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OTLP_ENDPOINT` | `http://localhost:4317` | OpenTelemetry collector endpoint |
+| `ENABLE_TRACING` | `true` | Enable distributed tracing |
+
+See [Distributed Tracing Runbook](../runbooks/distributed-tracing.md) for details.
+
+### Logging Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOG_LEVEL` | `INFO` | Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+
+---
+
 *Last Updated: March 2026*
 *Captioning Agent v0.4.0*
 
