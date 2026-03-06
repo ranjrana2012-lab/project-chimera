@@ -1,0 +1,275 @@
+{
+  "scenario": "Project Chimera Demo Scenarios",
+  "version": "1.0",
+  "description": "Pre-configured scenarios for demonstrating Project Chimera capabilities",
+  "scenarios": [
+    {
+      "id": "welcome",
+      "name": "Welcome to Project Chimera",
+      "description": "Introduction scenario showing dialogue generation",
+      "requests": [
+        {
+          "service": "orchestrator",
+          "endpoint": "/v1/orchestrate",
+          "method": "POST",
+          "payload": {
+            "skill": "dialogue_generator",
+            "input": {
+              "prompt": "Welcome to Project Chimera, an AI-powered platform revolutionizing accessibility in live theatre.",
+              "style": "welcoming"
+            }
+          },
+          "expected_response": {
+            "status": "success",
+            "dialogue_contains": ["welcome", "chimera", "theatre"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "sentiment-positive",
+      "name": "Positive Sentiment Analysis",
+      "description": "Demonstrate sentiment analysis with positive text",
+      "requests": [
+        {
+          "service": "sentiment",
+          "endpoint": "/v1/analyze",
+          "method": "POST",
+          "payload": {
+            "text": "I absolutely love this amazing platform! It's going to revolutionize theatre accessibility forever."
+          },
+          "expected_response": {
+            "status": "success",
+            "sentiment": "positive",
+            "score": "> 0.5"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sentiment-negative",
+      "name": "Negative Sentiment Analysis",
+      "description": "Demonstrate sentiment analysis with negative text",
+      "requests": [
+        {
+          "service": "sentiment",
+          "endpoint": "/v1/analyze",
+          "method": "POST",
+          "payload": {
+            "text": "This is terrible. I want my money back. Worst experience ever."
+          },
+          "expected_response": {
+            "status": "success",
+            "sentiment": "negative",
+            "score": "< -0.5"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bsl-translation",
+      "name": "BSL Translation Demo",
+      "description": "Translate English to British Sign Language gloss",
+      "requests": [
+        {
+          "service": "bsl",
+          "endpoint": "/v1/translate",
+          "method": "POST",
+          "payload": {
+            "text": "Hello and welcome to the theatre. We hope you enjoy the performance!",
+            "source_language": "en",
+            "target_format": "gloss"
+          },
+          "expected_response": {
+            "status": "success",
+            "translation": "non-empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "safety-check-pass",
+      "name": "Safety Filter - Safe Content",
+      "description": "Demonstrate safety filter with family-friendly content",
+      "requests": [
+        {
+          "service": "safety",
+          "endpoint": "/v1/check",
+          "method": "POST",
+          "payload": {
+            "text": "What a wonderful performance! The entire family enjoyed it immensely.",
+            "policy": "family"
+          },
+          "expected_response": {
+            "status": "success",
+            "safe": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "theatre-dialogue-dramatic",
+      "name": "Dramatic Dialogue Generation",
+      "description": "Generate dramatic theatrical dialogue",
+      "requests": [
+        {
+          "service": "orchestrator",
+          "endpoint": "/v1/orchestrate",
+          "method": "POST",
+          "payload": {
+            "skill": "dialogue_generator",
+            "input": {
+              "prompt": "A detective discovers a hidden letter that changes everything they thought they knew.",
+              "style": "dramatic",
+              "max_tokens": 150
+            }
+          },
+          "expected_response": {
+            "status": "success",
+            "dialogue_contains": ["detective", "letter", "discover"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "theatre-dialogue-comedic",
+      "name": "Comedic Dialogue Generation",
+      "description": "Generate comedic theatrical dialogue",
+      "requests": [
+        {
+          "service": "orchestrator",
+          "endpoint": "/v1/orchestrate",
+          "method": "POST",
+          "payload": {
+            "skill": "dialogue_generator",
+            "input": {
+              "prompt": "Two actors arguing over who gets the best dressing room.",
+              "style": "comedic",
+              "max_tokens": 150
+            }
+          },
+          "expected_response": {
+            "status": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "full-pipeline",
+      "name": "Full Pipeline Demo",
+      "description": "Demonstrate complete pipeline with multiple services",
+      "requests": [
+        {
+          "service": "orchestrator",
+          "endpoint": "/v1/orchestrate",
+          "method": "POST",
+          "payload": {
+            "skill": "dialogue_generator",
+            "input": {
+              "prompt": "The hero stands at the edge of the cliff, ready to face their greatest fear.",
+              "style": "epic"
+            }
+          },
+          "expected_response": {
+            "status": "success"
+          }
+        },
+        {
+          "service": "sentiment",
+          "endpoint": "/v1/analyze",
+          "method": "POST",
+          "payload": {
+            "text": "I'm so excited to see what happens next in this incredible story!"
+          },
+          "expected_response": {
+            "status": "success"
+          }
+        },
+        {
+          "service": "bsl",
+          "endpoint": "/v1/translate",
+          "method": "POST",
+          "payload": {
+            "text": "The adventure begins now, at the dawn of a new era.",
+            "source_language": "en",
+            "target_format": "gloss"
+          },
+          "expected_response": {
+            "status": "success"
+          }
+        }
+      ]
+    },
+    {
+      "id": "captioning-demo",
+      "name": "Live Captioning Demo",
+      "description": "Demonstrate captioning service",
+      "requests": [
+        {
+          "service": "captioning",
+          "endpoint": "/v1/transcribe",
+          "method": "POST",
+          "payload": {
+            "text": "Ladies and gentlemen, please silence your phones. The show is about to begin.",
+            "language": "en"
+          },
+          "expected_response": {
+            "status": "success",
+            "transcription": "non-empty"
+          }
+        }
+      ]
+    },
+    {
+      "id": "style-matching",
+      "name": "Language Style Matching",
+      "description": "Demonstrate style transformation",
+      "requests": [
+        {
+          "service": "lsm",
+          "endpoint": "/v1/match",
+          "method": "POST",
+          "payload": {
+            "text": "The cat sat on the mat.",
+            "target_style": "shakespearean"
+          },
+          "expected_response": {
+            "status": "success"
+          }
+        }
+      ]
+    }
+  ],
+  "quick_demo_sequence": [
+    "welcome",
+    "sentiment-positive",
+    "bsl-translation",
+    "safety-check-pass",
+    "theatre-dialogue-dramatic"
+  ],
+  "full_demo_sequence": [
+    "welcome",
+    "sentiment-positive",
+    "sentiment-negative",
+    "bsl-translation",
+    "safety-check-pass",
+    "theatre-dialogue-dramatic",
+    "theatre-dialogue-comedic",
+    "captioning-demo",
+    "style-matching",
+    "full-pipeline"
+  ],
+  "metadata": {
+    "created": "2026-03-06",
+    "demo_date": "2026-03-10",
+    "audience": "Students",
+    "duration_minutes": 30,
+    "presenter_notes": [
+      "Start with the quick_demo_sequence for time-constrained demos",
+      "Use full_demo_sequence for comprehensive demonstrations",
+      "Have curl commands ready in separate terminal windows",
+      "Keep browser tabs open for Operator Console and Grafana",
+      "Practice each request before the demo"
+    ]
+  }
+}
