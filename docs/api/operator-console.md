@@ -1,6 +1,6 @@
 # Operator Console API Documentation
 
-**Version:** 3.0.0
+**Version:** 3.1.0
 **Base URL:** `http://localhost:8007`
 **Service:** Human oversight dashboard with real-time WebSocket updates
 
@@ -20,9 +20,21 @@ The Operator Console provides:
 
 ### 1. Web Dashboard
 
-**Endpoint:** `GET /`
+**Endpoint:** `GET /` or `GET /static/dashboard.html`
 
 **Response:** HTML dashboard interface
+
+**Description:** Single-page web dashboard with real-time service monitoring, alerts console, metrics charts, and service control panel.
+
+**Features:**
+- 8 service status cards with health indicators
+- Real-time alerts console with acknowledge action
+- Metrics charts (CPU, Memory, Request Rate, Error Rate)
+- Control panel for start/stop/restart operations
+- Event feed with system activity log
+- WebSocket auto-reconnecting updates
+
+**Access:** Open `http://localhost:8007` in browser
 
 ---
 
@@ -30,12 +42,12 @@ The Operator Console provides:
 
 Connect to WebSocket for live updates.
 
-**Endpoint:** `WS /ws/realtime`
+**Endpoint:** `WS /ws`
 
 **Connection:**
 
 ```javascript
-const ws = new WebSocket('ws://localhost:8007/ws/realtime');
+const ws = new WebSocket('ws://localhost:8007/ws');
 ```
 
 **Subscribe to Channels:**
@@ -203,6 +215,86 @@ Get status of all Chimera services.
   "up": 8,
   "down": 0,
   "degraded": 0
+}
+```
+
+---
+
+### 5.1. Get Services List
+
+Get list of all monitored services with their status.
+
+**Endpoint:** `GET /api/services`
+
+**Response:**
+
+```json
+{
+  "services": [
+    {
+      "name": "openclaw-orchestrator",
+      "url": "http://localhost:8000",
+      "status": "up",
+      "health_check_url": "http://localhost:8000/health/live",
+      "metrics_url": "http://localhost:8000/metrics"
+    }
+  ],
+  "total": 8,
+  "up": 7,
+  "down": 0,
+  "degraded": 1
+}
+```
+
+---
+
+### 5.2. Get All Metrics
+
+Get current metrics from all services.
+
+**Endpoint:** `GET /api/metrics`
+
+**Response:**
+
+```json
+{
+  "metrics": {
+    "openclaw-orchestrator": {
+      "service_name": "openclaw-orchestrator",
+      "cpu_percent": 25.3,
+      "memory_mb": 512,
+      "request_rate": 45.2,
+      "error_rate": 0.01
+    }
+  }
+}
+```
+
+---
+
+### 5.3. Control Service
+
+Manually control a service (start, stop, restart).
+
+**Endpoint:** `POST /api/control/{service_name}`
+
+**Request Body:**
+
+```json
+{
+  "action": "restart",
+  "reason": "Performance degradation"
+}
+```
+
+**Response:**
+
+```json
+{
+  "service": "scenespeak-agent",
+  "action": "restart",
+  "status": "success",
+  "message": "Service scenespeak-agent restart successful"
 }
 ```
 
