@@ -9,12 +9,22 @@ from typing import Dict
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
-from .api.models import router as models_router
-from .api.generate import router as generate_router
 from .config import settings
 from .model_manager import ModelManager
+from .metrics import (
+    request_counter,
+    model_load_time,
+    active_generations
+)
+from .tracing import (
+    setup_tracing,
+    instrument_fastapi,
+    get_tracer,
+    trace_model_loading,
+    shutdown_tracing
+)
 
 
 # Configure logging
@@ -25,21 +35,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# Prometheus metrics
-request_counter = Counter(
-    'music_generation_requests_total',
-    'Total number of generation requests',
-    ['model', 'status']
-)
-model_load_time = Gauge(
-    'music_generation_model_load_seconds',
-    'Time taken to load models',
-    ['model']
-)
-active_generations = Gauge(
-    'music_generation_active',
-    'Number of active generation tasks'
-)
+# Initialize OpenTelemetry tracing
+try:
+    tracer = setup_tracing(
+        service_name=settings.service_name,
+        service_version="0.5.0",
+        otlp_endpoint=settings.otlp_endpoint,
+        environment=settings.environment
+    )
+    logger.info("Tracing initialized successfully")
+except Exception as e:
+    logger.warning(f"Failed to initialize tracing: {e}")
+    tracer = None
 
 
 # Global model manager
@@ -56,11 +63,18 @@ async def lifespan(app: FastAPI):
     global model_manager
 
     try:
-        model_manager = ModelManager(model_path=settings.model_path)
+        # Instrument FastAPI with OpenTelemetry
+        instrument_fastapi(app)
+
+        # Load models with tracing
+        with trace_model_loading("model_manager", settings.model_path):
+            model_manager = ModelManager(model_path=settings.model_path)
+
         logger.info(f"Model manager initialized with path: {settings.model_path}")
         logger.info("Music Generation Service started successfully")
     except Exception as e:
         logger.error(f"Failed to initialize model manager: {e}")
+        model_load_time.labels(model="model_manager", status="error").set(0)
         raise
 
     yield
@@ -69,6 +83,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Music Generation Service...")
     if model_manager:
         model_manager.cleanup()
+    shutdown_tracing()
     logger.info("Music Generation Service stopped")
 
 
@@ -83,9 +98,9 @@ app = FastAPI(
 )
 
 
-# Include routers
-app.include_router(models_router, prefix="/api/v1", tags=["models"])
-app.include_router(generate_router, prefix="/api/v1", tags=["generate"])
+# Include routers (when they are created, they will be included here)
+# app.include_router(models_router, prefix="/api/v1", tags=["models"])
+# app.include_router(generate_router, prefix="/api/v1", tags=["generate"])
 
 
 @app.get("/health/live")
@@ -137,8 +152,8 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "main:app",
-        host=settings.host,
+        host="0.0.0.0",
         port=settings.port,
-        reload=settings.debug,
+        reload=False,
         log_level=settings.log_level.lower()
     )
