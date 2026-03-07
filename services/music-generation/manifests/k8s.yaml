@@ -1,0 +1,237 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: music-generation-config
+  namespace: project-chimera
+  labels:
+    app: music-generation
+    component: service
+data:
+  SERVICE_NAME: "music-generation"
+  PORT: "8011"
+  LOG_LEVEL: "INFO"
+  ENVIRONMENT: "production"
+  DEVICE: "cuda"
+  DEFAULT_MODEL: "musicgen"
+  MAX_VRAM_MB: "8192"
+  MODEL_OFFLOAD: "true"
+  DEFAULT_DURATION: "5.0"
+  MAX_DURATION: "30.0"
+  SAMPLE_RATE: "44100"
+  NORMALIZE_DB: "-1.0"
+  TRIM_SILENCE: "true"
+  TORCH_THREADS: "4"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: music-generation
+  namespace: project-chimera
+  labels:
+    app: music-generation
+    component: service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8011
+    targetPort: 8011
+    protocol: TCP
+    name: http
+  selector:
+    app: music-generation
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: music-generation-models
+  namespace: project-chimera
+  labels:
+    app: music-generation
+    component: storage
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: nfs-sc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-generation
+  namespace: project-chimera
+  labels:
+    app: music-generation
+    component: service
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: music-generation
+  template:
+    metadata:
+      labels:
+        app: music-generation
+        component: service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8011"
+        prometheus.io/path: "/metrics"
+    spec:
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      containers:
+      - name: music-generation
+        image: ghcr.io/project-chimera/music-generation:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8011
+          protocol: TCP
+          name: http
+        envFrom:
+        - configMapRef:
+            name: music-generation-config
+        env:
+        - name: MUSICGEN_MODEL_PATH
+          value: "/models/musicgen"
+        - name: ACESTEP_MODEL_PATH
+          value: "/models/acestep"
+        - name: HUGGINGFACE_CACHE_DIR
+          value: "/models/cache"
+        - name: OTLP_ENDPOINT
+          value: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+        resources:
+          requests:
+            cpu: "2000m"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            cpu: "8000m"
+            memory: "16Gi"
+            nvidia.com/gpu: "1"
+        volumeMounts:
+        - name: models
+          mountPath: /models
+        - name: tmp
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8011
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8011
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: 8011
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: music-generation-models
+      - name: tmp
+        emptyDir:
+          sizeLimit: 5Gi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA_GB10
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - music-generation
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: music-generation
+  namespace: project-chimera
+  labels:
+    app: music-generation
+    component: service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: music-generation
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 1
+        periodSeconds: 30
+      selectPolicy: Max
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: music-generation
+  namespace: project-chimera
+  labels:
+    app: music-generation
+    component: service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: music-generation
