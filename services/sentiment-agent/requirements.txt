@@ -15,11 +15,9 @@ opentelemetry-sdk==1.21.0
 opentelemetry-instrumentation-fastapi==0.42b0
 opentelemetry-exporter-otlp==1.21.0
 
-# ML/NLP (placeholder for future DistilBERT integration)
-# transformers==4.35.0
-# torch==2.1.0
-# Note: DistilBERT model download is ~250MB
-# Currently using rule-based sentiment analysis instead
+# ML/NLP
+transformers==4.35.0
+torch==2.1.0
 
 # Testing
 pytest==7.4.3
