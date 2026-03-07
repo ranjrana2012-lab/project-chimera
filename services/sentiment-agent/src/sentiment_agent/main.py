@@ -44,8 +44,19 @@ async def lifespan(app: FastAPI):
     """Lifespan context manager for startup/shutdown events"""
     logger.info("Sentiment Agent starting up")
     logger.info(f"ML model enabled: {settings.use_ml_model}")
-    logger.info(f"Model available: {analyzer.model_available}")
     logger.info(f"Tracing enabled: {settings.enable_tracing}")
+
+    # Load ML model on startup
+    try:
+        analyzer.model.load()
+        analyzer.model_available = True
+        logger.info("Sentiment ML model loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load ML model: {e}")
+        raise  # Fail startup if model unavailable
+
+    logger.info(f"Model available: {analyzer.model_available}")
+
     yield
     logger.info("Sentiment Agent shutting down")
 
