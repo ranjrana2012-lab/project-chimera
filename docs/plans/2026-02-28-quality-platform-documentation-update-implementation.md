@@ -285,13 +285,13 @@ In the Documentation section, find:
 ### Reference
 
 - [Technical Requirements](TRD_Project_Chimera.md) - Full technical specification
-- [Implementation Documentation](docs/plans/IMPLEMENTATION_DOCUMENTATION.md) - Build details
+- [Implementation Documentation](IMPLEMENTATION_DOCUMENTATION.md) - Build details
 - [Project Backlog](Backlog_Project_Chimera.md) - Outstanding work and features
 ```
 
 Add after the Implementation Documentation line:
 ```markdown
-- [Quality Platform Documentation](docs/quality-platform/README.md) - Testing infrastructure
+- [Quality Platform Documentation](../README.md) - Testing infrastructure
 ```
 
 **Step 3: Verify link addition**
@@ -324,12 +324,12 @@ Run: `grep -n "### Getting Started" docs/README.md`
 
 In the Core Documentation section, after:
 ```markdown
-- [Implementation Documentation](plans/IMPLEMENTATION_DOCUMENTATION.md) - How the scaffold was built
+- [Implementation Documentation](IMPLEMENTATION_DOCUMENTATION.md) - How the scaffold was built
 ```
 
 Add:
 ```markdown
-- [Quality Platform](quality-platform/README.md) - Testing infrastructure and quality gates
+- [Quality Platform](../quality-platform/README.md) - Testing infrastructure and quality gates
 ```
 
 **Step 3: Verify addition**
@@ -365,8 +365,8 @@ In the Reference section, find:
 
 Add before that line:
 ```markdown
-- [Quality Platform Design](plans/2026-02-28-chimera-quality-platform-design.md) - Platform architecture
-- [Quality Platform Implementation](plans/2026-02-28-chimera-quality-platform-implementation.md) - Implementation details
+- [Quality Platform Design](2026-02-28-chimera-quality-platform-design.md) - Platform architecture
+- [Quality Platform Implementation](2026-02-28-chimera-quality-platform-implementation.md) - Implementation details
 ```
 
 **Step 3: Verify additions**
@@ -399,11 +399,11 @@ Add before the Version Information section:
 ```markdown
 ### Quality Platform
 
-- [Overview](quality-platform/README.md) - Platform introduction
-- [Architecture](quality-platform/ARCHITECTURE.md) - System design
-- [API Documentation](quality-platform/API.md) - Service APIs
-- [Development](quality-platform/DEVELOPMENT.md) - Contributing guide
-- [Deployment](quality-platform/DEPLOYMENT.md) - Deployment guide
+- [Overview](../quality-platform/README.md) - Platform introduction
+- [Architecture](../quality-platform/ARCHITECTURE.md) - System design
+- [API Documentation](../quality-platform/API.md) - Service APIs
+- [Development](../quality-platform/DEVELOPMENT.md) - Contributing guide
+- [Deployment](../quality-platform/DEPLOYMENT.md) - Deployment guide
 ```
 
 **Step 3: Verify section creation**
@@ -484,10 +484,10 @@ The Chimera Quality Platform is a custom-built testing infrastructure that orche
 
 ## Quick Links
 
-- [Architecture](ARCHITECTURE.md) - System architecture and design
-- [API Documentation](API.md) - Complete API reference
-- [Development Guide](DEVELOPMENT.md) - Contributing guidelines
-- [Deployment Guide](DEPLOYMENT.md) - Production deployment
+- [Architecture](../quality-platform/ARCHITECTURE.md) - System architecture and design
+- [API Documentation](../quality-platform/API.md) - Complete API reference
+- [Development Guide](../DEVELOPMENT.md) - Contributing guidelines
+- [Deployment Guide](../DEPLOYMENT.md) - Production deployment
 
 ## Services
 
@@ -524,8 +524,8 @@ open http://localhost:8009
 
 ## Design Documents
 
-- [Quality Platform Design](../plans/2026-02-28-chimera-quality-platform-design.md)
-- [Quality Platform Implementation](../plans/2026-02-28-chimera-quality-platform-implementation.md)
+- [Quality Platform Design](2026-02-28-chimera-quality-platform-design.md)
+- [Quality Platform Implementation](2026-02-28-chimera-quality-platform-implementation.md)
 
 ## License
 

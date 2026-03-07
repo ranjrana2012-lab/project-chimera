@@ -578,7 +578,7 @@ User → Quick Start → Installation → Configuration → API Docs → Operati
 | Medium | Cross-Reference | docs/api/* | API docs not linked from getting-started guides | Add cross-references |
 | Medium | Terminology | docs/README.md | "Pod" vs "Service" inconsistency | Standardize terminology |
 | Low | Formatting | Multiple | Minor markdown formatting issues | Fix formatting |
-| Low | Typos | docs/contributing.md | Minor typos found | Proofread and fix |
+| Low | Typos | docs/CONTRIBUTING.md | Minor typos found | Proofread and fix |
 
 ### Priority Definitions
 

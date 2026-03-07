@@ -330,9 +330,9 @@ DEBUG=1 make bootstrap
 
 ## Related Documents
 
-- [Implementation Documentation](./IMPLEMENTATION_DOCUMENTATION.md)
-- [Scaffold Design](./2026-02-26-project-chimera-scaffold-design.md)
-- [TRD - Project Chimera](../../TRD_Project_Chimera.md)
+- [Implementation Documentation](IMPLEMENTATION_DOCUMENTATION.md)
+- [Scaffold Design](2026-02-26-project-chimera-scaffold-design.md)
+- TRD - Project Chimera
 
 ---
 

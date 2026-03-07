@@ -325,7 +325,7 @@ Each role has a dedicated channel:
 ### Be Respectful
 - Assume good intent
 - No harassment or discrimination
-- See [Code of Conduct](../../CODE_OF_CONDUCT.md)
+- See Code of Conduct
 
 ### Be Helpful
 - Answer questions if you know the answer
@@ -605,7 +605,7 @@ Thank you for your interest in contributing! This guide will help you understand
 
 Welcome! Start here:
 
-1. Read the [Student Quick Start Guide](docs/getting-started/quick-start.md)
+1. Read the [Student Quick Start Guide](../getting-started/quick-start.md)
 2. Set up your [development environment](docs/getting-started/quick-start.md#prerequisites)
 3. Find a [good first issue](https://github.com/project-chimera/project-chimera/labels/good-first-issue)
 4. Say hi in #introductions on Slack!
@@ -803,7 +803,7 @@ As you contribute, you'll earn trust:
 1. **Search existing resources** - Check README, docs, issues
 2. **Ask in #help-troubleshooting** - Community answers
 3. **Post in your role channel** - Role-specific help
-4. **Attend office hours** - See [office hours guide](docs/getting-started/office-hours.md)
+4. **Attend office hours** - See [office hours guide](../getting-started/office-hours.md)
 5. **Create an issue** - For bugs or feature requests
 
 ### Office Hours
@@ -870,7 +870,7 @@ cat > docs/getting-started/faq.md << 'EOF'
 ### Q: What if I've never used Kubernetes before?
 
 **A:** You're not alone! About half of our students are new to K8s. We have:
-- A detailed [bootstrap guide](quick-start.md)
+- A detailed [bootstrap guide](../getting-started/quick-start.md)
 - Office hours dedicated to setup help
 - A "K8s Buddy" system for pairing
 - The `make bootstrap` script handles most of it automatically
@@ -944,7 +944,7 @@ We've all broken production. It's how we learn. 😅
 | Sprint Completion | 15% |
 | Communication | 15% |
 
-See [Evaluation Criteria](evaluation-criteria.md) for details.
+See [Evaluation Criteria](../getting-started/evaluation-criteria.md) for details.
 
 ### Q: What happens if I fall behind?
 
@@ -1110,7 +1110,7 @@ It's now open source, used by universities worldwide.
 
 **Ask in Slack:** #help-troubleshooting
 **Email:** {EMAIL}
-**Office Hours:** See [office hours guide](office-hours.md)
+**Office Hours:** See [office hours guide](../getting-started/office-hours.md)
 
 ---
 
@@ -2003,13 +2003,13 @@ Find the Documentation section and add the new links after the existing ones:
 ```markdown
 ### Student Resources
 
-- [Student Quick Start](docs/getting-started/quick-start.md) - Set up your development environment
-- [Student Roles](docs/getting-started/roles.md) - 15 student role definitions
-- [Communication Channels](docs/getting-started/communication-channels.md) - Slack/Discord guide
-- [Office Hours](docs/getting-started/office-hours.md) - Support schedule
-- [Student FAQ](docs/getting-started/faq.md) - Frequently asked questions
-- [Sprint Definitions](docs/getting-started/sprint-definitions.md) - 15 sprint overview
-- [Evaluation Criteria](docs/getting-started/evaluation-criteria.md) - Grading information
+- [Student Quick Start](../getting-started/quick-start.md) - Set up your development environment
+- [Student Roles](../getting-started/roles.md) - 15 student role definitions
+- [Communication Channels](../getting-started/communication-channels.md) - Slack/Discord guide
+- [Office Hours](../getting-started/office-hours.md) - Support schedule
+- [Student FAQ](../getting-started/faq.md) - Frequently asked questions
+- [Sprint Definitions](../planning/sprint-definitions.md) - 15 sprint overview
+- [Evaluation Criteria](../getting-started/evaluation-criteria.md) - Grading information
 - [Monday Demo Info](docs/getting-started/monday-demo/) - Demo preparation
 ```
 
@@ -2078,7 +2078,7 @@ Project Chimera is made possible by:
 
 ---
 
-**Want to add yourself?** See [Contributing Guide](CONTRIBUTING.md) and make your first PR!
+**Want to add yourself?** See [Contributing Guide](../CONTRIBUTING.md) and make your first PR!
 EOF
 ```
 

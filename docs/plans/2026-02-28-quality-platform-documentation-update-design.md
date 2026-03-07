@@ -87,7 +87,7 @@ Update all Project Chimera documentation to reflect the newly completed Chimera 
 
 **C. Add to "Documentation" section:**
 ```markdown
-- [Quality Platform Documentation](docs/quality-platform/README.md) - Testing infrastructure
+- [Quality Platform Documentation](../README.md) - Testing infrastructure
 ```
 
 #### 3. docs/README.md
@@ -98,24 +98,24 @@ Update all Project Chimera documentation to reflect the newly completed Chimera 
 
 **A. Add to "Core Documentation" section:**
 ```markdown
-- [Quality Platform](quality-platform/README.md) - Testing infrastructure and quality gates
+- [Quality Platform](../quality-platform/README.md) - Testing infrastructure and quality gates
 ```
 
 **B. Add to "Reference" section:**
 ```markdown
-- [Quality Platform Design](plans/2026-02-28-chimera-quality-platform-design.md) - Platform architecture
-- [Quality Platform Implementation](plans/2026-02-28-chimera-quality-platform-implementation.md) - Implementation details
+- [Quality Platform Design](2026-02-28-chimera-quality-platform-design.md) - Platform architecture
+- [Quality Platform Implementation](2026-02-28-chimera-quality-platform-implementation.md) - Implementation details
 ```
 
 **C. Add new section at end:**
 ```markdown
 ### Quality Platform
 
-- [Overview](quality-platform/README.md) - Platform introduction
-- [Architecture](quality-platform/ARCHITECTURE.md) - System design
-- [API Documentation](quality-platform/API.md) - Service APIs
-- [Development](quality-platform/DEVELOPMENT.md) - Contributing guide
-- [Deployment](quality-platform/DEPLOYMENT.md) - Deployment guide
+- [Overview](../quality-platform/README.md) - Platform introduction
+- [Architecture](../quality-platform/ARCHITECTURE.md) - System design
+- [API Documentation](../quality-platform/API.md) - Service APIs
+- [Development](../quality-platform/DEVELOPMENT.md) - Contributing guide
+- [Deployment](../quality-platform/DEPLOYMENT.md) - Deployment guide
 ```
 
 **D. Update version info:**
@@ -140,10 +140,10 @@ The Chimera Quality Platform is a custom-built testing infrastructure that orche
 
 ## Quick Links
 
-- [Architecture](ARCHITECTURE.md) - System architecture and design
-- [API Documentation](API.md) - Complete API reference
-- [Development Guide](DEVELOPMENT.md) - Contributing guidelines
-- [Deployment Guide](DEPLOYMENT.md) - Production deployment
+- [Architecture](../quality-platform/ARCHITECTURE.md) - System architecture and design
+- [API Documentation](../quality-platform/API.md) - Complete API reference
+- [Development Guide](../DEVELOPMENT.md) - Contributing guidelines
+- [Deployment Guide](../DEPLOYMENT.md) - Production deployment
 
 ## Services
 
@@ -177,8 +177,8 @@ uvicorn ci_gateway.main:ci_gateway_app --host 0.0.0.0 --port 8010
 
 ## Design Documents
 
-- [Quality Platform Design](../plans/2026-02-28-chimera-quality-platform-design.md)
-- [Quality Platform Implementation](../plans/2026-02-28-chimera-quality-platform-implementation.md)
+- [Quality Platform Design](2026-02-28-chimera-quality-platform-design.md)
+- [Quality Platform Implementation](2026-02-28-chimera-quality-platform-implementation.md)
 ```
 
 #### 2. docs/quality-platform/ARCHITECTURE.md

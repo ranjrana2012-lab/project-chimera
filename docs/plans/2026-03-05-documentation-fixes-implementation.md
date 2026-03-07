@@ -98,7 +98,7 @@ cat > DEPLOYMENT.md << 'EOF'
 
 For deployment information, see:
 - [Runbooks - Deployment](docs/runbooks/README.md#deployment)
-- [Quick Start Guide](docs/getting-started/quick-start.md)
+- [Quick Start Guide](../getting-started/quick-start.md)
 EOF
 
 # Create DEVELOPMENT.md
@@ -108,8 +108,8 @@ cat > DEVELOPMENT.md << 'EOF'
 **Status:** TODO - This documentation needs to be created
 
 For development information, see:
-- [Contributing Guide](CONTRIBUTING.md)
-- [Development Documentation](docs/DEVELOPMENT.md)
+- [Contributing Guide](../CONTRIBUTING.md)
+- [Development Documentation](../DEVELOPMENT.md)
 EOF
 ```
 
@@ -124,8 +124,7 @@ This directory contains guides for various Project Chimera topics.
 
 ## Available Guides
 
-- [GitHub Workflow](github-workflow.md) - GitHub automation and contribution
-- [WorldMonitor Context Usage](worldmonitor-context-usage.md) - WorldMonitor integration
+- [GitHub Workflow](../guides/github-workflow.md) - GitHub automation and contribution
 
 More guides to be added as documentation improves.
 EOF
@@ -362,7 +361,7 @@ echo "=== Validating Documentation Fixes ==="
 
 # Check for remaining broken links
 echo "1. Checking for broken links..."
-BROKEN=$(grep -r "\[.*\](.*.md)" docs/ README.md --include="*.md" | grep -v "Binary file" | wc -l)
+BROKEN=$(grep -r "\.*\" docs/ README.md --include="*.md" | grep -v "Binary file" | wc -l)
 echo "   Markdown links found: $BROKEN"
 
 # Check for v3.0.0 references
@@ -419,11 +418,11 @@ Add after existing runbook list:
 ```markdown
 ### Observability Runbooks
 
-- [On-Call Procedures](on-call.md) - On-call rotation and response procedures
-- [SLO Handbook](slo-handbook.md) - Service Level Objectives and error budgets
-- [SLO Response](slo-response.md) - SLO breach response procedures
-- [Distributed Tracing](distributed-tracing.md) - OpenTelemetry and Jaeger guide
-- [Performance Analysis](performance-analysis.md) - Performance investigation guide
+- [On-Call Procedures](../runbooks/on-call.md) - On-call rotation and response procedures
+- [SLO Handbook](../runbooks/slo-handbook.md) - Service Level Objectives and error budgets
+- [SLO Response](../runbooks/slo-response.md) - SLO breach response procedures
+- [Distributed Tracing](../runbooks/distributed-tracing.md) - OpenTelemetry and Jaeger guide
+- [Performance Analysis](../runbooks/performance-analysis.md) - Performance investigation guide
 ```
 
 **Step 3: Commit**
@@ -464,7 +463,7 @@ Add before Technology Stack:
 - **SLO Framework** - Service Level Objectives and error budget tracking
 - **Business Metrics** - Real-time dashboards for show operations, dialogue quality, audience engagement
 
-For complete observability documentation, see [Observability Guide](docs/observability.md).
+For complete observability documentation, see [Observability Guide](../observability.md).
 ```
 
 **Step 3: Commit**
@@ -494,9 +493,9 @@ Add under "Operators" section:
 ```markdown
 ### Operational Documentation
 
-- [Observability Guide](observability.md) - Production monitoring, tracing, and SLOs
-- [Monitoring Runbook](runbooks/monitoring.md) - Monitoring setup and configuration
-- [Incident Response](runbooks/incident-response.md) - Handling incidents
+- [Observability Guide](../observability.md) - Production monitoring, tracing, and SLOs
+- [Monitoring Runbook](../runbooks/monitoring.md) - Monitoring setup and configuration
+- [Incident Response](../runbooks/incident-response.md) - Handling incidents
 ```
 
 **Step 2: Commit**
@@ -603,7 +602,7 @@ platform/monitoring/
 
 ## References
 
-- [Production Observability Design](../plans/2026-03-04-production-observability-design.md)
+- [Production Observability Design](2026-03-04-production-observability-design.md)
 - [Observability Guide](../observability.md)
 - [Alerting Runbook](../runbooks/alerts.md)
 - [SLO Handbook](../runbooks/slo-handbook.md)
@@ -1016,11 +1015,11 @@ cat >> docs/observability.md << 'EOF'
 ## Cross-References
 
 ### Related Runbooks
-- [Alerting Runbook](runbooks/alerts.md) - AlertManager procedures
-- [On-Call Procedures](runbooks/on-call.md) - On-call rotation and response
-- [SLO Handbook](runbooks/slo-handbook.md) - SLO definitions and error budgets
-- [Distributed Tracing](runbooks/distributed-tracing.md) - Tracing guide
-- [Performance Analysis](runbooks/performance-analysis.md) - Performance investigation
+- [Alerting Runbook](../runbooks/alerts.md) - AlertManager procedures
+- [On-Call Procedures](../runbooks/on-call.md) - On-call rotation and response
+- [SLO Handbook](../runbooks/slo-handbook.md) - SLO definitions and error budgets
+- [Distributed Tracing](../runbooks/distributed-tracing.md) - Tracing guide
+- [Performance Analysis](../runbooks/performance-analysis.md) - Performance investigation
 EOF
 ```
 
@@ -1033,7 +1032,7 @@ cat >> docs/runbooks/alerts.md << 'EOF'
 ## Related Documentation
 
 - [Observability Guide](../observability.md) - Overview of observability platform
-- [On-Call Procedures](on-call.md) - On-call rotation and escalation
+- [On-Call Procedures](../runbooks/on-call.md) - On-call rotation and escalation
 EOF
 ```
 
@@ -1093,7 +1092,7 @@ These TODOs were identified during the documentation audit and need resolution:
 10. [ ] Create video tutorials for getting started
 11. [ ] Translate key documentation to other languages
 
-See [Documentation Audit Report](docs/DOCUMENTATION_AUDIT_REPORT.md) for full details.
+See [Documentation Audit Report](../DOCUMENTATION_AUDIT_REPORT.md) for full details.
 TRACKER
 
 echo "TODO tracker created: TODO-TRACKER.md"
@@ -1208,7 +1207,7 @@ jobs:
           echo "Checking for broken markdown links..."
 
           # Find all markdown links
-          grep -r "\[.*\](.*.md)" docs/ --include="*.md" | grep -v "Binary file" > /tmp/all-links.txt
+          grep -r "\.*\" docs/ --include="*.md" | grep -v "Binary file" > /tmp/all-links.txt
 
           # Check each link
           BROKEN=0
@@ -1298,7 +1297,7 @@ docs/
 
 ### Links
 
-- Use relative links for internal docs: `[Text](path/to/file.md)`
+- Use relative links for internal docs: `Text`
 - Use absolute links for external resources: `[Text](https://example.com)`
 - Link text should be descriptive, not "click here"
 
@@ -1440,7 +1439,7 @@ python3 -c 'example-code'
 ---
 
 **See Also:**
-- [Main Contributing Guide](../../CONTRIBUTING.md)
+- [Main Contributing Guide](../CONTRIBUTING.md)
 - [API Documentation](../api/)
 - [Runbooks](../runbooks/)
 EOF
@@ -1454,7 +1453,7 @@ cat >> CONTRIBUTING.md << 'EOF'
 
 ## Documentation Contributions
 
-For detailed documentation contribution guidelines, see [Documentation Contribution Guide](docs/contributing/documentation.md).
+For detailed documentation contribution guidelines, see [Documentation Contribution Guide](../contributing/documentation.md).
 
 Documentation PRs follow the same review process with additional documentation-specific criteria in the guide.
 EOF
@@ -1493,8 +1492,8 @@ echo ""
 
 # Check for broken links
 echo "1. Broken Links Check"
-BROKEN=$(grep -r "\[.*\](.*.md)" docs/ README.md --include="*.md" | grep -v "Binary file" | wc -l)
-echo "   Markdown links scanned: $(grep -r "\[.*\](.*.md)" docs/ README.md --include="*.md" | grep -v "Binary file" | wc -l)"
+BROKEN=$(grep -r "\.*\" docs/ README.md --include="*.md" | grep -v "Binary file" | wc -l)
+echo "   Markdown links scanned: $(grep -r "\.*\" docs/ README.md --include="*.md" | grep -v "Binary file" | wc -l)"
 echo "   Potentially broken: $BROKEN"
 if [ $BROKEN -gt 0 ]; then
   echo "   ⚠️  Action needed"

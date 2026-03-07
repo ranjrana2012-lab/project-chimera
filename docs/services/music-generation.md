@@ -2,7 +2,7 @@
 
 **Note:** The Music Generation Platform has been integrated into the unified **Lighting, Sound & Music (LSM)** service on port 8005.
 
-See: [Lighting, Sound & Music Documentation](./lighting-sound-music.md)
+See: [Lighting, Sound & Music Documentation](lighting-sound-music.md)
 
 ## Overview
 
@@ -133,7 +133,7 @@ The following services have been consolidated:
 
 ## Related Documentation
 
-- [Lighting, Sound & Music Service](./lighting-sound-music.md) - Complete LSM documentation
+- [Lighting, Sound & Music Service](lighting-sound-music.md) - Complete LSM documentation
 - [API Reference](../reference/api.md#lighting-sound--music-lsm-service) - API endpoints
-- [Architecture](../docs/reference/architecture.md) - System architecture
-- [Migration Summary](../plans/lsm-migration-summary.md) - Complete migration details
+- [Architecture](../reference/architecture.md) - System architecture
+- Migration Summary - Complete migration details

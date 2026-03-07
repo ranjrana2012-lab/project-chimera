@@ -2589,13 +2589,13 @@ Project Chimera's production observability stack provides complete visibility in
 
 ## Runbooks
 
-- [Alerts](runbooks/alerts.md)
-- [On-Call](runbooks/on-call.md)
-- [SLO Handbook](runbooks/slo-handbook.md)
-- [SLO Response](runbooks/slo-response.md)
-- [Distributed Tracing](runbooks/distributed-tracing.md)
-- [Performance Analysis](runbooks/performance-analysis.md)
-- [Testing Guide](runbooks/testing-guide.md)
+- [Alerts](../runbooks/alerts.md)
+- [On-Call](../runbooks/on-call.md)
+- [SLO Handbook](../runbooks/slo-handbook.md)
+- [SLO Response](../runbooks/slo-response.md)
+- [Distributed Tracing](../runbooks/distributed-tracing.md)
+- [Performance Analysis](../runbooks/performance-analysis.md)
+- [Testing Guide](../runbooks/testing-guide.md)
 
 ## Scripts
 

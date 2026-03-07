@@ -522,4 +522,4 @@ Developer Push
 - [Architecture Decision Records](../architecture/) - Detailed design decisions
 - [API Documentation](../api/) - Service API references
 - [Observability Guide](../observability.md) - Monitoring and tracing
-- [Deployment Guide](../../DEPLOYMENT.md) - Deployment procedures
+- [Deployment Guide](../DEPLOYMENT.md) - Deployment procedures

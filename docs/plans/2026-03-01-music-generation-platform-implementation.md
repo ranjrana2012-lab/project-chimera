@@ -3067,9 +3067,9 @@ curl -X POST http://localhost:8012/api/v1/music/generate \
 ```
 
 ## Documentation
-- [API Documentation](../services/music-orchestration/reference/api.md)
-- [Deployment Guide](../services/music-orchestration/reference/runbooks/deployment.md)
-- [Design Document](../plans/2026-03-01-music-generation-platform-design.md)
+- [API Documentation](../reference/api.md)
+- [Deployment Guide](../runbooks/deployment.md)
+- [Design Document](2026-03-01-music-generation-platform-design.md)
 ```
 
 **Step 4: Commit**
@@ -3092,8 +3092,8 @@ git commit -m "docs: add music platform documentation"
 Add to `docs/README.md`:
 ```markdown
 ## Music Platform
-- [Music Platform Overview](music-platform/README.md)
-- [Music Generation Design](plans/2026-03-01-music-generation-platform-design.md)
+- [Music Platform Overview](../music-platform/README.md)
+- [Music Generation Design](2026-03-01-music-generation-platform-design.md)
 ```
 
 **Step 2: Update project backlog**

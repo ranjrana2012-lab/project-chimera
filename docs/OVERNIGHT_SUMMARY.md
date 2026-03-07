@@ -84,7 +84,7 @@ sudo ./scripts/run-demo.sh --interactive
 ### For Students
 
 1. **Read:** `docs/MONDAY_DEMO_SUMMARY.md` - Complete demo guide
-2. **Read:** `docs/STUDENT_ROLES.md` - Role assignments
+2. **Read:** `getting-started/roles.md` - Role assignments
 3. **Read:** `docs/SERVICE_STATUS.md` - Quick reference
 4. **Run:** `make bootstrap-status` - Check deployment
 
@@ -150,7 +150,7 @@ dfd5f0e feat(openclaw): add FastAPI routes and main application
 |----------|---------|
 | `README.md` | Project overview |
 | `docs/MONDAY_DEMO_SUMMARY.md` | Demo guide for students |
-| `docs/STUDENT_ROLES.md` | Role assignments |
+| `getting-started/roles.md` | Role assignments |
 | `docs/SERVICE_STATUS.md` | Quick reference |
 | `docs/reference/architecture.md` | System architecture |
 | `reference/api.md` | Complete API documentation |

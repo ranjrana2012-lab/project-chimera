@@ -311,7 +311,7 @@ Happy testing! 🧪"
 
 ---
 
-**Next Tutorial:** [Debugging Guide](debugging-tutorial.md) - Learn how to troubleshoot common issues.
+**Next Tutorial:** [Debugging Guide](03-debugging-guide.md) - Learn how to troubleshoot common issues.
 
 ---
 

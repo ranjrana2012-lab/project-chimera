@@ -189,9 +189,9 @@ Implement a **Chimera Quality Platform** consisting of four core services:
 
 ## Related Decisions
 
-- [ADR-001: Use k3s for Kubernetes](./001-use-k3s.md)
-- [ADR-002: FastAPI for Microservices](./002-fastapi-services.md)
-- [ADR-003: OpenClaw Skills Architecture](./003-openclaw-skills.md)
+- [ADR-001: Use k3s for Kubernetes](001-use-k3s.md)
+- [ADR-002: FastAPI for Microservices](002-fastapi-services.md)
+- [ADR-003: OpenClaw Skills Architecture](003-openclaw-skills.md)
 
 ---
 

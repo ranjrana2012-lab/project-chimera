@@ -380,7 +380,7 @@ Each service has complete REST API:
 
 ### Documentation Ready
 ✅ `docs/MONDAY_DEMO_SUMMARY.md` - Demo guide
-✅ `docs/STUDENT_ROLES.md` - Role assignments
+✅ `docs/getting-started/roles.md` - Role assignments
 ✅ `docs/SERVICE_STATUS.md` - Quick reference
 ✅ `docs/OVERNIGHT_SUMMARY.md` - Build summary
 

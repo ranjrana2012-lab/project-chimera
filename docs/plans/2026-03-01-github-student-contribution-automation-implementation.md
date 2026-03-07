@@ -1657,11 +1657,11 @@ Create `getting-started/monday-demo/README.md`:
 
 ## Quick Links
 
-- [Demo Script](./demo-script.md) - 60-minute agenda
-- [GitHub Setup Guide](./github-setup-guide.md) - Project configuration
-- [Pre-Monday Checklist](./pre-monday-checklist.md) - Verification steps
-- [Student Quick Start](../../getting-started/quick-start.md) - Student guide
-- [Student Roles](../../docs/STUDENT_ROLES.md) - Role assignments
+- [Demo Script](../demo/demo-script.md) - 60-minute agenda
+- [GitHub Setup Guide](../getting-started/monday-demo/github-setup-guide.md) - Project configuration
+- [Pre-Monday Checklist](../getting-started/monday-demo/pre-monday-checklist.md) - Verification steps
+- [Student Quick Start](../getting-started/quick-start.md) - Student guide
+- [Student Roles](../getting-started/roles.md) - Role assignments
 
 ## What Students Will Learn
 

@@ -599,13 +599,13 @@ Add to the guides list:
 
 ```markdown
 ### Usage Guides
-- [WorldMonitor Context Usage](worldmonitor-context-usage.md) - Using context-enriched sentiment analysis
+- WorldMonitor integration documentation (to be created)
 ```
 
 **Step 2: Verify the link points to existing file**
 
-Run: `ls -la docs/guides/worldmonitor-context-usage.md`
-Expected: File exists (created during WorldMonitor integration)
+Run: `ls -la docs/guides/`
+Expected: Verify guides directory contents
 
 **Step 3: Commit**
 

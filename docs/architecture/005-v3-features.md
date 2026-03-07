@@ -294,9 +294,9 @@ metrics = monitor.get_metrics()
 
 ## Related Decisions
 
-- [ADR-002: FastAPI for Microservices](./002-fastapi-services.md)
-- [ADR-003: OpenClaw Skills Architecture](./003-openclaw-skills.md)
-- [ADR-004: Chimera Quality Platform](./004-quality-platform.md)
+- [ADR-002: FastAPI for Microservices](002-fastapi-services.md)
+- [ADR-003: OpenClaw Skills Architecture](003-openclaw-skills.md)
+- [ADR-004: Chimera Quality Platform](004-quality-platform.md)
 
 ---
 

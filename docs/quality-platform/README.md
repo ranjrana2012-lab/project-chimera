@@ -10,8 +10,8 @@ The Chimera Quality Platform is a custom-built testing infrastructure that orche
 
 - [Architecture](ARCHITECTURE.md) - System architecture and design
 - [API Documentation](API.md) - Complete API reference
-- [Development Guide](DEVELOPMENT.md) - Contributing guidelines
-- [Deployment Guide](DEPLOYMENT.md) - Production deployment
+- [Development Guide](../DEVELOPMENT.md) - Contributing guidelines
+- [Deployment Guide](../DEPLOYMENT.md) - Production deployment
 
 ## Services
 

@@ -360,7 +360,7 @@ If you disagree with evaluation feedback:
 - [Development Guide](../DEVELOPMENT.md) - Development workflow
 - [Testing Guide](../runbooks/testing-guide.md) - Testing procedures
 - [Code Review Process](../CONTRIBUTING.md) - Review process
-- [Documentation Contribution Guide](contributing/documentation.md) - Docs standards
+- [Documentation Contribution Guide](documentation.md) - Docs standards
 
 ---
 

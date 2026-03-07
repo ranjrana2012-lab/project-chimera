@@ -11,7 +11,7 @@ This directory contains Architecture Decision Records (ADRs) for Project Chimera
 
 ### Infrastructure
 
-### [ADR-001: Use k3s for Kubernetes](./001-use-k3s.md)
+### [ADR-001: Use k3s for Kubernetes](001-use-k3s.md)
 
 **Status:** Accepted
 **Date:** 2026-02-26
@@ -22,14 +22,14 @@ This directory contains Architecture Decision Records (ADRs) for Project Chimera
 
 ### Service Architecture
 
-### [ADR-002: FastAPI for Microservices](./002-fastapi-services.md)
+### [ADR-002: FastAPI for Microservices](002-fastapi-services.md)
 
 **Status:** Accepted
 **Date:** 2026-02-26
 **Context:** Need for async-capable web framework
 **Decision:** Use FastAPI for all services
 
-### [ADR-003: OpenClaw Skills Architecture](./003-openclaw-skills.md)
+### [ADR-003: OpenClaw Skills Architecture](003-openclaw-skills.md)
 
 **Status:** Accepted
 **Date:** 2026-02-26
@@ -40,14 +40,14 @@ This directory contains Architecture Decision Records (ADRs) for Project Chimera
 
 ### Platform & Features (v0.5.0)
 
-### [ADR-004: Chimera Quality Platform](./004-quality-platform.md)
+### [ADR-004: Chimera Quality Platform](004-quality-platform.md)
 
 **Status:** Accepted
 **Date:** 2026-03-04
 **Context:** Need for centralized quality assurance
 **Decision:** Implement Dashboard, Test Orchestrator, CI/CD Gateway, Quality Gate
 
-### [ADR-005: v0.5.0 Feature Enhancements](./005-v3-features.md)
+### [ADR-005: v0.5.0 Feature Enhancements](005-v3-features.md)
 
 **Status:** Accepted
 **Date:** 2026-03-04
@@ -58,14 +58,14 @@ This directory contains Architecture Decision Records (ADRs) for Project Chimera
 
 ## Specialized Architecture
 
-### [Scene State Machine](./scene-state-machine.md)
+### [Scene State Machine](scene-state-machine.md)
 
 **Status:** Accepted
 **Date:** 2026-02-26
 **Context:** Managing scene transitions and state
 **Decision:** Hierarchical state machine for scene management
 
-### [Transition Triggers](./transition-triggers.md)
+### [Transition Triggers](transition-triggers.md)
 
 **Status:** Accepted
 **Date:** 2026-02-26

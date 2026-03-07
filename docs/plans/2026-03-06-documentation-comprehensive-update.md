@@ -147,7 +147,7 @@ pytest tests/test_orchestrator.py -v
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ## License
 
@@ -300,7 +300,7 @@ pytest tests/test_dialogue.py -v
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ## License
 
@@ -450,7 +450,7 @@ pytest tests/test_gloss.py -v
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ## License
 
@@ -616,7 +616,7 @@ pytest tests/test_sentiment.py -v
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ## License
 
@@ -781,7 +781,7 @@ pytest tests/test_dmx.py -v
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ## License
 
@@ -957,7 +957,7 @@ pytest tests/test_filter.py -v
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ## License
 
@@ -1151,7 +1151,7 @@ pytest tests/test_websocket.py -v
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ## License
 

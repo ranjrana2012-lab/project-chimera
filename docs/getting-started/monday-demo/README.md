@@ -5,9 +5,9 @@
 
 ## Quick Links
 
-- [Demo Script](./demo-script.md) - 60-minute agenda
-- [GitHub Setup Guide](./github-setup-guide.md) - Project configuration
-- [Pre-Monday Checklist](./pre-monday-checklist.md) - Verification steps
+- [Demo Script](../../demo/demo-script.md) - 60-minute agenda
+- [GitHub Setup Guide](github-setup-guide.md) - Project configuration
+- [Pre-Monday Checklist](pre-monday-checklist.md) - Verification steps
 - [Student Quick Start](../quick-start.md) - Student guide
 - [Student Roles](../roles.md) - Role assignments
 

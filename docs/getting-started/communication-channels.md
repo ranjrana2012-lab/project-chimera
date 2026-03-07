@@ -120,7 +120,7 @@ Each role has a dedicated channel:
 ### Be Respectful
 - Assume good intent
 - No harassment or discrimination
-- See [Code of Conduct](../../CODE_OF_CONDUCT.md)
+- See Code of Conduct
 
 ### Be Helpful
 - Answer questions if you know the answer

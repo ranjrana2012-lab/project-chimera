@@ -188,54 +188,54 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | I want to... | Go to |
 |--------------|-------|
 | Get started with Project Chimera | [Getting Started](getting-started/) |
-| Set up my development environment | [Quick Start](getting-started/quick-start.md) |
+| Set up my development environment | [Quick Start](../getting-started/quick-start.md) |
 | Learn about the services | [Services Overview](services/) |
-| Contribute code | [Contributing Guide](guides/contributing.md) |
-| Understand the GitHub workflow | [GitHub Workflow](docs/contributing/github-workflow.md) |
-| Read the API docs | [API Reference](reference/api.md) |
-| Deploy to production | [Deployment Runbook](reference/runbooks/deployment.md) |
+| Contribute code | [Contributing Guide](../CONTRIBUTING.md) |
+| Understand the GitHub workflow | [GitHub Workflow](../guides/github-workflow.md) |
+| Read the API docs | [API Reference](../reference/api.md) |
+| Deploy to production | [Deployment Runbook](../runbooks/deployment.md) |
 
 ## By Audience
 
 ### Students
-- [Quick Start Guide](getting-started/quick-start.md)
-- [Your Role](getting-started/roles.md)
-- [First Steps](getting-started/first-steps.md)
+- [Quick Start Guide](../getting-started/quick-start.md)
+- [Your Role](../getting-started/roles.md)
+- [First Steps](../getting-started/quick-start.md)
 - [Monday Demo](getting-started/monday-demo/)
 
 ### Developers
-- [Development Guide](DEVELOPMENT.md)
-- [Contributing Guide](guides/contributing.md)
-- [GitHub Workflow](docs/contributing/github-workflow.md)
-- [API Reference](reference/api.md)
+- [Development Guide](../DEVELOPMENT.md)
+- [Contributing Guide](../CONTRIBUTING.md)
+- [GitHub Workflow](../guides/github-workflow.md)
+- [API Reference](../reference/api.md)
 
 ### Operators
-- [Deployment Guide](reference/runbooks/deployment.md)
-- [Monitoring](reference/runbooks/monitoring.md)
-- [Incident Response](reference/runbooks/incident-response.md)
+- [Deployment Guide](../runbooks/deployment.md)
+- [Monitoring](../runbooks/monitoring.md)
+- [Incident Response](../runbooks/incident-response.md)
 
 ## Documentation Index
 
 ### Getting Started
-- [Quick Start](getting-started/quick-start.md) - Set up your environment
-- [Installation](getting-started/installation.md) - Detailed installation
-- [First Steps](getting-started/first-steps.md) - Your first contribution
-- [Roles](getting-started/roles.md) - Student role assignments
+- [Quick Start](../getting-started/quick-start.md) - Set up your environment
+- [Installation](../getting-started/quick-start.md) - Detailed installation
+- [First Steps](../getting-started/quick-start.md) - Your first contribution
+- [Roles](../getting-started/roles.md) - Student role assignments
 - [Monday Demo](getting-started/monday-demo/) - Demo documentation
 
 ### Services
-- [Core Services](services/core-services.md) - 8 AI agents overview
-- [Music Generation](services/music-generation.md) - Music platform
-- [Quality Platform](services/quality-platform.md) - Testing infrastructure
+- [Core Services](../services/core-services.md) - 8 AI agents overview
+- [Music Generation](../services/music-generation.md) - Music platform
+- [Quality Platform](../services/quality-platform.md) - Testing infrastructure
 
 ### Guides
-- [Contributing](guides/contributing.md) - How to contribute
-- [GitHub Workflow](docs/contributing/github-workflow.md) - GitHub automation
-- [Testing](guides/testing.md) - Testing guide
+- [Contributing](../CONTRIBUTING.md) - How to contribute
+- [GitHub Workflow](../guides/github-workflow.md) - GitHub automation
+- [Testing](../runbooks/testing-guide.md) - Testing guide
 
 ### Reference
-- [Architecture](docs/reference/architecture.md) - System architecture
-- [API](reference/api.md) - API documentation
+- [Architecture](../reference/architecture.md) - System architecture
+- [API](../reference/api.md) - API documentation
 - [Runbooks](reference/runbooks/) - Operational docs
 
 ### Plans
@@ -399,7 +399,7 @@ Views:
 
 ## Need Help?
 
-- Check [Contributing Guide](../guides/contributing.md)
+- Check [Contributing Guide](../CONTRIBUTING.md)
 - [Start a Discussion](https://github.com/project-chimera/project-chimera/discussions)
 - Tag `@technical-lead` for urgent issues
 ```
@@ -556,9 +556,9 @@ curl http://localhost:8007/health/live
 
 ## Related Documentation
 
-- [Architecture](../docs/reference/architecture.md) - System architecture
+- [Architecture](../reference/architecture.md) - System architecture
 - [API Reference](../reference/api.md) - Complete API docs
-- [Quality Platform](quality-platform.md) - Testing infrastructure
+- [Quality Platform](../services/quality-platform.md) - Testing infrastructure
 ```
 
 ### 7. docs/services/music-generation.md (Create New)
@@ -652,7 +652,7 @@ curl http://localhost:8012/api/v1/music/{music_id}
 
 ## Related Documentation
 
-- [Architecture Design](../plans/2026-03-01-music-generation-platform-design.md)
+- [Architecture Design](2026-03-01-music-generation-platform-design.md)
 - [API Reference](../reference/api.md#music-generation)
 ```
 
@@ -775,8 +775,8 @@ Simulate user journeys:
 - `docs/getting-started/installation.md`
 - `docs/services/core-services.md`
 - `docs/services/music-generation.md`
-- `docs/guides/contributing.md`
-- `docs/guides/testing.md`
+- `docs/CONTRIBUTING.md`
+- `docs/runbooks/testing-guide.md`
 - `docs/SITEMAP.md`
 
 **Files to Update:** ~15 files

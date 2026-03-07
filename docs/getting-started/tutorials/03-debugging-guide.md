@@ -313,14 +313,14 @@ python scripts/analyze-trace.py <trace-id>
 
 ## Related Resources
 
-- [Troubleshooting Runbook](../../runbooks/troubleshooting.md)
+- [Troubleshooting Runbook](../../demo/troubleshooting.md)
 - [Performance Analysis Runbook](../../runbooks/performance-analysis.md)
 - [Distributed Tracing Runbook](../../runbooks/distributed-tracing.md)
 - [Development Guide](../../DEVELOPMENT.md) - Debugging section
 
 ---
 
-**Next Tutorial:** [API Documentation Guide](api-docs-tutorial.md) - Learn how to use service APIs.
+**Next Tutorial:** See [API Documentation](../../reference/api.md) - Learn how to use service APIs.
 
 ---
 

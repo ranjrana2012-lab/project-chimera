@@ -131,6 +131,6 @@ Views:
 
 ## Need Help?
 
-- [Contributing Guide](contributing.md)
+- [Contributing Guide](../CONTRIBUTING.md)
 - [Quick Start](../getting-started/quick-start.md)
 - [Start a Discussion](https://github.com/project-chimera/project-chimera/discussions)

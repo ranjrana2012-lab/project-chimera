@@ -1223,6 +1223,6 @@ ws.send('done');
 ---
 
 For more information:
-- [Architecture Documentation](ARCHITECTURE.md)
-- [Development Guide](DEVELOPMENT.md)
-- [Deployment Guide](DEPLOYMENT.md)
+- [Architecture Documentation](../quality-platform/ARCHITECTURE.md)
+- [Development Guide](../DEVELOPMENT.md)
+- [Deployment Guide](../DEPLOYMENT.md)

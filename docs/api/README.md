@@ -9,49 +9,49 @@ This directory contains API documentation for Project Chimera services.
 
 ## Core Service APIs
 
-### [OpenClaw Orchestrator](./openclaw-orchestrator.md)
+### [OpenClaw Orchestrator](openclaw-orchestrator.md)
 **Port:** 8000
 - Skill routing and agent coordination
 - Pipeline execution
 - Health and metrics endpoints
 
-### [SceneSpeak Agent](./scenespeak-agent.md)
+### [SceneSpeak Agent](scenespeak-agent.md)
 **Port:** 8001
 - LLM-powered dialogue generation
 - **NEW:** LoRA adapter support for genre-specific styling
 - Context-aware generation with sentiment
 
-### [Captioning Agent](./captioning-agent.md)
+### [Captioning Agent](captioning-agent.md)
 **Port:** 8002
 - Speech-to-text transcription
 - Real-time WebSocket streaming
 - Language detection
 
-### [BSL Agent](./bsl-agent.md)
+### [BSL Agent](bsl-agent.md)
 **Port:** 8003
 - Text to BSL gloss translation
 - **NEW:** Real-time avatar rendering for sign language
 - Gesture library with caching
 
-### [Sentiment Agent](./sentiment-agent.md)
+### [Sentiment Agent](sentiment-agent.md)
 **Port:** 8004
 - Audience sentiment and emotion analysis
 - Batch processing
 - Sentiment trends and aggregation
 
-### [Lighting Service](./lighting-service.md)
+### [Lighting Service](lighting-service.md)
 **Port:** 8005
 - DMX/sACN lighting control
 - Scene management
 - Fixture control
 
-### [Safety Filter](./safety-filter.md)
+### [Safety Filter](safety-filter.md)
 **Port:** 8006
 - **NEW:** Multi-layer ML-based content moderation
 - Pattern matching + ML classification + context-aware analysis
 - Audit logging and statistics
 
-### [Operator Console](./operator-console.md)
+### [Operator Console](operator-console.md)
 **Port:** 8007
 - **NEW:** Real-time WebSocket updates
 - Human oversight dashboard
@@ -61,25 +61,25 @@ This directory contains API documentation for Project Chimera services.
 
 ## Platform Service APIs
 
-### [Dashboard Service](./dashboard-service.md)
+### [Dashboard Service](dashboard-service.md)
 **Port:** 8010
 - Quality platform dashboards
 - Service metrics visualization
 - Test results display
 
-### [Test Orchestrator](./test-orchestrator.md)
+### [Test Orchestrator](test-orchestrator.md)
 **Port:** 8011
 - Test discovery and execution
 - Result reporting
 - Suite management
 
-### [CI/CD Gateway](./cicd-gateway.md)
+### [CI/CD Gateway](cicd-gateway.md)
 **Port:** 8012
 - GitHub/GitLab webhook integration
 - Deployment triggers
 - Workflow run management
 
-### [Quality Gate](./quality-gate.md)
+### [Quality Gate](quality-gate.md)
 **Port:** 8013
 - Quality threshold enforcement
 - PR quality checks

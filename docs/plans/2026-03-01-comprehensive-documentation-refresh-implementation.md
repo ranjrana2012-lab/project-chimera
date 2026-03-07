@@ -63,28 +63,28 @@ Replace lines 92-118 with:
 
 ### For Students and Developers
 
-- [Quick Start Guide](docs/getting-started/quick-start.md) - Set up your development environment
-- [Student Roles](docs/getting-started/roles.md) - Component ownership details
-- [GitHub Workflow](docs/docs/contributing/github-workflow.md) - GitHub automation and trust system
-- [Contributing Guidelines](docs/guides/contributing.md) - How to contribute
-- [Development Guide](docs/DEVELOPMENT.md) - Development workflow and coding standards
+- [Quick Start Guide](../getting-started/quick-start.md) - Set up your development environment
+- [Student Roles](../getting-started/roles.md) - Component ownership details
+- [GitHub Workflow](../guides/github-workflow.md) - GitHub automation and trust system
+- [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute
+- [Development Guide](../DEVELOPMENT.md) - Development workflow and coding standards
 
 ### Technical Documentation
 
-- [Architecture Overview](docs/docs/reference/architecture.md) - System architecture and design
-- [API Documentation](docs/api/README.md) - Complete API reference for all services
-- [Deployment Guide](docs/reference/runbooks/deployment.md) - Deployment scenarios and procedures
+- [Architecture Overview](../reference/architecture.md) - System architecture and design
+- [API Documentation](../README.md) - Complete API reference for all services
+- [Deployment Guide](../runbooks/deployment.md) - Deployment scenarios and procedures
 
 ### Services Documentation
 
-- [Core Services](docs/services/core-services.md) - 8 AI agents overview
-- [Music Generation Platform](docs/services/music-generation.md) - Music generation services
-- [Quality Platform](docs/services/quality-platform.md) - Testing infrastructure
+- [Core Services](../services/core-services.md) - 8 AI agents overview
+- [Music Generation Platform](../services/music-generation.md) - Music generation services
+- [Quality Platform](../services/quality-platform.md) - Testing infrastructure
 
 ### Operational Documentation
 
-- [Monitoring Runbook](docs/reference/runbooks/monitoring.md) - Monitoring and alerting setup
-- [Incident Response](docs/reference/runbooks/incident-response.md) - Handling incidents
+- [Monitoring Runbook](../runbooks/monitoring.md) - Monitoring and alerting setup
+- [Incident Response](../runbooks/incident-response.md) - Handling incidents
 ```
 
 **Step 6: Update Roadmap section**
@@ -382,7 +382,7 @@ git commit -m "docs: move monday-demo docs to docs/getting-started/monday-demo/"
 
 Run:
 ```bash
-sed -i 's|\[Student Quick Start Guide\](getting-started/quick-start.md)|[Student Quick Start Guide](docs/getting-started/quick-start.md)|g' README.md
+sed -i 's|\[Student Quick Start Guide\](../getting-started/quick-start.md)|[Student Quick Start Guide](../getting-started/quick-start.md)|g' README.md
 ```
 
 Expected: File modified silently
@@ -391,7 +391,7 @@ Expected: File modified silently
 
 Run:
 ```bash
-sed -i 's|\[Student Role Assignments\](docs/STUDENT_ROLES.md)|[Student Role Assignments](docs/getting-started/roles.md)|g' README.md
+sed -i 's|\[Student Role Assignments\](docs/STUDENT_ROLES.md)|[Student Role Assignments](../getting-started/roles.md)|g' README.md
 ```
 
 Expected: File modified silently
@@ -400,13 +400,13 @@ Expected: File modified silently
 
 Run:
 ```bash
-sed -i 's|\[Development Guide\](docs/DEVELOPMENT.md)|[Development Guide](docs/DEVELOPMENT.md)|g' README.md
-sed -i 's|\[Architecture Overview\](docs/reference/architecture.md)|[Architecture Overview](docs/docs/reference/architecture.md)|g' README.md
-sed -i 's|\[API Documentation\](reference/api.md)|[API Documentation](docs/api/README.md)|g' README.md
-sed -i 's|\[Deployment Guide\](reference/runbooks/deployment.md)|[Deployment Guide](docs/reference/runbooks/deployment.md)|g' README.md
-sed -i 's|\[Monitoring Runbook\](reference/runbooks/monitoring.md)|[Monitoring Runbook](docs/reference/runbooks/monitoring.md)|g' README.md
-sed -i 's|\[Incident Response\](reference/runbooks/incident-response.md)|[Incident Response](docs/reference/runbooks/incident-response.md)|g' README.md
-sed -i 's|\[Deployment Runbook\](reference/runbooks/deployment.md)|[Deployment Runbook](docs/reference/runbooks/deployment.md)|g' README.md
+sed -i 's|\[Development Guide\](../DEVELOPMENT.md)|[Development Guide](../DEVELOPMENT.md)|g' README.md
+sed -i 's|\[Architecture Overview\](../reference/architecture.md)|[Architecture Overview](../reference/architecture.md)|g' README.md
+sed -i 's|\[API Documentation\](../reference/api.md)|[API Documentation](../README.md)|g' README.md
+sed -i 's|\[Deployment Guide\](../runbooks/deployment.md)|[Deployment Guide](../runbooks/deployment.md)|g' README.md
+sed -i 's|\[Monitoring Runbook\](../runbooks/monitoring.md)|[Monitoring Runbook](../runbooks/monitoring.md)|g' README.md
+sed -i 's|\[Incident Response\](../runbooks/incident-response.md)|[Incident Response](../runbooks/incident-response.md)|g' README.md
+sed -i 's|\[Deployment Runbook\](../runbooks/deployment.md)|[Deployment Runbook](../runbooks/deployment.md)|g' README.md
 ```
 
 Expected: File modified silently
@@ -591,9 +591,9 @@ curl http://localhost:8007/health/live
 
 ## Related Documentation
 
-- [Architecture](../docs/reference/architecture.md) - System architecture
+- [Architecture](../reference/architecture.md) - System architecture
 - [API Reference](../reference/api.md) - Complete API docs
-- [Quality Platform](quality-platform.md) - Testing infrastructure
+- [Quality Platform](../services/quality-platform.md) - Testing infrastructure
 ```
 
 **Step 3: Verify file created**
@@ -707,8 +707,8 @@ curl http://localhost:8012/api/v1/music/{music_id}
 
 ## Related Documentation
 
-- [Architecture Design](../plans/2026-03-01-music-generation-platform-design.md)
-- [Implementation Plan](../plans/2026-03-01-music-generation-platform-implementation.md)
+- [Architecture Design](2026-03-01-music-generation-platform-design.md)
+- [Implementation Plan](2026-03-01-music-generation-platform-implementation.md)
 - [API Reference](../reference/api.md#music-generation)
 ```
 
@@ -878,7 +878,7 @@ Views:
 
 ## Need Help?
 
-- [Contributing Guide](contributing.md)
+- [Contributing Guide](../CONTRIBUTING.md)
 - [Quick Start](../getting-started/quick-start.md)
 - [Start a Discussion](https://github.com/project-chimera/project-chimera/discussions)
 ```
@@ -915,54 +915,54 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | I want to... | Go to |
 |--------------|-------|
 | Get started with Project Chimera | [Getting Started](getting-started/) |
-| Set up my development environment | [Quick Start](getting-started/quick-start.md) |
+| Set up my development environment | [Quick Start](../getting-started/quick-start.md) |
 | Learn about the services | [Services Overview](services/) |
-| Contribute code | [Contributing Guide](guides/contributing.md) |
-| Understand the GitHub workflow | [GitHub Workflow](docs/contributing/github-workflow.md) |
-| Read the API docs | [API Reference](reference/api.md) |
-| Deploy to production | [Deployment Runbook](reference/runbooks/deployment.md) |
+| Contribute code | [Contributing Guide](../CONTRIBUTING.md) |
+| Understand the GitHub workflow | [GitHub Workflow](../guides/github-workflow.md) |
+| Read the API docs | [API Reference](../reference/api.md) |
+| Deploy to production | [Deployment Runbook](../runbooks/deployment.md) |
 
 ## By Audience
 
 ### Students
-- [Quick Start Guide](getting-started/quick-start.md)
-- [Your Role](getting-started/roles.md)
-- [First Steps](getting-started/first-steps.md)
+- [Quick Start Guide](../getting-started/quick-start.md)
+- [Your Role](../getting-started/roles.md)
+- [First Steps](../getting-started/quick-start.md)
 - [Monday Demo](getting-started/monday-demo/)
 
 ### Developers
 - [Development Guide](../DEVELOPMENT.md)
-- [Contributing Guide](guides/contributing.md)
-- [GitHub Workflow](docs/contributing/github-workflow.md)
-- [API Reference](reference/api.md)
+- [Contributing Guide](../CONTRIBUTING.md)
+- [GitHub Workflow](../guides/github-workflow.md)
+- [API Reference](../reference/api.md)
 
 ### Operators
-- [Deployment Guide](reference/runbooks/deployment.md)
-- [Monitoring](reference/runbooks/monitoring.md)
-- [Incident Response](reference/runbooks/incident-response.md)
+- [Deployment Guide](../runbooks/deployment.md)
+- [Monitoring](../runbooks/monitoring.md)
+- [Incident Response](../runbooks/incident-response.md)
 
 ## Documentation Index
 
 ### Getting Started
-- [Quick Start](getting-started/quick-start.md) - Set up your environment
-- [Installation](getting-started/installation.md) - Detailed installation
-- [First Steps](getting-started/first-steps.md) - Your first contribution
-- [Roles](getting-started/roles.md) - Student role assignments
+- [Quick Start](../getting-started/quick-start.md) - Set up your environment
+- [Installation](../getting-started/quick-start.md) - Detailed installation
+- [First Steps](../getting-started/quick-start.md) - Your first contribution
+- [Roles](../getting-started/roles.md) - Student role assignments
 - [Monday Demo](getting-started/monday-demo/) - Demo documentation
 
 ### Services
-- [Core Services](services/core-services.md) - 8 AI agents overview
-- [Music Generation](services/music-generation.md) - Music platform
-- [Quality Platform](services/quality-platform.md) - Testing infrastructure
+- [Core Services](../services/core-services.md) - 8 AI agents overview
+- [Music Generation](../services/music-generation.md) - Music platform
+- [Quality Platform](../services/quality-platform.md) - Testing infrastructure
 
 ### Guides
-- [Contributing](guides/contributing.md) - How to contribute
-- [GitHub Workflow](docs/contributing/github-workflow.md) - GitHub automation
-- [Testing](guides/testing.md) - Testing guide
+- [Contributing](../CONTRIBUTING.md) - How to contribute
+- [GitHub Workflow](../guides/github-workflow.md) - GitHub automation
+- [Testing](../runbooks/testing-guide.md) - Testing guide
 
 ### Reference
-- [Architecture](docs/reference/architecture.md) - System architecture
-- [API](reference/api.md) - API documentation
+- [Architecture](../reference/architecture.md) - System architecture
+- [API](../reference/api.md) - API documentation
 - [Runbooks](reference/runbooks/) - Operational docs
 
 ### Plans

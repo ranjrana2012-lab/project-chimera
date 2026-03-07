@@ -2,7 +2,7 @@
 
 Welcome to the Project Chimera documentation. Use this hub to find what you need.
 
-> **New in v0.5.0:** [WorldMonitor Integration](services/core-services.md#Sentiment Agent-port-8004) - Enhanced sentiment analysis with global context. [Read more](plans/2026-03-03-worldmonitor-integration.md)
+> **New in v0.5.0:** [WorldMonitor Integration](services/core-services.md#Sentiment Agent-port-8004) - Enhanced sentiment analysis with global context. Read more
 
 ## Quick Links
 
@@ -12,7 +12,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | Set up my development environment | [Quick Start](getting-started/quick-start.md) |
 | Learn about the services | [Services Overview](services/) |
 | Explore documentation hub | [Documentation Hub](guides/README.md) |
-| Contribute code | [Contributing Guide](../CONTRIBUTING.md) |
+| Contribute code | [Contributing Guide](CONTRIBUTING.md) |
 | Understand the GitHub workflow | [GitHub Workflow](guides/github-workflow.md) |
 | Read the API docs | [API Reference](api/) |
 | Deploy to production | [Deployment Guide](DEPLOYMENT.md) |
@@ -27,7 +27,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 
 ### Developers
 - [Development Guide](DEVELOPMENT.md)
-- [Contributing Guide](../CONTRIBUTING.md)
+- [Contributing Guide](CONTRIBUTING.md)
 - [GitHub Workflow](guides/github-workflow.md)
 - [API Reference](api/)
 

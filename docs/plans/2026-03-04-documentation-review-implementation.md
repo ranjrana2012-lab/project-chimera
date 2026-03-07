@@ -49,7 +49,7 @@ Create `/tmp/version-audit.md` with:
 **Step 1: Find Markdown links**
 
 ```bash
-grep -r "\[.*\](.*.md)" docs/ README.md --include="*.md" | grep -v "Binary file" > /tmp/all-links.txt
+grep -r "\.*\" docs/ README.md --include="*.md" | grep -v "Binary file" > /tmp/all-links.txt
 ```
 
 **Step 2: Check each link target exists**

@@ -309,7 +309,7 @@ git push origin feature/my-first-contribution
 **Documentation:**
 - [Quick Start Guide](../quick-start.md)
 - [Student FAQ](../faq.md)
-- [Troubleshooting](../troubleshooting.md)
+- [Troubleshooting](../../demo/troubleshooting.md)
 - [Office Hours](../office-hours.md)
 
 **GitHub:**
@@ -323,7 +323,7 @@ git push origin feature/my-first-contribution
 
 ---
 
-**Next Tutorial:** [Testing Guide](testing-tutorial.md) - Learn how to write and run tests for Project Chimera.
+**Next Tutorial:** [Testing Guide](02-testing-guide.md) - Learn how to write and run tests for Project Chimera.
 
 ---
 

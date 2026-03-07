@@ -170,7 +170,7 @@ A comprehensive update to synchronize all Project Chimera documentation with the
 ### Phase 5: Cross-Reference Validation
 
 **Verify all internal links:**
-1. Extract all `[](target.md)` references
+1. Extract all markdown link references (e.g., `[text](target.md)`)
 2. Check each target exists
 3. Fix broken links
 4. Update relative paths

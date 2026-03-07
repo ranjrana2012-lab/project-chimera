@@ -43,7 +43,7 @@ docs/
 
 ### Links
 
-- Use relative links for internal docs: `[Text](path/to/file.md)`
+- Use relative links for internal docs: `Text`
 - Use absolute links for external resources: `[Text](https://example.com)`
 - Link text should be descriptive, not "click here"
 
@@ -185,6 +185,6 @@ python3 -c 'example-code'
 ---
 
 **See Also:**
-- [Main Contributing Guide](../../CONTRIBUTING.md)
+- [Main Contributing Guide](../CONTRIBUTING.md)
 - [API Documentation](../api/)
 - [Runbooks](../runbooks/)

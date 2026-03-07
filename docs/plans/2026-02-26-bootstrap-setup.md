@@ -901,8 +901,8 @@ After bootstrap completes:
 
 ## Related Documentation
 
-- [Implementation Documentation](../plans/IMPLEMENTATION_DOCUMENTATION.md)
-- [Bootstrap Design](../plans/2026-02-26-bootstrap-setup-design.md)
+- [Implementation Documentation](IMPLEMENTATION_DOCUMENTATION.md)
+- [Bootstrap Design](2026-02-26-bootstrap-setup-design.md)
 EOF
 ```
 

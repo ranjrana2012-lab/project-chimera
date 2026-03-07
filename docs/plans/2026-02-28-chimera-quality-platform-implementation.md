@@ -2701,7 +2701,7 @@ open http://localhost:8009
 
 ## Architecture
 
-See [DESIGN.md](../docs/plans/2026-02-28-chimera-quality-platform-design.md) for detailed architecture.
+See [DESIGN.md](2026-02-28-chimera-quality-platform-design.md) for detailed architecture.
 ```
 
 **Step 2: Create deployment guide**

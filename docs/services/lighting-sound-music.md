@@ -550,7 +550,7 @@ See [Observability Guide](../observability.md) for complete monitoring setup.
 ## Related Documentation
 
 - [Lighting Service API](../api/lighting-service.md) - Complete API reference
-- [Music Generation Guide](../guides/music-generation.md) - Music generation guide
+- [Music Generation Guide](music-generation.md) - Music generation guide
 - [Observability Guide](../observability.md) - Monitoring and metrics
 - [Performance Analysis Runbook](../runbooks/performance-analysis.md) - Performance optimization
 

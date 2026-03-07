@@ -831,9 +831,9 @@ Alerts configured via AlertManager for:
 
 For detailed discussions of architectural decisions, see:
 
-- [ADR-001: Use k3s for Kubernetes](architecture/001-use-k3s.md)
-- [ADR-002: FastAPI for Microservices](architecture/002-fastapi-services.md)
-- [ADR-003: OpenClaw Skills Architecture](architecture/003-openclaw-skills.md)
+- [ADR-001: Use k3s for Kubernetes](../architecture/001-use-k3s.md)
+- [ADR-002: FastAPI for Microservices](../architecture/002-fastapi-services.md)
+- [ADR-003: OpenClaw Skills Architecture](../architecture/003-openclaw-skills.md)
 
 ## Future Enhancements
 
@@ -848,6 +848,6 @@ Planned architectural improvements:
 ---
 
 For more information, see:
-- [API Documentation](API.md)
-- [Deployment Guide](DEPLOYMENT.md)
-- [Development Guide](DEVELOPMENT.md)
+- [API Documentation](../quality-platform/API.md)
+- [Deployment Guide](../DEPLOYMENT.md)
+- [Development Guide](../DEVELOPMENT.md)
