@@ -81,3 +81,10 @@ models/*.pth
 **/*.so
 **/*.dylib
 docs/@ Ranj Notes/
+
+# Model cache directories
+services/sentiment-agent/models_cache/
+services/music-generation/models_cache/
+
+# Test environments
+final_test_env/
