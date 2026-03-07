@@ -20,9 +20,10 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
 
     # Model Configuration
-    use_ml_model: bool = False  # Set to True when ML model is available
-    model_path: Optional[str] = None  # Path to DistilBERT model
-    model_cache_dir: Optional[str] = "./models_cache"
+    use_ml_model: bool = True  # Forced to True for ML-only approach
+    model_path: Optional[str] = None  # Not used, using HuggingFace
+    model_cache_dir: str = "./models_cache"
+    device: str = "auto"  # Auto-detect cuda/cpu
 
     # OpenTelemetry
     otlp_endpoint: str = "http://localhost:4317"
