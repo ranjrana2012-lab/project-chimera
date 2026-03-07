@@ -3,7 +3,7 @@ Tests for GLM 4.7 API client with local fallback.
 
 Following TDD methodology, these tests verify:
 - GLM API integration with valid API key
-- Fallback to local model when API fails
+- Fallback to local model (Ollama) when API fails
 - Proper error handling and logging
 """
 
@@ -37,6 +37,7 @@ def test_client_init(client):
     assert client.api_key == "test-key"
     assert client.api_base is not None
     assert client.local_model_path is None
+    assert client.local_llm_client is None
 
 
 def test_client_init_no_key(client_no_key):
@@ -74,12 +75,34 @@ async def test_generate_with_api_key(client):
 @pytest.mark.asyncio
 async def test_generate_api_fallback_to_local(client_no_key):
     """Test fallback to local model when API key is not available"""
-    # Should use local fallback
-    result = await client_no_key.generate("Hello")
+    # Mock local LLM connection and generation
+    with patch("glm_client.LocalLLMClient") as mock_local_llm:
+        mock_client_instance = AsyncMock()
+        mock_response = MagicMock()
+        mock_response.text = "Local generated text"
+        mock_response.tokens_used = 50
+        mock_response.model = "llama3.2"
+        mock_response.source = "local"
+        mock_response.duration_ms = 1000
 
-    # Will be placeholder until local model is implemented
-    assert result.source in ["local", "placeholder"]
-    assert "Local model" in result.text
+        mock_client_instance.connect = AsyncMock(return_value=True)
+        mock_client_instance.is_available = AsyncMock(return_value=True)
+        mock_client_instance.generate = AsyncMock(return_value=mock_response)
+        mock_local_llm.return_value = mock_client_instance
+
+        # Mock settings
+        with patch("glm_client.settings") as mock_settings:
+            mock_settings.local_llm_enabled = True
+            mock_settings.local_llm_url = "http://localhost:11434"
+            mock_settings.local_llm_model = "llama3.2"
+            mock_settings.glm_api_fallback = True
+
+            # Reset the client to use mocked settings
+            client_no_key.local_llm_client = None
+            result = await client_no_key.generate("Hello")
+
+    assert result.source == "local"
+    assert result.text == "Local generated text"
 
 
 @pytest.mark.asyncio
@@ -91,22 +114,58 @@ async def test_generate_api_error_fallback(client):
     mock_client.__aenter__ = AsyncMock(return_value=mock_client)
     mock_client.__aexit__ = AsyncMock()
 
-    with patch("httpx.AsyncClient", return_value=mock_client):
-        result = await client.generate("Hello")
+    # Mock local LLM fallback
+    with patch("glm_client.LocalLLMClient") as mock_local_llm:
+        mock_client_instance = AsyncMock()
+        mock_response = MagicMock()
+        mock_response.text = "Fallback local text"
+        mock_response.tokens_used = 40
+        mock_response.model = "llama3.2"
+        mock_response.source = "local-fallback"
+        mock_response.duration_ms = 1200
+
+        mock_client_instance.connect = AsyncMock(return_value=True)
+        mock_client_instance.is_available = AsyncMock(return_value=True)
+        mock_client_instance.generate = AsyncMock(return_value=mock_response)
+        mock_local_llm.return_value = mock_client_instance
+
+        # Mock settings
+        with patch("glm_client.settings") as mock_settings:
+            mock_settings.local_llm_enabled = True
+            mock_settings.local_llm_url = "http://localhost:11434"
+            mock_settings.local_llm_model = "llama3.2"
+            mock_settings.glm_api_fallback = True
+
+            with patch("httpx.AsyncClient", return_value=mock_client):
+                client.local_llm_client = None
+                result = await client.generate("Hello")
 
     # Should fall back to local on API error
-    assert result.source in ["local", "placeholder"]
+    assert result.source == "local-fallback"
+    assert result.text == "Fallback local text"
 
 
 @pytest.mark.asyncio
-async def test_local_model_placeholder(client_no_key):
-    """Test local model placeholder when model path is not configured"""
-    result = await client_no_key.generate("Test prompt")
+async def test_local_model_unavailable_no_api_key(client_no_key):
+    """Test error when local LLM unavailable and no API key"""
+    # Mock local LLM connection failure
+    with patch("glm_client.LocalLLMClient") as mock_local_llm:
+        mock_client_instance = AsyncMock()
+        mock_client_instance.connect = AsyncMock(return_value=False)
+        mock_client_instance.is_available = AsyncMock(return_value=False)
+        mock_local_llm.return_value = mock_client_instance
 
-    assert result.source == "placeholder"
-    assert result.model == "local"
-    assert result.tokens_used == 0
-    assert "model path not configured" in result.text.lower()
+        # Mock settings
+        with patch("glm_client.settings") as mock_settings:
+            mock_settings.local_llm_enabled = True
+            mock_settings.local_llm_url = "http://localhost:11434"
+            mock_settings.local_llm_model = "llama3.2"
+
+            client_no_key.local_llm_client = None
+
+            # Should raise RuntimeError when both options unavailable
+            with pytest.raises(RuntimeError, match="Local LLM unavailable and no GLM API key configured"):
+                await client_no_key.generate("Test prompt")
 
 
 def test_dialogue_response_model():

@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 from config import get_settings
 from glm_client import GLMClient
+from local_llm import LocalLLMClient
 from models import GenerateRequest, DialogueResponse, HealthResponse
 from tracing import setup_telemetry, instrument_fastapi, add_dialogue_span_attributes, record_error
 from metrics import record_generation
@@ -26,15 +27,44 @@ settings = get_settings()
 # Initialize components
 tracer = setup_telemetry("scenespeak-agent")
 glm_client = GLMClient()
+local_llm_client: Optional[LocalLLMClient] = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup/shutdown events"""
+    global local_llm_client
+
     logger.info("SceneSpeak Agent starting up")
     logger.info(f"GLM API configured: {bool(settings.glm_api_key)}")
-    logger.info(f"Local model configured: {bool(settings.local_model_path)}")
+    logger.info(f"Local LLM enabled: {settings.local_llm_enabled}")
+
+    # Initialize local LLM if enabled
+    if settings.local_llm_enabled:
+        try:
+            local_llm_client = LocalLLMClient(
+                base_url=settings.local_llm_url,
+                model=settings.local_llm_model
+            )
+            connected = await local_llm_client.connect()
+            if connected:
+                logger.info(
+                    f"Local LLM connected: {settings.local_llm_url} "
+                    f"with model {settings.local_llm_model}"
+                )
+            else:
+                logger.warning(
+                    f"Local LLM unavailable at {settings.local_llm_url}, "
+                    "will use GLM API or fallback"
+                )
+        except Exception as e:
+            logger.warning(f"Failed to initialize local LLM: {e}")
+
     yield
+
+    # Cleanup
+    if local_llm_client:
+        await local_llm_client.disconnect()
     logger.info("SceneSpeak Agent shutting down")
 
 
@@ -61,10 +91,11 @@ class GenerateResponse(BaseModel):
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint (legacy)."""
+    local_available = local_llm_client and await local_llm_client.is_available()
     return HealthResponse(
         status="healthy",
         service="scenespeak-agent",
-        model_available=bool(settings.glm_api_key or settings.local_model_path)
+        model_available=bool(settings.glm_api_key or local_available)
     )
 
 
@@ -77,12 +108,27 @@ async def liveness():
 @app.get("/health/ready")
 async def readiness():
     """Readiness probe for Kubernetes."""
-    model_available = bool(settings.glm_api_key or settings.local_model_path)
+    local_available = local_llm_client and await local_llm_client.is_available()
+    model_available = bool(settings.glm_api_key or local_available)
     return {
         "status": "ready",
         "service": "scenespeak-agent",
-        "model_available": model_available
+        "model_available": model_available,
+        "local_llm_available": local_available,
+        "glm_api_available": bool(settings.glm_api_key)
     }
+
+
+@app.get("/health/local-llm")
+async def local_llm_health():
+    """Detailed health check for local LLM."""
+    if not local_llm_client:
+        return {
+            "status": "not_configured",
+            "message": "Local LLM client not initialized"
+        }
+
+    return await local_llm_client.health_check()
 
 
 @app.post("/v1/generate", response_model=DialogueResponse)

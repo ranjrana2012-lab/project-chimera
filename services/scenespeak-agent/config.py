@@ -24,7 +24,11 @@ class Settings(BaseSettings):
     glm_api_base: str = "https://open.bigmodel.cn/api/paas/v4/"
 
     # Local LLM
-    local_model_path: Optional[str] = None  # To be provided tomorrow
+    local_model_path: Optional[str] = None  # Deprecated - use local_llm settings below
+    local_llm_enabled: bool = True
+    local_llm_url: str = "http://localhost:11434"  # Ollama default
+    local_llm_model: str = "llama3.2"  # ARM64 compatible model
+    glm_api_fallback: bool = True  # Use GLM API if local fails
 
     # OpenTelemetry
     otlp_endpoint: str = "http://localhost:4317"

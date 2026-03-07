@@ -31,3 +31,5 @@ class HealthResponse(BaseModel):
     status: str
     service: str
     model_available: bool
+    local_llm_available: Optional[bool] = None
+    glm_api_available: Optional[bool] = None
