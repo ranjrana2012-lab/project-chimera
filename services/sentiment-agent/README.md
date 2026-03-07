@@ -16,7 +16,7 @@ The Sentiment Agent analyzes audience feedback to guide performance adaptations:
 ```bash
 # Prerequisites
 # - Python 3.10+
-# - Optional: DistilBERT model files for ML-based analysis
+# - DistilBERT model (~250MB, auto-downloaded)
 
 # Local development setup
 cd services/sentiment-agent
@@ -26,11 +26,20 @@ pip install -r requirements.txt
 
 # Copy environment configuration
 cp .env.example .env
-# Edit .env to enable ML model if available
+# Edit .env if needed (default: auto-detect cuda/cpu)
 
 # Run service
 uvicorn main:app --reload --port 8004
 ```
+
+### Model Information
+
+The service uses **DistilBERT fine-tuned on SST-2** for sentiment analysis:
+- **Model:** `distilbert-base-uncased-finetuned-sst-2-english`
+- **Size:** ~250MB
+- **Labels:** Negative (0), Positive (1)
+- **Auto-downloaded:** On first run or during Docker build
+- **Device:** Auto-detects GPU (CUDA) or CPU
 
 ## Configuration
 
@@ -121,13 +130,17 @@ pytest tests/test_sentiment.py -v
 
 ## Troubleshooting
 
-### Model Not Loading
-**Symptom:** Ready check fails when `USE_ML_MODEL=true`
-**Solution:** Verify `MODEL_PATH`, check model files, ensure sufficient memory
+### Model Download Failed
+**Symptom:** Service fails to start with model import error
+**Solution:** Ensure internet connectivity for first run, or build Docker image with network access
 
-### Analysis Timeout
-**Symptom:** Requests take too long
-**Solution:** Reduce `MAX_TEXT_LENGTH`, decrease `BATCH_SIZE`, disable ML model
+### CUDA Out of Memory
+**Symptom:** Service crashes with CUDA OOM error
+**Solution:** Set `DEVICE=cpu` in .env to use CPU instead
+
+### Slow Inference
+**Symptom:** Analysis takes >1 second per request
+**Solution:** Ensure GPU is being used (check logs for device detection)
 
 ### WorldMonitor Connection Failed
 **Symptom:** No global context in response
