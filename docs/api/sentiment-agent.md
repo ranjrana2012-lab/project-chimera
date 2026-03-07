@@ -26,21 +26,13 @@ Analyze sentiment of a single text.
 
 ```json
 {
-  "sentiment": {
-    "score": 0.75,
-    "label": "positive"
-  },
-  "emotions": {
-    "joy": 0.8,
-    "surprise": 0.3,
-    "neutral": 0.1,
-    "sadness": 0.0,
-    "anger": 0.0,
-    "fear": 0.0
-  },
+  "sentiment": "positive",
+  "score": 0.87,
   "confidence": 0.92
 }
 ```
+
+**Note:** Emotions are now calculated from the ML model's confidence scores rather than keyword matching.
 
 ---
 
@@ -185,9 +177,9 @@ The Sentiment Agent uses environment-based configuration with pydantic-settings.
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
-| `USE_ML_MODEL` | boolean | `false` | Enable DistilBERT model for enhanced sentiment analysis |
-| `MODEL_PATH` | string | `null` | Path to DistilBERT model files (optional) |
-| `MODEL_CACHE_DIR` | string | `./models_cache` | Directory for cached model files |
+| `USE_ML_MODEL` | boolean | `true` | Must be true (ML-only approach) |
+| `MODEL_CACHE_DIR` | string | `./models_cache` | HuggingFace cache directory |
+| `DEVICE` | string | `auto` | Device: auto, cuda, or cpu |
 
 ### Processing Configuration
 
