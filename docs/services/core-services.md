@@ -80,7 +80,7 @@ curl http://localhost:8001/health/live
 - Batch text processing
 - Trend analysis
 - Emotion detection
-- **WorldMonitor Integration (v0.4.0)**:
+- **WorldMonitor Integration (v0.5.0)**:
   - Real-time global context enrichment
   - News sentiment analysis
   - Context-aware sentiment scoring

@@ -1,6 +1,6 @@
 # CI/CD Gateway API Documentation
 
-**Version:** 3.0.0
+**Version:** v0.5.0
 **Base URL:** `http://localhost:8012`
 **Service:** GitHub/GitLab webhook integration for CI/CD
 

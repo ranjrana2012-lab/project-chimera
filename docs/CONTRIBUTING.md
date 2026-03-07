@@ -540,5 +540,5 @@ By contributing, you agree that your contributions will be licensed under the sa
 
 *Happy Contributing!*
 
-*Contributor Guide v0.4.0*
+*Contributor Guide v0.5.0*
 *Project Chimera*

@@ -1,6 +1,6 @@
 # SceneSpeak Agent API Documentation
 
-**Version:** 3.0.0
+**Version:** v0.5.0
 **Base URL:** `http://localhost:8001`
 **Service:** LLM-powered dialogue generation with LoRA adapter support
 

@@ -1,6 +1,6 @@
 # Captioning Agent API Documentation
 
-**Version:** 3.0.0
+**Version:** v0.5.0
 **Base URL:** `http://localhost:8002`
 **Service:** Speech-to-text with real-time streaming
 

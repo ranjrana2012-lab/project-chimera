@@ -1,6 +1,6 @@
 # Safety Filter API Documentation
 
-**Version:** 3.0.0
+**Version:** v0.5.0
 **Base URL:** `http://localhost:8006`
 **Service:** Multi-layer ML-based content moderation
 

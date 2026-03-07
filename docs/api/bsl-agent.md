@@ -1,6 +1,6 @@
 # BSL Agent API Documentation
 
-**Version:** 3.0.0
+**Version:** v0.5.0
 **Base URL:** `http://localhost:8003`
 **Service:** Text-to-BSL gloss translation with real-time avatar rendering
 

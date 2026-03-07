@@ -1,6 +1,6 @@
 # Sentiment Agent API Documentation
 
-**Version:** 3.0.0
+**Version:** v0.5.0
 **Base URL:** `http://localhost:8004`
 **Service:** Audience emotion and sentiment analysis
 

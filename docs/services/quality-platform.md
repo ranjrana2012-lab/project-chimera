@@ -183,7 +183,7 @@ Content-Type: application/json
 
 {
   "service": "scenespeak-agent",
-  "version": "v0.4.0",
+  "version": "v0.5.0",
   "commit_sha": "abc123"
 }
 ```

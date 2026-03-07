@@ -1,6 +1,6 @@
 # Operator Console API Documentation
 
-**Version:** 3.1.0
+**Version:** v0.5.0
 **Base URL:** `http://localhost:8007`
 **Service:** Human oversight dashboard with real-time WebSocket updates
 

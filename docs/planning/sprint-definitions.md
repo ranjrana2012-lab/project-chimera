@@ -404,4 +404,4 @@ Track these metrics each sprint:
 
 ---
 
-*Sprint Definitions - Project Chimera v0.4.0 - March 2026*
+*Sprint Definitions - Project Chimera v0.5.0 - March 2026*

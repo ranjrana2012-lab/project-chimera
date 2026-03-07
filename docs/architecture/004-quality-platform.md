@@ -2,13 +2,13 @@
 
 **Status:** Accepted
 **Date:** 2026-03-04
-**Context:** Project Chimera v0.4.0
+**Context:** Project Chimera v0.5.0
 
 ---
 
 ## Context
 
-Project Chimera v0.4.0 introduces a comprehensive quality assurance platform to ensure code quality, test coverage, and deployment standards are maintained across all services.
+Project Chimera v0.5.0 introduces a comprehensive quality assurance platform to ensure code quality, test coverage, and deployment standards are maintained across all services.
 
 ### Problems Being Solved
 
@@ -196,4 +196,4 @@ Implement a **Chimera Quality Platform** consisting of four core services:
 ---
 
 *Decision Record: ADR-004*
-*Project Chimera v0.4.0*
+*Project Chimera v0.5.0*

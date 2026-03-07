@@ -1,6 +1,6 @@
 # Quality Gate API Documentation
 
-**Version:** 3.0.0
+**Version:** v0.5.0
 **Base URL:** `http://localhost:8013`
 **Service:** Quality threshold enforcement and reporting
 

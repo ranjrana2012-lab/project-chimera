@@ -2,7 +2,7 @@
 
 This directory contains API documentation for Project Chimera services.
 
-**Version:** 3.0.0
+**Version:** v0.5.0
 **Last Updated:** March 2026
 
 ---

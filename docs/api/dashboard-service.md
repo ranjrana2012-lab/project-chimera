@@ -1,6 +1,6 @@
 # Dashboard Service API Documentation
 
-**Version:** 3.0.0
+**Version:** v0.5.0
 **Base URL:** `http://localhost:8010`
 **Service:** Quality platform dashboards and visualization
 
