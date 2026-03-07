@@ -31,8 +31,8 @@ jobs:
 
       - name: Install platform dependencies
         run: |
-          cd platform/test-orchestrator && pip install -e .
-          cd ../dashboard-service && pip install -e .
+          cd platform/orchestrator && pip install -e .
+          cd ../dashboard && pip install -e .
           cd ../cicd-gateway && pip install -e .
           cd ../quality-gate && pip install -e .
 
@@ -47,8 +47,8 @@ jobs:
     strategy:
       matrix:
         service:
-          - test-orchestrator
-          - dashboard-service
+          - orchestrator
+          - dashboard
           - cicd-gateway
           - quality-gate
     steps:

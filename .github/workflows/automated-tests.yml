@@ -18,8 +18,8 @@ jobs:
     strategy:
       matrix:
         component:
-          - platform/test-orchestrator
-          - platform/dashboard-service
+          - platform/orchestrator
+          - platform/dashboard
           - platform/cicd-gateway
           - platform/quality-gate
       fail-fast: false
