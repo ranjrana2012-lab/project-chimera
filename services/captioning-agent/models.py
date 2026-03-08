@@ -74,3 +74,4 @@ class APITranscribeResponse(BaseModel):
     transcription: str = Field(..., description="Full transcribed text")
     confidence: float = Field(..., description="Overall confidence score (0-1)")
     language: Optional[str] = Field(None, description="Detected or specified language")
+    duration: Optional[float] = Field(None, description="Audio duration in seconds")

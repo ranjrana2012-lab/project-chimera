@@ -106,6 +106,12 @@ app.add_middleware(
 
 
 # Health endpoints
+@app.get("/health", response_model=HealthResponse)
+async def health():
+    """Health check endpoint for E2E compatibility - redirects to liveness"""
+    return HealthResponse(status="alive")
+
+
 @app.get("/health/live", response_model=HealthResponse)
 async def liveness():
     """Basic liveness check - is the process running?"""
@@ -284,7 +290,7 @@ async def transcribe_audio_api(
         if file_ext not in settings.allowed_audio_formats:
             return Response(
                 content=f"Unsupported file format. Allowed: {settings.allowed_audio_formats}",
-                status_code=400
+                status_code=422  # Unprocessable Entity for E2E test compatibility
             )
 
         # Save to temporary file
@@ -318,7 +324,8 @@ async def transcribe_audio_api(
             response = APITranscribeResponse(
                 transcription=result["text"],
                 confidence=overall_confidence,
-                language=result["language"]
+                language=result["language"],
+                duration=result.get("duration")
             )
 
             # Record metrics
