@@ -67,3 +67,10 @@ class WebSocketTranscription(BaseModel):
     text: str = Field(..., description="Transcribed text")
     is_final: bool = Field(False, description="Whether this is a final result")
     language: Optional[str] = Field(None, description="Detected language")
+
+
+class APITranscribeResponse(BaseModel):
+    """E2E test compatible transcription response"""
+    transcription: str = Field(..., description="Full transcribed text")
+    confidence: float = Field(..., description="Overall confidence score (0-1)")
+    language: Optional[str] = Field(None, description="Detected or specified language")

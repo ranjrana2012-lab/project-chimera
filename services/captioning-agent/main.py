@@ -17,7 +17,8 @@ from models import (
     TranscriptionResponse,
     TranscriptionSegment,
     ErrorResponse,
-    LanguageDetectionResponse
+    LanguageDetectionResponse,
+    APITranscribeResponse
 )
 from whisper_service import WhisperService
 from websocket_handler import websocket_handler
@@ -237,6 +238,127 @@ async def transcribe_file(
         )
 
         record_request("POST", "/v1/transcribe", 500, time.time() - start_time)
+
+        return Response(
+            content=f"Transcription failed: {str(e)}",
+            status_code=500
+        )
+
+
+@app.post("/api/transcribe", response_model=APITranscribeResponse)
+async def transcribe_audio_api(
+    audio: UploadFile = File(..., description="Audio file to transcribe"),
+    language: Optional[str] = Form(None),  # Using Form instead of query param for multipart
+):
+    """
+    Transcribe audio file (E2E test compatible).
+
+    Accepts audio file upload via multipart/form-data and returns
+    transcription text with confidence score.
+
+    Args:
+        audio: Audio file (WAV, MP3, OGG, FLAC, M4A)
+        language: Optional language code (e.g., 'en', 'es')
+
+    Returns:
+        APITranscribeResponse with transcription and confidence
+
+    Example:
+        POST /api/transcribe
+        Content-Type: multipart/form-data
+        audio: <file>
+    """
+    start_time = time.time()
+
+    try:
+        # Validate file size
+        content = await audio.read()
+        if len(content) > settings.max_file_size:
+            return Response(
+                content=f"File too large (max {settings.max_file_size} bytes)",
+                status_code=413
+            )
+
+        # Validate file extension
+        file_ext = os.path.splitext(audio.filename)[1].lower()
+        if file_ext not in settings.allowed_audio_formats:
+            return Response(
+                content=f"Unsupported file format. Allowed: {settings.allowed_audio_formats}",
+                status_code=400
+            )
+
+        # Save to temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
+            temp_file.write(content)
+            temp_path = temp_file.name
+
+        try:
+            # Transcribe
+            if whisper_service is None:
+                raise RuntimeError("Whisper service not initialized")
+
+            result = whisper_service.transcribe(
+                temp_path,
+                language=language,
+                task="transcribe",
+                temperature=0.0
+            )
+
+            # Calculate overall confidence from segments
+            segments = result.get("segments", [])
+            if segments:
+                # Average confidence from all segments
+                confidences = [seg.get("confidence", 0.0) or 0.95 for seg in segments]
+                overall_confidence = sum(confidences) / len(confidences)
+            else:
+                # Default confidence if no segments
+                overall_confidence = 0.85
+
+            # Build E2E compatible response
+            response = APITranscribeResponse(
+                transcription=result["text"],
+                confidence=overall_confidence,
+                language=result["language"]
+            )
+
+            # Record metrics
+            record_transcription(
+                status="success",
+                language=result["language"],
+                duration=time.time() - start_time,
+                audio_len=result.get("duration", 0),
+                model_size=settings.whisper_model_size
+            )
+
+            record_request("POST", "/api/transcribe", 200, time.time() - start_time)
+
+            logger.info(
+                f"API transcription completed: {len(result['text'])} chars, "
+                f"confidence={overall_confidence:.2f}"
+            )
+
+            return response
+
+        finally:
+            # Clean up temp file
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+
+    except Exception as e:
+        logger.error(f"API transcription error: {e}")
+
+        # Record error metrics
+        record_transcription(
+            status="error",
+            language=language or "unknown",
+            duration=time.time() - start_time,
+            audio_len=0,
+            model_size=settings.whisper_model_size
+        )
+
+        record_request("POST", "/api/transcribe", 500, time.time() - start_time)
 
         return Response(
             content=f"Transcription failed: {str(e)}",
