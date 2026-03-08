@@ -20,15 +20,15 @@ interface Service {
  */
 export class ServiceHealthHelper {
   private static services: Service[] = [
-    { name: 'orchestrator', port: 8000 },
-    { name: 'scenespeak', port: 8001 },
-    { name: 'captioning', port: 8002 },
-    { name: 'bsl', port: 8003 },
-    { name: 'sentiment', port: 8004 },
-    { name: 'lighting', port: 8005 },
-    { name: 'safety', port: 8006 },
-    { name: 'console', port: 8007 },
-    { name: 'music', port: 8011 }
+    { name: 'openclaw-orchestrator', port: 8000, healthEndpoint: '/health/live' },
+    { name: 'scenespeak-agent', port: 8001, healthEndpoint: '/health/live' },
+    { name: 'captioning-agent', port: 8002, healthEndpoint: '/health/live' },
+    { name: 'bsl-agent', port: 8003, healthEndpoint: '/health/live' },
+    { name: 'sentiment-agent', port: 8004, healthEndpoint: '/health/live' },
+    { name: 'lighting-sound-music', port: 8005, healthEndpoint: '/health/live' },
+    { name: 'safety-filter', port: 8006, healthEndpoint: '/health/live' },
+    { name: 'operator-console', port: 8007, healthEndpoint: '/health/live' },
+    { name: 'music-generation', port: 8011, healthEndpoint: '/health/live' }
   ];
 
   private static composeProcess: ChildProcess | null = null;
@@ -36,13 +36,18 @@ export class ServiceHealthHelper {
   /**
    * Ensure all services are ready and healthy
    * @param timeout - Maximum time to wait per service in ms (default: 60000)
-   * @throws Error if any service fails to become healthy
+   * @param optionalServices - Array of service names that are optional (won't fail if not ready)
+   * @throws Error if any required service fails to become healthy
    */
-  static async ensureServicesReady(timeout: number = 60000): Promise<void> {
+  static async ensureServicesReady(
+    timeout: number = 60000,
+    optionalServices: string[] = ['music-generation']
+  ): Promise<void> {
     console.log('\n🔍 Checking service health...');
 
     const maxAttempts = Math.floor(timeout / 2000);
     const errors: Array<{ service: string; error: string }> = [];
+    const warnings: Array<{ service: string; error: string }> = [];
 
     for (const service of this.services) {
       try {
@@ -50,18 +55,29 @@ export class ServiceHealthHelper {
         console.log(`✅ ${service.name} (:${service.port}) ready`);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        errors.push({ service: service.name, error: errorMessage });
-        console.error(`❌ ${service.name} (:${service.port}) failed: ${errorMessage}`);
+
+        if (optionalServices.includes(service.name)) {
+          warnings.push({ service: service.name, error: errorMessage });
+          console.warn(`⚠️  ${service.name} (:${service.port}) not available (optional): ${errorMessage}`);
+        } else {
+          errors.push({ service: service.name, error: errorMessage });
+          console.error(`❌ ${service.name} (:${service.port}) failed: ${errorMessage}`);
+        }
       }
+    }
+
+    if (warnings.length > 0) {
+      console.log(`\n⚠️  ${warnings.length} optional service(s) not available:`);
+      warnings.forEach(w => console.log(`  - ${w.service}: ${w.error}`));
     }
 
     if (errors.length > 0) {
       throw new Error(
-        `Failed to start services:\n${errors.map(e => `  - ${e.service}: ${e.error}`).join('\n')}`
+        `Failed to start required services:\n${errors.map(e => `  - ${e.service}: ${e.error}`).join('\n')}`
       );
     }
 
-    console.log('✅ All services ready!\n');
+    console.log('\n✅ All required services ready!\n');
   }
 
   /**
@@ -80,9 +96,13 @@ export class ServiceHealthHelper {
   ): Promise<void> {
     const startTime = Date.now();
 
+    // Get the specific health endpoint for this service
+    const service = this.getService(name);
+    const healthEndpoint = service?.healthEndpoint || '/health/live';
+
     for (let i = 0; i < maxAttempts; i++) {
       try {
-        const response = await fetch(`http://localhost:${port}/health`, {
+        const response = await fetch(`http://localhost:${port}${healthEndpoint}`, {
           method: 'GET',
           signal: AbortSignal.timeout(5000)
         });
@@ -131,7 +151,7 @@ export class ServiceHealthHelper {
     args.push('up', '-d');
 
     return new Promise((resolve, reject) => {
-      const compose = spawn('docker-compose', args, {
+      const compose = spawn('docker', ['compose', ...args], {
         cwd,
         stdio: 'inherit',
         shell: true
@@ -144,12 +164,12 @@ export class ServiceHealthHelper {
           console.log('✅ Docker Compose started successfully');
           resolve();
         } else {
-          reject(new Error(`docker-compose exited with code ${code}`));
+          reject(new Error(`docker compose exited with code ${code}`));
         }
       });
 
       compose.on('error', (error) => {
-        reject(new Error(`Failed to start docker-compose: ${error.message}`));
+        reject(new Error(`Failed to start docker compose: ${error.message}`));
       });
     });
   }
@@ -172,7 +192,7 @@ export class ServiceHealthHelper {
     }
 
     return new Promise((resolve, reject) => {
-      const compose = spawn('docker-compose', args, {
+      const compose = spawn('docker', ['compose', ...args], {
         cwd,
         stdio: 'inherit',
         shell: true
@@ -190,7 +210,7 @@ export class ServiceHealthHelper {
       });
 
       compose.on('error', (error) => {
-        reject(new Error(`Failed to stop docker-compose: ${error.message}`));
+        reject(new Error(`Failed to stop docker compose: ${error.message}`));
       });
     });
   }
@@ -205,7 +225,7 @@ export class ServiceHealthHelper {
     console.log(`🔄 Restarting service: ${serviceName}`);
 
     return new Promise((resolve, reject) => {
-      const compose = spawn('docker-compose', ['restart', serviceName], {
+      const compose = spawn('docker', ['compose', 'restart', serviceName], {
         cwd,
         stdio: 'inherit',
         shell: true
@@ -232,8 +252,8 @@ export class ServiceHealthHelper {
    */
   static async areServicesRunning(): Promise<boolean> {
     try {
-      // Check orchestrator as the primary service
-      const response = await fetch('http://localhost:8000/health', {
+      // Check orchestrator as the primary service - use /health/live endpoint
+      const response = await fetch('http://localhost:8000/health/live', {
         method: 'GET',
         signal: AbortSignal.timeout(2000)
       });
@@ -271,8 +291,10 @@ export class ServiceHealthHelper {
       throw new Error(`Unknown service: ${name}`);
     }
 
+    const healthEndpoint = service.healthEndpoint || '/health/live';
+
     try {
-      const response = await fetch(`http://localhost:${service.port}/health`, {
+      const response = await fetch(`http://localhost:${service.port}${healthEndpoint}`, {
         method: 'GET',
         signal: AbortSignal.timeout(5000)
       });
