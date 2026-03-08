@@ -24,7 +24,7 @@ test.describe('SceneSpeak Agent API', () => {
       status: 'healthy',
       service: 'scenespeak-agent'
     });
-    expect(body).toHaveProperty('model_loaded');
+    expect(body).toHaveProperty('model_available');
   });
 
   test('@api dialogue generation with local LLM', async ({ request }) => {

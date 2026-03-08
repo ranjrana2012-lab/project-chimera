@@ -24,7 +24,7 @@ test.describe('Sentiment Agent API', () => {
       status: 'healthy',
       service: 'sentiment-agent'
     });
-    expect(body).toHaveProperty('model_loaded');
+    expect(body).toHaveProperty('model_available');
   });
 
   test('@api sentiment analysis with ML model', async ({ request }) => {
