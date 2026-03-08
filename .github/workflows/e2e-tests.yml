@@ -1,0 +1,235 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Run hourly smoke tests for production monitoring
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - smoke
+          - api
+          - workflow
+
+env:
+  NODE_VERSION: '20'
+  BASE_URL: http://localhost:8000
+
+jobs:
+  e2e-tests:
+    name: E2E Test Suite
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+        total_shards: [4]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tests/e2e/package-lock.json
+
+      - name: Install Playwright Dependencies
+        run: |
+          cd tests/e2e
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Start Services via Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+          docker ps
+
+      - name: Wait for Services to be Healthy
+        run: |
+          chmod +x scripts/wait-for-services.sh
+          ./scripts/wait-for-services.sh
+
+      - name: Run E2E Tests
+        run: |
+          cd tests/e2e
+          TEST_SUITE="${{ github.event.inputs.test_suite || 'all' }}"
+          if [ "$TEST_SUITE" = "smoke" ]; then
+            npm run test:smoke
+          elif [ "$TEST_SUITE" = "api" ]; then
+            npx playwright test api --shard=${{ matrix.shard }}/${{ matrix.total_shards }}
+          elif [ "$TEST_SUITE" = "workflow" ]; then
+            npx playwright test cross-service
+          else
+            npx playwright test --shard=${{ matrix.shard }}/${{ matrix.total_shards }}
+          fi
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+          CI: true
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-shard-${{ matrix.shard }}
+          path: tests/e2e/test-results/
+          retention-days: 7
+
+      - name: Upload HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report-shard-${{ matrix.shard }}
+          path: tests/e2e/playwright-report/
+          retention-days: 7
+
+      - name: Upload Test Screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-shard-${{ matrix.shard }}
+          path: tests/e2e/test-results/screenshots/
+          retention-days: 7
+
+  smoke-tests:
+    name: Hourly Smoke Tests
+    if: github.event_name == 'schedule'
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tests/e2e/package-lock.json
+
+      - name: Install Playwright Dependencies
+        run: |
+          cd tests/e2e
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Start Services via Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+      - name: Wait for Services
+        run: |
+          chmod +x scripts/wait-for-services.sh
+          ./scripts/wait-for-services.sh
+
+      - name: Run Smoke Tests
+        run: |
+          cd tests/e2e
+          npm run test:smoke
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+          CI: true
+
+      - name: Alert on Failure
+        if: failure()
+        run: |
+          echo "Smoke tests failed - check production health"
+          exit 1
+
+  report-results:
+    name: Report Test Results
+    needs: [e2e-tests]
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download All Test Results
+        uses: actions/download-artifact@v4
+        with:
+          path: test-results
+
+      - name: Merge Test Results
+        run: |
+          cd test-results
+          find . -name 'results.json' -exec cat {} \; > combined-results.json
+
+      - name: Comment PR with Results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let results;
+            try {
+              const rawData = fs.readFileSync('test-results/combined-results.json', 'utf8');
+              results = JSON.parse(rawData);
+            } catch (error) {
+              results = { stats: [] };
+            }
+
+            // Extract test statistics
+            const passed = results.stats?.filter(s => s.status === 'passed' || s.expected === 'passed').length || 0;
+            const failed = results.stats?.filter(s => s.status === 'failed' || s.expected === 'failed').length || 0;
+            const skipped = results.stats?.filter(s => s.status === 'skipped' || s.expected === 'skipped').length || 0;
+            const total = passed + failed + skipped;
+
+            const duration = results.stats?.reduce((acc, s) => acc + (s.duration || 0), 0) || 0;
+            const durationMinutes = Math.floor(duration / 60000);
+            const durationSeconds = Math.floor((duration % 60000) / 1000);
+
+            const statusEmoji = failed === 0 ? '✅' : '❌';
+            const statusText = failed === 0 ? 'All tests passed!' : 'Some tests failed';
+
+            const comment = `## ${statusEmoji} E2E Test Results
+
+            ### Summary
+            - **Status**: ${statusText}
+            - **Total Tests**: ${total}
+            - **Passed**: ${passed}
+            - **Failed**: ${failed}
+            - **Skipped**: ${skipped}
+            - **Duration**: ${durationMinutes}m ${durationSeconds}s
+
+            ### Details
+            View the full HTML report in the workflow artifacts below.
+
+            <details>
+            <summary>Failed Tests</summary>
+
+            ${
+              failed > 0
+                ? results.stats
+                    .filter(s => s.status === 'failed' || s.expected === 'failed')
+                    .map(s => `- ❌ **${s.title || s.name}**\n  \`${s.file || 'unknown'}\`\n  ${s.error?.message || s.errors?.[0]?.message || 'Unknown error'}`)
+                    .join('\n\n')
+                : 'No failed tests!'
+            }
+            </details>
+
+            ---
+            *This comment was automatically generated by the E2E test workflow*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

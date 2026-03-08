@@ -31,12 +31,12 @@
                 <span class="text-lg">Operator Console</span>
             </div>
             <div class="flex items-center space-x-6">
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-2" data-testid="connection-status">
                     <div id="connection-status" class="w-3 h-3 rounded-full status-offline"></div>
                     <span id="connection-text" class="text-sm text-gray-400">Disconnected</span>
                 </div>
                 <div class="text-sm text-gray-400">
-                    <span id="current-time">--:--:--</span>
+                    <span id="current-time" data-testid="current-time">--:--:--</span>
                 </div>
             </div>
         </div>
@@ -45,36 +45,36 @@
     <main class="p-6">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Service Status Panel -->
-            <div class="lg:col-span-2 bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <div class="lg:col-span-2 bg-gray-800 rounded-lg p-6 border border-gray-700" data-testid="service-status-panel">
                 <h2 class="text-xl font-semibold mb-4 text-cyan-400">Service Status</h2>
-                <div id="service-status" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="service-status" class="grid grid-cols-1 md:grid-cols-2 gap-4" data-testid="service-status">
                     <!-- Service cards will be dynamically inserted -->
                 </div>
             </div>
 
             <!-- Alerts Console -->
-            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700" data-testid="alerts-console-panel">
                 <h2 class="text-xl font-semibold mb-4 text-red-400">Alerts Console</h2>
-                <div id="alerts-console" class="space-y-3 max-h-96 overflow-y-auto">
+                <div id="alerts-console" class="space-y-3 max-h-96 overflow-y-auto" data-testid="alerts-console">
                     <!-- Alerts will be dynamically inserted -->
                 </div>
             </div>
         </div>
 
         <!-- Control Panel -->
-        <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700" data-testid="control-panel">
             <h2 class="text-xl font-semibold mb-4 text-green-400">Control Panel</h2>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <button onclick="sendCommand('start_all')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                <button onclick="sendCommand('start_all')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition" data-testid="start-all-services-button">
                     Start All Services
                 </button>
-                <button onclick="sendCommand('stop_all')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                <button onclick="sendCommand('stop_all')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition" data-testid="stop-all-services-button">
                     Stop All Services
                 </button>
-                <button onclick="sendCommand('restart_degraded')" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                <button onclick="sendCommand('restart_degraded')" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg transition" data-testid="restart-degraded-button">
                     Restart Degraded
                 </button>
-                <button onclick="sendCommand('refresh_status')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition">
+                <button onclick="sendCommand('refresh_status')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition" data-testid="refresh-status-button">
                     Refresh Status
                 </button>
             </div>
@@ -108,9 +108,9 @@
         </div>
 
         <!-- Event Feed -->
-        <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700" data-testid="event-feed-panel">
             <h2 class="text-xl font-semibold mb-4 text-yellow-400">Event Feed</h2>
-            <div id="event-feed" class="event-feed font-mono text-sm">
+            <div id="event-feed" class="event-feed font-mono text-sm" data-testid="event-feed">
                 <!-- Events will be dynamically inserted -->
             </div>
         </div>

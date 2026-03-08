@@ -134,6 +134,7 @@ function updateServiceStatus(services) {
 
         const card = document.createElement('div');
         card.className = 'bg-gray-700 rounded-lg p-4 border border-gray-600';
+        card.setAttribute('data-testid', `agent-${service.name.toLowerCase().replace(/\s+/g, '-')}-status`);
         card.innerHTML = `
             <div class="flex items-center justify-between mb-2">
                 <h3 class="font-semibold text-lg">${service.name}</h3>
@@ -173,6 +174,7 @@ function addAlert(alert) {
 
     const alertDiv = document.createElement('div');
     alertDiv.className = `bg-gray-700 p-3 rounded ${alertClass}`;
+    alertDiv.setAttribute('data-testid', `alert-${alert.severity}`);
     alertDiv.innerHTML = `
         <div class="flex items-center justify-between mb-1">
             <span class="font-semibold ${alert.severity === 'critical' ? 'text-red-400' : alert.severity === 'warning' ? 'text-yellow-400' : 'text-blue-400'}">
