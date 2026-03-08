@@ -184,7 +184,7 @@ class PresetScene(BaseModel):
 
 class PresetsResponse(BaseModel):
     """Response from presets endpoint"""
-    presets: list[PresetScene] = Field(..., description="Available presets")
+    presets: List[PresetScene] = Field(..., description="Available presets")
 
 
 class ApplyPresetRequest(BaseModel):
@@ -243,12 +243,12 @@ class BatchUpdate(BaseModel):
 
 class BatchRequest(BaseModel):
     """Request for batch lighting updates"""
-    updates: list[BatchUpdate] = Field(..., description="List of updates to apply")
+    updates: List[BatchUpdate] = Field(..., description="List of updates to apply")
 
 
 class BatchResponse(BaseModel):
     """Response from batch operation"""
-    updated: list[str] = Field(..., description="List of zones that were updated")
+    updated: List[str] = Field(..., description="List of zones that were updated")
 
 
 class ResetResponse(BaseModel):
