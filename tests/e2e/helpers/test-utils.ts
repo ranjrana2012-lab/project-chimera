@@ -1,0 +1,208 @@
+import { Page, APIRequestContext } from '@playwright/test';
+
+/**
+ * ChimeraTestHelper - Common utility methods for E2E tests
+ *
+ * Provides helper methods for:
+ * - Service health checks
+ * - WebSocket client creation
+ * - UI state waiting
+ * - Audience interaction simulation
+ * - Prometheus metric queries
+ */
+export class ChimeraTestHelper {
+  constructor(
+    private page: Page,
+    private request: APIRequestContext
+  ) {}
+
+  /**
+   * Check if a service is healthy by querying its /health endpoint
+   * @param service - Service name (for logging/error messages)
+   * @param port - Service port number
+   * @returns Promise<boolean> - true if service is healthy, false otherwise
+   */
+  async checkServiceHealth(service: string, port: number): Promise<boolean> {
+    try {
+      const response = await this.request.get(`http://localhost:${port}/health`, {
+        timeout: 5000
+      });
+      return response.ok();
+    } catch (error) {
+      console.error(`Health check failed for ${service}:${port}`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Create a WebSocket client connection
+   * @param url - WebSocket URL to connect to
+   * @returns Promise<WebSocket> - Connected WebSocket instance
+   * @throws Error if connection fails
+   */
+  async createWebSocketClient(url: string): Promise<WebSocket> {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(url);
+      const timeout = setTimeout(() => {
+        reject(new Error(`WebSocket connection to ${url} timed out after 10000ms`));
+      }, 10000);
+
+      ws.onopen = () => {
+        clearTimeout(timeout);
+        resolve(ws);
+      };
+
+      ws.onerror = (error) => {
+        clearTimeout(timeout);
+        reject(new Error(`WebSocket connection to ${url} failed: ${error}`));
+      };
+    });
+  }
+
+  /**
+   * Wait for the show to reach a specific state in the UI
+   * @param state - Expected show state (e.g., 'active', 'ended', 'paused')
+   * @param timeout - Maximum time to wait in milliseconds (default: 30000)
+   * @throws Error if state is not reached within timeout
+   */
+  async waitForShowState(state: string, timeout: number = 30000): Promise<void> {
+    try {
+      await this.page.waitForSelector(`[data-testid="show-status"][data-state="${state}"]`, {
+        timeout
+      });
+    } catch (error) {
+      throw new Error(
+        `Show state "${state}" not reached within ${timeout}ms. ` +
+        `Current state: ${await this.getCurrentShowState()}`
+      );
+    }
+  }
+
+  /**
+   * Get the current show state from the UI
+   * @returns Promise<string> - Current show state
+   */
+  async getCurrentShowState(): Promise<string> {
+    const statusElement = await this.page.locator('[data-testid="show-status"]').first();
+    return await statusElement.getAttribute('data-state') || 'unknown';
+  }
+
+  /**
+   * Simulate sending an audience reaction/input
+   * @param reaction - The reaction text to send
+   * @throws Error if input or submission fails
+   */
+  async sendAudienceReaction(reaction: string): Promise<void> {
+    try {
+      // Fill the audience input field
+      await this.page.fill('[data-testid="audience-input"]', reaction);
+
+      // Submit the sentiment
+      await this.page.click('[data-testid="submit-sentiment"]');
+
+      // Wait for submission to complete (brief delay)
+      await this.page.waitForTimeout(500);
+    } catch (error) {
+      throw new Error(`Failed to send audience reaction "${reaction}": ${error}`);
+    }
+  }
+
+  /**
+   * Query a metric from Prometheus
+   * @param metricName - Name of the metric to query
+   * @returns Promise<number> - Metric value
+   * @throws Error if query fails or returns no results
+   */
+  async getMetric(metricName: string): Promise<number> {
+    try {
+      const response = await this.request.get(
+        `http://localhost:9090/api/v1/query?query=${encodeURIComponent(metricName)}`,
+        { timeout: 5000 }
+      );
+
+      if (!response.ok()) {
+        throw new Error(`Prometheus query failed with status ${response.status()}`);
+      }
+
+      const data = await response.json();
+
+      if (data.status !== 'success') {
+        throw new Error(`Prometheus query unsuccessful: ${data.error || 'Unknown error'}`);
+      }
+
+      if (!data.data.result || data.data.result.length === 0) {
+        throw new Error(`No results found for metric: ${metricName}`);
+      }
+
+      // Return the value from the first result
+      const value = data.data.result[0].value[1];
+      return parseFloat(value);
+    } catch (error) {
+      throw new Error(`Failed to get metric "${metricName}": ${error}`);
+    }
+  }
+
+  /**
+   * Wait for a service to become healthy
+   * @param service - Service name
+   * @param port - Service port
+   * @param maxAttempts - Maximum number of attempts (default: 30)
+   * @param interval - Delay between attempts in ms (default: 2000)
+   * @throws Error if service doesn't become healthy
+   */
+  async waitForService(
+    service: string,
+    port: number,
+    maxAttempts: number = 30,
+    interval: number = 2000
+  ): Promise<void> {
+    for (let i = 0; i < maxAttempts; i++) {
+      const isHealthy = await this.checkServiceHealth(service, port);
+      if (isHealthy) {
+        return;
+      }
+
+      if (i < maxAttempts - 1) {
+        await this.page.waitForTimeout(interval);
+      }
+    }
+
+    throw new Error(
+      `Service ${service}:${port} did not become healthy after ${maxAttempts} attempts`
+    );
+  }
+
+  /**
+   * Navigate to the Operator Console dashboard
+   * @param url - Dashboard URL (default: http://localhost:8007/static/dashboard.html)
+   */
+  async navigateToConsole(url: string = 'http://localhost:8007/static/dashboard.html'): Promise<void> {
+    await this.page.goto(url, { waitUntil: 'networkidle' });
+  }
+
+  /**
+   * Start a new show from the console
+   * @throws Error if start button not found or show doesn't start
+   */
+  async startShow(): Promise<void> {
+    try {
+      await this.page.click('[data-testid="start-show-button"]');
+      await this.waitForShowState('active');
+    } catch (error) {
+      throw new Error(`Failed to start show: ${error}`);
+    }
+  }
+
+  /**
+   * End the current show
+   * @throws Error if end button not found or show doesn't end
+   */
+  async endShow(): Promise<void> {
+    try {
+      await this.page.click('[data-testid="end-show-button"]');
+      await this.waitForShowState('ended');
+    } catch (error) {
+      throw new Error(`Failed to end show: ${error}`);
+    }
+  }
+}
