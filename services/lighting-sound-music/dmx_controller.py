@@ -64,6 +64,24 @@ class DMXController:
         """
         return self._initialized and self._enabled
 
+    def is_connected(self) -> bool:
+        """
+        Check if DMX is connected (alias for is_ready for E2E compatibility).
+
+        Returns:
+            True if DMX is connected and ready
+        """
+        return self.is_ready()
+
+    def get_universe(self) -> int:
+        """
+        Get the DMX universe number.
+
+        Returns:
+            DMX universe number
+        """
+        return self._universe
+
     async def set_channel(self, channel: int, value: int) -> Dict[str, any]:
         """
         Set a single DMX channel to a value.
