@@ -33,7 +33,7 @@ test.describe('Real-time Sentiment Updates', () => {
 
     // Send sentiment via API
     const sentimentResponse = await request.post('http://localhost:8004/v1/analyze', {
-      data: { text: 'amazing performance!' }
+      data: { text: 'amazing performance' }
     });
     expect(sentimentResponse.ok()).toBeTruthy();
 
