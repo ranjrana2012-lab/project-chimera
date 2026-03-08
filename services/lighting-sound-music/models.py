@@ -5,7 +5,7 @@ Request and response models for API endpoints.
 """
 
 from pydantic import BaseModel, Field
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 
 class LightingSceneRequest(BaseModel):
