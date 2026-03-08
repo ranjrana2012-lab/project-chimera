@@ -7,17 +7,20 @@ OpenTelemetry tracing, Prometheus metrics, and health checks.
 
 import time
 import logging
-from typing import Optional
+import json
+from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import Response
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.responses import Response, HTMLResponse, FileResponse
 from opentelemetry import trace
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 from config import get_settings
 from translator import BSLTranslator
 from avatar_renderer import AvatarRenderer
+from avatar_webgl import AvatarWebGLRenderer
 from models import (
     TranslateRequest,
     TranslateResponse,
@@ -41,6 +44,34 @@ avatar_renderer = AvatarRenderer(
     enable_facial_expressions=settings.enable_facial_expressions,
     enable_body_language=settings.enable_body_language
 )
+avatar_webgl = AvatarWebGLRenderer(
+    model_path=settings.avatar_model_path,
+    resolution=tuple(map(int, settings.avatar_resolution.split('x'))),
+    fps=settings.avatar_fps,
+    enable_facial_expressions=settings.enable_facial_expressions,
+    enable_body_language=settings.enable_body_language
+)
+
+# WebSocket connection manager
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            await connection.send_json(message)
+
+manager = ConnectionManager()
+
+# Get static files directory
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 @asynccontextmanager
@@ -260,6 +291,289 @@ async def metrics_endpoint():
     Returns Prometheus metrics in the standard format.
     """
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.get("/avatar", response_class=HTMLResponse)
+async def get_avatar_viewer():
+    """
+    Serve the 3D avatar viewer HTML page.
+
+    Returns:
+        HTML page with Three.js-based avatar viewer
+    """
+    avatar_html_path = STATIC_DIR / "avatar.html"
+    if avatar_html_path.exists():
+        return FileResponse(avatar_html_path)
+    return HTMLResponse("<h1>Avatar viewer not found</h1>", status_code=404)
+
+
+@app.get("/static/{file_path:path}")
+async def serve_static_files(file_path: str):
+    """
+    Serve static files for the avatar viewer.
+
+    Args:
+        file_path: Path to the static file
+
+    Returns:
+        File response
+    """
+    file_path = STATIC_DIR / file_path
+    if file_path.exists():
+        return FileResponse(file_path)
+    return Response(content="File not found", status_code=404)
+
+
+@app.post("/api/avatar/generate")
+async def generate_avatar_animation(request: RenderRequest) -> Dict[str, Any]:
+    """
+    Generate NMM animation for BSL gloss.
+
+    Creates WebGL/Three.js compatible animation data for the 3D avatar.
+
+    Args:
+        request: Render request with gloss and session info
+
+    Returns:
+        NMM animation data for client-side rendering
+
+    Example:
+        POST /api/avatar/generate
+        {
+            "gloss": "HELLO HOW YOU",
+            "session_id": "user-123",
+            "include_nmm": true
+        }
+    """
+    start_time = time.time()
+
+    try:
+        with tracer.start_as_current_span("generate_avatar_animation") as span:
+            # Determine NMM markers
+            nmm_markers = None if request.include_nmm else []
+
+            # Generate NMM animation
+            animation_data = avatar_webgl.render_gloss_to_nmm(
+                gloss=request.gloss,
+                non_manual_markers=nmm_markers
+            )
+
+            # Calculate metrics
+            duration_sec = time.time() - start_time
+
+            # Record metrics
+            session_id = request.session_id or "unknown"
+            record_render(
+                show_id="unknown",
+                gesture_count=len(request.gloss.split()),
+                duration=duration_sec,
+                session_id=session_id
+            )
+
+            # Add span attributes
+            add_span_attributes(span, {
+                "avatar.gloss_word_count": len(request.gloss.split()),
+                "avatar.animation_duration": animation_data["metadata"]["duration"],
+                "avatar.session_id": session_id,
+                "avatar.format": "nmm-animation-v1"
+            })
+
+            logger.info(
+                f"NMM animation generated: gloss='{request.gloss}', "
+                f"duration={duration_sec:.3f}s, session={session_id}"
+            )
+
+            return {
+                "success": True,
+                "animation_data": animation_data,
+                "session_id": request.session_id,
+                "message": f"Successfully generated animation for {len(request.gloss.split())} signs"
+            }
+
+    except Exception as e:
+        logger.error(f"Avatar animation generation failed: {e}")
+
+        # Record error
+        current_span = trace.get_current_span()
+        record_error(current_span, e, {
+            "error.context": "avatar_animation",
+            "error.gloss_length": len(request.gloss)
+        })
+
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/avatar/info")
+async def get_avatar_info() -> Dict[str, Any]:
+    """
+    Get avatar renderer information.
+
+    Returns:
+        Avatar renderer configuration and status
+    """
+    return avatar_webgl.get_renderer_info()
+
+
+@app.post("/api/avatar/expression")
+async def set_avatar_expression(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Set facial expression for the avatar.
+
+    Args:
+        data: Expression data with 'expression' and optional 'intensity'
+
+    Returns:
+        Expression morph target values
+
+    Example:
+        POST /api/avatar/expression
+        {
+            "expression": "happy",
+            "intensity": 0.8
+        }
+    """
+    try:
+        expression = data.get("expression", "neutral")
+        intensity = data.get("intensity", 1.0)
+
+        result = avatar_webgl.set_expression(expression, intensity)
+
+        # Broadcast to all connected WebSocket clients
+        await manager.broadcast({
+            "type": "expression",
+            "data": result
+        })
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/avatar/handshape")
+async def set_avatar_handshape(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Set hand shape for BSL signing.
+
+    Args:
+        data: Handshape data with 'hand', 'handshape', and optional 'intensity'
+
+    Returns:
+        Hand configuration
+
+    Example:
+        POST /api/avatar/handshape
+        {
+            "hand": "right",
+            "handshape": "fist",
+            "intensity": 1.0
+        }
+    """
+    try:
+        hand = data.get("hand", "right")
+        handshape = data.get("handshape", "fist")
+        intensity = data.get("intensity", 1.0)
+
+        result = avatar_webgl.set_handshape(hand, handshape, intensity)
+
+        # Broadcast to all connected WebSocket clients
+        await manager.broadcast({
+            "type": "handshape",
+            "data": result
+        })
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.websocket("/ws/avatar")
+async def avatar_websocket(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time avatar animation updates.
+
+    Clients can connect to receive real-time animation updates,
+    expression changes, and other avatar state changes.
+
+    Example:
+        const ws = new WebSocket('ws://localhost:8003/ws/avatar');
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'animation') {
+                // Update avatar animation
+            }
+        };
+    """
+    await manager.connect(websocket)
+
+    try:
+        while True:
+            # Receive messages from client
+            data = await websocket.receive_json()
+
+            # Handle different message types
+            message_type = data.get("type")
+
+            if message_type == "play_animation":
+                # Play animation
+                animation_name = data.get("animation")
+                if animation_name:
+                    result = avatar_webgl.play_animation(animation_name)
+                    await websocket.send_json({
+                        "type": "animation_started",
+                        "data": result
+                    })
+
+            elif message_type == "set_expression":
+                # Set expression
+                expression = data.get("expression", "neutral")
+                intensity = data.get("intensity", 1.0)
+                try:
+                    result = avatar_webgl.set_expression(expression, intensity)
+                    await manager.broadcast({
+                        "type": "expression",
+                        "data": result
+                    })
+                except ValueError as e:
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": str(e)
+                    })
+
+            elif message_type == "set_handshape":
+                # Set handshape
+                hand = data.get("hand", "right")
+                handshape = data.get("handshape", "fist")
+                intensity = data.get("intensity", 1.0)
+                try:
+                    result = avatar_webgl.set_handshape(hand, handshape, intensity)
+                    await manager.broadcast({
+                        "type": "handshape",
+                        "data": result
+                    })
+                except ValueError as e:
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": str(e)
+                    })
+
+            elif message_type == "ping":
+                # Respond to ping
+                await websocket.send_json({"type": "pong"})
+
+            else:
+                await websocket.send_json({
+                    "type": "error",
+                    "message": f"Unknown message type: {message_type}"
+                })
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        logger.info("WebSocket client disconnected")
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        manager.disconnect(websocket)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 # BSL Agent API Documentation
 
-**Version:** v0.5.0
+**Version:** v1.0.0
 **Base URL:** `http://localhost:8003`
-**Service:** Text-to-BSL gloss translation with real-time avatar rendering
+**Service:** Text-to-BSL gloss translation with 3D avatar rendering using WebGL/Three.js
 
 ---
 
@@ -10,27 +10,57 @@
 
 The BSL Agent provides:
 - Text to BSL (British Sign Language) gloss translation
-- Real-time avatar rendering for sign language visualization
-- Gesture library with caching
+- 3D avatar rendering for sign language visualization using WebGL/Three.js
+- NMM (Neural Model Format) animation support
+- Real-time avatar animation via WebSocket
+- Interactive web-based avatar viewer
 - Session-based avatar management
 
 ---
 
 ## Endpoints
 
-### 1. Translate Text to BSL Gloss
+### Health & Metrics
+
+#### Health Check
+**Endpoint:** `GET /health/live`
+**Response:** `{"status": "alive"}`
+
+#### Readiness Check
+**Endpoint:** `GET /health/ready`
+**Response:**
+```json
+{
+  "status": "ready",
+  "service": "bsl-agent",
+  "translator_ready": true,
+  "avatar_ready": true
+}
+```
+
+#### Metrics
+**Endpoint:** `GET /metrics`
+**Response:** Prometheus metrics in plain text format
+
+---
+
+### Translation Endpoints
+
+#### 1. Translate Text to BSL Gloss
 
 Translate English text to BSL gloss notation.
 
-**Endpoint:** `POST /api/v1/translate`
+**Endpoint:** `POST /v1/translate`
 
 **Request Body:**
 
 ```json
 {
-  "text": "Hello, welcome to the theatre.",
-  "format": "gloss",
-  "include_facial_expressions": true
+  "text": "Hello, welcome to the show.",
+  "include_nmm": true,
+  "context": {
+    "show_id": "bards-tale"
+  }
 }
 ```
 
@@ -39,28 +69,317 @@ Translate English text to BSL gloss notation.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `text` | string | Yes | English text to translate |
-| `format` | string | No | Output format: `gloss` or `json`. Default: `gloss` |
-| `include_facial_expressions` | boolean | No | Include facial expressions. Default: true |
+| `include_nmm` | boolean | No | Include non-manual markers. Default: true |
+| `context` | object | No | Additional context (e.g., show_id) |
 
-**Response (gloss format):**
-
-```
-HELLO WELCOME THEATRE.
-^smile ^eyebrows-up
-```
-
-**Response (JSON format):**
+**Response:**
 
 ```json
 {
-  "gloss": "HELLO WELCOME THEATRE.",
-  "words": [
-    {"word": "Hello", "gloss": "HELLO", "duration": 1.5},
-    {"word": "welcome", "gloss": "WELCOME", "duration": 1.2},
-    {"word": "to the theatre", "gloss": "THEATRE", "duration": 2.0}
-  ],
-  "facial_expressions": ["smile", "eyebrows-up"],
-  "translation_time": 0.15
+  "gloss": "HELLO WELCOME SHOW",
+  "breakdown": ["HELLO", "WELCOME", "SHOW"],
+  "duration_estimate": 3.5,
+  "confidence": 0.92,
+  "non_manual_markers": ["brows-up", "smile"],
+  "translation_time_ms": 45
+}
+```
+
+---
+
+### Avatar Rendering Endpoints
+
+#### 2. Render BSL Signs (Legacy)
+
+Generate animation data for BSL gloss (legacy format).
+
+**Endpoint:** `POST /v1/render`
+
+**Request Body:**
+
+```json
+{
+  "gloss": "HELLO HOW YOU",
+  "session_id": "user123",
+  "include_nmm": true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "animation_data": {
+    "format": "bsl-animation-v1",
+    "gestures": [...]
+  },
+  "gestures_queued": 3,
+  "session_id": "user123"
+}
+```
+
+---
+
+### WebGL Avatar Endpoints
+
+#### 3. 3D Avatar Viewer
+
+Access the web-based 3D avatar viewer.
+
+**Endpoint:** `GET /avatar`
+**Response:** HTML page with Three.js avatar viewer
+
+---
+
+#### 4. Generate NMM Animation
+
+Generate WebGL/Three.js compatible NMM animation for BSL gloss.
+
+**Endpoint:** `POST /api/avatar/generate`
+
+**Request Body:**
+
+```json
+{
+  "gloss": "HELLO HOW YOU",
+  "session_id": "user123",
+  "include_nmm": true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "animation_data": {
+    "format": "nmm-animation-v1",
+    "version": "1.0.0",
+    "animation_id": "anim_abc123",
+    "animation": {
+      "name": "sign_abc123",
+      "duration": 1.5,
+      "fps": 30,
+      "loop": false,
+      "easing": "easeInOut",
+      "keyframes": [
+        {
+          "time": 0.0,
+          "morph_targets": {"brows": 0.0, "smile": 0.0},
+          "bone_positions": {"right_hand": [0.2, 1.0, 0.0]},
+          "facial_expression": "neutral"
+        }
+      ]
+    },
+    "scene_config": {...},
+    "avatar_config": {...}
+  },
+  "session_id": "user123"
+}
+```
+
+---
+
+#### 5. Get Avatar Info
+
+Get avatar renderer configuration and status.
+
+**Endpoint:** `GET /api/avatar/info`
+
+**Response:**
+
+```json
+{
+  "type": "WebGL",
+  "library": "Three.js",
+  "version": "1.0.0",
+  "model_path": "/models/bsl_avatar",
+  "resolution": {"width": 1920, "height": 1080},
+  "fps": 30,
+  "facial_expressions_enabled": true,
+  "body_language_enabled": true,
+  "loaded_avatars": ["default"],
+  "loaded_animations": ["wave", "greet"],
+  "available_expressions": ["neutral", "happy", "sad", ...],
+  "available_handshapes": ["fist", "open", "point", ...],
+  "status": "ready"
+}
+```
+
+---
+
+#### 6. Set Facial Expression
+
+Set avatar facial expression.
+
+**Endpoint:** `POST /api/avatar/expression`
+
+**Request Body:**
+
+```json
+{
+  "expression": "happy",
+  "intensity": 0.8
+}
+```
+
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `expression` | string | Yes | Expression name (see list below) |
+| `intensity` | float | No | Intensity 0.0-1.0. Default: 1.0 |
+
+**Available Expressions:**
+- `neutral`, `happy`, `sad`, `surprised`, `angry`, `questioning`
+- `brows-up`, `brows-down`
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "expression": "happy",
+  "intensity": 0.8,
+  "morph_targets": {
+    "brows": 0.16,
+    "eyes_open": -0.16,
+    "smile": 0.8,
+    "mouth_open": 0.08
+  }
+}
+```
+
+---
+
+#### 7. Set Hand Shape
+
+Set avatar hand shape for BSL signing.
+
+**Endpoint:** `POST /api/avatar/handshape`
+
+**Request Body:**
+
+```json
+{
+  "hand": "right",
+  "handshape": "fist",
+  "intensity": 1.0
+}
+```
+
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `hand` | string | Yes | `left`, `right`, or `both` |
+| `handshape` | string | Yes | Hand shape (see list below) |
+| `intensity` | float | No | Intensity 0.0-1.0. Default: 1.0 |
+
+**Available Handshapes:**
+- `fist`, `open`, `point`, `peace`, `thumbs_up`, `wave`
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "hands": ["right"],
+  "handshape": "fist",
+  "intensity": 1.0,
+  "finger_values": {
+    "fingers": [0, 0, 0, 0],
+    "thumb": 0
+  }
+}
+```
+
+---
+
+### WebSocket Endpoint
+
+#### 8. Real-time Avatar Updates
+
+WebSocket endpoint for real-time avatar animation updates.
+
+**Endpoint:** `WS /ws/avatar`
+
+**Connection:**
+
+```javascript
+const ws = new WebSocket('ws://localhost:8003/ws/avatar');
+
+ws.onopen = () => {
+  console.log('Connected to avatar WebSocket');
+};
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  handleAvatarUpdate(data);
+};
+```
+
+**Client Messages:**
+
+Play animation:
+```json
+{
+  "type": "play_animation",
+  "animation": "wave"
+}
+```
+
+Set expression:
+```json
+{
+  "type": "set_expression",
+  "expression": "happy",
+  "intensity": 0.8
+}
+```
+
+Set handshape:
+```json
+{
+  "type": "set_handshape",
+  "hand": "right",
+  "handshape": "fist"
+}
+```
+
+Ping/Pong:
+```json
+{"type": "ping"}
+```
+
+**Server Messages:**
+
+Animation started:
+```json
+{
+  "type": "animation_started",
+  "data": {...}
+}
+```
+
+Expression update:
+```json
+{
+  "type": "expression",
+  "data": {
+    "success": true,
+    "expression": "happy",
+    "morph_targets": {...}
+  }
+}
+```
+
+Error:
+```json
+{
+  "type": "error",
+  "message": "Error description"
 }
 ```
 
