@@ -770,6 +770,184 @@ class AvatarWebGLRenderer:
 
         return response
 
+    def set_expression(self, expression: str) -> bool:
+        """
+        Set facial expression for the avatar.
+
+        Args:
+            expression: Expression name (e.g., 'happy', 'sad', 'neutral')
+
+        Returns:
+            True if expression was applied successfully, False otherwise
+        """
+        try:
+            if expression not in self.FACIAL_EXPRESSIONS:
+                self.logger.warning(f"Invalid expression: {expression}")
+                return False
+
+            # Store current expression for use in animations
+            if not hasattr(self, '_current_expression'):
+                self._current_expression = "neutral"
+
+            self._current_expression = expression
+            self.logger.info(f"Expression set to: {expression}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to set expression: {e}")
+            return False
+
+    def set_handshape(self, handshape: str, hand: str) -> bool:
+        """
+        Set handshape for the avatar.
+
+        Args:
+            handshape: Handshape name (e.g., 'wave', 'point', 'fist')
+            hand: Which hand ('left' or 'right')
+
+        Returns:
+            True if handshape was applied successfully, False otherwise
+        """
+        try:
+            if handshape not in self.HANDSHAPES:
+                self.logger.warning(f"Invalid handshape: {handshape}")
+                return False
+
+            if hand not in ("left", "right"):
+                self.logger.warning(f"Invalid hand: {hand}")
+                return False
+
+            # Store current handshapes for use in animations
+            if not hasattr(self, '_current_handshapes'):
+                self._current_handshapes = {"left": "open", "right": "open"}
+
+            self._current_handshapes[hand] = handshape
+            self.logger.info(f"Handshape set to: {handshape} for {hand} hand")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to set handshape: {e}")
+            return False
+
+    def generate_animation(self, gloss: list[str], expression: str = "neutral") -> Dict[str, Any]:
+        """
+        Generate animation data for BSL signs.
+
+        Args:
+            gloss: List of BSL gloss words to animate
+            expression: Facial expression to apply
+
+        Returns:
+            Dictionary with animation frames and metadata
+        """
+        try:
+            frames = []
+            frame_duration = 1.0 / self.fps  # Duration per frame in seconds
+
+            # Generate frames for each sign in the gloss
+            for i, sign in enumerate(gloss):
+                # Start frame for this sign
+                start_time = i * 1.0  # 1 second per sign
+
+                # Generate keyframes for this sign
+                num_keyframes = max(3, int(self.fps * 0.5))  # 0.5 seconds per sign
+
+                for kf in range(num_keyframes):
+                    frame_time = start_time + (kf * frame_duration * 0.5)
+                    progress = kf / (num_keyframes - 1)  # 0 to 1
+
+                    frame = {
+                        "time": frame_time,
+                        "duration": frame_duration,
+                        "sign": sign,
+                        "progress": progress,
+                        "left_hand": self._get_hand_frame_data(self._current_handshapes.get("left", "open") if hasattr(self, '_current_handshapes') else "open", progress),
+                        "right_hand": self._get_hand_frame_data(self._current_handshapes.get("right", "open") if hasattr(self, '_current_handshapes') else "open", progress),
+                        "face": self._get_face_frame_data(expression if hasattr(self, '_current_expression') else "neutral", progress),
+                        "body": self._get_body_frame_data(progress)
+                    }
+                    frames.append(frame)
+
+            response = {
+                "frames": frames,
+                "fps": self.fps,
+                "duration": len(gloss) * 1.0,  # Total duration in seconds
+                "sign_count": len(gloss),
+                "expression": expression,
+                "metadata": {
+                    "gloss": gloss,
+                    "generated_at": __import__('datetime').datetime.now().isoformat(),
+                    "renderer": "WebGL"
+                }
+            }
+
+            self.logger.info(f"Generated {len(frames)} frames for {len(gloss)} signs")
+            return response
+
+        except Exception as e:
+            self.logger.error(f"Failed to generate animation: {e}")
+            raise
+
+    def _get_hand_frame_data(self, handshape: str, progress: float) -> Dict[str, Any]:
+        """Get hand frame data for a given handshape and progress."""
+        handshape_data = self.HANDSHAPES.get(handshape, self.HANDSHAPES["open"])
+
+        # Interpolate finger positions based on progress
+        fingers = handshape_data["fingers"]
+        thumb = handshape_data["thumb"]
+
+        return {
+            "handshape": handshape,
+            "fingers": [f * (0.5 + 0.5 * progress) for f in fingers],
+            "thumb": thumb * (0.5 + 0.5 * progress),
+            "position": {
+                "x": 0.3 if progress < 0.5 else -0.3,
+                "y": 1.0 + 0.1 * __import__('math').sin(progress * __import__('math').pi),
+                "z": 0.5
+            },
+            "rotation": {
+                "x": progress * 0.5,
+                "y": progress * 0.3,
+                "z": progress * 0.2
+            }
+        }
+
+    def _get_face_frame_data(self, expression: str, progress: float) -> Dict[str, Any]:
+        """Get face frame data for a given expression and progress."""
+        expression_data = self.FACIAL_EXPRESSIONS.get(expression, self.FACIAL_EXPRESSIONS["neutral"])
+
+        return {
+            "expression": expression,
+            "brows": expression_data["brows"] * (0.7 + 0.3 * progress),
+            "eyes_open": expression_data["eyes_open"],
+            "smile": expression_data["smile"] * progress,
+            "mouth_open": expression_data["mouth_open"] * progress,
+            "head_rotation": {
+                "x": 0.1 * __import__('math').sin(progress * __import__('math').pi * 2),
+                "y": 0.05 * __import__('math').cos(progress * __import__('math').pi * 2),
+                "z": 0
+            }
+        }
+
+    def _get_body_frame_data(self, progress: float) -> Dict[str, Any]:
+        """Get body frame data for a given progress."""
+        return {
+            "position": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "posture": {
+                "shoulders_down": 0.5 + 0.1 * progress,
+                "spine_straight": 0.8 + 0.1 * __import__('math').sin(progress * __import__('math').pi)
+            }
+        }
+
     def get_renderer_info(self) -> Dict[str, Any]:
         """
         Get renderer information and configuration.

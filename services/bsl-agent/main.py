@@ -29,7 +29,16 @@ from models import (
     HealthResponse,
     APITranslateRequest,
     APITranslateResponse,
-    SignMetadata
+    SignMetadata,
+    APIAvatarGenerateRequest,
+    APIAvatarGenerateResponse,
+    APIAvatarExpressionRequest,
+    APIAvatarExpressionResponse,
+    APIAvatarHandshapeRequest,
+    APIAvatarHandshapeResponse,
+    AnimationMetadata,
+    VALID_EXPRESSIONS,
+    VALID_HANDSHAPES
 )
 from tracing import setup_telemetry, instrument_fastapi, add_span_attributes, record_error
 from metrics import record_translation, record_render
@@ -97,6 +106,24 @@ app = FastAPI(
 
 # Instrument FastAPI with automatic tracing
 instrument_fastapi(app)
+
+
+@app.get("/health")
+async def health():
+    """Health check endpoint with renderer information for E2E tests."""
+    return HealthResponse(
+        status="alive",
+        service="bsl-agent",
+        translator_ready=True,
+        avatar_ready=True,
+        renderer={
+            "type": "webgl",
+            "version": "1.0.0",
+            "model": settings.avatar_model_path,
+            "resolution": settings.avatar_resolution,
+            "fps": settings.avatar_fps
+        }
+    )
 
 
 @app.get("/health/live")
@@ -372,6 +399,161 @@ def _generate_sign_metadata(breakdown: list[str]) -> list[SignMetadata]:
 
     return signs
 
+
+# ============================================================================
+# E2E Avatar Endpoints
+# ============================================================================
+
+@app.post("/api/avatar/generate", response_model=APIAvatarGenerateResponse)
+async def api_avatar_generate(request: APIAvatarGenerateRequest) -> APIAvatarGenerateResponse:
+    """
+    Generate avatar animation data for text (E2E test compatible).
+
+    Args:
+        request: Avatar generation request with text and optional expression
+
+    Returns:
+        APIAvatarGenerateResponse with animation data and metadata
+
+    Example:
+        POST /api/avatar/generate
+        {
+            "text": "Welcome to the show",
+            "expression": "happy"  // optional
+        }
+    """
+    start_time = time.time()
+
+    try:
+        # Translate text to gloss
+        gloss, breakdown, duration = translator.text_to_gloss(request.text)
+
+        # Generate animation frames using WebGL renderer
+        animation_data = avatar_webgl.generate_animation(
+            gloss=breakdown,
+            expression=request.expression or "neutral"
+        )
+
+        # Create metadata
+        processing_time = time.time() - start_time
+        metadata = AnimationMetadata(
+            duration_ms=processing_time * 1000,
+            fps=settings.avatar_fps
+        )
+
+        # Record render metric
+        record_render(status="success", expression=request.expression)
+
+        logger.info(
+            f"API avatar generation completed: '{request.text}' -> {len(animation_data.get('frames', []))} frames"
+        )
+
+        return APIAvatarGenerateResponse(
+            animation_data=animation_data,
+            metadata=metadata
+        )
+
+    except Exception as e:
+        logger.error(f"API avatar generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/avatar/expression", response_model=APIAvatarExpressionResponse)
+async def api_avatar_expression(request: APIAvatarExpressionRequest) -> APIAvatarExpressionResponse:
+    """
+    Apply expression to avatar (E2E test compatible).
+
+    Args:
+        request: Expression request with expression name
+
+    Returns:
+        APIAvatarExpressionResponse with expression and applied status
+
+    Example:
+        POST /api/avatar/expression
+        {
+            "expression": "happy"
+        }
+    """
+    try:
+        # Validate expression
+        if request.expression not in VALID_EXPRESSIONS:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Invalid expression: '{request.expression}'. Valid expressions: {VALID_EXPRESSIONS}"
+            )
+
+        # Apply expression using avatar renderer
+        applied = avatar_webgl.set_expression(request.expression)
+
+        logger.info(f"Expression '{request.expression}' applied: {applied}")
+
+        return APIAvatarExpressionResponse(
+            expression=request.expression,
+            applied=applied
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Expression application failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/avatar/handshape", response_model=APIAvatarHandshapeResponse)
+async def api_avatar_handshape(request: APIAvatarHandshapeRequest) -> APIAvatarHandshapeResponse:
+    """
+    Apply handshape to avatar (E2E test compatible).
+
+    Args:
+        request: Handshape request with handshape and hand
+
+    Returns:
+        APIAvatarHandshapeResponse with handshape, hand, and applied status
+
+    Example:
+        POST /api/avatar/handshape
+        {
+            "handshape": "wave",
+            "hand": "right"
+        }
+    """
+    try:
+        # Validate hand parameter
+        if request.hand not in ("left", "right"):
+            raise HTTPException(
+                status_code=422,
+                detail=f"Invalid hand: '{request.hand}'. Must be 'left' or 'right'"
+            )
+
+        # Validate handshape
+        if request.handshape not in VALID_HANDSHAPES:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Invalid handshape: '{request.handshape}'. Valid handshapes: {VALID_HANDSHAPES}"
+            )
+
+        # Apply handshape using avatar renderer
+        applied = avatar_webgl.set_handshape(request.handshape, request.hand)
+
+        logger.info(f"Handshape '{request.handshape}' applied to {request.hand} hand: {applied}")
+
+        return APIAvatarHandshapeResponse(
+            handshape=request.handshape,
+            hand=request.hand,
+            applied=applied
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Handshape application failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Internal API Endpoints
+# ============================================================================
 
 @app.post("/v1/render", response_model=RenderResponse)
 async def render_avatar(request: RenderRequest) -> RenderResponse:

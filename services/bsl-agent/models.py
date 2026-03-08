@@ -67,3 +67,55 @@ class HealthResponse(BaseModel):
     service: str
     translator_ready: bool
     avatar_ready: bool
+    renderer: Optional[Dict[str, Any]] = None
+
+
+# E2E Avatar Endpoint Models
+
+class APIAvatarGenerateRequest(BaseModel):
+    """Request for /api/avatar/generate endpoint"""
+    text: str = Field(..., min_length=1, description="Text to generate avatar animation for")
+    expression: Optional[str] = Field(None, description="Optional expression to apply (e.g., 'happy', 'sad')")
+
+
+class AnimationMetadata(BaseModel):
+    """Metadata for generated animation"""
+    duration_ms: float = Field(..., description="Animation duration in milliseconds")
+    fps: int = Field(..., description="Frames per second")
+
+
+class APIAvatarGenerateResponse(BaseModel):
+    """Response from /api/avatar/generate endpoint"""
+    animation_data: Dict[str, Any] = Field(..., description="Generated animation data with frames")
+    metadata: Optional[AnimationMetadata] = None
+
+
+class APIAvatarExpressionRequest(BaseModel):
+    """Request for /api/avatar/expression endpoint"""
+    expression: str = Field(..., description="Expression to apply (e.g., 'happy', 'sad', 'neutral')")
+
+
+class APIAvatarExpressionResponse(BaseModel):
+    """Response from /api/avatar/expression endpoint"""
+    expression: str = Field(..., description="Expression that was requested")
+    applied: bool = Field(..., description="Whether the expression was successfully applied")
+
+
+class APIAvatarHandshapeRequest(BaseModel):
+    """Request for /api/avatar/handshape endpoint"""
+    handshape: str = Field(..., description="Handshape to apply (e.g., 'wave', 'point')")
+    hand: str = Field(..., description="Which hand ('left' or 'right')")
+
+
+class APIAvatarHandshapeResponse(BaseModel):
+    """Response from /api/avatar/handshape endpoint"""
+    handshape: str = Field(..., description="Handshape that was requested")
+    hand: str = Field(..., description="Hand that was specified")
+    applied: bool = Field(..., description="Whether the handshape was successfully applied")
+
+
+# Valid expressions for validation
+VALID_EXPRESSIONS = {"happy", "sad", "neutral", "angry", "surprised", "confused"}
+
+# Valid handshapes for validation
+VALID_HANDSHAPES = {"wave", "point", "fist", "open", "peace", "thumbs_up"}
