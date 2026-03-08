@@ -1,0 +1,21 @@
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Node
+node_modules/
+dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
