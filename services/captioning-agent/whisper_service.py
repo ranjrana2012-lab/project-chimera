@@ -32,26 +32,56 @@ class WhisperService:
         self.device = device
         self.compute_type = compute_type
         self.model = None
+        self._model_loaded = False
+        self._loading = False
+
+        # Load model in background for faster startup
+        # Service will be immediately available, model loads asynchronously
+        logger.info(f"Whisper service initialized (model: {self.model_size}, lazy loading enabled)")
+
+    def _ensure_model_loaded(self):
+        """Ensure the model is loaded before processing (lazy loading)"""
+        if self._model_loaded:
+            return True
+
+        if self._loading:
+            # Wait for loading to complete
+            import time as _time
+            for _ in range(100):  # Wait up to 10 seconds
+                if self._model_loaded:
+                    return True
+                _time.sleep(0.1)
+            return False
+
+        # Start loading
         self._load_model()
+        return self._model_loaded
 
     def _load_model(self):
-        """Load the Whisper model"""
+        """Load the Whisper model (called lazily or on startup)"""
+        self._loading = True
         start_time = time.time()
 
         if not WHISPER_AVAILABLE:
             logger.warning(f"Mock Whisper model loaded (size: {self.model_size})")
             self.model = _MockWhisperModel()
+            self._model_loaded = True
+            self._loading = False
             return
 
         try:
             logger.info(f"Loading Whisper model: {self.model_size}")
             self.model = whisper.load_model(self.model_size, device=self.device)
             load_time = time.time() - start_time
+            self._model_loaded = True
+            self._loading = False
             logger.info(f"Whisper model loaded in {load_time:.2f}s")
         except Exception as e:
             logger.error(f"Failed to load Whisper model: {e}")
             logger.warning("Falling back to mock implementation")
             self.model = _MockWhisperModel()
+            self._model_loaded = True
+            self._loading = False
 
     def transcribe(
         self,
@@ -72,6 +102,10 @@ class WhisperService:
         Returns:
             Dictionary with transcription results
         """
+        # Ensure model is loaded before processing (lazy loading)
+        if not self._ensure_model_loaded():
+            raise RuntimeError("Failed to load Whisper model")
+
         start_time = time.time()
 
         try:
@@ -126,7 +160,7 @@ class WhisperService:
 
     def is_loaded(self) -> bool:
         """Check if model is loaded"""
-        return self.model is not None
+        return self._model_loaded and self.model is not None
 
 
 class _MockWhisperModel:
