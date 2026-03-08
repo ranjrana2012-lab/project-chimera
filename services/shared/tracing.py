@@ -32,6 +32,45 @@ except ImportError:
     JAEGER_AVAILABLE = False
 
 
+class NoOpTracer:
+    """No-op tracer that supports the context manager protocol."""
+
+    def __init__(self):
+        self._name = "NoOpTracer"
+
+    def start_as_current_span(self, *args, **kwargs):
+        """Return a NoOpSpan that supports context manager protocol."""
+        return NoOpSpan()
+
+
+class NoOpSpan:
+    """No-op span that supports the context manager protocol."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+    def set_attribute(self, *args):
+        pass
+
+    def set_attributes(self, *args):
+        pass
+
+    def record_exception(self, *args):
+        pass
+
+    def set_status(self, *args):
+        pass
+
+    def add_event(self, *args):
+        pass
+
+    def end(self):
+        pass
+
+
 def setup_telemetry(service_name: str, jaeger_host: str = "jaeger.shared.svc.cluster.local"):
     """
     Set up OpenTelemetry tracing and metrics for a service.
@@ -44,11 +83,8 @@ def setup_telemetry(service_name: str, jaeger_host: str = "jaeger.shared.svc.clu
         tracer: OpenTelemetry tracer instance for manual instrumentation
     """
     if not OPENTELEMETRY_AVAILABLE:
-        # Return a mock tracer for testing
-        mock_tracer = Mock()
-        mock_span = Mock()
-        mock_tracer.start_as_current_span.return_value = mock_span
-        return mock_tracer
+        # Return a NoOp tracer that supports context manager protocol
+        return NoOpTracer()
 
     # Create resource with service name
     resource = Resource(attributes={
