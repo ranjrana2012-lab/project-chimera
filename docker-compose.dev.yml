@@ -1,62 +1,180 @@
 version: '3.8'
 
 services:
-  # Development overrides for core services
+  # Development overrides for infrastructure services
+  redis:
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          cpus: ${REDIS_CPU_LIMIT:-0.25}
+          memory: ${REDIS_MEMORY_LIMIT:-128M}
+        reservations:
+          cpus: ${REDIS_CPU_RESERVATION:-0.1}
+          memory: ${REDIS_MEMORY_RESERVATION:-64M}
+
+  kafka:
+    deploy:
+      resources:
+        limits:
+          cpus: ${KAFKA_CPU_LIMIT:-0.5}
+          memory: ${KAFKA_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${KAFKA_CPU_RESERVATION:-0.25}
+          memory: ${KAFKA_MEMORY_RESERVATION:-256M}
+
+  prometheus:
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - chimera-prometheus-data:/prometheus
+    environment:
+      - LOG_LEVEL=debug
+
+  grafana:
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-dev123}
+      - GF_LOG_LEVEL=debug
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3000}
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+
+  # Development overrides for core services with hot-reload
   openclaw-orchestrator:
     volumes:
       - ./services/openclaw-orchestrator:/app
+      - chimera-openclaw-cache:/app/cache
     environment:
       - LOG_LEVEL=DEBUG
       - RELOAD=true
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      - ENVIRONMENT=development
+    command: uvicorn main:app --host 0.0.0.0 --port ${OPENCLAW_ORCHESTRATOR_PORT:-8000} --reload
+    deploy:
+      resources:
+        limits:
+          cpus: ${OPENCLAW_CPU_LIMIT:-0.5}
+          memory: ${OPENCLAW_MEMORY_LIMIT:-256M}
+        reservations:
+          cpus: ${OPENCLAW_CPU_RESERVATION:-0.1}
+          memory: ${OPENCLAW_MEMORY_RESERVATION:-64M}
 
   scenespeak-agent:
     volumes:
       - ./services/scenespeak-agent:/app
+      - chimera-scenespeak-cache:/app/cache
     environment:
       - LOG_LEVEL=DEBUG
       - RELOAD=true
-    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+      - LOCAL_LLM_ENABLED=${SCENESPEAK_LOCAL_LLM_ENABLED:-true}
+      - LOCAL_LLM_URL=${SCENESPEAK_LOCAL_LLM_URL:-http://host.docker.internal:11434}
+      - ENVIRONMENT=development
+    command: uvicorn main:app --host 0.0.0.0 --port ${SCENESPEAK_AGENT_PORT:-8001} --reload
+    deploy:
+      resources:
+        limits:
+          cpus: ${SCENESPEAK_CPU_LIMIT:-1.0}
+          memory: ${SCENESPEAK_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${SCENESPEAK_CPU_RESERVATION:-0.25}
+          memory: ${SCENESPEAK_MEMORY_RESERVATION:-128M}
+          devices: []
 
   captioning-agent:
     volumes:
       - ./services/captioning-agent:/app
+      - chimera-captioning-cache:/app/cache
+      - chimera-whisper-models:/models/whisper
     environment:
       - LOG_LEVEL=DEBUG
       - RELOAD=true
-    command: uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+      - WHISPER_DEVICE=${CAPTIONING_DEVICE:-cpu}
+      - WHISPER_COMPUTE_TYPE=${CAPTIONING_COMPUTE_TYPE:-float32}
+      - ENVIRONMENT=development
+    command: uvicorn main:app --host 0.0.0.0 --port ${CAPTIONING_AGENT_PORT:-8002} --reload
+    deploy:
+      resources:
+        limits:
+          cpus: ${CAPTIONING_CPU_LIMIT:-1.0}
+          memory: ${CAPTIONING_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${CAPTIONING_CPU_RESERVATION:-0.25}
+          memory: ${CAPTIONING_MEMORY_RESERVATION:-128M}
+          devices: []
 
   bsl-agent:
     volumes:
       - ./services/bsl-agent:/app
+      - chimera-bsl-cache:/app/cache
+      - chimera-bsl-models:/models/bsl_avatar
     environment:
       - LOG_LEVEL=DEBUG
       - RELOAD=true
-    command: uvicorn main:app --host 0.0.0.0 --port 8003 --reload
+      - ENVIRONMENT=development
+    command: uvicorn main:app --host 0.0.0.0 --port ${BSL_AGENT_PORT:-8003} --reload
+    deploy:
+      resources:
+        limits:
+          cpus: ${BSL_CPU_LIMIT:-1.0}
+          memory: ${BSL_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${BSL_CPU_RESERVATION:-0.25}
+          memory: ${BSL_MEMORY_RESERVATION:-128M}
+          devices: []
 
   sentiment-agent:
     volumes:
       - ./services/sentiment-agent:/app
+      - chimera-sentiment-cache:/app/cache
     environment:
       - LOG_LEVEL=DEBUG
       - RELOAD=true
-    command: uvicorn main:app --host 0.0.0.0 --port 8004 --reload
+      - ENVIRONMENT=development
+    command: uvicorn main:app --host 0.0.0.0 --port ${SENTIMENT_AGENT_PORT:-8004} --reload
+    deploy:
+      resources:
+        limits:
+          cpus: ${SENTIMENT_CPU_LIMIT:-0.5}
+          memory: ${SENTIMENT_MEMORY_LIMIT:-256M}
+        reservations:
+          cpus: ${SENTIMENT_CPU_RESERVATION:-0.1}
+          memory: ${SENTIMENT_MEMORY_RESERVATION:-64M}
 
   lighting-sound-music:
     volumes:
       - ./services/lighting-sound-music:/app
+      - chimera-lsm-cache:/app/cache
     environment:
       - LOG_LEVEL=DEBUG
       - RELOAD=true
-    command: uvicorn main:app --host 0.0.0.0 --port 8005 --reload
+      - ENVIRONMENT=development
+    command: uvicorn main:app --host 0.0.0.0 --port ${LIGHTING_SOUND_MUSIC_PORT:-8005} --reload
+    deploy:
+      resources:
+        limits:
+          cpus: ${LSM_CPU_LIMIT:-0.5}
+          memory: ${LSM_MEMORY_LIMIT:-256M}
+        reservations:
+          cpus: ${LSM_CPU_RESERVATION:-0.1}
+          memory: ${LSM_MEMORY_RESERVATION:-64M}
 
   safety-filter:
     volumes:
       - ./services/safety-filter:/app
+      - chimera-safety-cache:/app/cache
     environment:
       - LOG_LEVEL=DEBUG
       - RELOAD=true
-    command: uvicorn api.main:app --host 0.0.0.0 --port 8006 --reload
+      - ENVIRONMENT=development
+    command: uvicorn api.main:app --host 0.0.0.0 --port ${SAFETY_FILTER_PORT:-8006} --reload
+    deploy:
+      resources:
+        limits:
+          cpus: ${SAFETY_CPU_LIMIT:-1.0}
+          memory: ${SAFETY_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${SAFETY_CPU_RESERVATION:-0.25}
+          memory: ${SAFETY_MEMORY_RESERVATION:-128M}
 
   operator-console:
     volumes:
@@ -64,14 +182,44 @@ services:
     environment:
       - LOG_LEVEL=DEBUG
       - RELOAD=true
-    command: uvicorn main:app --host 0.0.0.0 --port 8007 --reload
+      - ENVIRONMENT=development
+    command: uvicorn main:app --host 0.0.0.0 --port ${OPERATOR_CONSOLE_PORT:-8007} --reload
+    deploy:
+      resources:
+        limits:
+          cpus: ${CONSOLE_CPU_LIMIT:-0.25}
+          memory: ${CONSOLE_MEMORY_LIMIT:-128M}
+        reservations:
+          cpus: ${CONSOLE_CPU_RESERVATION:-0.1}
+          memory: ${CONSOLE_MEMORY_RESERVATION:-64M}
+
+  music-generation:
+    volumes:
+      - ./services/music-generation:/app
+      - chimera-music-cache:/app/cache
+      - chimera-music-models:/models/musicgen
+      - chimera-huggingface-cache:/models/cache
+    environment:
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+      - DEVICE=${MUSIC_DEVICE:-cpu}
+      - ENVIRONMENT=development
+    command: uvicorn main:app --host 0.0.0.0 --port ${MUSIC_GENERATION_PORT:-8011} --reload
+    deploy:
+      resources:
+        limits:
+          cpus: ${MUSIC_CPU_LIMIT:-1.0}
+          memory: ${MUSIC_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${MUSIC_CPU_RESERVATION:-0.25}
+          memory: ${MUSIC_MEMORY_RESERVATION:-256M}
+          devices: []
 
   # Development tools
-  prometheus:
-    volumes:
-      - ./config/prometheus-dev.yml:/etc/prometheus/prometheus.yml
-
-  grafana:
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=dev123
-      - GF_LOG_LEVEL=debug
+  # Add development database if needed
+  # adminer:
+  #   image: adminer:latest
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - chimera-backend

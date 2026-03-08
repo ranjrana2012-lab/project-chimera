@@ -1,146 +1,354 @@
 version: '3.8'
 
 services:
-  # Production overrides
+  # Production overrides for infrastructure services
   redis:
     restart: always
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --save 900 1 --save 300 10
+    deploy:
+      resources:
+        limits:
+          cpus: ${REDIS_CPU_LIMIT:-1.0}
+          memory: ${REDIS_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${REDIS_CPU_RESERVATION:-0.5}
+          memory: ${REDIS_MEMORY_RESERVATION:-256M}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   kafka:
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: ${KAFKA_CPU_LIMIT:-2.0}
+          memory: ${KAFKA_MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: ${KAFKA_CPU_RESERVATION:-1.0}
+          memory: ${KAFKA_MEMORY_RESERVATION:-1G}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  zookeeper:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: ${ZOOKEEPER_CPU_LIMIT:-1.0}
+          memory: ${ZOOKEEPER_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${ZOOKEEPER_CPU_RESERVATION:-0.5}
+          memory: ${ZOOKEEPER_MEMORY_RESERVATION:-512M}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  milvus:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: ${MILVUS_CPU_LIMIT:-4.0}
+          memory: ${MILVUS_MEMORY_LIMIT:-4G}
+        reservations:
+          cpus: ${MILVUS_CPU_RESERVATION:-2.0}
+          memory: ${MILVUS_MEMORY_RESERVATION:-2G}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   prometheus:
     restart: always
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-30d}'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--web.enable-lifecycle'
-    volumes:
-      - ./config/prometheus-prod.yml:/etc/prometheus/prometheus.yml
+      - '--web.enable-admin-api'
+    deploy:
+      resources:
+        limits:
+          cpus: ${PROMETHEUS_CPU_LIMIT:-2.0}
+          memory: ${PROMETHEUS_MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: ${PROMETHEUS_CPU_RESERVATION:-1.0}
+          memory: ${PROMETHEUS_MEMORY_RESERVATION:-1G}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   jaeger:
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: ${JAEGER_CPU_LIMIT:-2.0}
+          memory: ${JAEGER_MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: ${JAEGER_CPU_RESERVATION:-1.0}
+          memory: ${JAEGER_MEMORY_RESERVATION:-1G}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   grafana:
     restart: always
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-chimera}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
-      - GF_SERVER_ROOT_URL=https://monitoring.chimera.theatre
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-https://monitoring.chimera.theatre}
       - GF_ANALYTICS_REPORTING_ENABLED=false
       - GF_ANALYTICS_CHECK_FOR_UPDATES=false
-
-  # Core services with production settings
-  openclaw-orchestrator:
-    restart: always
+      - GF_LOG_LEVEL=${GRAFANA_LOG_LEVEL:-info}
+      - GF_SECURITY_CONTENT_SECURITY_POLICY=true
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SECURITY_COOKIE_SAMESITE=lax
     deploy:
+      mode: replicated
+      replicas: 1
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: ${GRAFANA_CPU_LIMIT:-1.0}
+          memory: ${GRAFANA_MEMORY_LIMIT:-1G}
         reservations:
-          cpus: '0.25'
-          memory: 128M
+          cpus: ${GRAFANA_CPU_RESERVATION:-0.5}
+          memory: ${GRAFANA_MEMORY_RESERVATION:-512M}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Production overrides for core services
+  openclaw-orchestrator:
+    restart: always
     environment:
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - ENVIRONMENT=production
+      - RELOAD=false
+    deploy:
+      mode: replicated
+      replicas: ${OPENCLAW_REPLICAS:-1}
+      resources:
+        limits:
+          cpus: ${OPENCLAW_CPU_LIMIT:-2.0}
+          memory: ${OPENCLAW_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${OPENCLAW_CPU_RESERVATION:-0.5}
+          memory: ${OPENCLAW_MEMORY_RESERVATION:-256M}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   scenespeak-agent:
     restart: always
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=production
+      - RELOAD=false
     deploy:
+      mode: replicated
+      replicas: ${SCENESPEAK_REPLICAS:-1}
       resources:
         limits:
-          cpus: '2.0'
-          memory: 1G
+          cpus: ${SCENESPEAK_CPU_LIMIT:-4.0}
+          memory: ${SCENESPEAK_MEMORY_LIMIT:-2G}
         reservations:
-          cpus: '0.5'
-          memory: 256M
-    environment:
-      - LOG_LEVEL=INFO
-      - ENVIRONMENT=production
+          cpus: ${SCENESPEAK_CPU_RESERVATION:-1.0}
+          memory: ${SCENESPEAK_MEMORY_RESERVATION:-512M}
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-1}
+              capabilities: [gpu, compute, utility]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   captioning-agent:
     restart: always
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=production
+      - RELOAD=false
+      - WHISPER_DEVICE=${CAPTIONING_DEVICE:-cuda}
+      - WHISPER_COMPUTE_TYPE=${CAPTIONING_COMPUTE_TYPE:-float16}
     deploy:
+      mode: replicated
+      replicas: ${CAPTIONING_REPLICAS:-1}
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: ${CAPTIONING_CPU_LIMIT:-4.0}
+          memory: ${CAPTIONING_MEMORY_LIMIT:-2G}
         reservations:
-          cpus: '0.25'
-          memory: 128M
-    environment:
-      - LOG_LEVEL=INFO
-      - ENVIRONMENT=production
+          cpus: ${CAPTIONING_CPU_RESERVATION:-1.0}
+          memory: ${CAPTIONING_MEMORY_RESERVATION:-512M}
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-1}
+              capabilities: [gpu, compute, utility]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   bsl-agent:
     restart: always
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=production
+      - RELOAD=false
     deploy:
+      mode: replicated
+      replicas: ${BSL_REPLICAS:-1}
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: ${BSL_CPU_LIMIT:-4.0}
+          memory: ${BSL_MEMORY_LIMIT:-2G}
         reservations:
-          cpus: '0.25'
-          memory: 128M
-    environment:
-      - LOG_LEVEL=INFO
-      - ENVIRONMENT=production
+          cpus: ${BSL_CPU_RESERVATION:-1.0}
+          memory: ${BSL_MEMORY_RESERVATION:-512M}
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-1}
+              capabilities: [gpu, compute, utility]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   sentiment-agent:
     restart: always
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=production
+      - RELOAD=false
     deploy:
+      mode: replicated
+      replicas: ${SENTIMENT_REPLICAS:-1}
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: ${SENTIMENT_CPU_LIMIT:-2.0}
+          memory: ${SENTIMENT_MEMORY_LIMIT:-1G}
         reservations:
-          cpus: '0.25'
-          memory: 128M
-    environment:
-      - LOG_LEVEL=INFO
-      - ENVIRONMENT=production
+          cpus: ${SENTIMENT_CPU_RESERVATION:-0.5}
+          memory: ${SENTIMENT_MEMORY_RESERVATION:-256M}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   lighting-sound-music:
     restart: always
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=production
+      - RELOAD=false
     deploy:
+      mode: replicated
+      replicas: ${LSM_REPLICAS:-1}
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: ${LSM_CPU_LIMIT:-2.0}
+          memory: ${LSM_MEMORY_LIMIT:-1G}
         reservations:
-          cpus: '0.25'
-          memory: 128M
-    environment:
-      - LOG_LEVEL=INFO
-      - ENVIRONMENT=production
+          cpus: ${LSM_CPU_RESERVATION:-0.5}
+          memory: ${LSM_MEMORY_RESERVATION:-256M}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   safety-filter:
     restart: always
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=production
+      - RELOAD=false
     deploy:
+      mode: replicated
+      replicas: ${SAFETY_REPLICAS:-2}
       resources:
         limits:
-          cpus: '2.0'
-          memory: 1G
+          cpus: ${SAFETY_CPU_LIMIT:-4.0}
+          memory: ${SAFETY_MEMORY_LIMIT:-2G}
         reservations:
-          cpus: '0.5'
-          memory: 256M
-    environment:
-      - LOG_LEVEL=INFO
-      - ENVIRONMENT=production
+          cpus: ${SAFETY_CPU_RESERVATION:-1.0}
+          memory: ${SAFETY_MEMORY_RESERVATION:-512M}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   operator-console:
     restart: always
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=production
+      - RELOAD=false
     deploy:
+      mode: replicated
+      replicas: ${CONSOLE_REPLICAS:-1}
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: ${CONSOLE_CPU_LIMIT:-1.0}
+          memory: ${CONSOLE_MEMORY_LIMIT:-512M}
         reservations:
-          cpus: '0.25'
-          memory: 128M
+          cpus: ${CONSOLE_CPU_RESERVATION:-0.5}
+          memory: ${CONSOLE_MEMORY_RESERVATION:-256M}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  music-generation:
+    restart: always
     environment:
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - ENVIRONMENT=production
+      - RELOAD=false
+      - DEVICE=${MUSIC_DEVICE:-cuda}
+    deploy:
+      mode: replicated
+      replicas: ${MUSIC_REPLICAS:-1}
+      resources:
+        limits:
+          cpus: ${MUSIC_CPU_LIMIT:-4.0}
+          memory: ${MUSIC_MEMORY_LIMIT:-4G}
+        reservations:
+          cpus: ${MUSIC_CPU_RESERVATION:-1.0}
+          memory: ${MUSIC_MEMORY_RESERVATION:-1G}
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-1}
+              capabilities: [gpu, compute, utility]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

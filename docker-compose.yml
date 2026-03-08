@@ -6,137 +6,298 @@ services:
     image: redis:7-alpine
     container_name: chimera-redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
-      - redis-data:/data
+      - chimera-redis-data:/data
+    command: redis-server --appendonly yes --maxmemory ${REDIS_MAX_MEMORY:-256mb} --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-10s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-3s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-10s}
     networks:
-      - chimera-network
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${REDIS_CPU_LIMIT:-0.5}
+          memory: ${REDIS_MEMORY_LIMIT:-256M}
+        reservations:
+          cpus: ${REDIS_CPU_RESERVATION:-0.25}
+          memory: ${REDIS_MEMORY_RESERVATION:-128M}
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: chimera-kafka
     ports:
-      - "9092:9092"
+      - "${KAFKA_PORT:-9092}:9092"
     environment:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${KAFKA_ADVERTISED_HOST:-kafka}:${KAFKA_PORT:-9092}
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=${KAFKA_REPLICATION_FACTOR:-1}
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_LOG_RETENTION_HOURS=${KAFKA_LOG_RETENTION_HOURS:-168}
+      - KAFKA_LOG_SEGMENT_BYTES=${KAFKA_LOG_SEGMENT_BYTES:-1073741824}
     volumes:
-      - kafka-data:/var/lib/kafka/data
+      - chimera-kafka-data:/var/lib/kafka/data
     healthcheck:
       test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-40s}
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     networks:
-      - chimera-network
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${KAFKA_CPU_LIMIT:-1.0}
+          memory: ${KAFKA_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${KAFKA_CPU_RESERVATION:-0.5}
+          memory: ${KAFKA_MEMORY_RESERVATION:-512M}
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: chimera-zookeeper
     ports:
-      - "2181:2181"
+      - "${ZOOKEEPER_PORT:-2181}:2181"
     environment:
-      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_CLIENT_PORT=${ZOOKEEPER_PORT:-2181}
       - ZOOKEEPER_TICK_TIME=2000
     volumes:
-      - zookeeper-data:/var/lib/zookeeper/data
-      - zookeeper-logs:/var/lib/zookeeper/log
+      - chimera-zookeeper-data:/var/lib/zookeeper/data
+      - chimera-zookeeper-logs:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "${ZOOKEEPER_PORT:-2181}"]
+      interval: ${HEALTH_CHECK_INTERVAL:-10s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-5s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-20s}
     networks:
-      - chimera-network
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${ZOOKEEPER_CPU_LIMIT:-0.5}
+          memory: ${ZOOKEEPER_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${ZOOKEEPER_CPU_RESERVATION:-0.25}
+          memory: ${ZOOKEEPER_MEMORY_RESERVATION:-256M}
+
+  milvus:
+    image: milvusdb/milvus:v2.3.0
+    container_name: chimera-milvus
+    ports:
+      - "${MILVUS_PORT:-19530}:19530"
+      - "${MILVUS_METRICS_PORT:-9091}:9091"
+    environment:
+      - ETCD_ENDPOINTS=etcd:2379
+      - MINIO_ADDRESS=minio:9000
+      - COMMON_STORAGETYPE=${MILVUS_STORAGE_TYPE:-local}
+    volumes:
+      - chimera-milvus-data:/var/lib/milvus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/metrics"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-60s}
+    depends_on:
+      - etcd
+      - minio
+    networks:
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${MILVUS_CPU_LIMIT:-2.0}
+          memory: ${MILVUS_MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: ${MILVUS_CPU_RESERVATION:-1.0}
+          memory: ${MILVUS_MEMORY_RESERVATION:-1G}
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: chimera-etcd
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+    volumes:
+      - chimera-etcd-data:/etcd
+    networks:
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${ETCD_CPU_LIMIT:-0.5}
+          memory: ${ETCD_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${ETCD_CPU_RESERVATION:-0.25}
+          memory: ${ETCD_MEMORY_RESERVATION:-256M}
+
+  minio:
+    image: minio/minio:latest
+    container_name: chimera-minio
+    environment:
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - chimera-minio-data:/minio_data
+    command: minio server /minio_data
+    networks:
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${MINIO_CPU_LIMIT:-0.5}
+          memory: ${MINIO_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${MINIO_CPU_RESERVATION:-0.25}
+          memory: ${MINIO_MEMORY_RESERVATION:-256M}
 
   prometheus:
     image: prom/prometheus:latest
     container_name: chimera-prometheus
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - chimera-prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-15d}'
+      - '--web.enable-lifecycle'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-20s}
     networks:
-      - chimera-network
+      - chimera-monitoring
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${PROMETHEUS_CPU_LIMIT:-1.0}
+          memory: ${PROMETHEUS_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${PROMETHEUS_CPU_RESERVATION:-0.5}
+          memory: ${PROMETHEUS_MEMORY_RESERVATION:-512M}
 
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: chimera-jaeger
     ports:
-      - "5775:5775/udp"
-      - "6831:6831/udp"
-      - "6832:6832/udp"
-      - "5778:5778"
-      - "16686:16686"
-      - "14268:14268"
-      - "14250:14250"
-      - "9411:9411"
-      - "4317:4317"
-      - "4318:4318"
+      - "${JAEGER_PORT_UDP:-5775}:5775/udp"
+      - "${JAEGER_PORT_UDP2:-6831}:6831/udp"
+      - "${JAEGER_PORT_UDP3:-6832}:6832/udp"
+      - "${JAEGER_PORT_HTTP:-5778}:5778"
+      - "${JAEGER_PORT_UI:-16686}:16686"
+      - "${JAEGER_PORT_THRIFT:-14268}:14268"
+      - "${JAEGER_PORT_GRPC:-14250}:14250"
+      - "${JAEGER_PORT_ZIPKIN:-9411}:9411"
+      - "${JAEGER_PORT_OTLP_GRPC:-4317}:4317"
+      - "${JAEGER_PORT_OTLP_HTTP:-4318}:4318"
     environment:
       - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=${JAEGER_STORAGE_TYPE:-memory}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:16686"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-20s}
     networks:
-      - chimera-network
+      - chimera-monitoring
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${JAEGER_CPU_LIMIT:-1.0}
+          memory: ${JAEGER_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${JAEGER_CPU_RESERVATION:-0.5}
+          memory: ${JAEGER_MEMORY_RESERVATION:-512M}
 
   grafana:
     image: grafana/grafana:latest
     container_name: chimera-grafana
     ports:
-      - "3000:3000"
+      - "${GRAFANA_PORT:-3000}:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=chimera
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-chimera}
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_INSTALL_PLUGINS=
+      - GF_INSTALL_PLUGINS=${GRAFANA_PLUGINS:-}
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3000}
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
     volumes:
-      - grafana-data:/var/lib/grafana
+      - chimera-grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-20s}
     networks:
-      - chimera-network
+      - chimera-monitoring
+      - chimera-frontend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${GRAFANA_CPU_LIMIT:-0.5}
+          memory: ${GRAFANA_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${GRAFANA_CPU_RESERVATION:-0.25}
+          memory: ${GRAFANA_MEMORY_RESERVATION:-256M}
 
   # Core Services
   openclaw-orchestrator:
     build:
       context: ./services/openclaw-orchestrator
       dockerfile: Dockerfile
+      args:
+        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+    image: chimera/openclaw-orchestrator:${SERVICE_VERSION:-1.0.0}
     container_name: chimera-orchestrator
     ports:
-      - "8000:8000"
+      - "${OPENCLAW_ORCHESTRATOR_PORT:-8000}:8000"
     environment:
       - SERVICE_NAME=openclaw-orchestrator
-      - PORT=8000
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - OTLP_ENDPOINT=http://jaeger:4317
-      - SCENESPEAK_AGENT_URL=http://scenespeak-agent:8001
-      - CAPTIONING_AGENT_URL=http://captioning-agent:8002
-      - BSL_AGENT_URL=http://bsl-agent:8003
-      - SENTIMENT_AGENT_URL=http://sentiment-agent:8004
-      - LIGHTING_SOUND_MUSIC_URL=http://lighting-sound-music:8005
-      - SAFETY_FILTER_URL=http://safety-filter:8006
+      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+      - PORT=${OPENCLAW_ORCHESTRATOR_PORT:-8000}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SCENESPEAK_AGENT_URL=${SCENESPEAK_AGENT_URL:-http://scenespeak-agent:8001}
+      - CAPTIONING_AGENT_URL=${CAPTIONING_AGENT_URL:-http://captioning-agent:8002}
+      - BSL_AGENT_URL=${BSL_AGENT_URL:-http://bsl-agent:8003}
+      - SENTIMENT_AGENT_URL=${SENTIMENT_AGENT_URL:-http://sentiment-agent:8004}
+      - LIGHTING_SOUND_MUSIC_URL=${LIGHTING_SOUND_MUSIC_URL:-http://lighting-sound-music:8005}
+      - SAFETY_FILTER_URL=${SAFETY_FILTER_URL:-http://safety-filter:8006}
+      - MUSIC_GENERATION_URL=${MUSIC_GENERATION_URL:-http://music-generation:8011}
+    volumes:
+      - chimera-openclaw-cache:/app/cache
     depends_on:
       redis:
         condition: service_healthy
@@ -144,25 +305,50 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-60s}
     networks:
-      - chimera-network
+      - chimera-backend
+      - chimera-frontend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${OPENCLAW_CPU_LIMIT:-1.0}
+          memory: ${OPENCLAW_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${OPENCLAW_CPU_RESERVATION:-0.25}
+          memory: ${OPENCLAW_MEMORY_RESERVATION:-128M}
 
   scenespeak-agent:
     build:
       context: ./services/scenespeak-agent
       dockerfile: Dockerfile
+      args:
+        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+    image: chimera/scenespeak-agent:${SERVICE_VERSION:-1.0.0}
     container_name: chimera-scenespeak
     ports:
-      - "8001:8001"
+      - "${SCENESPEAK_AGENT_PORT:-8001}:8001"
     environment:
       - SERVICE_NAME=scenespeak-agent
-      - PORT=8001
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - OTLP_ENDPOINT=http://jaeger:4317
+      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+      - PORT=${SCENESPEAK_AGENT_PORT:-8001}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOCAL_LLM_ENABLED=${SCENESPEAK_LOCAL_LLM_ENABLED:-true}
+      - LOCAL_LLM_URL=${SCENESPEAK_LOCAL_LLM_URL:-http://ollama:11434}
+      - LOCAL_LLM_MODEL=${SCENESPEAK_LOCAL_LLM_MODEL:-llama3.2}
+      - GLM_API_KEY=${SCENESPEAK_GLM_API_KEY:-}
+      - GLM_API_FALLBACK=${SCENESPEAK_GLM_API_FALLBACK:-true}
+    volumes:
+      - chimera-scenespeak-cache:/app/cache
     depends_on:
       redis:
         condition: service_healthy
@@ -170,25 +356,53 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-90s}
     networks:
-      - chimera-network
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${SCENESPEAK_CPU_LIMIT:-2.0}
+          memory: ${SCENESPEAK_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${SCENESPEAK_CPU_RESERVATION:-0.5}
+          memory: ${SCENESPEAK_MEMORY_RESERVATION:-256M}
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-1}
+              capabilities: [gpu, compute, utility]
 
   captioning-agent:
     build:
       context: ./services/captioning-agent
       dockerfile: Dockerfile
+      args:
+        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+    image: chimera/captioning-agent:${SERVICE_VERSION:-1.0.0}
     container_name: chimera-captioning
     ports:
-      - "8002:8002"
+      - "${CAPTIONING_AGENT_PORT:-8002}:8002"
     environment:
       - SERVICE_NAME=captioning-agent
-      - PORT=8002
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - OTLP_ENDPOINT=http://jaeger:4317
+      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+      - PORT=${CAPTIONING_AGENT_PORT:-8002}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - WHISPER_MODEL_SIZE=${CAPTIONING_MODEL_SIZE:-base}
+      - WHISPER_DEVICE=${CAPTIONING_DEVICE:-cuda}
+      - WHISPER_COMPUTE_TYPE=${CAPTIONING_COMPUTE_TYPE:-float16}
+      - MAX_FILE_SIZE=${CAPTIONING_MAX_FILE_SIZE:-26214400}
+    volumes:
+      - chimera-captioning-cache:/app/cache
+      - chimera-whisper-models:/models/whisper
     depends_on:
       redis:
         condition: service_healthy
@@ -196,25 +410,53 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-90s}
     networks:
-      - chimera-network
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${CAPTIONING_CPU_LIMIT:-2.0}
+          memory: ${CAPTIONING_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${CAPTIONING_CPU_RESERVATION:-0.5}
+          memory: ${CAPTIONING_MEMORY_RESERVATION:-256M}
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-1}
+              capabilities: [gpu, compute, utility]
 
   bsl-agent:
     build:
       context: ./services/bsl-agent
       dockerfile: Dockerfile
+      args:
+        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+    image: chimera/bsl-agent:${SERVICE_VERSION:-1.0.0}
     container_name: chimera-bsl
     ports:
-      - "8003:8003"
+      - "${BSL_AGENT_PORT:-8003}:8003"
     environment:
       - SERVICE_NAME=bsl-agent
-      - PORT=8003
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - OTLP_ENDPOINT=http://jaeger:4317
+      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+      - PORT=${BSL_AGENT_PORT:-8003}
+      - REDIS_URL=${REDIS_URL:-redis:redis:6379}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - AVATAR_MODEL_PATH=${BSL_AVATAR_MODEL_PATH:-/models/bsl_avatar}
+      - AVATAR_RESOLUTION=${BSL_AVATAR_RESOLUTION:-1920x1080}
+      - AVATAR_FPS=${BSL_AVATAR_FPS:-30}
+      - CACHE_TTL=${BSL_CACHE_TTL:-86400}
+    volumes:
+      - chimera-bsl-cache:/app/cache
+      - chimera-bsl-models:/models/bsl_avatar
     depends_on:
       redis:
         condition: service_healthy
@@ -222,25 +464,50 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8003/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-90s}
     networks:
-      - chimera-network
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${BSL_CPU_LIMIT:-2.0}
+          memory: ${BSL_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${BSL_CPU_RESERVATION:-0.5}
+          memory: ${BSL_MEMORY_RESERVATION:-256M}
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-1}
+              capabilities: [gpu, compute, utility]
 
   sentiment-agent:
     build:
-      context: ./services
-      dockerfile: sentiment-agent/Dockerfile
+      context: ./services/sentiment-agent
+      dockerfile: Dockerfile
+      args:
+        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+    image: chimera/sentiment-agent:${SERVICE_VERSION:-1.0.0}
     container_name: chimera-sentiment
     ports:
-      - "8004:8004"
+      - "${SENTIMENT_AGENT_PORT:-8004}:8004"
     environment:
       - SERVICE_NAME=sentiment-agent
-      - PORT=8004
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - OTLP_ENDPOINT=http://jaeger:4317
+      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+      - PORT=${SENTIMENT_AGENT_PORT:-8004}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SENTIMENT_MODEL=${SENTIMENT_MODEL:-default}
+      - SENTIMENT_THRESHOLD=${SENTIMENT_THRESHOLD:-0.5}
+    volumes:
+      - chimera-sentiment-cache:/app/cache
     depends_on:
       redis:
         condition: service_healthy
@@ -248,25 +515,46 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8004/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-60s}
     networks:
-      - chimera-network
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${SENTIMENT_CPU_LIMIT:-1.0}
+          memory: ${SENTIMENT_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${SENTIMENT_CPU_RESERVATION:-0.25}
+          memory: ${SENTIMENT_MEMORY_RESERVATION:-128M}
 
   lighting-sound-music:
     build:
       context: ./services/lighting-sound-music
       dockerfile: Dockerfile
+      args:
+        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+    image: chimera/lighting-sound-music:${SERVICE_VERSION:-1.0.0}
     container_name: chimera-lighting-sound-music
     ports:
-      - "8005:8005"
+      - "${LIGHTING_SOUND_MUSIC_PORT:-8005}:8005"
     environment:
       - SERVICE_NAME=lighting-sound-music
-      - PORT=8005
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - OTLP_ENDPOINT=http://jaeger:4317
+      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+      - PORT=${LIGHTING_SOUND_MUSIC_PORT:-8005}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LSM_DMX_PORT=${LSM_DMX_PORT:-0}
+      - LSM_AUDIO_OUTPUT=${LSM_AUDIO_OUTPUT:-default}
+    volumes:
+      - chimera-lsm-cache:/app/cache
     depends_on:
       redis:
         condition: service_healthy
@@ -274,25 +562,45 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8005/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-60s}
     networks:
-      - chimera-network
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${LSM_CPU_LIMIT:-1.0}
+          memory: ${LSM_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${LSM_CPU_RESERVATION:-0.25}
+          memory: ${LSM_MEMORY_RESERVATION:-128M}
 
   safety-filter:
     build:
       context: ./services/safety-filter
       dockerfile: Dockerfile
-    container_name: chimera-safety-filter
+      args:
+        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+    image: chimera/safety-filter:${SERVICE_VERSION:-1.0.0}
     ports:
-      - "8006:8006"
+      - "${SAFETY_FILTER_PORT:-8006}:8006"
     environment:
       - SERVICE_NAME=safety-filter
-      - PORT=8006
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - OTLP_ENDPOINT=http://jaeger:4317
+      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+      - PORT=${SAFETY_FILTER_PORT:-8006}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SAFETY_FILTER_POLICY=${SAFETY_FILTER_POLICY:-family}
+      - SAFETY_FILTER_ML_MODEL=${SAFETY_FILTER_ML_MODEL:-default}
+    volumes:
+      - chimera-safety-cache:/app/cache
     depends_on:
       redis:
         condition: service_healthy
@@ -300,32 +608,50 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-60s}
     networks:
-      - chimera-network
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${SAFETY_CPU_LIMIT:-2.0}
+          memory: ${SAFETY_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${SAFETY_CPU_RESERVATION:-0.5}
+          memory: ${SAFETY_MEMORY_RESERVATION:-256M}
 
   operator-console:
     build:
       context: ./services/operator-console
       dockerfile: Dockerfile
+      args:
+        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+    image: chimera/operator-console:${SERVICE_VERSION:-1.0.0}
     container_name: chimera-operator-console
     ports:
-      - "8007:8007"
+      - "${OPERATOR_CONSOLE_PORT:-8007}:8007"
     environment:
       - SERVICE_NAME=operator-console
-      - PORT=8007
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - OTLP_ENDPOINT=http://jaeger:4317
-      - OPENCLAW_ORCHESTRATOR_URL=http://openclaw-orchestrator:8000
-      - SCENESPEAK_AGENT_URL=http://scenespeak-agent:8001
-      - CAPTIONING_AGENT_URL=http://captioning-agent:8002
-      - BSL_AGENT_URL=http://bsl-agent:8003
-      - SENTIMENT_AGENT_URL=http://sentiment-agent:8004
-      - LIGHTING_SOUND_MUSIC_URL=http://lighting-sound-music:8005
-      - SAFETY_FILTER_URL=http://safety-filter:8006
+      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+      - PORT=${OPERATOR_CONSOLE_PORT:-8007}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - OPENCLAW_ORCHESTRATOR_URL=${OPENCLAW_ORCHESTRATOR_URL:-http://openclaw-orchestrator:8000}
+      - SCENESPEAK_AGENT_URL=${SCENESPEAK_AGENT_URL:-http://scenespeak-agent:8001}
+      - CAPTIONING_AGENT_URL=${CAPTIONING_AGENT_URL:-http://captioning-agent:8002}
+      - BSL_AGENT_URL=${BSL_AGENT_URL:-http://bsl-agent:8003}
+      - SENTIMENT_AGENT_URL=${SENTIMENT_AGENT_URL:-http://sentiment-agent:8004}
+      - LIGHTING_SOUND_MUSIC_URL=${LIGHTING_SOUND_MUSIC_URL:-http://lighting-sound-music:8005}
+      - SAFETY_FILTER_URL=${SAFETY_FILTER_URL:-http://safety-filter:8006}
+      - MUSIC_GENERATION_URL=${MUSIC_GENERATION_URL:-http://music-generation:8011}
     depends_on:
       redis:
         condition: service_healthy
@@ -335,27 +661,143 @@ services:
         condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8007/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-60s}
     networks:
-      - chimera-network
+      - chimera-backend
+      - chimera-frontend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${CONSOLE_CPU_LIMIT:-0.5}
+          memory: ${CONSOLE_MEMORY_LIMIT:-256M}
+        reservations:
+          cpus: ${CONSOLE_CPU_RESERVATION:-0.25}
+          memory: ${CONSOLE_MEMORY_RESERVATION:-128M}
+
+  music-generation:
+    build:
+      context: ./services/music-generation
+      dockerfile: Dockerfile
+      args:
+        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+    image: chimera/music-generation:${SERVICE_VERSION:-1.0.0}
+    container_name: chimera-music-generation
+    ports:
+      - "${MUSIC_GENERATION_PORT:-8011}:8011"
+    environment:
+      - SERVICE_NAME=music-generation
+      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+      - PORT=${MUSIC_GENERATION_PORT:-8011}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - MUSICGEN_MODEL_PATH=${MUSICGEN_MODEL_PATH:-/models/musicgen}
+      - ACESTEP_MODEL_PATH=${ACESTEP_MODEL_PATH:-/models/acestep}
+      - HUGGINGFACE_CACHE_DIR=${HUGGINGFACE_CACHE_DIR:-/models/cache}
+      - DEFAULT_MODEL=${MUSIC_DEFAULT_MODEL:-musicgen}
+      - MAX_VRAM_MB=${MUSIC_MAX_VRAM_MB:-8192}
+      - MODEL_OFFLOAD=${MUSIC_MODEL_OFFLOAD:-true}
+      - DEFAULT_DURATION=${MUSIC_DEFAULT_DURATION:-5.0}
+      - MAX_DURATION=${MUSIC_MAX_DURATION:-30.0}
+      - SAMPLE_RATE=${MUSIC_SAMPLE_RATE:-44100}
+      - DEVICE=${MUSIC_DEVICE:-cuda}
+      - TORCH_THREADS=${MUSIC_TORCH_THREADS:-4}
+    volumes:
+      - chimera-music-cache:/app/cache
+      - chimera-music-models:/models/musicgen
+      - chimera-huggingface-cache:/models/cache
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8011/health/live"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-120s}
+    networks:
+      - chimera-backend
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${MUSIC_CPU_LIMIT:-2.0}
+          memory: ${MUSIC_MEMORY_LIMIT:-2G}
+        reservations:
+          cpus: ${MUSIC_CPU_RESERVATION:-0.5}
+          memory: ${MUSIC_MEMORY_RESERVATION:-512M}
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-1}
+              capabilities: [gpu, compute, utility]
 
 networks:
-  chimera-network:
+  chimera-backend:
     driver: bridge
-    name: chimera-network
+    name: chimera-backend
+
+  chimera-frontend:
+    driver: bridge
+    name: chimera-frontend
+
+  chimera-monitoring:
+    driver: bridge
+    name: chimera-monitoring
 
 volumes:
-  redis-data:
+  # Infrastructure volumes
+  chimera-redis-data:
     name: chimera-redis-data
-  kafka-data:
+  chimera-kafka-data:
     name: chimera-kafka-data
-  zookeeper-data:
+  chimera-zookeeper-data:
     name: chimera-zookeeper-data
-  zookeeper-logs:
+  chimera-zookeeper-logs:
     name: chimera-zookeeper-logs
-  prometheus-data:
+  chimera-milvus-data:
+    name: chimera-milvus-data
+  chimera-etcd-data:
+    name: chimera-etcd-data
+  chimera-minio-data:
+    name: chimera-minio-data
+  chimera-prometheus-data:
     name: chimera-prometheus-data
-  grafana-data:
+  chimera-grafana-data:
     name: chimera-grafana-data
+
+  # Service cache volumes
+  chimera-openclaw-cache:
+    name: chimera-openclaw-cache
+  chimera-scenespeak-cache:
+    name: chimera-scenespeak-cache
+  chimera-captioning-cache:
+    name: chimera-captioning-cache
+  chimera-bsl-cache:
+    name: chimera-bsl-cache
+  chimera-sentiment-cache:
+    name: chimera-sentiment-cache
+  chimera-lsm-cache:
+    name: chimera-lsm-cache
+  chimera-safety-cache:
+    name: chimera-safety-cache
+  chimera-music-cache:
+    name: chimera-music-cache
+
+  # Model cache volumes
+  chimera-whisper-models:
+    name: chimera-whisper-models
+  chimera-bsl-models:
+    name: chimera-bsl-models
+  chimera-music-models:
+    name: chimera-music-models
+  chimera-huggingface-cache:
+    name: chimera-huggingface-cache
