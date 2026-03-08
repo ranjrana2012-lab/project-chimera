@@ -1,12 +1,15 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from contextlib import asynccontextmanager
+from datetime import datetime
 import logging
 import httpx
+import json
 
 from config import get_settings
 from tracing import setup_telemetry, instrument_fastapi
 from metrics import init_service_info, record_request
 from models import OrchestrateRequest, OrchestrateResponse, HealthResponse
+from show_manager import show_manager, ShowState
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -132,6 +135,175 @@ async def list_skills():
     ]
 
     return {"skills": skills, "total": len(skills), "enabled": len(skills)}
+
+
+@app.get("/api/show/current")
+async def get_current_show():
+    """Get current show information"""
+    show = show_manager.get_current_show()
+    if show:
+        return show.to_dict()
+    return {"show_id": None, "state": "idle"}
+
+
+@app.post("/api/show/{show_id}/start")
+async def start_show(show_id: str):
+    """Start a show"""
+    show = show_manager.create_show(show_id)
+    show.start()
+    return show.to_dict()
+
+
+@app.post("/api/show/{show_id}/end")
+async def end_show(show_id: str):
+    """End a show"""
+    show = show_manager.end_show(show_id)
+    if show:
+        return show.to_dict()
+    raise HTTPException(status_code=404, detail="Show not found")
+
+
+@app.websocket("/ws/show")
+async def websocket_show_updates(websocket: WebSocket):
+    """WebSocket endpoint for real-time show updates"""
+    await websocket.accept()
+    connection_id = f"conn_{id(websocket)}"
+
+    # Get or create default show
+    show = show_manager.get_current_show()
+    if show is None:
+        show = show_manager.create_show("default_show")
+
+    # Add connection to show
+    show_manager.add_connection(show.show_id, connection_id)
+
+    # Store connection for broadcasting
+    if not hasattr(app.state, "websocket_connections"):
+        app.state.websocket_connections = {}
+    app.state.websocket_connections[connection_id] = websocket
+
+    logger.info(f"WebSocket connected: {connection_id}")
+
+    try:
+        # Send initial show state
+        await websocket.send_json({
+            "type": "show_state",
+            "data": show.to_dict(),
+            "timestamp": datetime.now().isoformat()
+        })
+
+        # Keep connection alive and handle incoming messages
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+
+            # Handle different message types
+            action = message.get("action")
+            if action == "start_show":
+                show_id = message.get("show_id", show.show_id)
+                show = show_manager.start_show(show_id)
+                if show:
+                    await websocket.send_json({
+                        "type": "show_state",
+                        "data": show.to_dict(),
+                        "timestamp": datetime.now().isoformat()
+                    })
+            elif action == "end_show":
+                show = show_manager.end_show(show.show_id)
+                if show:
+                    await websocket.send_json({
+                        "type": "show_state",
+                        "data": show.to_dict(),
+                        "timestamp": datetime.now().isoformat()
+                    })
+            elif action == "ping":
+                await websocket.send_json({
+                    "type": "pong",
+                    "timestamp": datetime.now().isoformat()
+                })
+
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected: {connection_id}")
+        show_manager.remove_connection(show.show_id, connection_id)
+        if hasattr(app.state, "websocket_connections"):
+            app.state.websocket_connections.pop(connection_id, None)
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        show_manager.remove_connection(show.show_id, connection_id)
+        if hasattr(app.state, "websocket_connections"):
+            app.state.websocket_connections.pop(connection_id, None)
+
+
+@app.post("/api/sentiment/webhook")
+async def sentiment_webhook(request: dict):
+    """Webhook endpoint for sentiment agent to broadcast updates.
+
+    Expects:
+        {
+            "text": "input text",
+            "sentiment": "positive|negative|neutral",
+            "score": 0.95,
+            "confidence": 0.88
+        }
+    """
+    try:
+        text = request.get("text", "")
+        sentiment = request.get("sentiment", "neutral")
+        confidence = request.get("confidence", 0.0)
+        score = request.get("score", 0.0)
+
+        # Broadcast to all WebSocket connections
+        if hasattr(app.state, "websocket_connections"):
+            disconnected = []
+            for conn_id, websocket in app.state.websocket_connections.items():
+                try:
+                    await websocket.send_json({
+                        "type": "sentiment_update",
+                        "data": {
+                            "sentiment": sentiment,
+                            "confidence": confidence,
+                            "score": score,
+                            "text": text
+                        },
+                        "timestamp": datetime.now().isoformat()
+                    })
+                except Exception as e:
+                    logger.warning(f"Failed to send to {conn_id}: {e}")
+                    disconnected.append(conn_id)
+
+            # Clean up disconnected clients
+            for conn_id in disconnected:
+                app.state.websocket_connections.pop(conn_id, None)
+
+        logger.info(f"Broadcast sentiment update: {sentiment} (confidence: {confidence})")
+        return {"status": "ok", "broadcast": True}
+
+    except Exception as e:
+        logger.error(f"Sentiment webhook error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def get_sentiment_update(sentiment: str, confidence: float, metadata: dict = None):
+    """Create a sentiment update message for WebSocket broadcast.
+
+    Args:
+        sentiment: Sentiment value (positive, negative, neutral)
+        confidence: Confidence score
+        metadata: Optional additional metadata
+
+    Returns:
+        Dictionary sentiment update message
+    """
+    return {
+        "type": "sentiment_update",
+        "data": {
+            "sentiment": sentiment,
+            "confidence": confidence,
+            "metadata": metadata or {}
+        },
+        "timestamp": datetime.now().isoformat()
+    }
+
 
 def get_agent_for_skill(skill: str) -> str:
     """Map skill to agent URL"""

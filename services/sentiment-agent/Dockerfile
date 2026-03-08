@@ -12,28 +12,19 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
-COPY sentiment-agent/requirements.txt .
+COPY services/sentiment-agent/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download ML model (if needed during build)
-RUN python3 -c "
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
-import os
-cache_dir = './models_cache'
-os.makedirs(cache_dir, exist_ok=True)
-print('Downloading DistilBERT model...')
-DistilBertTokenizer.from_pretrained('distilbert-base-uncased-finetuned-sst-2-english', cache_dir=cache_dir)
-DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased-finetuned-sst-2-english', cache_dir=cache_dir)
-print('Model downloaded successfully')
-"
+RUN python3 -c 'from transformers import DistilBertTokenizer, DistilBertForSequenceClassification; import os; cache_dir = "./models_cache"; os.makedirs(cache_dir, exist_ok=True); print("Downloading DistilBERT model..."); DistilBertTokenizer.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english", cache_dir=cache_dir); DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english", cache_dir=cache_dir); print("Model downloaded successfully")'
 
 # Copy source code
-COPY sentiment-agent/src/ /app/src/
+COPY services/sentiment-agent/src/ /app/src/
 
 # Copy shared tracing module
-COPY shared/ /app/shared/
+COPY services/shared/ /app/shared/
 
 # Set Python path
 ENV PYTHONPATH=/app/src:/app

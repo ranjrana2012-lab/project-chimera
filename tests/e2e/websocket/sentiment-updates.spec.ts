@@ -25,7 +25,7 @@ test.describe('Real-time Sentiment Updates', () => {
     helper = new ChimeraTestHelper(page, request);
   });
 
-  test.skip('@smoke @websocket sentiment updates flow through WebSocket', async ({ request }) => {
+  test('@smoke @websocket sentiment updates flow through WebSocket', async ({ request }) => {
     // Connect to orchestrator WebSocket
     const wsClient = await createWebSocketClient('ws://localhost:8000/ws/show', {
       connectionTimeout: 10000

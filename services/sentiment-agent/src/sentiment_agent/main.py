@@ -7,10 +7,12 @@ Features:
 - DistilBERT ML model integration (placeholder for future)
 - Batch analysis support
 - Business metrics and distributed tracing
+- Webhook integration to orchestrator for real-time updates
 """
 
 import time
 import logging
+import httpx
 from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
@@ -37,6 +39,36 @@ settings = get_settings()
 # Initialize components
 tracer = get_tracer()
 analyzer = SentimentAnalyzer(use_ml_model=settings.use_ml_model)
+
+# Orchestrator webhook URL
+ORCHESTRATOR_WEBHOOK = "http://openclaw-orchestrator:8000/api/sentiment/webhook"
+
+
+async def send_sentiment_webhook(text: str, sentiment: str, score: float, confidence: float):
+    """Send sentiment analysis result to orchestrator webhook.
+
+    Args:
+        text: Original text analyzed
+        sentiment: Sentiment classification
+        score: Sentiment score
+        confidence: Confidence score
+    """
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            payload = {
+                "text": text,
+                "sentiment": sentiment,
+                "score": score,
+                "confidence": confidence
+            }
+            response = await client.post(ORCHESTRATOR_WEBHOOK, json=payload)
+            if response.status_code == 200:
+                logger.debug(f"Sent sentiment webhook: {sentiment}")
+            else:
+                logger.warning(f"Webhook failed: {response.status_code}")
+    except Exception as e:
+        # Don't fail analysis if webhook fails
+        logger.warning(f"Failed to send sentiment webhook: {e}")
 
 
 @asynccontextmanager
@@ -144,6 +176,14 @@ async def analyze_sentiment(request: AnalyzeRequest) -> SentimentResponse:
             logger.info(
                 f"Analyzed sentiment: {result['sentiment']} "
                 f"(score={result['score']:.2f}, confidence={result['confidence']:.2f})"
+            )
+
+            # Send webhook to orchestrator (fire and forget)
+            await send_sentiment_webhook(
+                text=request.text,
+                sentiment=result["sentiment"],
+                score=result["score"],
+                confidence=result["confidence"]
             )
 
             return SentimentResponse(**result)
