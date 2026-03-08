@@ -27,7 +27,7 @@ test.describe('Operator Console UI', () => {
     // Verify main heading
     const heading = page.locator('h1');
     await expect(heading).toBeVisible();
-    await expect(heading).toContainText(/Operator Console|Dashboard/);
+    await expect(heading).toContainText(/Project Chimera/);
 
     // Verify all agent status displays are present
     const agents = [
