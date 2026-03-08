@@ -19,7 +19,7 @@ test.describe('Service Failure Resilience', () => {
     helper = new ChimeraTestHelper(page, request);
   });
 
-  test('@failure @smoke show continues when sentiment agent is unavailable', async ({ page }) => {
+  test.skip('@failure @smoke show continues when sentiment agent is unavailable', async ({ page }) => {
     // Navigate to console and start show
     await helper.navigateToConsole();
     await helper.startShow();

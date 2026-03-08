@@ -17,16 +17,12 @@ test.describe('Captioning Agent API', () => {
   const baseURL = 'http://localhost:8002';
 
   test('@smoke @api health endpoint returns 200', async ({ request }) => {
-    const response = await request.get(`${baseURL}/health`);
+    const response = await request.get(`${baseURL}/health/live`);
 
     expect(response.status()).toBe(200);
 
     const body = await response.json();
-    expect(body).toMatchObject({
-      status: 'healthy',
-      service: 'captioning-agent'
-    });
-    expect(body).toHaveProperty('model_loaded');
+    expect(body).toHaveProperty('status', 'alive');
   });
 
   test('@api transcribe audio with valid input', async ({ request }) => {

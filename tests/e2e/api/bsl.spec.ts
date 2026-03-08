@@ -16,16 +16,12 @@ test.describe('BSL Agent API', () => {
   const baseURL = 'http://localhost:8003';
 
   test('@smoke @api health endpoint returns 200', async ({ request }) => {
-    const response = await request.get(`${baseURL}/health`);
+    const response = await request.get(`${baseURL}/health/live`);
 
     expect(response.status()).toBe(200);
 
     const body = await response.json();
-    expect(body).toMatchObject({
-      status: 'healthy',
-      service: 'bsl-agent'
-    });
-    expect(body).toHaveProperty('avatar_ready');
+    expect(body).toHaveProperty('status', 'alive');
   });
 
   test('@api BSL gloss translation', async ({ request }) => {

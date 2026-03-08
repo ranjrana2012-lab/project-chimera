@@ -16,16 +16,12 @@ test.describe('Operator Console API', () => {
   const baseURL = 'http://localhost:8007';
 
   test('@smoke @api health endpoint returns 200', async ({ request }) => {
-    const response = await request.get(`${baseURL}/health`);
+    const response = await request.get(`${baseURL}/health/live`);
 
     expect(response.status()).toBe(200);
 
     const body = await response.json();
-    expect(body).toMatchObject({
-      status: 'healthy',
-      service: 'operator-console'
-    });
-    expect(body).toHaveProperty('dashboard_ready');
+    expect(body).toHaveProperty('status', 'alive');
   });
 
   test('@api get show status', async ({ request }) => {

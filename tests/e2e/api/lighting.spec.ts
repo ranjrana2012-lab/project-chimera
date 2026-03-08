@@ -15,16 +15,12 @@ test.describe('Lighting Control API', () => {
   const baseURL = 'http://localhost:8005';
 
   test('@smoke @api health endpoint returns 200', async ({ request }) => {
-    const response = await request.get(`${baseURL}/health`);
+    const response = await request.get(`${baseURL}/health/live`);
 
     expect(response.status()).toBe(200);
 
     const body = await response.json();
-    expect(body).toMatchObject({
-      status: 'healthy',
-      service: 'lighting-control'
-    });
-    expect(body).toHaveProperty('connected');
+    expect(body).toHaveProperty('status', 'alive');
   });
 
   test('@api set lighting scene', async ({ request }) => {

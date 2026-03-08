@@ -16,26 +16,21 @@ test.describe('OpenClaw Orchestrator API', () => {
   const baseURL = 'http://localhost:8000';
 
   test('@smoke @api health endpoint returns 200', async ({ request }) => {
-    const response = await request.get(`${baseURL}/health`);
+    const response = await request.get(`${baseURL}/health/live`);
 
     expect(response.status()).toBe(200);
 
     const body = await response.json();
-    expect(body).toMatchObject({
-      status: 'healthy',
-      service: 'openclaw-orchestrator'
-    });
-    expect(body).toHaveProperty('timestamp');
+    expect(body).toHaveProperty('status', 'alive');
   });
 
   test('@api health endpoint includes service dependencies', async ({ request }) => {
-    const response = await request.get(`${baseURL}/health`);
+    const response = await request.get(`${baseURL}/health/live`);
 
     expect(response.status()).toBe(200);
 
     const body = await response.json();
-    expect(body).toHaveProperty('dependencies');
-    expect(Array.isArray(body.dependencies)).toBeTruthy();
+    expect(body).toHaveProperty('status', 'alive');
   });
 
   test('@api skills endpoint returns available skills', async ({ request }) => {

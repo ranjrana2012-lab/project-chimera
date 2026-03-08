@@ -35,8 +35,9 @@ export default defineConfig({
 
   // Shared settings for all tests
   use: {
-    // Base URL for tests - uses localhost by default, configurable via BASE_URL env var
-    baseURL: process.env.BASE_URL || 'http://localhost:8000',
+    // Base URL for tests - defaults to operator console (port 8007)
+    // Configurable via BASE_URL env var for testing other services
+    baseURL: process.env.BASE_URL || 'http://localhost:8007',
 
     // Collect trace when retrying a test for debugging
     trace: 'on-first-retry',
