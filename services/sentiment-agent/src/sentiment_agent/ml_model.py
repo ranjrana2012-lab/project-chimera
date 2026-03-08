@@ -67,10 +67,35 @@ class SentimentModel:
 
         confidence = max(positive_prob, negative_prob)
 
+        # Infer emotions from sentiment (SST-2 is binary sentiment classification)
+        emotions = {
+            "joy": 0.0,
+            "surprise": 0.0,
+            "neutral": 0.0,
+            "sadness": 0.0,
+            "anger": 0.0,
+            "fear": 0.0
+        }
+
+        if sentiment == "positive":
+            emotions["joy"] = 0.7 + (confidence * 0.3)  # 0.7-1.0 based on confidence
+            emotions["surprise"] = 0.3 + (confidence * 0.2)  # 0.3-0.5
+            emotions["neutral"] = max(0.0, 0.1 - confidence * 0.1)
+        elif sentiment == "negative":
+            emotions["sadness"] = 0.6 + (confidence * 0.3)  # 0.6-0.9
+            emotions["anger"] = 0.4 + (confidence * 0.3)  # 0.4-0.7
+            emotions["fear"] = 0.1 + (confidence * 0.2)  # 0.1-0.3
+            emotions["neutral"] = max(0.0, 0.1 - confidence * 0.1)
+        else:  # neutral
+            emotions["neutral"] = 0.8 + (confidence * 0.2)  # 0.8-1.0
+            emotions["joy"] = 0.1
+            emotions["surprise"] = 0.1
+
         return {
             "sentiment": sentiment,
             "score": score,
-            "confidence": confidence
+            "confidence": confidence,
+            "emotions": emotions
         }
 
     def analyze_batch(self, texts: list[str]) -> list[dict]:

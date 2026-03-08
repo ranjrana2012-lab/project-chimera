@@ -89,3 +89,72 @@ class TestSentimentModel:
         assert "sentiment" in result
         assert "score" in result
         assert "confidence" in result
+        assert "emotions" in result
+
+    @patch('src.sentiment_agent.ml_model.DistilBertTokenizer')
+    @patch('src.sentiment_agent.ml_model.DistilBertForSequenceClassification')
+    def test_analyze_returns_emotions_for_positive(self, mock_model_class, mock_tokenizer_class):
+        """Test analyze returns emotions dict with high joy for positive sentiment."""
+        mock_model = Mock()
+        mock_tokenizer = Mock()
+
+        # Mock model output (positive sentiment)
+        mock_output = Mock()
+        mock_output.logits = torch.tensor([[1.0, 5.0]])  # High positive logit
+        mock_model.return_value = mock_output
+        mock_model_class.from_pretrained.return_value = mock_model
+
+        class MockTokenizerOutput(dict):
+            def to(self, device):
+                return self
+
+        mock_tokenizer_result = MockTokenizerOutput({"input_ids": torch.tensor([[1, 2, 3]])})
+        mock_tokenizer.return_value = mock_tokenizer_result
+        mock_tokenizer_class.from_pretrained.return_value = mock_tokenizer
+
+        model = SentimentModel(cache_dir=self.cache_dir, device="cpu")
+        model.model = mock_model
+        model.tokenizer = mock_tokenizer
+
+        result = model.analyze("This is amazing!")
+
+        assert "emotions" in result
+        assert "joy" in result["emotions"]
+        assert "surprise" in result["emotions"]
+        assert "neutral" in result["emotions"]
+        assert "sadness" in result["emotions"]
+        assert "anger" in result["emotions"]
+        assert "fear" in result["emotions"]
+        # Positive text should have high joy
+        assert result["emotions"]["joy"] > 0.5
+
+    @patch('src.sentiment_agent.ml_model.DistilBertTokenizer')
+    @patch('src.sentiment_agent.ml_model.DistilBertForSequenceClassification')
+    def test_analyze_returns_emotions_for_negative(self, mock_model_class, mock_tokenizer_class):
+        """Test analyze returns emotions dict with high sadness/anger for negative sentiment."""
+        mock_model = Mock()
+        mock_tokenizer = Mock()
+
+        # Mock model output (negative sentiment)
+        mock_output = Mock()
+        mock_output.logits = torch.tensor([[5.0, 1.0]])  # High negative logit
+        mock_model.return_value = mock_output
+        mock_model_class.from_pretrained.return_value = mock_model
+
+        class MockTokenizerOutput(dict):
+            def to(self, device):
+                return self
+
+        mock_tokenizer_result = MockTokenizerOutput({"input_ids": torch.tensor([[1, 2, 3]])})
+        mock_tokenizer.return_value = mock_tokenizer_result
+        mock_tokenizer_class.from_pretrained.return_value = mock_tokenizer
+
+        model = SentimentModel(cache_dir=self.cache_dir, device="cpu")
+        model.model = mock_model
+        model.tokenizer = mock_tokenizer
+
+        result = model.analyze("This was terrible!")
+
+        assert "emotions" in result
+        # Negative text should have high sadness or anger
+        assert result["emotions"]["sadness"] > 0.3 or result["emotions"]["anger"] > 0.3
