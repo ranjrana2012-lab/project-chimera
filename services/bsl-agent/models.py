@@ -5,7 +5,7 @@ Defines request/response models for text-to-BSL-gloss translation and avatar ren
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 
 class TranslateRequest(BaseModel):
@@ -23,6 +23,26 @@ class TranslateResponse(BaseModel):
     confidence: float
     non_manual_markers: Optional[List[str]] = None
     translation_time_ms: float
+
+
+class SignMetadata(BaseModel):
+    """Metadata for individual BSL signs"""
+    gloss: str = Field(..., description="BSL gloss notation for this sign")
+    handshape: str = Field(..., description="Hand shape used")
+    location: str = Field(..., description="Location of the sign relative to body")
+
+
+class APITranslateRequest(BaseModel):
+    """Request for /api/translate endpoint"""
+    text: str = Field(..., min_length=1, description="English text to translate")
+    context: Optional[Dict[str, Any]] = Field(None, description="Additional context for translation")
+
+
+class APITranslateResponse(BaseModel):
+    """Response from /api/translate endpoint"""
+    gloss: str = Field(..., description="BSL gloss notation")
+    duration: float = Field(..., description="Estimated signing duration in seconds")
+    signs: List[SignMetadata] = Field(default_factory=list, description="Individual sign metadata")
 
 
 class RenderRequest(BaseModel):

@@ -26,7 +26,10 @@ from models import (
     TranslateResponse,
     RenderRequest,
     RenderResponse,
-    HealthResponse
+    HealthResponse,
+    APITranslateRequest,
+    APITranslateResponse,
+    SignMetadata
 )
 from tracing import setup_telemetry, instrument_fastapi, add_span_attributes, record_error
 from metrics import record_translation, record_render
@@ -197,6 +200,177 @@ async def translate_text(request: TranslateRequest) -> TranslateResponse:
         })
 
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/translate", response_model=APITranslateResponse)
+async def translate_text_api(request: APITranslateRequest) -> APITranslateResponse:
+    """
+    Translate English text to BSL gloss notation (E2E test compatible).
+
+    This endpoint is designed for E2E testing and provides sign metadata
+    including handshapes and locations.
+
+    Args:
+        request: Translation request with text and optional context
+
+    Returns:
+        APITranslateResponse with gloss, duration, and sign metadata
+
+    Example:
+        POST /api/translate
+        {
+            "text": "Hello, how are you?",
+            "context": {"formal": true}
+        }
+    """
+    start_time = time.time()
+
+    try:
+        with tracer.start_as_current_span("translate_text_api") as span:
+            # Perform translation
+            gloss, breakdown, duration = translator.text_to_gloss(request.text)
+
+            # Generate sign metadata with handshapes and locations
+            signs = _generate_sign_metadata(breakdown)
+
+            # Extract context if provided
+            context = request.context or {}
+            formal_mode = context.get("formal", False)
+
+            # Adjust duration for formal mode (slower signing)
+            if formal_mode:
+                duration *= 1.2
+
+            # Calculate metrics
+            duration_sec = time.time() - start_time
+
+            # Add span attributes
+            add_span_attributes(span, {
+                "translation.text_length": len(request.text),
+                "translation.word_count": len(request.text.split()),
+                "translation.gloss_word_count": len(breakdown),
+                "translation.formal_mode": formal_mode
+            })
+
+            logger.info(
+                f"API translation completed: '{request.text}' -> '{gloss}' "
+                f"({len(breakdown)} signs, {duration_sec:.3f}s)"
+            )
+
+            return APITranslateResponse(
+                gloss=gloss,
+                duration=duration,
+                signs=signs
+            )
+
+    except Exception as e:
+        logger.error(f"API translation failed: {e}")
+
+        # Record error
+        current_span = trace.get_current_span()
+        record_error(current_span, e, {
+            "error.context": "api_translation",
+            "error.text_length": len(request.text)
+        })
+
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def _generate_sign_metadata(breakdown: list[str]) -> list[SignMetadata]:
+    """
+    Generate sign metadata including handshapes and locations.
+
+    Args:
+        breakdown: List of BSL gloss words
+
+    Returns:
+        List of SignMetadata objects with handshape and location info
+    """
+    # Common handshapes for BSL
+    handshapes = {
+        "HELLO": "flat_hand_wave",
+        "GOOD": "flat_hand",
+        "MORNING": "flat_hand_chest",
+        "PLEASE": "flat_hand_circular",
+        "THANK": "flat_hand_chest",
+        "YOU": "pointing_finger",
+        "HOW": "flat_hand",
+        "WHAT": "flat_hand",
+        "WHERE": "index_finger",
+        "WHEN": "flat_hand",
+        "WHY": "flat_hand",
+        "WHO": "index_finger",
+        "WHICH": "index_finger",
+        "THIS": "index_finger",
+        "THAT": "index_finger",
+        "HERE": "flat_hand",
+        "THERE": "pointing_finger",
+        "YES": "fist_nod",
+        "NO": "flat_hand_wave",
+        "UNDERSTAND": "flat_hand_head",
+        "LOOK": "v_hand_eyes",
+        "LISTEN": "cupped_hand_ear",
+        "WELCOME": "flat_hand_sweep",
+        "GOODBYE": "flat_hand_wave",
+        "NAME": "index_finger_chest",
+        "MY": "flat_hand_chest",
+        "YOUR": "pointing_finger",
+        "STOP": "flat_hand_palm",
+        "WAIT": "flat_hand_up",
+    }
+
+    # Common locations for BSL
+    locations = {
+        "HELLO": "forehead",
+        "GOOD": "chest",
+        "MORNING": "chest",
+        "PLEASE": "chest_circular",
+        "THANK": "chest",
+        "YOU": "forward",
+        "HOW": "chest",
+        "WHAT": "chest",
+        "WHERE": "side",
+        "WHEN": "chest",
+        "WHY": "chest",
+        "WHO": "side",
+        "WHICH": "side",
+        "THIS": "forward",
+        "THAT": "forward",
+        "HERE": "down",
+        "THERE": "forward_point",
+        "YES": "head_nod",
+        "NO": "head_shake",
+        "UNDERSTAND": "head",
+        "LOOK": "eyes",
+        "LISTEN": "ear",
+        "WELCOME": "outward_sweep",
+        "GOODBYE": "outward",
+        "NAME": "chest",
+        "MY": "chest",
+        "YOUR": "forward",
+        "STOP": "palm_out",
+        "WAIT": "palm_up",
+    }
+
+    signs = []
+
+    for gloss_word in breakdown:
+        # Get handshape and location, with defaults
+        handshape = handshapes.get(gloss_word, "flat_hand")
+        location = locations.get(gloss_word, "neutral_space")
+
+        # Handle finger-spelling
+        if gloss_word.startswith("FS-"):
+            handshape = "finger_spelling"
+            location = "neutral_space"
+
+        signs.append(SignMetadata(
+            gloss=gloss_word,
+            handshape=handshape,
+            location=location
+        ))
+
+    return signs
 
 
 @app.post("/v1/render", response_model=RenderResponse)
