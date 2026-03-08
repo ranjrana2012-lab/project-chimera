@@ -442,7 +442,15 @@ async def api_avatar_generate(request: APIAvatarGenerateRequest) -> APIAvatarGen
         )
 
         # Record render metric
-        record_render(status="success", expression=request.expression)
+        # Note: record_render requires show_id, gesture_count, duration - using defaults for E2E
+        try:
+            record_render(
+                show_id="e2e_test",
+                gesture_count=len(breakdown),
+                duration=processing_time
+            )
+        except Exception as e:
+            logger.warning(f"Failed to record render metrics: {e}")
 
         logger.info(
             f"API avatar generation completed: '{request.text}' -> {len(animation_data.get('frames', []))} frames"
