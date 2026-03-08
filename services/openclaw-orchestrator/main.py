@@ -182,56 +182,110 @@ async def websocket_show_updates(websocket: WebSocket):
         app.state.websocket_connections = {}
     app.state.websocket_connections[connection_id] = websocket
 
+    # Initialize message history for this connection
+    if not hasattr(app.state, "message_history"):
+        app.state.message_history = {}
+    app.state.message_history[connection_id] = []
+
     logger.info(f"WebSocket connected: {connection_id}")
+
+    async def broadcast_to_all(message_type: str, data: dict):
+        """Broadcast message to all connected WebSocket clients"""
+        message = {
+            "type": message_type,
+            "data": data,
+            "timestamp": datetime.now().isoformat()
+        }
+
+        # Add to all message histories
+        for conn_id in app.state.websocket_connections.keys():
+            if conn_id in app.state.message_history:
+                app.state.message_history[conn_id].append(message)
+
+        # Send to all connected clients
+        disconnected = []
+        for conn_id, ws in app.state.websocket_connections.items():
+            try:
+                await ws.send_json(message)
+            except Exception:
+                disconnected.append(conn_id)
+
+        # Clean up disconnected clients
+        for conn_id in disconnected:
+            app.state.websocket_connections.pop(conn_id, None)
+            app.state.message_history.pop(conn_id, None)
+            show_manager.remove_connection(show.show_id, conn_id)
 
     try:
         # Send initial show state
-        await websocket.send_json({
+        initial_state = {
             "type": "show_state",
             "data": show.to_dict(),
             "timestamp": datetime.now().isoformat()
-        })
+        }
+        await websocket.send_json(initial_state)
+        app.state.message_history[connection_id].append(initial_state)
 
         # Keep connection alive and handle incoming messages
         while True:
             data = await websocket.receive_text()
             message = json.loads(data)
 
+            # Store message in history (for getMessages functionality)
+            app.state.message_history[connection_id].append(message)
+
             # Handle different message types
             action = message.get("action")
+            message_type = message.get("type")
+
             if action == "start_show":
                 show_id = message.get("show_id", show.show_id)
                 show = show_manager.start_show(show_id)
                 if show:
-                    await websocket.send_json({
-                        "type": "show_state",
-                        "data": show.to_dict(),
-                        "timestamp": datetime.now().isoformat()
-                    })
+                    await broadcast_to_all("show_state", show.to_dict())
+
             elif action == "end_show":
                 show = show_manager.end_show(show.show_id)
                 if show:
-                    await websocket.send_json({
-                        "type": "show_state",
-                        "data": show.to_dict(),
-                        "timestamp": datetime.now().isoformat()
-                    })
+                    await broadcast_to_all("show_state", show.to_dict())
+
+            elif action == "update_state":
+                # Update show state and broadcast to all clients
+                new_state = message.get("state")
+                show_id = message.get("show_id", show.show_id)
+
+                if new_state:
+                    # Update show state
+                    show.state = new_state
+
+                    # Broadcast to all clients
+                    await broadcast_to_all("show_state", show.to_dict())
+
             elif action == "ping":
                 await websocket.send_json({
                     "type": "pong",
                     "timestamp": datetime.now().isoformat()
                 })
 
+            else:
+                # Echo back other messages for testing
+                echo_message = {
+                    "type": message_type or "echo",
+                    "data": message,
+                    "timestamp": datetime.now().isoformat()
+                }
+                await websocket.send_json(echo_message)
+
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected: {connection_id}")
         show_manager.remove_connection(show.show_id, connection_id)
-        if hasattr(app.state, "websocket_connections"):
-            app.state.websocket_connections.pop(connection_id, None)
+        app.state.websocket_connections.pop(connection_id, None)
+        app.state.message_history.pop(connection_id, None)
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         show_manager.remove_connection(show.show_id, connection_id)
-        if hasattr(app.state, "websocket_connections"):
-            app.state.websocket_connections.pop(connection_id, None)
+        app.state.websocket_connections.pop(connection_id, None)
+        app.state.message_history.pop(connection_id, None)
 
 
 @app.post("/api/sentiment/webhook")
