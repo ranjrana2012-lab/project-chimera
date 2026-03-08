@@ -1,0 +1,138 @@
+# Critical Alert Rules (P0 - Page Immediately)
+# These alerts require immediate action and will page on-call engineers
+
+groups:
+  - name: critical
+    interval: 30s
+    rules:
+      # Service Down Alert
+      - alert: ServiceDown
+        expr: up{job=~".*-agent"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: operations
+          priority: P0
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute on instance {{ $labels.instance }}"
+          runbook: "https://docs.project-chimera.io/runbooks/service-down"
+
+      # GPU Not Available Alert
+      - alert: GPUNotAvailable
+        expr: nvidia_gpu_available < 1
+        for: 5m
+        labels:
+          severity: critical
+          team: infrastructure
+          priority: P0
+        annotations:
+          summary: "No GPUs available"
+          description: "Less than 1 GPU available for 5 minutes on {{ $labels.instance }}"
+          runbook: "https://docs.project-chimera.io/runbooks/gpu-unavailable"
+
+      # Model Loading Failed Alert
+      - alert: ModelLoadingFailed
+        expr: rate(chimera_model_loaded_total{status="fail"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: ml
+          priority: P0
+        annotations:
+          summary: "Model loading failed for {{ $labels.model }}"
+          description: "Model {{ $labels.model }} has failed to load (failure rate: {{ $value }})"
+          runbook: "https://docs.project-chimera.io/runbooks/model-loading-failed"
+
+      # Show Workflow Stuck Alert
+      - alert: ShowWorkflowStuck
+        expr: |
+          chimera_show_active{job="orchestrator"} == 1
+          and chimera_show_progress{job="orchestrator"} == 0
+        for: 10m
+        labels:
+          severity: critical
+          team: operations
+          priority: P0
+        annotations:
+          summary: "Show workflow is stuck"
+          description: "Show {{ $labels.show_id }} has been active but not progressing for 10 minutes"
+          runbook: "https://docs.project-chimera.io/runbooks/show-stuck"
+
+      # Kafka Consumer Lag Alert
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag > 10000
+        for: 5m
+        labels:
+          severity: critical
+          team: streaming
+          priority: P0
+        annotations:
+          summary: "High Kafka consumer lag on {{ $labels.topic }}"
+          description: "Consumer {{ $labels.consumer }} is lagging by {{ $value }} messages on topic {{ $labels.topic }}"
+          runbook: "https://docs.project-chimera.io/runbooks/kafka-lag"
+
+      # Orchestrator Down Alert
+      - alert: OrchestratorDown
+        expr: up{job="orchestrator"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: operations
+          priority: P0
+        annotations:
+          summary: "Orchestrator service is down"
+          description: "The orchestrator service has been down for more than 1 minute"
+          runbook: "https://docs.project-chimera.io/runbooks/orchestrator-down"
+
+      # Safety Filter Down Alert
+      - alert: SafetyFilterDown
+        expr: up{job="safety-filter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: safety
+          priority: P0
+        annotations:
+          summary: "Safety filter service is down"
+          description: "The safety filter service has been down for more than 1 minute"
+          runbook: "https://docs.project-chimera.io/runbooks/safety-filter-down"
+
+      # Database Connection Failed Alert
+      - alert: DatabaseConnectionFailed
+        expr: pg_up{job="postgres-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+          priority: P0
+        annotations:
+          summary: "Cannot connect to PostgreSQL database"
+          description: "PostgreSQL exporter on {{ $labels.instance }} cannot connect to database"
+          runbook: "https://docs.project-chimera.io/runbooks/database-down"
+
+      # Redis Down Alert
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: infrastructure
+          priority: P0
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance on {{ $labels.instance }} is not responding"
+          runbook: "https://docs.project-chimera.io/runbooks/redis-down"
+
+      # Pod CrashLooping Alert
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="project-chimera"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: operations
+          priority: P0
+        annotations:
+          summary: "Pod {{ $labels.pod }} is crash looping"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted {{ $value }} times in the last 15 minutes"
+          runbook: "https://docs.project-chimera.io/runbooks/pod-crash-loop"

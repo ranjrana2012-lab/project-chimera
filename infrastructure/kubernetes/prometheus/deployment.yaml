@@ -1,0 +1,195 @@
+# Prometheus Deployment Manifest
+# Deploys Prometheus with persistent storage and alert rules
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: project-chimera
+  labels:
+    app: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.48.0
+        args:
+          - '--config.file=/etc/prometheus/prometheus.yaml'
+          - '--storage.tsdb.path=/prometheus'
+          - '--storage.tsdb.retention.time=30d'
+          - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+          - '--web.console.templates=/usr/share/prometheus/consoles'
+          - '--web.enable-lifecycle'
+        ports:
+        - containerPort: 9090
+          name: http
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus
+        - name: rules-critical
+          mountPath: /etc/prometheus/rules/critical
+        - name: rules-slo
+          mountPath: /etc/prometheus/rules/slo
+        - name: rules-anomaly
+          mountPath: /etc/prometheus/rules/anomaly
+        - name: storage
+          mountPath: /prometheus
+        resources:
+          requests:
+            cpu: "2000m"
+            memory: "4Gi"
+          limits:
+            cpu: "4000m"
+            memory: "8Gi"
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: config
+        configMap:
+          name: prometheus-config
+      - name: rules-critical
+        configMap:
+          name: prometheus-rules-critical
+      - name: rules-slo
+        configMap:
+          name: prometheus-rules-slo
+      - name: rules-anomaly
+        configMap:
+          name: prometheus-rules-anomaly
+      - name: storage
+        persistentVolumeClaim:
+          claimName: prometheus-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-storage
+  namespace: project-chimera
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: project-chimera
+  labels:
+    app: prometheus
+  annotations:
+    prometheus.io/scrape: "true"
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - port: 9090
+    targetPort: 9090
+    name: http
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: project-chimera
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: project-chimera
+
+---
+# ConfigMaps for alert rules (to be created from rules files)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules-critical
+  namespace: project-chimera
+data:
+  critical.yaml: |
+    # Loaded from infrastructure/kubernetes/prometheus/rules/critical/critical.yaml
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules-slo
+  namespace: project-chimera
+data:
+  slo.yaml: |
+    # Loaded from infrastructure/kubernetes/prometheus/rules/slo/slo.yaml
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules-anomaly
+  namespace: project-chimera
+data:
+  anomaly.yaml: |
+    # Loaded from infrastructure/kubernetes/prometheus/rules/anomaly/anomaly.yaml

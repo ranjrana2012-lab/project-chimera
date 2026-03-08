@@ -1,0 +1,15 @@
+# Grafana Dashboard Provisioning Configuration
+# This file configures how Grafana loads dashboards from files
+
+apiVersion: 1
+
+providers:
+  - name: 'Project Chimera'
+    orgId: 1
+    folder: 'Project Chimera'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/files
+      foldersFromFilesStructure: false

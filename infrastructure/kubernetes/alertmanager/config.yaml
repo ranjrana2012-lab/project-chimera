@@ -1,0 +1,163 @@
+# AlertManager Configuration
+# Global configuration with Slack and PagerDuty integrations
+
+global:
+  # Global timeout for alert resolution
+  resolve_timeout: 5m
+
+  # Slack webhook URL (injected from secret)
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+  # PagerDuty configuration (injected from secret)
+  pagerduty_url: '${PAGERDUTY_URL}'
+
+# Alert routing configuration
+route:
+  # Group alerts by these labels to reduce notification spam
+  group_by: ['alertname', 'cluster', 'service', 'severity']
+
+  # Wait time before sending first notification for a new group
+  group_wait: 10s
+
+  # Wait time before sending notification about new alerts in existing group
+  group_interval: 10s
+
+  # Wait time before re-sending notification for already notified alert
+  repeat_interval: 12h
+
+  # Default receiver for all alerts
+  receiver: 'default'
+
+  # Routing tree for different alert severities
+  routes:
+    # Critical alerts go to PagerDuty and Slack critical channel
+    - match:
+        severity: critical
+      receiver: 'pagerduty'
+      continue: true
+
+    - match:
+        severity: critical
+      receiver: 'slack-critical'
+      continue: false
+
+    # Warning alerts go to Slack warnings channel
+    - match:
+        severity: warning
+      receiver: 'slack-warnings'
+      continue: false
+
+    # Info alerts go to Slack info channel
+    - match:
+        severity: info
+      receiver: 'slack-info'
+      continue: false
+
+# Notification receivers
+receivers:
+  # Default receiver (catch-all)
+  - name: 'default'
+    slack_configs:
+      - channel: '#chimera-alerts'
+        title: '{{ .GroupLabels.alertname }}'
+        text: |
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Severity:* {{ .CommonLabels.severity }}
+          *Runbook:* {{ .CommonAnnotations.runbook }}
+        send_resolved: true
+        color: '{{ if eq .CommonLabels.severity "critical" }}danger{{ else }}warning{{ end }}'
+
+  # PagerDuty receiver for critical alerts
+  - name: 'pagerduty'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        description: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        severity: '{{ .CommonLabels.severity }}'
+        client: 'Project Chimera'
+        client_url: 'https://grafana.project-chimera.io'
+        class: '{{ .CommonLabels.team }}'
+
+  # Slack critical alerts channel
+  - name: 'slack-critical'
+    slack_configs:
+      - channel: '#chimera-critical'
+        title: ':rotating_light: CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Severity:* {{ .CommonLabels.severity }}
+          *Team:* {{ .CommonLabels.team }}
+          *Runbook:* {{ .CommonAnnotations.runbook }}
+
+          *Alerts:*
+          {{ range .Alerts }}
+          - *{{ .Labels.instance }}*: {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true
+        color: 'danger'
+        icon_emoji: ':scream:'
+        username: 'Chimera AlertManager'
+        actions:
+          - type: button
+            text: 'View in Grafana'
+            url: '{{ .ExternalURL }}'
+            style: primary
+          - type: button
+            text: 'Runbook'
+            url: '{{ .CommonAnnotations.runbook }}'
+            style: default
+
+  # Slack warnings channel
+  - name: 'slack-warnings'
+    slack_configs:
+      - channel: '#chimera-alerts'
+        title: ':warning: WARNING: {{ .GroupLabels.alertname }}'
+        text: |
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Severity:* {{ .CommonLabels.severity }}
+          *Team:* {{ .CommonLabels.team }}
+          *Runbook:* {{ .CommonAnnotations.runbook }}
+
+          *Affected Services:*
+          {{ range .Alerts }}
+          - {{ .Labels.job }} on {{ .Labels.instance }}
+          {{ end }}
+        send_resolved: true
+        color: 'warning'
+        icon_emoji: ':warning:'
+        username: 'Chimera AlertManager'
+
+  # Slack info channel
+  - name: 'slack-info'
+    slack_configs:
+      - channel: '#chimera-observability'
+        title: ':information_source: INFO: {{ .GroupLabels.alertname }}'
+        text: |
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+        send_resolved: false
+        color: 'good'
+        icon_emoji: ':male-detect:'
+        username: 'Chimera Monitor'
+
+# Inhibition rules - suppress certain alerts when others are firing
+inhibit_rules:
+  # Inhibit warning alerts if critical alert is firing for same service
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'service', 'instance']
+
+  # Inhibit all alerts if the service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['job', 'instance']
+
+# Templates for custom notification formatting
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

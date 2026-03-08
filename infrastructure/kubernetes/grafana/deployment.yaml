@@ -1,0 +1,173 @@
+# Grafana Deployment Manifest
+# Deploys Grafana with persistent storage and dashboard provisioning
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: project-chimera
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.2.2
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: admin-password
+        - name: GF_SECURITY_ADMIN_USER
+          value: "admin"
+        - name: GF_INSTALL_PLUGINS
+          value: "grafana-piechart-panel"
+        - name: GF_SERVER_ROOT_URL
+          value: "http://grafana.project-chimera.svc.cluster.local:3000"
+        - name: GF_ANALYTICS_REPORTING_ENABLED
+          value: "false"
+        - name: GF_ANALYTICS_CHECK_FOR_UPDATES
+          value: "false"
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: "false"
+        - name: GF_USERS_VIEWERS_CAN_EDIT
+          value: "false"
+        - name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH
+          value: "/etc/grafana/provisioning/dashboards/show-operations.json"
+        volumeMounts:
+        - name: storage
+          mountPath: /var/lib/grafana
+        - name: dashboards
+          mountPath: /etc/grafana/provisioning/dashboards
+        - name: datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        - name: dashboard-files
+          mountPath: /etc/grafana/provisioning/dashboards/files
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: grafana-storage
+      - name: dashboards
+        configMap:
+          name: grafana-provisioning-dashboards
+      - name: datasources
+        configMap:
+          name: grafana-provisioning-datasources
+      - name: dashboard-files
+        configMap:
+          name: grafana-dashboards
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-storage
+  namespace: project-chimera
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: project-chimera
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: http
+  type: ClusterIP
+
+---
+# ConfigMap for dashboard provisioning
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning-dashboards
+  namespace: project-chimera
+data:
+  dashboard.yaml: |
+    apiVersion: 1
+
+    providers:
+      - name: 'Project Chimera'
+        orgId: 1
+        folder: 'Project Chimera'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /etc/grafana/provisioning/dashboards/files
+          foldersFromFilesStructure: false
+
+---
+# ConfigMap for datasource provisioning
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning-datasources
+  namespace: project-chimera
+data:
+  prometheus.yaml: |
+    apiVersion: 1
+
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus.project-chimera.svc.cluster.local:9090
+        isDefault: true
+        editable: false
+        jsonData:
+          timeInterval: "15s"
+          queryTimeout: "60s"
+          httpMethod: "POST"

@@ -1,0 +1,197 @@
+# Anomaly Detection Alert Rules (P2 - Review Daily)
+# These alerts detect unusual patterns that should be reviewed regularly
+
+groups:
+  - name: anomaly
+    interval: 1m
+    rules:
+      # Disk Space Low Alert
+      - alert: DiskSpaceLow
+        expr: |
+          node_filesystem_avail_bytes{mountpoint="/",namespace="project-chimera"} < 10737418240
+        for: 1h
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Less than 10Gi available on {{ $labels.instance }} ({{ $value | humanize }} remaining)"
+          runbook: "https://docs.project-chimera.io/runbooks/disk-space-low"
+
+      # Disk Space Critical Alert
+      - alert: DiskSpaceCritical
+        expr: |
+          node_filesystem_avail_bytes{mountpoint="/",namespace="project-chimera"} < 5368709120
+        for: 30m
+        labels:
+          severity: critical
+          team: infrastructure
+          priority: P0
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Less than 5Gi available on {{ $labels.instance }} ({{ $value | humanize }} remaining)"
+          runbook: "https://docs.project-chimera.io/runbooks/disk-space-critical"
+
+      # GPU Memory Leak Alert
+      - alert: GPUMemoryLeak
+        expr: |
+          nvidia_gpu_memory_used_bytes
+          -
+          nvidia_gpu_memory_used_bytes offset 1h
+          > 0.1 * nvidia_gpu_memory_total_bytes
+        for: 2h
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "Potential GPU memory leak on {{ $labels.instance }}"
+          description: "GPU memory increased by more than 10% in the last hour on {{ $labels.gpu }}"
+          runbook: "https://docs.project-chimera.io/runbooks/gpu-memory-leak"
+
+      # Unusual Traffic Pattern Alert
+      - alert: UnusualTrafficPattern
+        expr: |
+          abs(
+            rate(http_requests_total{namespace="project-chimera"}[5m])
+            -
+            avg_over_time(rate(http_requests_total{namespace="project-chimera"}[5m])[1h:5m])
+          )
+          /
+          stddev_over_time(rate(http_requests_total{namespace="project-chimera"}[5m])[1h:5m]) > 3
+        for: 30m
+        labels:
+          severity: info
+          team: operations
+          priority: P2
+        annotations:
+          summary: "Unusual traffic pattern detected"
+          description: "Traffic for {{ $labels.job }} deviates by more than 3σ from baseline (current: {{ $value | humanize }} rps)"
+          runbook: "https://docs.project-chimera.io/runbooks/unusual-traffic"
+
+      # High Network Error Rate Alert
+      - alert: HighNetworkErrorRate
+        expr: |
+          rate(node_netstat_Tcp_CurrEstab{namespace="project-chimera"}[5m]) < 10
+          and rate(http_requests_total{namespace="project-chimera"}[5m]) > 100
+        for: 15m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "Low active connections despite high traffic"
+          description: "Only {{ $value }} active connections with high traffic on {{ $labels.instance }}"
+          runbook: "https://docs.project-chimera.io/runbooks/network-errors"
+
+      # Pod Restarts Alert
+      - alert: PodRestartsDetected
+        expr: |
+          increase(kube_pod_container_status_restarts_total{namespace="project-chimera"}[1h]) > 0
+        for: 1m
+        labels:
+          severity: info
+          team: operations
+          priority: P2
+        annotations:
+          summary: "Pod restarts detected"
+          description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last hour"
+          runbook: "https://docs.project-chimera.io/runbooks/pod-restarts"
+
+      # GPU Temperature High Alert
+      - alert: GPUTemperatureHigh
+        expr: |
+          nvidia_gpu_temperature_gpu > 85
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "High GPU temperature"
+          description: "GPU {{ $labels.gpu }} temperature is {{ $value }}°C on {{ $labels.instance }}"
+          runbook: "https://docs.project-chimera.io/runbooks/gpu-temperature"
+
+      # GPU Utilization Low Alert (for cost optimization)
+      - alert: LowGPUUtilization
+        expr: |
+          avg(rate(nvidia_gpu_utilization_gpu[30m])) < 20
+        for: 2h
+        labels:
+          severity: info
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "Low GPU utilization detected"
+          description: "Average GPU utilization is {{ $value | humanizePercentage }} over 30 minutes"
+          runbook: "https://docs.project-chimera.io/runbooks/low-gpu-utilization"
+
+      # Redis Memory Fragmentation Alert
+      - alert: RedisMemoryFragmentation
+        expr: |
+          redis_mem_fragmentation_ratio > 1.5
+        for: 30m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "High Redis memory fragmentation"
+          description: "Redis memory fragmentation ratio is {{ $value }} on {{ $labels.instance }}"
+          runbook: "https://docs.project-chimera.io/runbooks/redis-fragmentation"
+
+      # Kafka Partition Offline Alert
+      - alert: KafkaPartitionOffline
+        expr: |
+          kafka_partition_under_replicated_partition > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "Kafka partition under replicated"
+          description: "{{ $value }} Kafka partitions are under replicated"
+          runbook: "https://docs.project-chimera.io/runbooks/kafka-partition"
+
+      # Database Connection Pool Exhaustion Alert
+      - alert: DatabaseConnectionPoolExhaustion
+        expr: |
+          sum(pg_stat_activity_count) / sum(pg_settings_max_connections) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Database using {{ $value | humanizePercentage }} of max connections"
+          runbook: "https://docs.project-chimera.io/runbooks/db-pool-exhaustion"
+
+      # Sentinel Check: Metrics Exporter Down
+      - alert: MetricsExporterDown
+        expr: up{job=~".*exporter"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "Metrics exporter {{ $labels.job }} is down"
+          description: "The {{ $labels.job }} exporter has been down for 5 minutes"
+          runbook: "https://docs.project-chimera.io/runbooks/exporter-down"
+
+      # Time Skew Alert
+      - alert: TimeSkewDetected
+        expr: |
+          abs(node_time_seconds - node_time_seconds{job="node-exporter"}) > 2
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "Time skew detected between nodes"
+          description: "Time difference of {{ $value }}s detected on {{ $labels.instance }}"
+          runbook: "https://docs.project-chimera.io/runbooks/time-skew"

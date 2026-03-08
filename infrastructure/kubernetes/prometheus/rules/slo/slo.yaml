@@ -1,0 +1,188 @@
+# SLO Alert Rules (P1 - Investigate Within Hour)
+# These alerts indicate Service Level Objectives may be at risk
+
+groups:
+  - name: slo
+    interval: 30s
+    rules:
+      # High Error Rate Alert
+      - alert: HighErrorRate
+        expr: |
+          rate(http_requests_total{namespace="project-chimera",status=~"5.."}[5m])
+          /
+          rate(http_requests_total{namespace="project-chimera"}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          team: operations
+          priority: P1
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 1%) for service {{ $labels.job }}"
+          runbook: "https://docs.project-chimera.io/runbooks/high-error-rate"
+
+      # High Latency Alert
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.99,
+            rate(http_request_duration_seconds_bucket{namespace="project-chimera"}[5m])
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          team: operations
+          priority: P1
+        annotations:
+          summary: "High p99 latency on {{ $labels.job }}"
+          description: "p99 latency is {{ $value }}s (threshold: 1s) for service {{ $labels.job }}"
+          runbook: "https://docs.project-chimera.io/runbooks/high-latency"
+
+      # Low Sentiment Confidence Alert
+      - alert: LowSentimentConfidence
+        expr: |
+          avg(rate(chimera_sentiment_confidence_total[5m])) < 0.6
+        for: 15m
+        labels:
+          severity: warning
+          team: ml
+          priority: P1
+        annotations:
+          summary: "Low sentiment confidence detected"
+          description: "Average sentiment confidence is {{ $value | humanizePercentage }} (threshold: 60%)"
+          runbook: "https://docs.project-chimera.io/runbooks/low-sentiment-confidence"
+
+      # Audio Generation Failures Alert
+      - alert: AudioGenerationFailures
+        expr: |
+          rate(chimera_audio_generation_failed_total{job="lighting-sound-music"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: ml
+          priority: P1
+        annotations:
+          summary: "High audio generation failure rate"
+          description: "Audio generation failing at rate {{ $value }}/sec (threshold: 0.1/sec)"
+          runbook: "https://docs.project-chimera.io/runbooks/audio-failures"
+
+      # SceneSpeak Generation Latency Alert
+      - alert: SceneSpeakSlowGeneration
+        expr: |
+          histogram_quantile(0.95,
+            rate(chimera_scenespeak_generation_duration_seconds_bucket[5m])
+          ) > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: ml
+          priority: P1
+        annotations:
+          summary: "Slow SceneSpeak dialogue generation"
+          description: "p95 dialogue generation latency is {{ $value }}s (threshold: 5s)"
+          runbook: "https://docs.project-chimera.io/runbooks/slow-dialogue"
+
+      # Captioning Accuracy Alert
+      - alert: LowCaptioningAccuracy
+        expr: |
+          avg(rate(chimera_captioning_accuracy_total[10m])) < 0.85
+        for: 15m
+        labels:
+          severity: warning
+          team: ml
+          priority: P1
+        annotations:
+          summary: "Low captioning accuracy detected"
+          description: "Captioning accuracy is {{ $value | humanizePercentage }} (threshold: 85%)"
+          runbook: "https://docs.project-chimera.io/runbooks/low-captioning-accuracy"
+
+      # BSL Gloss Quality Alert
+      - alert: LowBSLGlossQuality
+        expr: |
+          avg(rate(chimera_bsl_gloss_quality_score[10m])) < 0.80
+        for: 15m
+        labels:
+          severity: warning
+          team: ml
+          priority: P1
+        annotations:
+          summary: "Low BSL gloss quality detected"
+          description: "BSL gloss quality score is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "https://docs.project-chimera.io/runbooks/low-bsl-quality"
+
+      # High Memory Usage Alert
+      - alert: HighMemoryUsage
+        expr: |
+          sum(container_memory_working_set_bytes{namespace="project-chimera"})
+          /
+          sum(kube_pod_container_resource_limits{namespace="project-chimera",resource="memory"}) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P1
+        annotations:
+          summary: "High memory usage in namespace project-chimera"
+          description: "Memory usage is at {{ $value | humanizePercentage }} of allocated limits"
+          runbook: "https://docs.project-chimera.io/runbooks/high-memory"
+
+      # High CPU Usage Alert
+      - alert: HighCPUUsage
+        expr: |
+          sum(rate(container_cpu_usage_seconds_total{namespace="project-chimera"}[5m]))
+          /
+          sum(kube_pod_container_resource_limits{namespace="project-chimera",resource="cpu"}) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P1
+        annotations:
+          summary: "High CPU usage in namespace project-chimera"
+          description: "CPU usage is at {{ $value | humanizePercentage }} of allocated limits"
+          runbook: "https://docs.project-chimera.io/runbooks/high-cpu"
+
+      # Milvus Query Slow Alert
+      - alert: MilvusQuerySlow
+        expr: |
+          histogram_quantile(0.95,
+            rate(milvus_query_duration_seconds_bucket[5m])
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P1
+        annotations:
+          summary: "Slow Milvus vector queries"
+          description: "p95 Milvus query latency is {{ $value }}s (threshold: 0.5s)"
+          runbook: "https://docs.project-chimera.io/runbooks/slow-milvus"
+
+      # Safety Filter High Rejection Rate Alert
+      - alert: SafetyFilterHighRejectionRate
+        expr: |
+          rate(chimera_safety_filter_rejected_total[5m])
+          /
+          rate(chimera_safety_filter_processed_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: safety
+          priority: P1
+        annotations:
+          summary: "High safety filter rejection rate"
+          description: "Safety filter rejecting {{ $value | humanizePercentage }} of content (threshold: 10%)"
+          runbook: "https://docs.project-chimera.io/runbooks/high-rejection-rate"
+
+      # Show Duration Exceeded Alert
+      - alert: ShowDurationExceeded
+        expr: |
+          chimera_show_duration_seconds{job="orchestrator"} > 5400
+        for: 1m
+        labels:
+          severity: warning
+          team: operations
+          priority: P1
+        annotations:
+          summary: "Show duration exceeded expected length"
+          description: "Show {{ $labels.show_id }} has been running for {{ $value | humanizeDuration }} (expected: 90m)"
+          runbook: "https://docs.project-chimera.io/runbooks/show-duration"

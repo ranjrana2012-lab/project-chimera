@@ -1,9 +1,13 @@
-# infrastructure/kubernetes/alertmanager/deployment.yaml
+# AlertManager Deployment Manifest
+# Updated with PVC and improved resource limits
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: alertmanager
-  namespace: shared
+  namespace: project-chimera
+  labels:
+    app: alertmanager
 spec:
   replicas: 1
   selector:
@@ -13,6 +17,9 @@ spec:
     metadata:
       labels:
         app: alertmanager
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9093"
     spec:
       containers:
       - name: alertmanager
@@ -20,8 +27,30 @@ spec:
         args:
         - '--config.file=/etc/alertmanager/alertmanager.yaml'
         - '--storage.path=/alertmanager'
+        - '--web.external-url=http://alertmanager.project-chimera.svc.cluster.local:9093'
         ports:
         - containerPort: 9093
+          name: http
+          protocol: TCP
+        env:
+        - name: SLACK_WEBHOOK_URL
+          valueFrom:
+            secretKeyRef:
+              name: alertmanager-secrets
+              key: slack-webhook-url
+              optional: true
+        - name: PAGERDUTY_URL
+          valueFrom:
+            secretKeyRef:
+              name: alertmanager-secrets
+              key: pagerduty-url
+              optional: true
+        - name: PAGERDUTY_SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: alertmanager-secrets
+              key: pagerduty-service-key
+              optional: true
         volumeMounts:
         - name: config
           mountPath: /etc/alertmanager
@@ -29,14 +58,62 @@ spec:
           mountPath: /alertmanager
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
+            cpu: "500m"
+            memory: "1Gi"
           limits:
-            memory: "256Mi"
-            cpu: "200m"
+            cpu: "1000m"
+            memory: "2Gi"
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
       volumes:
       - name: config
         configMap:
           name: alertmanager-config
       - name: storage
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: alertmanager-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alertmanager-storage
+  namespace: project-chimera
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: project-chimera
+  labels:
+    app: alertmanager
+spec:
+  selector:
+    app: alertmanager
+  ports:
+  - port: 9093
+    targetPort: 9093
+    name: http
+  type: ClusterIP
