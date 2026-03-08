@@ -1,0 +1,118 @@
+# Network policy for Project Chimera namespace
+# Controls ingress and egress traffic for all pods in the namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: project-chimera-netpol
+  namespace: project-chimera
+  labels:
+    app: project-chimera
+    component: network-policy
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+
+  # Allow ingress from:
+  # 1. Same namespace (service-to-service communication)
+  # 2. Ingress controller (for external access)
+  ingress:
+  # Allow intra-namespace traffic
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 8000  # OpenClaw Orchestrator
+    - protocol: TCP
+      port: 8001  # SceneSpeak Agent
+    - protocol: TCP
+      port: 8002  # Captioning Agent
+    - protocol: TCP
+      port: 8003  # BSL Agent
+    - protocol: TCP
+      port: 8004  # Sentiment Agent
+    - protocol: TCP
+      port: 8005  # Lighting Control
+    - protocol: TCP
+      port: 8006  # Safety Filter
+    - protocol: TCP
+      port: 8007  # Operator Console
+    - protocol: TCP
+      port: 8011  # Music Generation
+
+  # Allow egress to:
+  # 1. Same namespace (service-to-service communication)
+  # 2. kube-system (DNS)
+  # 3. External services (updates, APIs)
+  egress:
+  # Allow intra-namespace traffic
+  - to:
+    - podSelector: {}
+
+  # Allow DNS resolution
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+  # Allow traffic to infrastructure services
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+
+  - to:
+    - podSelector:
+        matchLabels:
+          app: milvus
+    ports:
+    - protocol: TCP
+      port: 19530
+
+  # Allow traffic to monitoring stack
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: project-chimera
+    ports:
+    - protocol: TCP
+      port: 9090  # Prometheus
+    - protocol: TCP
+      port: 9093  # Alertmanager
+    - protocol: TCP
+      port: 3000  # Grafana
+
+  # Allow OTLP telemetry export
+  - to:
+    - podSelector:
+        matchLabels:
+          app: opentelemetry-collector
+    ports:
+    - protocol: TCP
+      port: 4317  # OTLP gRPC
+    - protocol: TCP
+      port: 4318  # OTLP HTTP
+
+  # Allow external HTTPS traffic (for updates, APIs, etc.)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443

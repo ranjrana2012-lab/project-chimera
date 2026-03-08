@@ -1,0 +1,253 @@
+# Milvus configuration for Project Chimera
+# Deploys Milvus with embedded etcd and MinIO for simplicity
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: milvus-config
+  namespace: project-chimera
+  labels:
+    app: milvus
+    component: infrastructure
+data:
+  milvus.yaml: |
+    etcd:
+      endpoints:
+        - localhost:2379
+      rootPath: by-dev
+      metaSubPath: meta
+      kvSubPath: kv
+    minio:
+      address: localhost:9000
+      accessKeyID: minioadmin
+      secretAccessKey: minioadmin
+      useSSL: false
+      bucketName: milvus
+    pulsar:
+      address: localhost:6650
+      maxMessageSize: 5242880
+    cache:
+      enabled: true
+    common:
+      metaIndexTaskInterval: 300s
+      metaIndexTaskTimeout: 600s
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: milvus
+  namespace: project-chimera
+  labels:
+    app: milvus
+    component: infrastructure
+spec:
+  type: ClusterIP
+  ports:
+  - port: 19530
+    targetPort: 19530
+    protocol: TCP
+    name: milvus
+  - port: 9091
+    targetPort: 9091
+    protocol: TCP
+    name: metrics
+  selector:
+    app: milvus
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: milvus-etcd-data
+  namespace: project-chimera
+  labels:
+    app: milvus
+    component: infrastructure
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: local-sc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: milvus-minio-data
+  namespace: project-chimera
+  labels:
+    app: milvus
+    component: infrastructure
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: local-sc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: milvus-data
+  namespace: project-chimera
+  labels:
+    app: milvus
+    component: infrastructure
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: local-sc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: milvus
+  namespace: project-chimera
+  labels:
+    app: milvus
+    component: infrastructure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: milvus
+  template:
+    metadata:
+      labels:
+        app: milvus
+        component: infrastructure
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9091"
+        prometheus.io/path: "/metrics"
+    spec:
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      containers:
+      - name: etcd
+        image: quay.io/coreos/etcd:v3.5.5
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 2379
+          protocol: TCP
+          name: etcd-client
+        - containerPort: 2380
+          protocol: TCP
+          name: etcd-peer
+        env:
+        - name: ETCD_AUTO_COMPACTION_MODE
+          value: "revision"
+        - name: ETCD_AUTO_COMPACTION_RETENTION
+          value: "1000"
+        - name: ETCD_QUOTA_BACKEND_BYTES
+          value: "4294967296"
+        - name: ETCD_SNAPSHOT_COUNT
+          value: "50000"
+        command:
+        - etcd
+        - --advertise-client-urls
+        - http://localhost:2379
+        - --listen-client-urls
+        - http://0.0.0.0:2379
+        - --data-dir
+        - /etcd
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"
+        volumeMounts:
+        - name: etcd-data
+          mountPath: /etcd
+      - name: minio
+        image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+          name: minio
+        - containerPort: 9001
+          protocol: TCP
+          name: minio-console
+        env:
+        - name: MINIO_ACCESS_KEY
+          value: "minioadmin"
+        - name: MINIO_SECRET_KEY
+          value: "minioadmin"
+        command:
+        - minio
+        - server
+        - /minio-data
+        - --console-address
+        - ":9001"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+        volumeMounts:
+        - name: minio-data
+          mountPath: /minio-data
+      - name: milvus
+        image: milvusdb/milvus:v2.3.3
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 19530
+          protocol: TCP
+          name: milvus
+        - containerPort: 9091
+          protocol: TCP
+          name: metrics
+        env:
+        - name: ETCD_ENDPOINTS
+          value: "localhost:2379"
+        - name: MINIO_ADDRESS
+          value: "localhost:9000"
+        - name: COMMON_STORAGETYPE
+          value: "minio"
+        command:
+        - milvus
+        - run
+        - standalone
+        resources:
+          requests:
+            cpu: "2000m"
+            memory: "4Gi"
+          limits:
+            cpu: "8000m"
+            memory: "16Gi"
+        volumeMounts:
+        - name: milvus-data
+          mountPath: /var/lib/milvus
+        livenessProbe:
+          tcpSocket:
+            port: 19530
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 19530
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 10
+          failureThreshold: 3
+      volumes:
+      - name: etcd-data
+        persistentVolumeClaim:
+          claimName: milvus-etcd-data
+      - name: minio-data
+        persistentVolumeClaim:
+          claimName: milvus-minio-data
+      - name: milvus-data
+        persistentVolumeClaim:
+          claimName: milvus-data

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
-  namespace: shared
+  namespace: project-chimera
   labels:
     app: prometheus
 data:
@@ -24,7 +24,7 @@ data:
     alerting:
       alertmanagers:
         - static_configs:
-            - targets: ['alertmanager.shared.svc.cluster.local:9093']
+            - targets: ['alertmanager.project-chimera.svc.cluster.local:9093']
 
     # Service discovery configurations
     scrape_configs:

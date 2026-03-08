@@ -1,0 +1,50 @@
+# Compute ResourceQuota
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: project-chimera-compute-quota
+  namespace: project-chimera
+  labels:
+    app: project-chimera
+    component: quota
+spec:
+  hard:
+    requests.cpu: "16"
+    requests.memory: "32Gi"
+    requests.nvidia.com/gpu: "4"
+    limits.cpu: "64"
+    limits.memory: "128Gi"
+    limits.nvidia.com/gpu: "4"
+---
+# Storage ResourceQuota
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: project-chimera-storage-quota
+  namespace: project-chimera
+  labels:
+    app: project-chimera
+    component: quota
+spec:
+  hard:
+    requests.storage: "200Gi"
+    persistentvolumeclaims: "20"
+    nfs-sc.storageclass.storage.k8s.io/requests.storage: "150Gi"
+    local-sc.storageclass.storage.k8s.io/requests.storage: "50Gi"
+---
+# Object count quotas
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: project-chimera-object-counts
+  namespace: project-chimera
+  labels:
+    app: project-chimera
+    component: quota
+spec:
+  hard:
+    pods: "50"
+    services: "30"
+    secrets: "20"
+    configmaps: "30"
+    persistentvolumeclaims: "20"

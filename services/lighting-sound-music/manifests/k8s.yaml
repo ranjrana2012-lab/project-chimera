@@ -1,0 +1,161 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lighting-control-config
+  namespace: project-chimera
+  labels:
+    app: lighting-control
+    component: service
+data:
+  SERVICE_NAME: "lighting-control"
+  PORT: "8005"
+  LOG_LEVEL: "INFO"
+  ENVIRONMENT: "production"
+  DMX_ENABLED: "true"
+  DMX_INTERFACE: "enttec-open-dmx"
+  DMX_UNIVERSE: "0"
+  MAX_CHANNELS: "512"
+  FADE_DURATION: "1.0"
+  BLACKOUT_TIMEOUT: "5.0"
+  MIDI_ENABLED: "false"
+  MIDI_PORT: "default"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lighting-control
+  namespace: project-chimera
+  labels:
+    app: lighting-control
+    component: service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8005
+    targetPort: 8005
+    protocol: TCP
+    name: http
+  selector:
+    app: lighting-control
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lighting-control
+  namespace: project-chimera
+  labels:
+    app: lighting-control
+    component: service
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: lighting-control
+  template:
+    metadata:
+      labels:
+        app: lighting-control
+        component: service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8005"
+        prometheus.io/path: "/metrics"
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: lighting-control
+        image: ghcr.io/project-chimera/lighting-control:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8005
+          protocol: TCP
+          name: http
+        - containerPort: 6454
+          protocol: UDP
+          name: s-acn
+        envFrom:
+        - configMapRef:
+            name: lighting-control-config
+        env:
+        - name: OTLP_ENDPOINT
+          value: "http://opentelemetry-collector.observability.svc.cluster.local:4317"
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: dev
+          mountPath: /dev
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8005
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8005
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: 8005
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 18
+        securityContext:
+          privileged: true
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: dev
+        hostPath:
+          path: /dev
+          type: Directory
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - lighting-control
+              topologyKey: kubernetes.io/hostname
+      nodeSelector:
+        hardware: lighting-controller
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: lighting-control
+  namespace: project-chimera
+  labels:
+    app: lighting-control
+    component: service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: lighting-control

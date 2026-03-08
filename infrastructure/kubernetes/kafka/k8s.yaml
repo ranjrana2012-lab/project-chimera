@@ -1,0 +1,205 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+  namespace: project-chimera
+  labels:
+    app: kafka
+    component: infrastructure
+data:
+  server.properties: |
+    # Kafka configuration for Project Chimera
+    broker.id=0
+    listeners=PLAINTEXT://:9092
+    advertised.listeners=PLAINTEXT://kafka.project-chimera.svc.cluster.local:9092
+    listener.security.protocol.map=PLAINTEXT:PLAINTEXT
+    num.network.threads=3
+    num.io.threads=8
+    socket.send.buffer.bytes=102400
+    socket.receive.buffer.bytes=102400
+    socket.request.max.bytes=104857600
+    log.dirs=/kafka/data
+    num.partitions=3
+    num.recovery.threads.per.data.dir=1
+    offsets.topic.replication.factor=1
+    transaction.state.log.replication.factor=1
+    transaction.state.log.min.isr=1
+    log.retention.hours=168
+    log.retention.check.interval.ms=300000
+    zookeeper.connect=localhost:2181
+    zookeeper.connection.timeout.ms=18000
+    group.initial.rebalance.delay.ms=0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: project-chimera
+  labels:
+    app: kafka
+    component: infrastructure
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9092
+    targetPort: 9092
+    protocol: TCP
+    name: kafka
+  selector:
+    app: kafka
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-data
+  namespace: project-chimera
+  labels:
+    app: kafka
+    component: infrastructure
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: local-sc
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: project-chimera
+  labels:
+    app: kafka
+    component: infrastructure
+spec:
+  serviceName: kafka
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+        component: infrastructure
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9308"
+        prometheus.io/path: "/metrics"
+    spec:
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      containers:
+      - name: zookeeper
+        image: bitnami/zookeeper:3.8
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 2181
+          protocol: TCP
+          name: zk-client
+        env:
+        - name: ALLOW_ANONYMOUS_LOGIN
+          value: "yes"
+        - name: ZOOKEEPER_CLIENT_PORT
+          value: "2181"
+        - name: ZOOKEEPER_TICK_TIME
+          value: "2000"
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"
+        volumeMounts:
+        - name: zookeeper-data
+          mountPath: /bitnami/zookeeper
+      - name: kafka
+        image: bitnami/kafka:3.6
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9092
+          protocol: TCP
+          name: kafka
+        command:
+        - /opt/bitnami/kafka/bin/kafka-server-start.sh
+        - /opt/bitnami/kafka/config/server.properties
+        - --override
+        - broker.id=0
+        - --override
+        - listeners=PLAINTEXT://:9092
+        - --override
+        - advertised.listeners=PLAINTEXT://kafka.project-chimera.svc.cluster.local:9092
+        - --override
+        - zookeeper.connect=localhost:2181
+        - --override
+        - log.dirs=/kafka/data
+        - --override
+        - num.partitions=3
+        - --override
+        - default.replication.factor=1
+        env:
+        - name: KAFKA_CFG_ZOOKEEPER_CONNECT
+          value: "localhost:2181"
+        - name: ALLOW_PLAINTEXT_LISTENER
+          value: "yes"
+        - name: KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE
+          value: "true"
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "4000m"
+            memory: "8Gi"
+        volumeMounts:
+        - name: data
+          mountPath: /kafka/data
+        livenessProbe:
+          tcpSocket:
+            port: 9092
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - kafka-topics.sh --bootstrap-server localhost:9092 --list
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 10
+          failureThreshold: 3
+      - name: kafka-exporter
+        image: danielqsj/kafka-exporter:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9308
+          protocol: TCP
+          name: metrics
+        env:
+        - name: KAFKA_SERVER
+          value: "localhost:9092"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+      volumes:
+      - name: zookeeper-data
+        emptyDir:
+          sizeLimit: 2Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: local-sc
+      resources:
+        requests:
+          storage: 50Gi
