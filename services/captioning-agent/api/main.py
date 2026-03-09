@@ -7,13 +7,12 @@ Main API application with WebSocket streaming endpoint.
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram, generate_latest
 from starlette.responses import Response
-from typing import Optional, List
 
 from api.streaming import get_streaming_service, get_manager
 from api.tracing import get_tracer, trace_transcription, trace_streaming_session
