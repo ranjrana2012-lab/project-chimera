@@ -7,7 +7,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, File, UploadFile, Form, WebSocket, WebSocketDisconnect, Response
+from fastapi import FastAPI, File, UploadFile, Form, WebSocket, WebSocketDisconnect, Response, Query
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
@@ -108,8 +108,17 @@ app.add_middleware(
 # Health endpoints
 @app.get("/health", response_model=HealthResponse)
 async def health():
-    """Health check endpoint for E2E compatibility - redirects to liveness"""
-    return HealthResponse(status="alive")
+    """Health check endpoint for E2E compatibility with model info"""
+    model_loaded = whisper_service is not None and whisper_service.is_loaded()
+    return {
+        "status": "healthy",
+        "service": "captioning-agent",
+        "version": "1.0.0",
+        "model_info": {
+            "name": "whisper",
+            "loaded": model_loaded
+        }
+    }
 
 
 @app.get("/health/live", response_model=HealthResponse)
@@ -255,6 +264,7 @@ async def transcribe_file(
 async def transcribe_audio_api(
     audio: UploadFile = File(..., description="Audio file to transcribe"),
     language: Optional[str] = Form(None),  # Using Form instead of query param for multipart
+    timestamps: Optional[str] = Query(None, description="Include timestamp segments in response")
 ):
     """
     Transcribe audio file (E2E test compatible).
@@ -321,12 +331,32 @@ async def transcribe_audio_api(
                 overall_confidence = 0.85
 
             # Build E2E compatible response
-            response = APITranscribeResponse(
-                transcription=result["text"],
-                confidence=overall_confidence,
-                language=result["language"],
-                duration=result.get("duration")
-            )
+            response_data = {
+                "transcription": result["text"],
+                "confidence": overall_confidence,
+                "language": result["language"],
+                "duration": result.get("duration")
+            }
+
+            # Add segments if timestamps requested
+            if timestamps and timestamps.lower() == 'true':
+                response_data["segments"] = [
+                    {
+                        "id": i,
+                        "seek": 0,
+                        "start": seg.get("start", 0),
+                        "end": seg.get("end", 0),
+                        "text": seg.get("text", ""),
+                        "tokens": [],
+                        "temperature": 0.0,
+                        "avg_logprob": -0.5,
+                        "compression_ratio": 1.0,
+                        "no_speech_prob": 0.1
+                    }
+                    for i, seg in enumerate(segments)
+                ]
+
+            response = APITranscribeResponse(**response_data)
 
             # Record metrics
             record_transcription(
