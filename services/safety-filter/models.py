@@ -97,3 +97,39 @@ class PolicyInfo(BaseModel):
     description: str
     level: ModerationLevel
     pattern_count: int
+
+
+# API-compatible models for /api/moderate endpoint
+
+class APIModerateRequest(BaseModel):
+    """Request for /api/moderate endpoint"""
+    text: str = Field(..., min_length=1, description="Text content to moderate")
+    threshold: Optional[float] = Field(0.5, ge=0, le=1, description="Safety threshold (0-1)")
+    categories: Optional[List[str]] = Field(None, description="Specific categories to check")
+    context: Optional[Dict[str, Any]] = Field(None, description="Additional context for awareness")
+
+
+class CategoryScores(BaseModel):
+    """Category scores for moderation result"""
+    violence: float = 0.0
+    hate: float = 0.0
+    sexual: float = 0.0
+    self_harm: float = 0.0
+    harassment: float = 0.0
+
+
+class ModerationMetadata(BaseModel):
+    """Metadata for moderation result"""
+    model: str = "safety-filter-v1"
+    processing_time_ms: float
+    policy: str = "family"
+    timestamp: str
+
+
+class APIModerateResponse(BaseModel):
+    """Response from /api/moderate endpoint"""
+    safe: bool
+    confidence: float
+    categories: CategoryScores
+    flagged_reason: Optional[str] = None
+    metadata: ModerationMetadata

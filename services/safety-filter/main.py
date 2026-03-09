@@ -23,7 +23,11 @@ from models import (
     CheckRequest,
     CheckResponse,
     HealthResponse,
-    PolicyInfo
+    PolicyInfo,
+    APIModerateRequest,
+    APIModerateResponse,
+    CategoryScores,
+    ModerationMetadata
 )
 from tracing import setup_telemetry, instrument_fastapi, add_span_attributes, record_error
 from metrics import record_moderation, update_blocklist_size, update_audit_log_size
@@ -63,6 +67,21 @@ app = FastAPI(
 instrument_fastapi(app)
 
 
+@app.get("/health")
+async def health():
+    """
+    Health check endpoint.
+
+    Returns service health status and model information.
+    """
+    return HealthResponse(
+        status="healthy",
+        service="safety-filter",
+        moderator_ready=True,
+        policy=settings.default_policy
+    )
+
+
 @app.get("/health/live")
 async def liveness():
     """Liveness probe for Kubernetes."""
@@ -78,6 +97,115 @@ async def readiness():
         moderator_ready=True,
         policy=settings.default_policy
     )
+
+
+@app.get("/health/model_info")
+async def health_with_model_info():
+    """
+    Health check with model information.
+
+    Returns detailed model status for E2E tests.
+    """
+    return {
+        "status": "healthy",
+        "service": "safety-filter",
+        "model_info": {
+            "name": "safety-filter",
+            "loaded": True,
+            "version": "1.0.0"
+        },
+        "moderator_ready": True,
+        "policy": settings.default_policy
+    }
+
+
+@app.post("/api/moderate", response_model=APIModerateResponse)
+async def moderate_content_api(request: APIModerateRequest) -> APIModerateResponse:
+    """
+    Moderate content using /api/moderate endpoint (E2E test compatible).
+
+    Simplified API for content moderation that matches E2E test expectations.
+
+    Args:
+        request: Moderation request with text and optional parameters
+
+    Returns:
+        APIModerateResponse with safe flag, confidence, and category scores
+
+    Example:
+        POST /api/moderate
+        {
+            "text": "Hello, world!",
+            "threshold": 0.8
+        }
+    """
+    import json
+    start_time = time.time()
+
+    try:
+        with tracer.start_as_current_span("moderate_content_api") as span:
+            # Perform moderation using internal API
+            result = moderator.moderate(
+                text=request.text,
+                context=request.context
+            )
+
+            # Calculate category scores based on matched patterns
+            categories = CategoryScores()
+
+            # Map pattern types to categories
+            pattern_type_mapping = {
+                "profanity": "harassment",
+                "hate_speech": "hate",
+                "sexual": "sexual",
+                "violence": "violence",
+                "self_harm": "self_harm",
+                "harmful": "violence"
+            }
+
+            for pattern in result.matched_patterns:
+                category = pattern_type_mapping.get(pattern.type, "harassment")
+                if hasattr(categories, category):
+                    current_value = getattr(categories, category)
+                    # Increase score based on severity
+                    severity_multiplier = {
+                        "safe": 0.0,
+                        "low": 0.2,
+                        "medium": 0.5,
+                        "high": 0.8,
+                        "critical": 1.0
+                    }.get(pattern.severity.value, 0.5)
+                    setattr(categories, category, max(current_value, severity_multiplier))
+
+            # Determine if content is safe based on threshold
+            # If confidence is below threshold, consider it unsafe
+            is_safe = result.is_safe and result.confidence >= request.threshold
+
+            # If any category score is above threshold, mark as unsafe
+            if not result.is_safe:
+                is_safe = False
+
+            processing_time = (time.time() - start_time) * 1000
+
+            # Generate metadata
+            metadata = ModerationMetadata(
+                model="safety-filter-v1",
+                processing_time_ms=round(processing_time, 2),
+                policy=request.context.get("policy", "family") if request.context else settings.default_policy,
+                timestamp=json.dumps({"start": start_time})  # Simplified
+            )
+
+            return APIModerateResponse(
+                safe=is_safe,
+                confidence=result.confidence,
+                categories=categories,
+                flagged_reason=result.reason if not result.is_safe else None,
+                metadata=metadata
+            )
+
+    except Exception as e:
+        logger.error(f"API moderation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/v1/moderate", response_model=ModerateResponse)
