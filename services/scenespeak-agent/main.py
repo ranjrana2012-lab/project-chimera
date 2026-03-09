@@ -178,8 +178,15 @@ async def generate_dialogue_api(request: dict):
     start_time = time.time()
 
     try:
-        # Extract parameters from request
+        # Validate prompt parameter FIRST (before any processing)
+        if "prompt" not in request:
+            raise HTTPException(status_code=422, detail="prompt is required")
+
         prompt = request.get("prompt", "")
+        if not prompt or not prompt.strip():
+            raise HTTPException(status_code=422, detail="prompt cannot be empty")
+
+        # Extract parameters from request
         context = request.get("context", {})
         style = request.get("style")  # Optional style parameter
         max_tokens = request.get("max_tokens", 500)
@@ -209,7 +216,8 @@ async def generate_dialogue_api(request: dict):
             "latency_ms": round(duration_ms, 2),
             "tokens_used": response.tokens_used,
             "adapter": response.source,
-            "generation_time": duration_ms / 1000
+            "generation_time": duration_ms / 1000,
+            "timestamp": __import__('datetime').datetime.now().isoformat()
         }
 
         # Add context to metadata if provided
