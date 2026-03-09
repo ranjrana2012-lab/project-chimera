@@ -13,21 +13,21 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
-from .config import settings
-from .model_pool import ModelPool, get_model_pool
-from .metrics import (
+from config import settings
+from model_pool import ModelPool, get_model_pool
+from metrics import (
     request_counter,
     model_load_time,
     active_generations
 )
-from .tracing import (
+from tracing import (
     setup_tracing,
     instrument_fastapi,
     get_tracer,
     trace_model_loading,
     shutdown_tracing
 )
-from .models import (
+from models import (
     HealthResponse,
     ModelInfo,
     GenerateRequest,
