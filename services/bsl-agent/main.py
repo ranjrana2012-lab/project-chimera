@@ -142,11 +142,8 @@ async def health():
         "translator_ready": True,
         "avatar_ready": True,
         "renderer_info": {
-            "webgl_supported": True,
-            "three_version": "1.0.0",
-            "model": settings.avatar_model_path,
-            "resolution": settings.avatar_resolution,
-            "fps": settings.avatar_fps
+            "type": "webgl",
+            "ready": True
         }
     }
 
