@@ -79,24 +79,43 @@ Added `/api/*` endpoints to multiple services to match E2E test expectations. Al
 
 **Commit**: `a31a513` - "fix: make music-generation service importable and pass E2E tests"
 
+### 7. Captioning Agent (Port 8002)
+**Files**: `services/captioning-agent/models.py`, `services/captioning-agent/main.py`
+
+**Changes**:
+- Fixed `segments` field in `APITranscribeResponse` model
+- Added `/ws/captions` WebSocket endpoint for real-time caption updates
+
+**Commits**: `0782d99` - "fix: add segments field to APITranscribeResponse model"
+
+### 8. WebSocket Endpoints
+**Files**: `services/sentiment-agent/src/sentiment_agent/main.py`, `services/captioning-agent/main.py`
+
+**Changes**:
+- Added `/ws/sentiment` endpoint to sentiment-agent for real-time sentiment broadcast
+- Added `/ws/captions` endpoint to captioning-agent for real-time caption updates
+- Both endpoints support connection management, ping/pong, and graceful disconnection
+
+**Commit**: `f0a5281` - "feat: add WebSocket endpoints for sentiment and captioning agents"
+
 ## Next Steps (Require Docker Rebuild)
 
 The following services need to be rebuilt and restarted to pick up the code changes:
 
 ```bash
 # Rebuild all modified services
-docker compose build safety-filter operator-console openclaw-orchestrator scenespeak-agent sentiment-agent
+docker compose build safety-filter operator-console openclaw-orchestrator scenespeak-agent sentiment-agent captioning-agent
 
 # Restart the services
-docker compose up -d safety-filter operator-console openclaw-orchestrator scenespeak-agent sentiment-agent
+docker compose up -d safety-filter operator-console openclaw-orchestrator scenespeak-agent sentiment-agent captioning-agent
 ```
 
 ## Test Status
 
-**Current**: 82/94 tests passing (87%)
+**Current**: 71/129 tests passing (55%)
 
-**After Rebuild**: Expected to have more API tests passing. The remaining failures are:
-- WebSocket tests (need sentiment-agent WebSocket endpoint)
+**After Rebuild**: Expected to have more API tests passing (~115/129 = 89%). The remaining failures are:
+- WebSocket tests (endpoints implemented, need rebuild to verify)
 - UI tests (timing issues)
 - Cross-service workflow tests (integration)
 
@@ -104,6 +123,8 @@ docker compose up -d safety-filter operator-console openclaw-orchestrator scenes
 
 All changes have been pushed to `origin/main`:
 ```
+f0a5281 - feat: add WebSocket endpoints for sentiment and captioning agents
+0782d99 - fix: add segments field to APITranscribeResponse model
 a31a513 - fix: make music-generation service importable and pass E2E tests
 f804466 - feat: add /api/moderate endpoint and /health endpoint to safety-filter
 193383d - feat: add show control endpoints to operator-console
@@ -115,8 +136,8 @@ e0f4289 - feat: add /api/analyze and /health/model_info endpoints to sentiment-a
 ## Remaining Work
 
 1. **Docker Rebuild**: Rebuild and restart services to pick up code changes
-2. **WebSocket Tests**: Implement WebSocket endpoints for real-time updates
+2. **WebSocket Tests**: Verify WebSocket endpoints work correctly after rebuild (endpoints already implemented)
 3. **UI Tests**: Fix timing issues and ensure UI elements are properly loaded
 4. **Cross-Service Tests**: Implement full integration workflow
 5. **BSL Agent**: Fix 2 failing E2E tests
-6. **Captioning Agent**: Fix 2 failing E2E tests (already fixed in code, needs rebuild)
+6. **Captioning Agent**: Verify 2 failing E2E tests pass after rebuild (segments field already fixed)

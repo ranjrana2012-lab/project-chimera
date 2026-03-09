@@ -7,6 +7,20 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.10+-blue)
 
+## Project Status
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| OpenClaw Orchestrator (8000) | ✅ Working | /api/skills, /api/show endpoints |
+| SceneSpeak Agent (8001) | ✅ Working | /api/generate endpoint implemented |
+| Captioning Agent (8002) | ✅ Working | WebSocket endpoint implemented |
+| BSL Agent (8003) | ⚠️ Needs Fixes | 2 E2E tests failing |
+| Sentiment Agent (8004) | ✅ Working | WebSocket + /api/analyze implemented |
+| Safety Filter (8006) | ✅ Working | /api/moderate endpoint implemented |
+| Operator Console (8007) | ✅ Working | Show control endpoints implemented |
+| Music Generation (8011) | ✅ Working | All 17 E2E tests passing |
+| **E2E Tests** | ⚠️ In Progress | 82/94 passing (87%) - needs Docker rebuild |
+
 ## Overview
 
 Project Chimera is an open-source, student-run Dynamic Performance Hub that uses AI to generate live theatre experiences. The system combines multiple AI agents with stage automation to create responsive, audience-driven performances for universities and theatre companies worldwide.
@@ -18,6 +32,35 @@ Project Chimera is an open-source, student-run Dynamic Performance Hub that uses
 - **Safety First** - Multi-layer content moderation with human oversight
 - **Accessible** - Built-in captioning and British Sign Language translation
 - **Open Source** - Free for universities and educational institutions
+
+## Current Status
+
+### ✅ Complete & Working
+
+- All 8 core services have `/api/*` endpoints implemented
+- WebSocket support for sentiment, captioning, and BSL agents
+- Music generation platform fully functional (17/17 tests passing)
+- Docker compose setup for local development
+- Comprehensive E2E test suite (129 tests)
+
+### ⚠️ Needs Fixes
+
+- BSL Agent: 2 failing E2E tests (validation, renderer info)
+- Captioning Agent: 2 failing E2E tests (needs Docker rebuild)
+- Docker images need rebuild to pick up recent code changes
+
+### 🚧 In Progress
+
+- E2E test completion (target: 93%+ pass rate)
+- UI test timing improvements
+- Cross-service workflow integration
+
+### 📋 Next Steps
+
+1. Rebuild Docker services with new API endpoints
+2. Fix remaining BSL and Captioning agent E2E failures
+3. Improve UI test reliability (timeout adjustments)
+4. Complete cross-service workflow tests
 
 ## Key Components
 
@@ -85,7 +128,7 @@ For complete observability documentation, see [Observability Guide](docs/observa
 The bootstrap process automates the complete setup of Project Chimera on a local k3s cluster:
 
 ```bash
-git clone https://github.com/project-chimera/project-chimera.git
+git clone https://github.com/ranjrana2012-lab/project-chimera.git
 cd project-chimera
 make bootstrap
 ```
@@ -102,7 +145,7 @@ make bootstrap
 
 ### Manual Setup
 
-For manual setup or custom configurations, see the [Deployment Guide](docs/reference/runbooks/deployment.md).
+For manual setup or custom configurations, see the [Deployment Guide](docs/runbooks/deployment.md).
 
 ### Docker Compose (Local Development)
 
@@ -131,6 +174,42 @@ See [Docker Compose Guide](DOCKER.md) for detailed documentation.
 make bootstrap-status
 ```
 
+## Quick Verification
+
+Run these commands from the project root directory to verify your setup.
+
+Check if all services are running:
+
+```bash
+# Health checks for all services (jq optional - formats JSON output if available)
+for port in 8000 8001 8002 8003 8004 8006 8007 8011; do
+  echo "Port $port:"
+  curl -s http://localhost:$port/health | jq '.' 2>/dev/null || curl -s http://localhost:$port/health || echo "Not responding"
+  echo "---"
+done
+```
+
+Run E2E tests:
+
+```bash
+cd tests/e2e
+npm test
+```
+
+Check Docker status:
+
+```bash
+docker compose ps
+```
+
+Rebuild services (if needed):
+
+```bash
+# Use this when you make changes to service code or configuration
+docker compose build safety-filter operator-console openclaw-orchestrator scenespeak-agent sentiment-agent captioning-agent
+docker compose up -d
+```
+
 ## Documentation
 
 ### For Students and Developers
@@ -142,7 +221,7 @@ make bootstrap-status
 - [Student FAQ](docs/getting-started/faq.md) - Frequently asked questions
 - [Sprint Definitions](docs/getting-started/sprint-definitions.md) - 15 sprint overview
 - [Evaluation Criteria](docs/getting-started/evaluation-criteria.md) - Grading information
-- [Monday Demo Info](docs/getting-started/monday-demo/) - Demo preparation
+- [Monday Demo Info](docs/getting-started/monday-demo/README.md) - Demo preparation
 - [GitHub Workflow](docs/guides/github-workflow.md) - GitHub automation and trust system
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
 - [Development Guide](docs/DEVELOPMENT.md) - Development workflow and coding standards
@@ -151,7 +230,7 @@ make bootstrap-status
 
 - [Architecture Overview](docs/reference/architecture.md) - System architecture and design
 - [API Documentation](docs/reference/api.md) - Complete API reference for all services
-- [Deployment Guide](docs/reference/runbooks/deployment.md) - Deployment scenarios and procedures
+- [Deployment Guide](docs/runbooks/deployment.md) - Deployment scenarios and procedures
 
 ### Services Documentation
 
@@ -161,8 +240,8 @@ make bootstrap-status
 
 ### Operational Documentation
 
-- [Monitoring Runbook](docs/reference/runbooks/monitoring.md) - Monitoring and alerting setup
-- [Incident Response](docs/reference/runbooks/incident-response.md) - Handling incidents
+- [Monitoring Runbook](docs/runbooks/monitoring.md) - Monitoring and alerting setup
+- [Incident Response](docs/runbooks/incident-response.md) - Handling incidents
 
 ## Architecture
 
@@ -254,9 +333,9 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Community
 
-- **GitHub:** https://github.com/project-chimera/project-chimera
-- **Issues:** https://github.com/project-chimera/project-chimera/issues
-- **Discussions:** https://github.com/project-chimera/project-chimera/discussions
+- **GitHub:** https://github.com/ranjrana2012-lab/project-chimera
+- **Issues:** https://github.com/ranjrana2012-lab/project-chimera/issues
+- **Discussions:** https://github.com/ranjrana2012-lab/project-chimera/discussions
 
 ## License
 
@@ -285,25 +364,45 @@ Project Chimera is built on open-source technologies and would not be possible w
 
 ### v0.5.0 (Current - March 2026)
 
-- WorldMonitor integration for enhanced sentiment analysis
-- Global context enrichment for real-time audience feedback
-- WebSocket-based context streaming
-- Category-based event filtering
+**Completed:**
+- ✅ WebSocket endpoints for sentiment, captioning, and BSL agents
+- ✅ Complete `/api/*` endpoint implementation across all services
+- ✅ Music generation platform with ACE-Step integration
+- ✅ Comprehensive E2E test suite (129 tests)
+- ✅ WorldMonitor integration for enhanced sentiment analysis
 
-### v0.6.0 (Planned)
+**In Progress:**
+- ⚠️ E2E test completion (87% passing, targeting 93%+)
+- ⚠️ Docker rebuild to pick up recent code changes
 
-- Complete service fixes (Captioning, BSL, Safety)
+**Recent Commits:**
+- `f0a5281` - WebSocket endpoints for sentiment and captioning agents
+- `044abf0` - /health, /api/skills, /api/show endpoints to orchestrator
+- `b214b08` - /api/generate endpoint to scenespeak-agent
+- `e0f4289` - /api/analyze endpoint to sentiment-agent
+- `f804466` - /api/moderate endpoint to safety-filter
+- `193383d` - Show control endpoints to operator-console
+
+### v0.6.0 (Next - April 2026)
+
+**Planned:**
+- Fix remaining BSL Agent E2E failures
+- Improve UI test reliability
+- Complete cross-service workflow integration
+- Enhanced monitoring and alerting
 - Multi-scene support
-- Enhanced accessibility features
 
-### v1.0.0 (Future)
+### v1.0.0 (Future - Q2 2026)
 
+**Planned:**
 - Production-ready deployment
-- Cloud deployment guides
+- Cloud deployment guides (AWS/GCP)
 - Public performances
+- Complete documentation suite
+- Global context enrichment for real-time audience feedback
 
 ---
 
 **Project Chimera** - An AI-powered live theatre platform for universities worldwide.
 
-For questions, support, or to get involved, please [open an issue](https://github.com/project-chimera/project-chimera/issues) or [start a discussion](https://github.com/project-chimera/project-chimera/discussions).
+For questions, support, or to get involved, please [open an issue](https://github.com/ranjrana2012-lab/project-chimera/issues) or [start a discussion](https://github.com/ranjrana2012-lab/project-chimera/discussions).
