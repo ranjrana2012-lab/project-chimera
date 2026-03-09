@@ -129,7 +129,7 @@ class CategoryScores(BaseModel):
 class ModerationMetadata(BaseModel):
     """Metadata for moderation result"""
     model: str = "safety-filter-v1"
-    processing_time_ms: float
+    latency_ms: float
     policy: str = "family"
     timestamp: str
 

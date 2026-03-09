@@ -169,7 +169,6 @@ async def moderate_content_api(request: APIModerateRequest) -> APIModerateRespon
             "threshold": 0.8
         }
     """
-    import json
     start_time = time.time()
 
     try:
@@ -220,9 +219,9 @@ async def moderate_content_api(request: APIModerateRequest) -> APIModerateRespon
             # Generate metadata
             metadata = ModerationMetadata(
                 model="safety-filter-v1",
-                processing_time_ms=round(processing_time, 2),
+                latency_ms=round(processing_time, 2),
                 policy=request.context.get("policy", "family") if request.context else settings.default_policy,
-                timestamp=json.dumps({"start": start_time})  # Simplified
+                timestamp=f"{start_time:.3f}"
             )
 
             return APIModerateResponse(
