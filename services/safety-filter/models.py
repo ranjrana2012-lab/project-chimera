@@ -83,12 +83,20 @@ class CheckResponse(BaseModel):
     reason: Optional[str] = None
 
 
+class ModelInfo(BaseModel):
+    """Model information"""
+    name: str
+    loaded: bool
+    version: str
+
+
 class HealthResponse(BaseModel):
     """Health check response"""
     status: str
     service: str
     moderator_ready: bool
     policy: Optional[str] = None
+    model_info: Optional[ModelInfo] = None
 
 
 class PolicyInfo(BaseModel):
