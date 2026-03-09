@@ -13,9 +13,10 @@ Features:
 import time
 import logging
 import httpx
-from typing import Optional
+from typing import Optional, Set
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from datetime import datetime
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
@@ -69,6 +70,62 @@ async def send_sentiment_webhook(text: str, sentiment: str, score: float, confid
     except Exception as e:
         # Don't fail analysis if webhook fails
         logger.warning(f"Failed to send sentiment webhook: {e}")
+
+
+# ============================================================================
+# WebSocket Connection Manager
+# ============================================================================
+
+class SentimentConnectionManager:
+    """Manages WebSocket connections for real-time sentiment updates."""
+
+    def __init__(self):
+        self.active_connections: Set[WebSocket] = set()
+
+    async def connect(self, websocket: WebSocket):
+        """Accept and register a new WebSocket connection."""
+        await websocket.accept()
+        self.active_connections.add(websocket)
+        logger.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
+
+    def disconnect(self, websocket: WebSocket):
+        """Remove a WebSocket connection."""
+        self.active_connections.discard(websocket)
+        logger.info(f"WebSocket disconnected. Total connections: {len(self.active_connections)}")
+
+    async def broadcast_sentiment(self, sentiment_data: dict):
+        """Broadcast sentiment update to all connected clients.
+
+        Args:
+            sentiment_data: Dict containing sentiment, score, confidence, emotions
+        """
+        if not self.active_connections:
+            return
+
+        disconnected = set()
+        message = {
+            "type": "sentiment_update",
+            "data": sentiment_data,
+            "timestamp": datetime.now().isoformat()
+        }
+
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception as e:
+                logger.warning(f"Failed to send to client: {e}")
+                disconnected.add(connection)
+
+        # Clean up disconnected clients
+        for conn in disconnected:
+            self.disconnect(conn)
+
+        if disconnected:
+            logger.info(f"Cleaned up {len(disconnected)} dead connections")
+
+
+# Global connection manager
+ws_manager = SentimentConnectionManager()
 
 
 @asynccontextmanager
@@ -214,6 +271,18 @@ async def analyze_sentiment_api(request: dict):
                     "language": language or "en"
                 }
             }
+
+            # Broadcast to WebSocket clients (non-blocking)
+            try:
+                await ws_manager.broadcast_sentiment({
+                    "sentiment": result["sentiment"],
+                    "score": result["score"],
+                    "confidence": result["confidence"],
+                    "emotions": result["emotions"],
+                    "text": text[:100] + "..." if len(text) > 100 else text  # Truncate for privacy
+                })
+            except Exception as e:
+                logger.warning(f"Failed to broadcast WebSocket update: {e}")
 
             return response
 
@@ -369,6 +438,49 @@ async def analyze_batch(request: BatchRequest) -> BatchResponse:
     except Exception as e:
         logger.error(f"Batch sentiment analysis failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.websocket("/ws/sentiment")
+async def websocket_sentiment(websocket: WebSocket):
+    """WebSocket endpoint for real-time sentiment updates.
+
+    Clients can connect to receive real-time sentiment analysis results.
+    The connection stays alive and receives updates as analyses are performed.
+
+    Example:
+        const ws = new WebSocket('ws://localhost:8004/ws/sentiment');
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Sentiment:', data.data.sentiment);
+        };
+    """
+    await ws_manager.connect(websocket)
+
+    try:
+        # Send initial connection confirmation
+        await websocket.send_json({
+            "type": "connected",
+            "service": "sentiment-agent",
+            "timestamp": datetime.now().isoformat()
+        })
+
+        # Keep connection alive and handle incoming messages
+        while True:
+            data = await websocket.receive_text()
+
+            # Handle ping/pong for connection health
+            if data.strip().lower() == "ping":
+                await websocket.send_json({
+                    "type": "pong",
+                    "timestamp": datetime.now().isoformat()
+                })
+
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected normally")
+        ws_manager.disconnect(websocket)
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        ws_manager.disconnect(websocket)
 
 
 @app.get("/metrics")

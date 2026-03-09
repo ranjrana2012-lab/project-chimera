@@ -5,10 +5,11 @@ import tempfile
 import time
 import logging
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, Set
 
 from fastapi import FastAPI, File, UploadFile, Form, WebSocket, WebSocketDisconnect, Response, Query
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 from config import settings, get_settings
@@ -42,6 +43,62 @@ logger = logging.getLogger(__name__)
 # Global service instance
 whisper_service: Optional[WhisperService] = None
 tracer = None
+
+
+# ============================================================================
+# WebSocket Connection Manager for Real-time Caption Updates
+# ============================================================================
+
+class CaptioningConnectionManager:
+    """Manages WebSocket connections for real-time caption updates."""
+
+    def __init__(self):
+        self.active_connections: Set[WebSocket] = set()
+
+    async def connect(self, websocket: WebSocket):
+        """Accept and register a new WebSocket connection."""
+        await websocket.accept()
+        self.active_connections.add(websocket)
+        logger.info(f"Captioning WebSocket connected. Total: {len(self.active_connections)}")
+
+    def disconnect(self, websocket: WebSocket):
+        """Remove a WebSocket connection."""
+        self.active_connections.discard(websocket)
+        logger.info(f"Captioning WebSocket disconnected. Total: {len(self.active_connections)}")
+
+    async def broadcast_caption(self, caption_data: dict):
+        """Broadcast caption update to all connected clients.
+
+        Args:
+            caption_data: Dict containing transcription, confidence, language, etc.
+        """
+        if not self.active_connections:
+            return
+
+        disconnected = set()
+        message = {
+            "type": "caption_update",
+            "data": caption_data,
+            "timestamp": datetime.now().isoformat()
+        }
+
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception as e:
+                logger.warning(f"Failed to send caption to client: {e}")
+                disconnected.add(connection)
+
+        # Clean up disconnected clients
+        for conn in disconnected:
+            self.disconnect(conn)
+
+        if disconnected:
+            logger.info(f"Cleaned up {len(disconnected)} dead captioning connections")
+
+
+# Global captioning WebSocket manager
+caption_ws_manager = CaptioningConnectionManager()
 
 
 @asynccontextmanager
@@ -374,6 +431,17 @@ async def transcribe_audio_api(
                 f"confidence={overall_confidence:.2f}"
             )
 
+            # Broadcast to WebSocket clients (non-blocking)
+            try:
+                await caption_ws_manager.broadcast_caption({
+                    "transcription": result["text"],
+                    "confidence": overall_confidence,
+                    "language": result["language"],
+                    "duration": result.get("duration")
+                })
+            except Exception as e:
+                logger.warning(f"Failed to broadcast caption WebSocket update: {e}")
+
             return response
 
         finally:
@@ -428,6 +496,50 @@ async def websocket_stream(websocket: WebSocket, client_id: Optional[str] = None
         logger.error(f"WebSocket error: {e}")
     finally:
         record_websocket_connection(-1)
+
+
+@app.websocket("/ws/captions")
+async def websocket_caption_broadcast(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time caption broadcast updates.
+
+    Clients can connect to receive real-time transcription results
+    broadcast as they are processed by the /api/transcribe endpoint.
+
+    Example:
+        const ws = new WebSocket('ws://localhost:8002/ws/captions');
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Caption:', data.data.transcription);
+        };
+    """
+    await caption_ws_manager.connect(websocket)
+
+    try:
+        # Send initial connection confirmation
+        await websocket.send_json({
+            "type": "connected",
+            "service": "captioning-agent",
+            "timestamp": datetime.now().isoformat()
+        })
+
+        # Keep connection alive and handle incoming messages
+        while True:
+            data = await websocket.receive_text()
+
+            # Handle ping/pong for connection health
+            if data.strip().lower() == "ping":
+                await websocket.send_json({
+                    "type": "pong",
+                    "timestamp": datetime.now().isoformat()
+                })
+
+    except WebSocketDisconnect:
+        logger.info("Captioning broadcast WebSocket disconnected normally")
+        caption_ws_manager.disconnect(websocket)
+    except Exception as e:
+        logger.error(f"Captioning broadcast WebSocket error: {e}")
+        caption_ws_manager.disconnect(websocket)
 
 
 if __name__ == "__main__":
