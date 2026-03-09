@@ -75,3 +75,4 @@ class APITranscribeResponse(BaseModel):
     confidence: float = Field(..., description="Overall confidence score (0-1)")
     language: Optional[str] = Field(None, description="Detected or specified language")
     duration: Optional[float] = Field(None, description="Audio duration in seconds")
+    segments: Optional[List[Dict[str, Any]]] = Field(None, description="Time-stamped transcription segments")
