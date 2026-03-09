@@ -7,7 +7,7 @@ Central monitoring and control dashboard for Project Chimera services.
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
