@@ -263,25 +263,11 @@ async def transcribe_audio(
                 detail=f"Invalid audio format: {audio.content_type}. Allowed: {', '.join(allowed_types)}"
             )
 
-        # Trace transcription operation
-        with trace_transcription(audio_size_bytes=len(audio_bytes), language=language) as span:
-            result = transcription_service.transcribe(audio_bytes, audio_hash, language)
-
-            # Record additional span attributes
-            from shared.tracing import add_span_attributes
-            add_span_attributes(span, {
-                "transcription.confidence": result.confidence,
-                "transcription.from_cache": result.from_cache or False,
-                "transcription.model": result.model_version or "unknown"
-            })
-
-            duration = result.processing_time_ms / 1000.0 if result.processing_time_ms else 0
-            transcription_duration.observe(duration)
+        # Transcribe the audio
+        result = transcription_service.transcribe(audio_bytes, audio_hash, language)
 
         if result.error:
             transcription_requests.labels(status="error").inc()
-            from shared.tracing import record_error
-            span.record_exception(Exception(result.error))
         else:
             transcription_requests.labels(status="success").inc()
 
