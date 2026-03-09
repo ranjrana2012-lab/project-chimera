@@ -32,7 +32,7 @@ class EmotionScores(BaseModel):
 class SentimentResponse(BaseModel):
     """Response from sentiment analysis"""
     sentiment: str = Field(..., description="Sentiment classification: positive, negative, or neutral")
-    score: float = Field(..., ge=0.0, le=1.0, description="Sentiment score from 0 (negative) to 1 (positive)")
+    score: float = Field(..., ge=-1.0, le=1.0, description="Sentiment score from -1 (negative) to 1 (positive)")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score from 0 to 1")
     emotions: Dict[str, float] = Field(..., description="Emotion scores for each emotion type")
 
