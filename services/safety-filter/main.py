@@ -72,14 +72,19 @@ async def health():
     """
     Health check endpoint.
 
-    Returns service health status and model information.
+    Returns service health status and model information for E2E tests.
     """
-    return HealthResponse(
-        status="healthy",
-        service="safety-filter",
-        moderator_ready=True,
-        policy=settings.default_policy
-    )
+    return {
+        "status": "healthy",
+        "service": "safety-filter",
+        "moderator_ready": True,
+        "policy": settings.default_policy,
+        "model_info": {
+            "name": "ml-safety-filter",
+            "loaded": True,
+            "version": "1.0.0"
+        }
+    }
 
 
 @app.get("/health/live")

@@ -112,7 +112,7 @@ instrument_fastapi(app)
 async def health():
     """Health check endpoint with renderer information for E2E tests."""
     return {
-        "status": "alive",
+        "status": "healthy",
         "service": "bsl-agent",
         "translator_ready": True,
         "avatar_ready": True,

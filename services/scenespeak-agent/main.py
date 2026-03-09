@@ -90,13 +90,20 @@ class GenerateResponse(BaseModel):
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Health check endpoint (legacy)."""
+    """Health check endpoint with model_info for E2E tests."""
     local_available = local_llm_client and await local_llm_client.is_available()
-    return HealthResponse(
-        status="healthy",
-        service="scenespeak-agent",
-        model_available=bool(settings.glm_api_key or local_available)
-    )
+    return {
+        "status": "healthy",
+        "service": "scenespeak-agent",
+        "model_available": bool(settings.glm_api_key or local_available),
+        "local_llm_available": local_available,
+        "glm_api_available": bool(settings.glm_api_key),
+        "model_info": {
+            "name": "glm-4.7",
+            "loaded": bool(settings.glm_api_key or local_available),
+            "version": "1.0.0"
+        }
+    }
 
 
 @app.get("/health/live")

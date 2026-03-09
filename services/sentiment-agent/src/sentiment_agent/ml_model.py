@@ -51,19 +51,19 @@ class SentimentModel:
             outputs = self.model(**inputs)
             predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
 
-        # Convert to sentiment
+        # Convert to sentiment with -1 to 1 score range
         negative_prob = predictions[0][0].item()
         positive_prob = predictions[0][1].item()
 
         if positive_prob > 0.6:
             sentiment = "positive"
-            score = positive_prob
+            score = positive_prob  # 0.6 to 1.0
         elif negative_prob > 0.6:
             sentiment = "negative"
-            score = 1.0 - negative_prob
+            score = -(negative_prob)  # -1.0 to -0.6
         else:
             sentiment = "neutral"
-            score = 0.5
+            score = 0.0  # Neutral is 0
 
         confidence = max(positive_prob, negative_prob)
 

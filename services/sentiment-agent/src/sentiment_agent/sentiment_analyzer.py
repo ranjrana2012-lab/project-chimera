@@ -88,10 +88,10 @@ class SentimentAnalyzer:
         return self.model.analyze_batch(texts)
 
     def _neutral_result(self) -> Dict:
-        """Return a neutral sentiment result."""
+        """Return a neutral sentiment result with score 0.0."""
         return {
             "sentiment": "neutral",
-            "score": 0.5,
+            "score": 0.0,
             "confidence": 0.5,
             "emotions": {
                 "joy": 0.0,

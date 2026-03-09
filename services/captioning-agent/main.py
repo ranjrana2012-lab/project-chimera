@@ -173,7 +173,8 @@ async def health():
         "version": "1.0.0",
         "model_info": {
             "name": "whisper",
-            "loaded": model_loaded
+            "loaded": model_loaded,
+            "version": "1.0.0"
         }
     }
 
