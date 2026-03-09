@@ -16,6 +16,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
+    cmake \
+    pkg-config \
     ffmpeg \
     libsndfile1 \
     portaudio19-dev \
