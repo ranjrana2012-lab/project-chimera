@@ -111,19 +111,19 @@ instrument_fastapi(app)
 @app.get("/health")
 async def health():
     """Health check endpoint with renderer information for E2E tests."""
-    return HealthResponse(
-        status="alive",
-        service="bsl-agent",
-        translator_ready=True,
-        avatar_ready=True,
-        renderer={
-            "type": "webgl",
-            "version": "1.0.0",
+    return {
+        "status": "alive",
+        "service": "bsl-agent",
+        "translator_ready": True,
+        "avatar_ready": True,
+        "renderer_info": {
+            "webgl_supported": True,
+            "three_version": "1.0.0",
             "model": settings.avatar_model_path,
             "resolution": settings.avatar_resolution,
             "fps": settings.avatar_fps
         }
-    )
+    }
 
 
 @app.get("/health/live")
