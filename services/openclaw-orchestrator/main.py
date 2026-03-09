@@ -152,48 +152,28 @@ async def list_skills_api():
     """List available skills with metadata (E2E test compatible)"""
     skills = [
         {
-            "name": "dialogue_generator",
+            "name": "generate_dialogue",
             "description": "Generate contextual dialogue for scenes",
-            "version": "1.0.0",
-            "enabled": True,
-            "metadata": {
-                "agent": "scenespeak-agent",
-                "latency_ms": 500,
-                "requires_llm": True
-            }
+            "endpoint": "/v1/generate",
+            "method": "POST"
         },
         {
             "name": "captioning",
             "description": "Speech-to-text transcription with timestamps",
-            "version": "1.0.0",
-            "enabled": True,
-            "metadata": {
-                "agent": "captioning-agent",
-                "latency_ms": 200,
-                "supports_realtime": True
-            }
+            "endpoint": "/v1/transcribe",
+            "method": "POST"
         },
         {
             "name": "bsl_translation",
             "description": "Text-to-BSL gloss translation with avatar",
-            "version": "1.0.0",
-            "enabled": True,
-            "metadata": {
-                "agent": "bsl-agent",
-                "latency_ms": 300,
-                "includes_avatar": True
-            }
+            "endpoint": "/v1/translate",
+            "method": "POST"
         },
         {
-            "name": "sentiment_analysis",
+            "name": "analyze_sentiment",
             "description": "Analyze audience sentiment in real-time",
-            "version": "1.0.0",
-            "enabled": True,
-            "metadata": {
-                "agent": "sentiment-agent",
-                "latency_ms": 100,
-                "model": "sentiment-ml-v1"
-            }
+            "endpoint": "/api/analyze",
+            "method": "POST"
         }
     ]
 
@@ -217,8 +197,9 @@ async def get_show_status_api():
             "scene": show.current_scene or "none",
             "audience_metrics": {
                 "total_reactions": show.audience_metrics.get("total_reactions", 0),
-                "sentiment_score": show.audience_metrics.get("sentiment_score", 0.5)
-            }
+                "average_sentiment": show.audience_metrics.get("sentiment_score", 0.5)
+            },
+            "timestamp": datetime.now().isoformat()
         }
     else:
         return {
@@ -228,8 +209,9 @@ async def get_show_status_api():
             "scene": "none",
             "audience_metrics": {
                 "total_reactions": 0,
-                "sentiment_score": 0.5
-            }
+                "average_sentiment": 0.5
+            },
+            "timestamp": datetime.now().isoformat()
         }
 
 
