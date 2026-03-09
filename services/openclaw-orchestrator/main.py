@@ -45,6 +45,16 @@ app = FastAPI(
 # Instrument FastAPI
 instrument_fastapi(app, "openclaw-orchestrator")
 
+@app.get("/health")
+async def health():
+    """Health check endpoint."""
+    return {
+        "status": "healthy",
+        "service": "openclaw-orchestrator",
+        "version": "1.0.0"
+    }
+
+
 @app.get("/health/live")
 async def liveness():
     return {"status": "alive"}
@@ -135,6 +145,122 @@ async def list_skills():
     ]
 
     return {"skills": skills, "total": len(skills), "enabled": len(skills)}
+
+
+@app.get("/api/skills")
+async def list_skills_api():
+    """List available skills with metadata (E2E test compatible)"""
+    skills = [
+        {
+            "name": "dialogue_generator",
+            "description": "Generate contextual dialogue for scenes",
+            "version": "1.0.0",
+            "enabled": True,
+            "metadata": {
+                "agent": "scenespeak-agent",
+                "latency_ms": 500,
+                "requires_llm": True
+            }
+        },
+        {
+            "name": "captioning",
+            "description": "Speech-to-text transcription with timestamps",
+            "version": "1.0.0",
+            "enabled": True,
+            "metadata": {
+                "agent": "captioning-agent",
+                "latency_ms": 200,
+                "supports_realtime": True
+            }
+        },
+        {
+            "name": "bsl_translation",
+            "description": "Text-to-BSL gloss translation with avatar",
+            "version": "1.0.0",
+            "enabled": True,
+            "metadata": {
+                "agent": "bsl-agent",
+                "latency_ms": 300,
+                "includes_avatar": True
+            }
+        },
+        {
+            "name": "sentiment_analysis",
+            "description": "Analyze audience sentiment in real-time",
+            "version": "1.0.0",
+            "enabled": True,
+            "metadata": {
+                "agent": "sentiment-agent",
+                "latency_ms": 100,
+                "model": "sentiment-ml-v1"
+            }
+        }
+    ]
+
+    return {
+        "skills": skills,
+        "total": len(skills),
+        "enabled": len(skills)
+    }
+
+
+@app.get("/api/show/status")
+async def get_show_status_api():
+    """Get current show status (E2E test compatible)"""
+    show = show_manager.get_current_show()
+
+    if show:
+        return {
+            "show_id": show.show_id,
+            "state": show.state.value,
+            "active": show.state != ShowState.IDLE,
+            "scene": show.current_scene or "none",
+            "audience_metrics": {
+                "total_reactions": show.audience_metrics.get("total_reactions", 0),
+                "sentiment_score": show.audience_metrics.get("sentiment_score", 0.5)
+            }
+        }
+    else:
+        return {
+            "show_id": None,
+            "state": "idle",
+            "active": False,
+            "scene": "none",
+            "audience_metrics": {
+                "total_reactions": 0,
+                "sentiment_score": 0.5
+            }
+        }
+
+
+@app.post("/api/show/control")
+async def control_show_api(request: dict):
+    """Control show via API (start, stop)"""
+    action = request.get("action")
+    show_id = request.get("show_id", "default_show")
+
+    if action == "start":
+        show = show_manager.create_show(show_id)
+        show.start()
+        return {
+            "show_id": show.show_id,
+            "state": show.state.value,
+            "action": "start",
+            "status": "success"
+        }
+    elif action == "stop":
+        show = show_manager.end_show(show_id)
+        if show:
+            return {
+                "show_id": show.show_id,
+                "state": show.state.value,
+                "action": "stop",
+                "status": "success"
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Show not found")
+    else:
+        raise HTTPException(status_code=422, detail=f"Invalid action: {action}")
 
 
 @app.get("/api/show/current")
