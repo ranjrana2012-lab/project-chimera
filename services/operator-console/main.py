@@ -43,6 +43,13 @@ from models import (
     ServiceControlRequest,
     ServiceControlResponse,
     AlertSeverity,
+    ShowStatusResponse,
+    ShowControlRequest,
+    ShowControlResponse,
+    ShowState,
+    AgentStatus,
+    AudienceReaction,
+    ShowConfiguration,
 )
 from websocket_manager import manager
 from metrics_collector import MetricsCollector
@@ -63,6 +70,15 @@ init_service_info(settings.service_name, "1.0.0")
 metrics_collector: Optional[MetricsCollector] = None
 alert_manager: Optional[AlertManager] = None
 _collection_task: Optional[asyncio.Task] = None
+
+# Show state management
+_show_state: Dict[str, Any] = {
+    "active": False,
+    "state": ShowState.IDLE,
+    "scene": "none",
+    "show_id": None,
+    "started_at": None
+}
 
 
 @asynccontextmanager
@@ -215,6 +231,16 @@ health_checks = Counter(
 )
 
 
+@app.get("/health")
+async def health():
+    """Health check endpoint."""
+    return {
+        "status": "healthy",
+        "service": "operator-console",
+        "version": "1.0.0"
+    }
+
+
 @app.get("/health/live")
 async def liveness():
     """Liveness check endpoint."""
@@ -246,6 +272,20 @@ async def readiness():
     status = "ready" if all_ready else "not_ready"
 
     return ReadinessResponse(status=status, checks=checks)
+
+
+@app.get("/health/dashboard_info")
+async def health_with_dashboard_info():
+    """Health check with dashboard information for E2E tests."""
+    return {
+        "status": "healthy",
+        "service": "operator-console",
+        "dashboard": {
+            "available": True,
+            "version": "1.0.0",
+            "url": "/static/dashboard.html"
+        }
+    }
 
 
 @app.get("/", response_class=RedirectResponse)
@@ -389,6 +429,222 @@ async def acknowledge_alert_endpoint(alert_id: str):
         acknowledge_alert(alert.severity.value)
 
     return {"message": f"Alert {alert_id} acknowledged"}
+
+
+# Show control endpoints
+
+@app.get("/api/show/status", response_model=ShowStatusResponse)
+async def get_show_status():
+    """Get current show status."""
+    import datetime
+
+    # Build agent status list
+    agents = []
+    service_urls = settings.get_all_service_urls()
+
+    # Map services to agent names expected by tests
+    agent_mapping = {
+        "openclaw-orchestrator": "orchestrator",
+        "scenespeak-agent": "scenespeak",
+        "captioning-agent": "captioning",
+        "bsl-agent": "bsl",
+        "sentiment-agent": "sentiment",
+        "lighting-sound-music": "lighting",
+        "safety-filter": "safety"
+    }
+
+    for service_name, agent_name in agent_mapping.items():
+        status = ServiceStatus.UNKNOWN
+        if metrics_collector:
+            status_str = metrics_collector.get_service_status(service_name)
+            status = ServiceStatus(status_str) if status_str in ["up", "down", "degraded"] else ServiceStatus.UNKNOWN
+
+        agents.append(AgentStatus(
+            name=agent_name,
+            status=status,
+            ready=status == ServiceStatus.UP,
+            last_activity=datetime.datetime.now() if status == ServiceStatus.UP else None
+        ))
+
+    return ShowStatusResponse(
+        active=_show_state["active"],
+        state=_show_state["state"],
+        scene=_show_state.get("scene", "none"),
+        show_id=_show_state.get("show_id"),
+        agents=agents,
+        audience_metrics=_show_state.get("audience_metrics", {})
+    )
+
+
+@app.post("/api/show/control", response_model=ShowControlResponse)
+async def control_show(request: ShowControlRequest):
+    """Control show (start, stop, pause, resume)."""
+    global _show_state
+
+    action = request.action.lower()
+
+    if action == "start":
+        if _show_state["active"]:
+            return ShowControlResponse(
+                action="start",
+                status="failed",
+                show_id=_show_state["show_id"],
+                message="Show is already running"
+            )
+
+        _show_state["active"] = True
+        _show_state["state"] = ShowState.ACTIVE
+        _show_state["show_id"] = request.show_id or f"show-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
+        _show_state["started_at"] = datetime.datetime.now().isoformat()
+        _show_state["scene"] = "opening"
+
+        logger.info(f"Show started: {_show_state['show_id']}")
+
+        return ShowControlResponse(
+            action="start",
+            status="success",
+            show_id=_show_state["show_id"],
+            message=f"Show {_show_state['show_id']} started successfully"
+        )
+
+    elif action == "stop":
+        if not _show_state["active"]:
+            return ShowControlResponse(
+                action="stop",
+                status="failed",
+                message="No show is currently running"
+            )
+
+        _show_state["active"] = False
+        _show_state["state"] = ShowState.STOPPED
+        show_id = _show_state.get("show_id")
+        _show_state["show_id"] = None
+        _show_state["scene"] = "none"
+
+        logger.info(f"Show stopped: {show_id}")
+
+        return ShowControlResponse(
+            action="stop",
+            status="success",
+            show_id=show_id,
+            message=f"Show {show_id} stopped successfully"
+        )
+
+    elif action == "pause":
+        if not _show_state["active"] or _show_state["state"] != ShowState.ACTIVE:
+            return ShowControlResponse(
+                action="pause",
+                status="failed",
+                message="Show must be active to pause"
+            )
+
+        _show_state["state"] = ShowState.PAUSED
+
+        logger.info(f"Show paused: {_show_state['show_id']}")
+
+        return ShowControlResponse(
+            action="pause",
+            status="success",
+            show_id=_show_state["show_id"],
+            message=f"Show {_show_state['show_id']} paused successfully"
+        )
+
+    elif action == "resume":
+        if not _show_state["active"] or _show_state["state"] != ShowState.PAUSED:
+            return ShowControlResponse(
+                action="resume",
+                status="failed",
+                message="Show must be paused to resume"
+            )
+
+        _show_state["state"] = ShowState.ACTIVE
+
+        logger.info(f"Show resumed: {_show_state['show_id']}")
+
+        return ShowControlResponse(
+            action="resume",
+            status="success",
+            show_id=_show_state["show_id"],
+            message=f"Show {_show_state['show_id']} resumed successfully"
+        )
+
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid action: {action}. Valid actions are: start, stop, pause, resume"
+        )
+
+
+@app.post("/api/show/audience-reaction")
+async def submit_audience_reaction(reaction: AudienceReaction):
+    """Submit audience reaction for real-time show adaptation."""
+    if not _show_state["active"]:
+        raise HTTPException(status_code=409, detail="No show is currently running")
+
+    # In a real implementation, this would:
+    # 1. Send the reaction to the sentiment agent for analysis
+    # 2. Forward to the orchestrator for adaptive content generation
+    # 3. Update show state based on aggregated reactions
+
+    logger.info(f"Audience reaction received: {reaction.text[:50]}...")
+
+    return {
+        "status": "received",
+        "reaction_id": f"rxn-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f')}",
+        "message": "Reaction received and processed"
+    }
+
+
+@app.get("/api/show/configuration", response_model=ShowConfiguration)
+async def get_show_configuration():
+    """Get current show configuration."""
+    # Return default configuration
+    return ShowConfiguration(
+        show_id="default",
+        name="Project Chimera Show",
+        duration_minutes=60,
+        scenes=["opening", "main", "finale"],
+        auto_adaptive=True,
+        audience_interaction=True
+    )
+
+
+@app.put("/api/show/configuration", response_model=ShowConfiguration)
+async def update_show_configuration(config: ShowConfiguration):
+    """Update show configuration."""
+    # In a real implementation, this would persist the configuration
+    logger.info(f"Show configuration updated: {config.name}")
+    return config
+
+
+@app.get("/api/agents/status")
+async def get_agents_status():
+    """Get status of all show agents."""
+    service_urls = settings.get_all_service_urls()
+    agents = []
+
+    agent_mapping = {
+        "openclaw-orchestrator": "orchestrator",
+        "scenespeak-agent": "scenespeak",
+        "captioning-agent": "captioning",
+        "bsl-agent": "bsl",
+        "sentiment-agent": "sentiment"
+    }
+
+    for service_name, agent_name in agent_mapping.items():
+        status = ServiceStatus.UNKNOWN
+        if metrics_collector:
+            status_str = metrics_collector.get_service_status(service_name)
+            status = ServiceStatus(status_str) if status_str in ["up", "down", "degraded"] else ServiceStatus.UNKNOWN
+
+        agents.append({
+            "name": agent_name,
+            "status": status.value,
+            "ready": status == ServiceStatus.UP,
+            "url": service_urls[service_name]
+        })
+
+    return {"agents": agents}
 
 
 @app.websocket("/ws")

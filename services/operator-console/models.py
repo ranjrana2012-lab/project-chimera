@@ -124,3 +124,68 @@ class MetricUpdate(BaseModel):
     unit: str = Field(description="Metric unit")
     timestamp: datetime = Field(default_factory=datetime.now, description="Metric timestamp")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+
+# Show control models
+
+class ShowState(str, Enum):
+    """Show state enumeration."""
+    IDLE = "idle"
+    STARTING = "starting"
+    ACTIVE = "active"
+    PAUSED = "paused"
+    STOPPING = "stopping"
+    STOPPED = "stopped"
+
+
+class AgentStatus(BaseModel):
+    """Agent status in show."""
+    name: str = Field(description="Agent name")
+    status: ServiceStatus = Field(description="Agent service status")
+    ready: bool = Field(default=True, description="Whether agent is ready for show")
+    last_activity: Optional[datetime] = Field(default=None, description="Last agent activity timestamp")
+
+
+class ShowStatusResponse(BaseModel):
+    """Show status response."""
+    active: bool = Field(description="Whether show is currently active")
+    state: ShowState = Field(description="Current show state")
+    scene: str = Field(default="none", description="Current scene")
+    timestamp: datetime = Field(default_factory=datetime.now, description="Status timestamp")
+    show_id: Optional[str] = Field(default=None, description="Current show ID if active")
+    agents: list[AgentStatus] = Field(default_factory=list, description="Status of all show agents")
+    audience_metrics: Dict[str, Any] = Field(default_factory=dict, description="Audience interaction metrics")
+
+
+class ShowControlRequest(BaseModel):
+    """Show control request."""
+    action: str = Field(description="Action: start, stop, pause, resume")
+    show_id: Optional[str] = Field(default=None, description="Show ID (for start action)")
+    reason: Optional[str] = Field(default=None, description="Reason for control action")
+
+
+class ShowControlResponse(BaseModel):
+    """Show control response."""
+    action: str = Field(description="Action performed")
+    status: str = Field(description="Action status: success, failed, or pending")
+    show_id: Optional[str] = Field(default=None, description="Show ID")
+    message: str = Field(description="Status message")
+    timestamp: datetime = Field(default_factory=datetime.now, description="Response timestamp")
+
+
+class AudienceReaction(BaseModel):
+    """Audience reaction input."""
+    text: str = Field(description="Reaction text")
+    sentiment: Optional[str] = Field(default=None, description="Detected sentiment")
+    user_id: Optional[str] = Field(default=None, description="User ID")
+    timestamp: datetime = Field(default_factory=datetime.now, description="Reaction timestamp")
+
+
+class ShowConfiguration(BaseModel):
+    """Show configuration."""
+    show_id: str = Field(description="Show identifier")
+    name: str = Field(description="Show name")
+    duration_minutes: int = Field(default=60, description="Expected show duration in minutes")
+    scenes: list[str] = Field(default_factory=list, description="Scene names")
+    auto_adaptive: bool = Field(default=True, description="Enable adaptive content")
+    audience_interaction: bool = Field(default=True, description="Enable audience interaction")
