@@ -48,3 +48,7 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Get settings instance."""
     return Settings()
+
+
+# Global settings instance for easy import
+settings = get_settings()
