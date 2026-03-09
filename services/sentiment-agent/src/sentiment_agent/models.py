@@ -42,11 +42,19 @@ class BatchResponse(BaseModel):
     results: List[SentimentResponse] = Field(..., description="List of sentiment analysis results")
 
 
+class ModelInfo(BaseModel):
+    """Model information"""
+    name: str
+    loaded: bool
+    version: str
+
+
 class HealthResponse(BaseModel):
     """Health check response"""
     status: str
     service: str
     model_available: bool
+    model_info: Optional[ModelInfo] = None
 
 
 class LivenessResponse(BaseModel):
