@@ -128,6 +128,102 @@ async def health_check():
     )
 
 
+@app.get("/health/model_info")
+async def health_with_model_info():
+    """Health check with model information for E2E tests."""
+    return {
+        "status": "healthy",
+        "service": "sentiment-agent",
+        "model_info": {
+            "name": "distilbert-sentiment",
+            "loaded": analyzer.model_available,
+            "version": "1.0.0"
+        }
+    }
+
+
+@app.post("/api/analyze")
+async def analyze_sentiment_api(request: dict):
+    """
+    Analyze sentiment using /api/analyze endpoint (E2E test compatible).
+
+    Simplified API for sentiment analysis that matches E2E test expectations.
+
+    Args:
+        request: Analysis request with text to analyze
+
+    Returns:
+        Response with sentiment classification, score, confidence, and emotions
+
+    Example:
+        POST /api/analyze
+        {
+            "text": "This is absolutely amazing!"
+        }
+    """
+    start_time = time.time()
+
+    try:
+        with tracer.start_as_current_span("sentiment_analysis_api") as span:
+            # Extract text from request
+            text = request.get("text", "")
+            language = request.get("language")  # Optional language parameter
+
+            # Validate text
+            if not text or not text.strip():
+                raise HTTPException(status_code=422, detail="Text is required")
+
+            text_length = len(text)
+            span.set_attribute("analysis.text_length", text_length)
+
+            # Validate text length
+            if text_length > settings.max_text_length:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Text length exceeds maximum of {settings.max_text_length}"
+                )
+
+            # Analyze sentiment
+            result = analyzer.analyze(text)
+
+            # Calculate duration
+            duration = time.time() - start_time
+
+            # Record metrics
+            record_analysis(
+                show_id="default",
+                sentiment=result["score"],
+                emotions=result["emotions"],
+                duration=duration
+            )
+
+            logger.info(
+                f"Analyzed sentiment: {result['sentiment']} "
+                f"(score={result['score']:.2f}, confidence={result['confidence']:.2f})"
+            )
+
+            # Build response with expected fields
+            response = {
+                "sentiment": result["sentiment"],
+                "score": result["score"],
+                "confidence": result["confidence"],
+                "emotions": result["emotions"],
+                "metadata": {
+                    "model": "distilbert-sentiment",
+                    "latency_ms": int(duration * 1000),
+                    "language": language or "en"
+                }
+            }
+
+            return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Sentiment analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/v1/analyze", response_model=SentimentResponse)
 async def analyze_sentiment(request: AnalyzeRequest) -> SentimentResponse:
     """
