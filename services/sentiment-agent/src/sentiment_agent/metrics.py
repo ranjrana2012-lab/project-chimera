@@ -13,7 +13,7 @@ from prometheus_client import Gauge, Counter
 from typing import Dict
 
 
-# Average audience sentiment - Sentiment score (0-1) per show
+# Average audience sentiment - Sentiment score (-1 to 1) per show
 audience_sentiment = Gauge(
     'sentiment_audience_avg',
     'Average audience sentiment score',
@@ -52,16 +52,16 @@ def record_analysis(show_id: str, sentiment: float, emotions: Dict[str, float], 
 
     Args:
         show_id: Identifier for the show
-        sentiment: Sentiment score between 0 and 1
+        sentiment: Sentiment score between -1 (negative) and 1 (positive)
         emotions: Dictionary of emotion scores with keys:
                   'joy', 'surprise', 'neutral', 'sadness', 'anger', 'fear'
         duration: Time taken for analysis in seconds
 
     Raises:
-        ValueError: If sentiment is not between 0 and 1, or if duration is negative
+        ValueError: If sentiment is not between -1 and 1, or if duration is negative
     """
-    if not 0 <= sentiment <= 1:
-        raise ValueError(f"Sentiment must be between 0 and 1, got {sentiment}")
+    if not -1.0 <= sentiment <= 1.0:
+        raise ValueError(f"Sentiment must be between -1 and 1, got {sentiment}")
     if duration < 0:
         raise ValueError(f"Duration must be non-negative, got {duration}")
 
