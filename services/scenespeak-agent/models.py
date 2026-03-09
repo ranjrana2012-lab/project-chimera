@@ -26,6 +26,13 @@ class DialogueResponse(BaseModel):
     duration_ms: int
 
 
+class ModelInfo(BaseModel):
+    """Model information"""
+    name: str
+    loaded: bool
+    version: str = "1.0.0"
+
+
 class HealthResponse(BaseModel):
     """Health check response"""
     status: str
@@ -33,3 +40,4 @@ class HealthResponse(BaseModel):
     model_available: bool
     local_llm_available: Optional[bool] = None
     glm_api_available: Optional[bool] = None
+    model_info: Optional[ModelInfo] = None

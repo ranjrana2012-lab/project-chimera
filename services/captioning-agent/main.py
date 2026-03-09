@@ -163,7 +163,7 @@ app.add_middleware(
 
 
 # Health endpoints
-@app.get("/health", response_model=HealthResponse)
+@app.get("/health")
 async def health():
     """Health check endpoint for E2E compatibility with model info"""
     model_loaded = whisper_service is not None and whisper_service.is_loaded()

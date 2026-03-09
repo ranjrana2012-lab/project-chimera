@@ -88,7 +88,7 @@ class GenerateResponse(BaseModel):
     metadata: dict
 
 
-@app.get("/health", response_model=HealthResponse)
+@app.get("/health")
 async def health_check():
     """Health check endpoint with model_info for E2E tests."""
     local_available = local_llm_client and await local_llm_client.is_available()

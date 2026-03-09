@@ -5,10 +5,20 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
+class ModelInfo(BaseModel):
+    """Model information"""
+    name: str
+    loaded: bool
+    version: str = "1.0.0"
+
+
 class HealthResponse(BaseModel):
     """Health check response"""
     status: str
+    service: Optional[str] = None
+    version: Optional[str] = None
     checks: Optional[Dict[str, Any]] = None
+    model_info: Optional[ModelInfo] = None
 
 
 class ErrorResponse(BaseModel):
