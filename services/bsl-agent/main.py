@@ -104,6 +104,31 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Add validation exception handler to return string error messages
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: RequestValidationError, exc: RequestValidationError):
+    """Return validation errors as string messages instead of arrays."""
+    errors = exc.errors()
+    # Get the first error message and return as string
+    error_msg = errors[0]["msg"] if errors else "Validation error"
+    # If it's a missing field error, return a helpful message
+    for error in errors:
+        if error["type"] == "missing":
+            field = error["loc"][-1] if error["loc"] else "field"
+            error_msg = f"{field} is required"
+            break
+        elif error["type"] == "value_error.missing":
+            error_msg = "This field is required"
+            break
+
+    return JSONResponse(
+        status_code=422,
+        content={"detail": error_msg}
+    )
+
 # Instrument FastAPI with automatic tracing
 instrument_fastapi(app)
 
