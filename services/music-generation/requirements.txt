@@ -9,7 +9,7 @@ torch==2.5.0
 torchaudio==2.5.0
 transformers==4.36.0
 accelerate==0.25.0
-sentencepiece==0.1.99
+# sentencepiece will be installed by transformers
 huggingface-hub==0.20.0
 
 # Audio Processing

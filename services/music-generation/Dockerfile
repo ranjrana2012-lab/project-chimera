@@ -16,12 +16,19 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
+    make \
     cmake \
     pkg-config \
+    libsentencepiece-dev \
     ffmpeg \
     libsndfile1 \
     portaudio19-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Set compiler environment variables for building
+ENV CC=gcc \
+    CXX=g++ \
+    CMAKE_MAKE_PROGRAM=make
 
 # Copy requirements first for better caching
 COPY requirements.txt .
