@@ -131,6 +131,110 @@ async def local_llm_health():
     return await local_llm_client.health_check()
 
 
+@app.get("/health/model_info")
+async def health_with_model_info():
+    """Health check with model information for E2E tests."""
+    local_available = local_llm_client and await local_llm_client.is_available()
+
+    return {
+        "status": "healthy",
+        "service": "scenespeak-agent",
+        "model_info": {
+            "name": "glm-4.7",
+            "loaded": bool(settings.glm_api_key or local_available),
+            "version": "1.0.0",
+            "local_llm_available": local_available
+        }
+    }
+
+
+@app.post("/api/generate")
+async def generate_dialogue_api(request: dict):
+    """
+    Generate dialogue using /api/generate endpoint (E2E test compatible).
+
+    Simplified API for dialogue generation that matches E2E test expectations.
+
+    Args:
+        request: Generation request with prompt and optional parameters
+
+    Returns:
+        Response with dialogue and metadata
+
+    Example:
+        POST /api/generate
+        {
+            "prompt": "The hero enters the room",
+            "context": { "scene": "act1_scene1" }
+        }
+    """
+    start_time = time.time()
+
+    try:
+        # Extract parameters from request
+        prompt = request.get("prompt", "")
+        context = request.get("context", {})
+        style = request.get("style")  # Optional style parameter
+        max_tokens = request.get("max_tokens", 500)
+        temperature = request.get("temperature", 0.7)
+
+        # Build GenerateRequest
+        gen_request = GenerateRequest(
+            prompt=prompt,
+            context=context,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+
+        # Generate dialogue
+        response = await glm_client.generate(
+            prompt=prompt,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+
+        # Calculate metrics
+        duration_ms = (time.time() - start_time) * 1000
+
+        # Build metadata with expected fields
+        metadata = {
+            "model": response.model or "glm-4.7",
+            "latency_ms": round(duration_ms, 2),
+            "tokens_used": response.tokens_used,
+            "adapter": response.source,
+            "generation_time": duration_ms / 1000
+        }
+
+        # Add context to metadata if provided
+        if context:
+            metadata["context"] = context
+
+        # Add style to metadata if provided
+        if style:
+            metadata["style"] = style
+
+        # Record metrics
+        show_id = context.get("show_id", "unknown")
+        record_generation(
+            show_id=show_id,
+            adapter=response.source,
+            tokens=response.tokens_used,
+            duration=duration_ms / 1000,
+            quality=0.85,
+            cache_hit=False
+        )
+
+        return {
+            "dialogue": response.text,
+            "metadata": metadata
+        }
+
+    except Exception as e:
+        logger.error(f"API generation failed: {e}")
+        duration_ms = (time.time() - start_time) * 1000
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/v1/generate", response_model=DialogueResponse)
 async def generate_dialogue_v1(request: GenerateRequest) -> DialogueResponse:
     """
