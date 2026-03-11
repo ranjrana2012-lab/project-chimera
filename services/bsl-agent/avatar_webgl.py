@@ -1938,6 +1938,939 @@ class GestureQueueManager:
         )
 
 
+class BSLAnimationLibrary:
+    """
+    Comprehensive BSL animation library with 107 predefined animations.
+
+    Includes:
+    - 50 common BSL phrases
+    - 26 alphabet letters (A-Z)
+    - 21 numbers (0-20)
+    - 10 emotional expressions
+    """
+
+    def __init__(self, fps: int = 30):
+        """
+        Initialize the BSL animation library.
+
+        Args:
+            fps: Frames per second for generated animations
+        """
+        self.fps = fps
+        self.logger = logging.getLogger(__name__)
+        self._animations = self._build_animation_library()
+
+    def _build_animation_library(self) -> Dict[str, NMMAnimation]:
+        """Build the complete animation library."""
+        library = {}
+
+        # Add phrase animations
+        for phrase, config in self.BSL_PHRASES.items():
+            library[f"phrase_{phrase}"] = self._create_phrase_animation(phrase, config)
+
+        # Add alphabet animations
+        for letter, config in self.BSL_ALPHABET.items():
+            library[f"letter_{letter}"] = self._create_alphabet_animation(letter, config)
+
+        # Add number animations
+        for number, config in self.BSL_NUMBERS.items():
+            library[f"number_{number}"] = self._create_number_animation(number, config)
+
+        # Add emotion animations
+        for emotion, config in self.BSL_EMOTIONS.items():
+            library[f"emotion_{emotion}"] = self._create_emotion_animation(emotion, config)
+
+        self.logger.info(f"Built animation library with {len(library)} animations")
+        return library
+
+    def get_animation(self, animation_id: str) -> Optional[NMMAnimation]:
+        """
+        Get an animation by ID.
+
+        Args:
+            animation_id: Animation identifier (e.g., 'phrase_hello', 'letter_A')
+
+        Returns:
+            NMMAnimation or None if not found
+        """
+        return self._animations.get(animation_id)
+
+    def list_animations(self, category: Optional[str] = None) -> List[str]:
+        """
+        List available animations.
+
+        Args:
+            category: Filter by category ('phrase', 'letter', 'number', 'emotion')
+
+        Returns:
+            List of animation IDs
+        """
+        if category:
+            return [aid for aid in self._animations.keys() if aid.startswith(f"{category}_")]
+        return list(self._animations.keys())
+
+    def get_categories(self) -> Dict[str, int]:
+        """Get count of animations by category."""
+        categories = {'phrase': 0, 'letter': 0, 'number': 0, 'emotion': 0}
+        for aid in self._animations:
+            for cat in categories:
+                if aid.startswith(f"{cat}_"):
+                    categories[cat] += 1
+        return categories
+
+    # ==========================================================================
+    # BSL PHRASES (50 common phrases)
+    # ==========================================================================
+
+    BSL_PHRASES = {
+        # Greetings
+        'hello': {
+            'duration': 1.5,
+            'hands': ['right_wave', 'left_open'],
+            'expression': 'happy',
+            'description': 'Wave hello'
+        },
+        'goodbye': {
+            'duration': 1.8,
+            'hands': ['right_wave', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Wave goodbye'
+        },
+        'good_morning': {
+            'duration': 2.0,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'happy',
+            'description': 'Flat hands rise (sun)'
+        },
+        'good_night': {
+            'duration': 2.0,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'neutral',
+            'description': 'Flat hands lower'
+        },
+        'please': {
+            'duration': 1.2,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Rub chest in circle'
+        },
+        'thank_you': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'happy',
+            'description': 'Hand from chin forward'
+        },
+        'sorry': {
+            'duration': 1.8,
+            'hands': ['right_fist', 'left_open'],
+            'expression': 'sad',
+            'description': 'Fist circles on chest'
+        },
+        'welcome': {
+            'duration': 1.5,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'happy',
+            'description': 'Open arms gesture'
+        },
+
+        # Common questions
+        'how_are_you': {
+            'duration': 2.5,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'neutral',
+            'description': 'Both flat hands forward, then point'
+        },
+        'whats_your_name': {
+            'duration': 2.2,
+            'hands': ['right_index', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Index finger points, then chest tap'
+        },
+        'whats_wrong': {
+            'duration': 2.0,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'concerned',
+            'description': 'Hands up, palms forward, questioning'
+        },
+        'where_is': {
+            'duration': 1.8,
+            'hands': ['right_index', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Index scans, then points'
+        },
+        'when': {
+            'duration': 1.5,
+            'hands': ['right_index', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Index finger points to wrist'
+        },
+        'why': {
+            'duration': 1.5,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Both hands open, palms up, tilt'
+        },
+        'who': {
+            'duration': 1.5,
+            'hands': ['right_index', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Index finger points around'
+        },
+        'what': {
+            'duration': 1.5,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Both hands shake, palms down'
+        },
+
+        # Responses
+        'i_am_fine': {
+            'duration': 2.0,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'happy',
+            'description': 'Flat hand chest, then thumbs up'
+        },
+        'i_am_happy': {
+            'duration': 1.8,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'happy',
+            'description': 'Flat hand chest, smile'
+        },
+        'i_am_sad': {
+            'duration': 1.8,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'sad',
+            'description': 'Flat hand chest, frown'
+        },
+        'i_dont_understand': {
+            'duration': 2.2,
+            'hands': ['right_index', 'left_index'],
+            'expression': 'confused',
+            'description': 'Index fingers cross, shake head'
+        },
+        'i_agree': {
+            'duration': 1.5,
+            'hands': ['right_fist', 'left_fist'],
+            'expression': 'neutral',
+            'description': 'Both fists shake (yes gesture)'
+        },
+        'i_disagree': {
+            'duration': 1.5,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Hands wave side to side'
+        },
+        'yes': {
+            'duration': 1.2,
+            'hands': ['right_fist', 'left_fist'],
+            'expression': 'neutral',
+            'description': 'Fist nods up and down'
+        },
+        'no': {
+            'duration': 1.2,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Hand waves side to side'
+        },
+        'maybe': {
+            'duration': 1.8,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Hands rock side to side'
+        },
+
+        # Common phrases
+        'help': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'concerned',
+            'description': 'Flat hand lifts up'
+        },
+        'wait': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'neutral',
+            'description': 'Both hands flat, fingers spread'
+        },
+        'slow': {
+            'duration': 1.5,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Hands move slowly downward'
+        },
+        'fast': {
+            'duration': 1.5,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Hands move quickly outward'
+        },
+        'stop': {
+            'duration': 1.2,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Flat hand faces forward'
+        },
+        'go': {
+            'duration': 1.2,
+            'hands': ['right_index', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Index finger points forward'
+        },
+        'come_here': {
+            'duration': 1.5,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Hand waves inward'
+        },
+        'look': {
+            'duration': 1.2,
+            'hands': ['right_index', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Index points to eyes, then out'
+        },
+        'listen': {
+            'duration': 1.5,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Cup hand to ear'
+        },
+
+        # Time phrases
+        'now': {
+            'duration': 1.2,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Flat hand snaps forward'
+        },
+        'later': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Hand moves from center to side'
+        },
+        'today': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'neutral',
+            'description': 'Both arms form arch overhead'
+        },
+        'tomorrow': {
+            'duration': 1.8,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'neutral',
+            'description': 'Arms arch overhead, then forward'
+        },
+        'yesterday': {
+            'duration': 1.8,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'neutral',
+            'description': 'Thumb points over shoulder'
+        },
+
+        # People
+        'me': {
+            'duration': 1.0,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Flat hand points to chest'
+        },
+        'you': {
+            'duration': 1.0,
+            'hands': ['right_index', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Index finger points forward'
+        },
+        'he': {
+            'duration': 1.2,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Flat hand points to side'
+        },
+        'she': {
+            'duration': 1.2,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Flat hand points to side (pinkie out)'
+        },
+        'we': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'neutral',
+            'description': 'Both flat hands circle together'
+        },
+        'they': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_flat'],
+            'expression': 'neutral',
+            'description': 'Both flat hands point outward'
+        },
+
+        # Other common phrases
+        'love': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'happy',
+            'description': 'Both arms crossed over chest'
+        },
+        'like': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'happy',
+            'description': 'Flat hand chest, then lift'
+        },
+        'dont_like': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Flat hand chest, then hand drops'
+        },
+        'want': {
+            'duration': 1.5,
+            'hands': ['right_open', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Hands pull toward chest'
+        },
+        'need': {
+            'duration': 1.8,
+            'hands': ['right_fist', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Fist rubs chest'
+        },
+        'think': {
+            'duration': 1.8,
+            'hands': ['right_index', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Index finger circles temple'
+        },
+        'know': {
+            'duration': 1.5,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Flat hand taps forehead'
+        },
+        'remember': {
+            'duration': 2.0,
+            'hands': ['right_flat', 'left_open'],
+            'expression': 'neutral',
+            'description': 'Flat hand forehead, then pull forward'
+        },
+    }
+
+    # ==========================================================================
+    # BSL ALPHABET (A-Z, 26 letters)
+    # ==========================================================================
+
+    BSL_ALPHABET = {
+        'A': {
+            'duration': 1.0,
+            'handshape': 'fist',
+            'thumb': 'up',
+            'description': 'Fist with thumb up'
+        },
+        'B': {
+            'duration': 1.0,
+            'handshape': 'flat',
+            'thumb': 'crossed',
+            'description': 'Flat hand, thumb across palm'
+        },
+        'C': {
+            'duration': 1.0,
+            'handshape': 'curved',
+            'thumb': 'out',
+            'description': 'Curved hand, C shape'
+        },
+        'D': {
+            'duration': 1.0,
+            'handshape': 'index',
+            'thumb': 'out',
+            'description': 'Index up, others curved, thumb out'
+        },
+        'E': {
+            'duration': 1.0,
+            'handshape': 'curved',
+            'thumb': 'crossed',
+            'description': 'Fingers curved down across thumb'
+        },
+        'F': {
+            'duration': 1.0,
+            'handshape': 'ok',
+            'description': 'OK sign, thumb and index circle'
+        },
+        'G': {
+            'duration': 1.0,
+            'handshape': 'point',
+            'thumb': 'out',
+            'description': 'Index and thumb point sideways'
+        },
+        'H': {
+            'duration': 1.0,
+            'handshape': 'two_finger',
+            'thumb': 'out',
+            'description': 'Index and middle sideways, thumb out'
+        },
+        'I': {
+            'duration': 1.0,
+            'handshape': 'pinkie',
+            'description': 'Pinkie finger up only'
+        },
+        'J': {
+            'duration': 1.2,
+            'handshape': 'pinkie',
+            'motion': 'i_to_j',
+            'description': 'Pinkie up, draws J in air'
+        },
+        'K': {
+            'duration': 1.0,
+            'handshape': 'peace',
+            'thumb': 'between',
+            'description': 'Index and middle up, thumb between'
+        },
+        'L': {
+            'duration': 1.0,
+            'handshape': 'l_shape',
+            'description': 'Thumb and index form L'
+        },
+        'M': {
+            'duration': 1.0,
+            'handshape': 'three_finger_over',
+            'description': 'Three fingers over thumb'
+        },
+        'N': {
+            'duration': 1.0,
+            'handshape': 'two_finger_over',
+            'description': 'Two fingers over thumb'
+        },
+        'O': {
+            'duration': 1.0,
+            'handshape': 'circle',
+            'description': 'Fingers and thumb form circle'
+        },
+        'P': {
+            'duration': 1.0,
+            'handshape': 'down_k',
+            'description': 'K handshape pointing down'
+        },
+        'Q': {
+            'duration': 1.0,
+            'handshape': 'down_g',
+            'description': 'G handshape pointing down'
+        },
+        'R': {
+            'duration': 1.0,
+            'handshape': 'crossed',
+            'description': 'Index and middle crossed'
+        },
+        'S': {
+            'duration': 1.0,
+            'handshape': 'fist',
+            'thumb': 'crossed',
+            'description': 'Fist, thumb over fingers'
+        },
+        'T': {
+            'duration': 1.0,
+            'handshape': 'fist',
+            'thumb': 'between',
+            'description': 'Fist, thumb between index and middle'
+        },
+        'U': {
+            'duration': 1.0,
+            'handshape': 'two_finger',
+            'description': 'Index and middle together up'
+        },
+        'V': {
+            'duration': 1.0,
+            'handshape': 'peace',
+            'description': 'Peace sign (index and middle up)'
+        },
+        'W': {
+            'duration': 1.0,
+            'handshape': 'three_finger',
+            'description': 'Three fingers up (index, middle, ring)'
+        },
+        'X': {
+            'duration': 1.0,
+            'handshape': 'hook',
+            'description': 'Index finger hooked like claw'
+        },
+        'Y': {
+            'duration': 1.0,
+            'handshape': 'y_shaped',
+            'description': 'Thumb and pinkie up (hang loose)'
+        },
+        'Z': {
+            'duration': 1.2,
+            'handshape': 'index',
+            'motion': 'z_shape',
+            'description': 'Index finger draws Z in air'
+        },
+    }
+
+    # ==========================================================================
+    # BSL NUMBERS (0-20, 21 numbers)
+    # ==========================================================================
+
+    BSL_NUMBERS = {
+        '0': {
+            'duration': 1.0,
+            'handshape': 'fist',
+            'description': 'Closed fist'
+        },
+        '1': {
+            'duration': 1.0,
+            'handshape': 'index',
+            'description': 'Index finger up'
+        },
+        '2': {
+            'duration': 1.0,
+            'handshape': 'peace',
+            'description': 'V sign (index and middle)'
+        },
+        '3': {
+            'duration': 1.0,
+            'handshape': 'three_finger',
+            'description': 'Three fingers up'
+        },
+        '4': {
+            'duration': 1.0,
+            'handshape': 'four_finger',
+            'description': 'Four fingers up, thumb in'
+        },
+        '5': {
+            'duration': 1.0,
+            'handshape': 'open',
+            'description': 'All five fingers spread'
+        },
+        '6': {
+            'duration': 1.0,
+            'handshape': 'six',
+            'description': 'All five up, thumb touches pinkie'
+        },
+        '7': {
+            'duration': 1.0,
+            'handshape': 'seven',
+            'description': 'All five up, thumb touches ring'
+        },
+        '8': {
+            'duration': 1.0,
+            'handshape': 'eight',
+            'description': 'All five up, thumb touches middle'
+        },
+        '9': {
+            'duration': 1.0,
+            'handshape': 'nine',
+            'description': 'All five up, thumb touches index'
+        },
+        '10': {
+            'duration': 1.2,
+            'handshape': 'fist',
+            'thumb': 'out',
+            'motion': 'shake',
+            'description': 'Thumb shakes side to side'
+        },
+        '11': {
+            'duration': 1.2,
+            'handshape': 'index',
+            'motion': 'flick',
+            'description': 'Index flicks up twice'
+        },
+        '12': {
+            'duration': 1.2,
+            'handshape': 'peace',
+            'motion': 'flick',
+            'description': 'V sign flicks up twice'
+        },
+        '13': {
+            'duration': 1.2,
+            'handshape': 'three_finger',
+            'motion': 'flick',
+            'description': 'Three fingers flick up twice'
+        },
+        '14': {
+            'duration': 1.2,
+            'handshape': 'four_finger',
+            'motion': 'flick',
+            'description': 'Four fingers flick up twice'
+        },
+        '15': {
+            'duration': 1.2,
+            'handshape': 'open',
+            'motion': 'flick',
+            'description': 'Open hand flicks up twice'
+        },
+        '16': {
+            'duration': 1.5,
+            'handshape': 'six',
+            'motion': 'rotate',
+            'description': 'Six handshape twists'
+        },
+        '17': {
+            'duration': 1.5,
+            'handshape': 'seven',
+            'motion': 'rotate',
+            'description': 'Seven handshape twists'
+        },
+        '18': {
+            'duration': 1.5,
+            'handshape': 'eight',
+            'motion': 'rotate',
+            'description': 'Eight handshape twists'
+        },
+        '19': {
+            'duration': 1.5,
+            'handshape': 'nine',
+            'motion': 'rotate',
+            'description': 'Nine handshape twists'
+        },
+        '20': {
+            'duration': 1.5,
+            'handshape': 'two_finger',
+            'motion': 'bounce',
+            'description': 'Two fingers bounce up twice'
+        },
+    }
+
+    # ==========================================================================
+    # BSL EMOTIONS (10 emotions)
+    # ==========================================================================
+
+    BSL_EMOTIONS = {
+        'happy': {
+            'duration': 1.5,
+            'expression': 'happy',
+            'body_language': 'upright',
+            'description': 'Smile, open posture, slight bounce'
+        },
+        'sad': {
+            'duration': 1.8,
+            'expression': 'sad',
+            'body_language': 'slumped',
+            'description': 'Frown, shoulders down, look down'
+        },
+        'angry': {
+            'duration': 1.5,
+            'expression': 'angry',
+            'body_language': 'tense',
+            'description': 'Furrowed brows, tense shoulders, fists'
+        },
+        'surprised': {
+            'duration': 1.2,
+            'expression': 'surprised',
+            'body_language': 'alert',
+            'description': 'Wide eyes, mouth open, lean back'
+        },
+        'confused': {
+            'duration': 2.0,
+            'expression': 'confused',
+            'body_language': 'tense',
+            'description': 'Head tilt, brow furrow, hand to chin'
+        },
+        'excited': {
+            'duration': 1.5,
+            'expression': 'happy',
+            'body_language': 'energetic',
+            'description': 'Big smile, bouncy, hands up'
+        },
+        'bored': {
+            'duration': 2.0,
+            'expression': 'neutral',
+            'body_language': 'slumped',
+            'description': 'Neutral face, shoulders down, sighing'
+        },
+        'worried': {
+            'duration': 2.0,
+            'expression': 'concerned',
+            'body_language': 'tense',
+            'description': 'Brows up, corners down, hands fidget'
+        },
+        'proud': {
+            'duration': 1.5,
+            'expression': 'happy',
+            'body_language': 'upright',
+            'description': 'Chin up, chest out, smile'
+        },
+        'embarrassed': {
+            'duration': 2.0,
+            'expression': 'neutral',
+            'body_language': 'closed',
+            'description': 'Look down, cover face, shoulders forward'
+        },
+    }
+
+    # ==========================================================================
+    # ANIMATION CREATION METHODS
+    # ==========================================================================
+
+    def _create_phrase_animation(self, phrase: str, config: Dict[str, Any]) -> NMMAnimation:
+        """Create a phrase animation from config."""
+        animation = NMMAnimation(
+            name=f"phrase_{phrase}",
+            duration=config['duration'],
+            fps=self.fps,
+            loop=False
+        )
+
+        num_frames = int(config['duration'] * self.fps)
+
+        # Generate keyframes based on configuration
+        for i in range(num_frames):
+            t = i / num_frames
+            progress = 0.5 - 0.5 * __import__('math').cos(t * __import__('math').pi)
+
+            kf = NMMKeyframe(time=t * config['duration'])
+
+            # Apply facial expression
+            if 'expression' in config:
+                kf.facial_expression = config['expression']
+
+            # Apply handshapes
+            hands = config.get('hands', ['right_open', 'left_open'])
+            if len(hands) > 0 and 'right' in hands[0]:
+                kf.handshape = hands[0].replace('right_', '')
+
+            # Add motion based on description
+            if 'wave' in config['description']:
+                kf.bone_rotations['right_forearm'] = (
+                    0.5 * __import__('math').sin(progress * __import__('math').pi * 2),
+                    0, 0, 1
+                )
+            elif 'point' in config['description']:
+                kf.bone_positions['right_hand'] = (0.3, 1.0, 0.5)
+
+            animation.add_keyframe(kf)
+
+        return animation
+
+    def _create_alphabet_animation(self, letter: str, config: Dict[str, Any]) -> NMMAnimation:
+        """Create an alphabet letter animation."""
+        animation = NMMAnimation(
+            name=f"letter_{letter}",
+            duration=config['duration'],
+            fps=self.fps,
+            loop=False
+        )
+
+        num_frames = int(config['duration'] * self.fps)
+
+        # Starting pose
+        for i in range(num_frames):
+            t = i / num_frames
+            progress = min(1.0, t * 2)  # Quick transition
+
+            kf = NMMKeyframe(time=t * config['duration'])
+            kf.handshape = config['handshape']
+
+            # Position hand in signing space
+            kf.bone_positions['right_hand'] = (0.3, 1.1, 0.5)
+
+            # Add motion if specified
+            if 'motion' in config:
+                if config['motion'] == 'i_to_j':
+                    # Draw J shape
+                    angle = progress * __import__('math').pi
+                    kf.bone_positions['right_hand'] = (
+                        0.3 + 0.1 * __import__('math').sin(angle),
+                        1.1 - 0.2 * progress,
+                        0.5
+                    )
+                elif config['motion'] == 'z_shape':
+                    # Draw Z shape
+                    kf.bone_positions['right_hand'] = (
+                        0.3 + 0.15 * (t if t < 0.33 else (0.66 - t) if t < 0.66 else t - 0.66),
+                        1.1 - 0.2 * (t if t < 0.5 else 1 - t),
+                        0.5
+                    )
+
+            animation.add_keyframe(kf)
+
+        return animation
+
+    def _create_number_animation(self, number: str, config: Dict[str, Any]) -> NMMAnimation:
+        """Create a number animation."""
+        animation = NMMAnimation(
+            name=f"number_{number}",
+            duration=config['duration'],
+            fps=self.fps,
+            loop=False
+        )
+
+        num_frames = int(config['duration'] * self.fps)
+
+        for i in range(num_frames):
+            t = i / num_frames
+            progress = min(1.0, t * 3)  # Quick pose
+
+            kf = NMMKeyframe(time=t * config['duration'])
+            kf.handshape = config['handshape']
+
+            # Position hand
+            kf.bone_positions['right_hand'] = (0.25, 1.15, 0.4)
+
+            # Add motion
+            motion = config.get('motion', '')
+            if motion == 'shake':
+                kf.bone_rotations['right_forearm'] = (
+                    0, 0.5 * __import__('math').sin(t * __import__('math').pi * 4), 0, 1
+                )
+            elif motion == 'flick':
+                # Flick motion
+                if i < num_frames // 2:
+                    kf.bone_positions['right_hand'] = (0.25, 1.05, 0.4)
+                else:
+                    kf.bone_positions['right_hand'] = (0.25, 1.15, 0.4)
+            elif motion == 'rotate':
+                kf.bone_rotations['right_hand'] = (t * __import__('math').pi * 2, 0, 0, 1)
+            elif motion == 'bounce':
+                kf.bone_positions['right_hand'] = (
+                    0.25,
+                    1.15 + 0.05 * __import__('math').sin(t * __import__('math').pi * 2),
+                    0.4
+                )
+
+            animation.add_keyframe(kf)
+
+        return animation
+
+    def _create_emotion_animation(self, emotion: str, config: Dict[str, Any]) -> NMMAnimation:
+        """Create an emotion animation."""
+        animation = NMMAnimation(
+            name=f"emotion_{emotion}",
+            duration=config['duration'],
+            fps=self.fps,
+            loop=False
+        )
+
+        num_frames = int(config['duration'] * self.fps)
+
+        for i in range(num_frames):
+            t = i / num_frames
+            progress = 0.5 - 0.5 * __import__('math').cos(t * __import__('math').pi)
+
+            kf = NMMKeyframe(time=t * config['duration'])
+            kf.facial_expression = emotion
+
+            # Body language modifications
+            body = config.get('body_language', 'neutral')
+            if body == 'slumped':
+                kf.bone_rotations['spine'] = (0.2 * progress, 0, 0, 1)
+            elif body == 'upright':
+                kf.bone_rotations['spine'] = (-0.1 * progress, 0, 0, 1)
+            elif body == 'tense':
+                kf.bone_positions['shoulders'] = (0, 0.05 * progress, 0)
+            elif body == 'energetic':
+                # Bouncy motion
+                kf.bone_positions['hips'] = (
+                    0,
+                    0.02 * __import__('math').sin(t * __import__('math').pi * 4),
+                    0
+                )
+            elif body == 'closed':
+                kf.bone_rotations['shoulders'] = (0, 0, 0.3 * progress, 1)
+
+            animation.add_keyframe(kf)
+
+        return animation
+
+
 __all__ = [
     "AvatarWebGLRenderer",
     "AvatarModel",
@@ -1950,4 +2883,5 @@ __all__ = [
     "FacialExpressionController",
     "BodyPoseController",
     "GestureQueueManager",
+    "BSLAnimationLibrary",
 ]

@@ -26,7 +26,8 @@ from avatar_webgl import (
     LipSyncEngine,
     FacialExpressionController,
     BodyPoseController,
-    GestureQueueManager
+    GestureQueueManager,
+    BSLAnimationLibrary
 )
 from models import (
     TranslateRequest,
@@ -76,6 +77,7 @@ lip_sync_engine = LipSyncEngine(fps=settings.avatar_fps)
 expression_controller = FacialExpressionController(fps=settings.avatar_fps)
 body_pose_controller = BodyPoseController(fps=settings.avatar_fps)
 gesture_queue_manager = GestureQueueManager(fps=settings.avatar_fps)
+animation_library = BSLAnimationLibrary(fps=settings.avatar_fps)
 
 # WebSocket connection manager
 class ConnectionManager:
@@ -1331,6 +1333,174 @@ async def get_advanced_features_info() -> Dict[str, Any]:
             }
         },
         "version": "1.0.0"
+    }
+
+
+# ============================================================================
+# BSL Animation Library Endpoints
+# ============================================================================
+
+@app.get("/api/avatar/library")
+async def get_animation_library() -> Dict[str, Any]:
+    """
+    Get the complete BSL animation library catalog.
+
+    Returns:
+        Animation library with categories and counts
+    """
+    categories = animation_library.get_categories()
+
+    return {
+        "success": True,
+        "library": {
+            "total_animations": len(animation_library._animations),
+            "categories": categories,
+            "available_categories": ["phrase", "letter", "number", "emotion"]
+        },
+        "version": "1.0.0"
+    }
+
+
+@app.get("/api/avatar/library/{category}")
+async def get_animations_by_category(category: str) -> Dict[str, Any]:
+    """
+    Get all animations in a specific category.
+
+    Args:
+        category: Category name ('phrase', 'letter', 'number', 'emotion')
+
+    Returns:
+        List of animation IDs in the category
+    """
+    animations = animation_library.list_animations(category=category)
+
+    if not animations:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Category '{category}' not found. Available: phrase, letter, number, emotion"
+        )
+
+    return {
+        "success": True,
+        "category": category,
+        "count": len(animations),
+        "animations": animations
+    }
+
+
+@app.get("/api/avatar/library/{category}/{item}")
+async def get_animation(category: str, item: str) -> Dict[str, Any]:
+    """
+    Get a specific animation from the library.
+
+    Args:
+        category: Category name ('phrase', 'letter', 'number', 'emotion')
+        item: Item name (e.g., 'hello', 'A', '0', 'happy')
+
+    Returns:
+        Animation data with NMM keyframes
+    """
+    animation_id = f"{category}_{item}"
+    animation = animation_library.get_animation(animation_id)
+
+    if not animation:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Animation '{animation_id}' not found"
+        )
+
+    return {
+        "success": True,
+        "animation": {
+            "id": animation_id,
+            "name": animation.name,
+            "duration": animation.duration,
+            "fps": animation.fps,
+            "loop": animation.loop,
+            "keyframe_count": len(animation.keyframes),
+            "keyframes": [kf.to_dict() for kf in animation.keyframes]
+        }
+    }
+
+
+@app.post("/api/avatar/library/{category}/{item}/play")
+async def play_library_animation(
+    category: str,
+    item: str,
+    blend: float = 0.3
+) -> Dict[str, Any]:
+    """
+    Play an animation from the library on the avatar.
+
+    Args:
+        category: Category name ('phrase', 'letter', 'number', 'emotion')
+        item: Item name (e.g., 'hello', 'A', '0', 'happy')
+        blend: Blend duration in seconds for smooth transition
+
+    Returns:
+        Animation playback status
+    """
+    animation_id = f"{category}_{item}"
+    animation = animation_library.get_animation(animation_id)
+
+    if not animation:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Animation '{animation_id}' not found"
+        )
+
+    # Load and play the animation
+    avatar_renderer.load_animation(animation)
+    avatar_renderer.play_animation(animation.name, loop=animation.loop)
+
+    return {
+        "success": True,
+        "message": f"Playing animation '{animation_id}'",
+        "animation": {
+            "id": animation_id,
+            "name": animation.name,
+            "duration": animation.duration,
+            "blend_duration": blend
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+
+@app.get("/api/avatar/library/search")
+async def search_animations(q: str = "") -> Dict[str, Any]:
+    """
+    Search animations by name or description.
+
+    Args:
+        q: Search query string
+
+    Returns:
+        Matching animations
+    """
+    if not q or len(q) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Search query must be at least 2 characters"
+        )
+
+    q_lower = q.lower()
+    results = []
+
+    for animation_id, animation in animation_library._animations.items():
+        # Search in animation ID and name
+        if q_lower in animation_id.lower() or q_lower in animation.name.lower():
+            results.append({
+                "id": animation_id,
+                "name": animation.name,
+                "duration": animation.duration,
+                "category": animation_id.split("_")[0]
+            })
+
+    return {
+        "success": True,
+        "query": q,
+        "count": len(results),
+        "results": results[:20]  # Limit to 20 results
     }
 
 
