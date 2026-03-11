@@ -20,6 +20,8 @@ class ModelName(str, Enum):
 
 class HealthResponse(BaseModel):
     """Response model for health check endpoint (E2E compatible)"""
+    model_config = {"protected_namespaces": ()}
+
     status: str = Field(..., description="Health status (healthy/error)")
     service: str = Field(..., description="Service name")
     model_loaded: bool = Field(..., description="Whether the model is loaded")

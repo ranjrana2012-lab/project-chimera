@@ -11,7 +11,8 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
-        env_prefix=""  # Moved from removed Config class
+        env_prefix="",
+        protected_namespaces=('settings_',)  # Fix Pydantic warning
     )
 
     # Service
