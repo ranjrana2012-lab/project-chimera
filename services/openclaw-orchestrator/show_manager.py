@@ -38,6 +38,11 @@ class Show:
         self.started_at: Optional[datetime] = None
         self.ended_at: Optional[datetime] = None
         self.scene = 0
+        self.current_scene = "none"  # For E2E test compatibility
+        self.audience_metrics = {
+            "total_reactions": 0,
+            "sentiment_score": 0.5
+        }
         self.metadata: Dict[str, Any] = {}
 
     def start(self) -> None:

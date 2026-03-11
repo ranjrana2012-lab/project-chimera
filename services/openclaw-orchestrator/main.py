@@ -227,20 +227,27 @@ async def get_show_status_api():
 
 @app.post("/api/show/control")
 async def control_show_api(request: dict):
-    """Control show via API (start, stop)"""
+    """Control show via API (start_show/start, stop_show/stop)"""
     action = request.get("action")
     show_id = request.get("show_id", "default_show")
 
-    if action == "start":
+    # Accept both action name variants for compatibility
+    if action in ("start", "start_show"):
+        # Check if show is already active
+        current_show = show_manager.get_current_show()
+        if current_show and current_show.state.value in ("running", "active"):
+            raise HTTPException(
+                status_code=409,
+                detail=f"Show {current_show.show_id} is already active"
+            )
         show = show_manager.create_show(show_id)
         show.start()
         return {
             "show_id": show.show_id,
             "state": show.state.value,
-            "action": "start",
-            "status": "success"
+            "status": "starting"
         }
-    elif action == "stop":
+    elif action in ("stop", "stop_show"):
         show = show_manager.end_show(show_id)
         if show:
             return {

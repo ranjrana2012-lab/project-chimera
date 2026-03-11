@@ -99,8 +99,7 @@ test.describe('OpenClaw Orchestrator API', () => {
     expect(body).toHaveProperty('detail');
   });
 
-  test.skip('@api handles timeout for long-running operations', async ({ request }) => {
-    // Skip - Show control API validation needs investigation
+  test('@api handles timeout for long-running operations', async ({ request }) => {
     const response = await request.post(`${baseURL}/api/show/control`, {
       data: { action: 'start_show' },
       timeout: 10000
@@ -110,8 +109,7 @@ test.describe('OpenClaw Orchestrator API', () => {
     expect([200, 202, 409]).toContain(response.status());
   });
 
-  test.skip('@api show control start action', async ({ request }) => {
-    // Skip - Show control API validation needs investigation
+  test('@api show control start action', async ({ request }) => {
     const response = await request.post(`${baseURL}/api/show/control`, {
       data: { action: 'start_show' }
     });
