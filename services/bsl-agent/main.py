@@ -11,6 +11,7 @@ import json
 from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
 from pathlib import Path
+from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response, HTMLResponse, FileResponse
@@ -20,7 +21,13 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from config import get_settings
 from translator import BSLTranslator
 from avatar_renderer import AvatarRenderer
-from avatar_webgl import AvatarWebGLRenderer
+from avatar_webgl import (
+    AvatarWebGLRenderer,
+    LipSyncEngine,
+    FacialExpressionController,
+    BodyPoseController,
+    GestureQueueManager
+)
 from models import (
     TranslateRequest,
     TranslateResponse,
@@ -63,6 +70,12 @@ avatar_webgl = AvatarWebGLRenderer(
     enable_facial_expressions=settings.enable_facial_expressions,
     enable_body_language=settings.enable_body_language
 )
+
+# Advanced feature components
+lip_sync_engine = LipSyncEngine(fps=settings.avatar_fps)
+expression_controller = FacialExpressionController(fps=settings.avatar_fps)
+body_pose_controller = BodyPoseController(fps=settings.avatar_fps)
+gesture_queue_manager = GestureQueueManager(fps=settings.avatar_fps)
 
 # WebSocket connection manager
 class ConnectionManager:
@@ -141,9 +154,12 @@ async def health():
         "service": "bsl-agent",
         "translator_ready": True,
         "avatar_ready": True,
-        "renderer_info": {
-            "type": "webgl",
-            "ready": True
+        "renderer_info": avatar_webgl.get_renderer_info(),
+        "advanced_features": {
+            "lip_sync": True,
+            "expression_control": True,
+            "body_pose_control": True,
+            "gesture_queue": True
         }
     }
 
@@ -960,6 +976,362 @@ async def avatar_websocket(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
+
+
+# ============================================================================
+# ADVANCED FEATURES ENDPOINTS
+# ============================================================================
+
+@app.post("/api/avatar/lipsync")
+async def generate_lip_sync(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate lip-sync animation for text or audio.
+
+    Advanced lip-sync engine with coarticulation support for
+    smooth mouth transitions during speech.
+
+    Args:
+        text: Text to generate lip-sync for
+        duration: Duration in seconds
+        fps: Optional FPS (defaults to avatar FPS)
+
+    Returns:
+        Lip-sync animation data with viseme sequence
+    """
+    try:
+        text = request.get("text", "")
+        duration = float(request.get("duration", len(text) * 0.1))
+        fps = request.get("fps", settings.avatar_fps)
+
+        if not text:
+            raise HTTPException(status_code=422, detail="text is required")
+
+        # Generate lip-sync keyframes
+        keyframes = lip_sync_engine.generate_lip_sync_keyframes(text, duration, fps)
+
+        # Convert to animation format
+        animation_data = {
+            "format": "nmm-animation-v1",
+            "type": "lipsync",
+            "fps": fps,
+            "duration": duration,
+            "keyframes": [kf.to_dict() for kf in keyframes],
+            "metadata": {
+                "text": text,
+                "viseme_count": len(keyframes),
+                "generated_at": datetime.now().isoformat()
+            }
+        }
+
+        return {
+            "success": True,
+            "animation_data": animation_data,
+            "metadata": {
+                "duration_ms": duration * 1000,
+                "fps": fps
+            }
+        }
+
+    except Exception as e:
+        logger.error(f"Lip-sync generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/avatar/expression/blend")
+async def blend_expressions(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Blend multiple facial expressions together.
+
+    Supports layered expressions for upper face, lower face, or full face.
+
+    Args:
+        expressions: List of (expression_name, layer, weight) tuples
+            Example: [["happy", "lower_face", 0.7], ["surprised", "upper_face", 0.3]]
+
+    Returns:
+        Blended morph target values
+    """
+    try:
+        expressions_data = request.get("expressions", [])
+
+        if not expressions_data:
+            raise HTTPException(status_code=422, detail="expressions is required")
+
+        # Convert to tuples
+        expressions = [
+            (expr["expression"], expr.get("layer", "full_face"), expr.get("weight", 1.0))
+            for expr in expressions_data
+        ]
+
+        # Blend expressions
+        result = expression_controller.blend_expressions(expressions)
+
+        return {
+            "success": True,
+            "morph_targets": result["morph_targets"],
+            "layers_applied": result["expressions"]
+        }
+
+    except Exception as e:
+        logger.error(f"Expression blend failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/avatar/expression/transition")
+async def expression_transition(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate keyframes for smooth expression transition.
+
+    Args:
+        from_expression: Starting expression name
+        to_expression: Target expression name
+        duration: Transition duration in seconds
+
+    Returns:
+        Transition keyframes for smooth animation
+    """
+    try:
+        from_expr = request.get("from_expression", "neutral")
+        to_expr = request.get("to_expression", "neutral")
+        duration = float(request.get("duration", 0.3))
+        fps = request.get("fps", settings.avatar_fps)
+
+        if from_expr not in expression_controller.get_available_expressions():
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown from_expression: {from_expr}"
+            )
+
+        if to_expr not in expression_controller.get_available_expressions():
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown to_expression: {to_expr}"
+            )
+
+        # Generate transition keyframes
+        keyframes = expression_controller.generate_transition_keyframes(
+            from_expr, to_expr, duration, fps
+        )
+
+        return {
+            "success": True,
+            "from_expression": from_expr,
+            "to_expression": to_expr,
+            "duration": duration,
+            "keyframes": [kf.to_dict() for kf in keyframes],
+            "keyframe_count": len(keyframes)
+        }
+
+    except Exception as e:
+        logger.error(f"Expression transition failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/avatar/pose")
+async def set_avatar_pose(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Set predefined body pose for avatar.
+
+    Args:
+        pose: Pose name (neutral, signing_space, one_handed_sign, two_handed_sign)
+        duration: Optional transition duration
+
+    Returns:
+        Pose configuration and transition keyframes if duration provided
+    """
+    try:
+        pose_name = request.get("pose", "neutral")
+        duration = request.get("duration")
+
+        # Set pose
+        result = body_pose_controller.set_pose(pose_name)
+
+        # Generate transition if duration provided
+        if duration is not None:
+            current_pose = body_pose_controller._current_pose or "neutral"
+            duration = float(duration)
+
+            keyframes = body_pose_controller.generate_pose_keyframes(
+                current_pose, pose_name, duration
+            )
+
+            result["transition_keyframes"] = [kf.to_dict() for kf in keyframes]
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Set pose failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/avatar/joint")
+async def set_joint_transform(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Set transform for a specific joint.
+
+    Args:
+        joint: Joint name (e.g., "head", "left_hand", "right_arm")
+        rotation: Optional [x, y, z] rotation in degrees
+        position: Optional [x, y, z] position
+
+    Returns:
+        Updated joint configuration
+    """
+    try:
+        joint = request.get("joint")
+        rotation = request.get("rotation")
+        position = request.get("position")
+
+        if not joint:
+            raise HTTPException(status_code=422, detail="joint is required")
+
+        result = body_pose_controller.set_joint_transform(joint, rotation, position)
+        return result
+
+    except Exception as e:
+        logger.error(f"Set joint transform failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/avatar/queue")
+async def enqueue_gesture(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Add a gesture to the playback queue.
+
+    Args:
+        gesture_id: Unique gesture identifier
+        animation: Animation data (NMM format)
+        priority: Priority level (critical, high, normal, low, idle)
+        blend_mode: Blend mode (smooth, cut, crossfade)
+        interruptible: Whether gesture can be interrupted
+
+    Returns:
+        Queue status
+    """
+    try:
+        gesture_id = request.get("gesture_id")
+        animation_data = request.get("animation")
+        priority = request.get("priority", "normal")
+        blend_mode = request.get("blend_mode", "smooth")
+        interruptible = request.get("interruptible", True)
+
+        if not gesture_id or not animation_data:
+            raise HTTPException(status_code=422, detail="gesture_id and animation are required")
+
+        # Create NMM animation
+        animation = avatar_webgl.NMMAnimation.from_dict(animation_data)
+
+        # Enqueue
+        result = gesture_queue_manager.enqueue(
+            gesture_id, animation, priority, blend_mode, interruptible
+        )
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Enqueue gesture failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/avatar/queue/status")
+async def get_queue_status() -> Dict[str, Any]:
+    """Get current gesture queue status."""
+    return gesture_queue_manager.get_queue_status()
+
+
+@app.post("/api/avatar/queue/interrupt")
+async def interrupt_current_gesture(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Interrupt current gesture with a new one.
+
+    Args:
+        gesture_id: New gesture to interrupt with
+
+    Returns:
+        Interrupt status
+    """
+    try:
+        gesture_id = request.get("gesture_id")
+        if not gesture_id:
+            raise HTTPException(status_code=422, detail="gesture_id is required")
+
+        success = gesture_queue_manager.interrupt_current(gesture_id)
+
+        return {
+            "success": success,
+            "gesture_id": gesture_id,
+            "message": "Gesture interrupted" if success else "Interrupt failed"
+        }
+
+    except Exception as e:
+        logger.error(f"Interrupt gesture failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/avatar/queue")
+async def clear_gesture_queue(request: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Clear gesture queue.
+
+    Args:
+        priority_threshold: Optional priority level to clear up to
+
+    Returns:
+        Number of gestures cleared
+    """
+    try:
+        priority_threshold = request.get("priority_threshold")
+        cleared = gesture_queue_manager.clear_queue(priority_threshold)
+
+        return {
+            "success": True,
+            "cleared_count": cleared
+        }
+
+    except Exception as e:
+        logger.error(f"Clear queue failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/avatar/features")
+async def get_advanced_features_info() -> Dict[str, Any]:
+    """
+    Get information about available advanced avatar features.
+
+    Returns:
+        Feature information and capabilities
+    """
+    return {
+        "success": True,
+        "advanced_features": {
+            "lip_sync": {
+                "enabled": True,
+                "description": "Audio/text-driven mouth animation with coarticulation",
+                "visemes": len(lip_sync_engine.VISEMES),
+                "coarticulation": True
+            },
+            "facial_expressions": {
+                "enabled": True,
+                "description": "Advanced expression blending with transitions",
+                "expressions": expression_controller.get_available_expressions(),
+                "layers": expression_controller.get_expression_layers()
+            },
+            "body_poses": {
+                "enabled": True,
+                "description": "Predefined poses with IK support",
+                "poses": body_pose_controller.get_available_poses(),
+                "joint_hierarchy": list(body_pose_controller.JOINT_HIERARCHY.keys())
+            },
+            "gesture_queue": {
+                "enabled": True,
+                "description": "Priority queue with blending and interruption",
+                "max_queue_size": gesture_queue_manager._max_queue_size,
+                "blend_modes": ["smooth", "cut", "crossfade"],
+                "priorities": list(gesture_queue_manager.PRIORITY.keys())
+            }
+        },
+        "version": "1.0.0"
+    }
 
 
 if __name__ == "__main__":

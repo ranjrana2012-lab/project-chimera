@@ -977,6 +977,967 @@ class AvatarWebGLRenderer:
         }
 
 
+# ============================================================================
+# ADVANCED FEATURE CLASSES
+# ============================================================================
+
+class LipSyncEngine:
+    """
+    Advanced lip-sync engine for BSL avatar speech animation.
+
+    Analyzes audio/text to generate mouth animation visemes with
+    coarticulation support for smooth transitions between sounds.
+    """
+
+    # Enhanced viseme mapping with coarticulation data
+    VISEMES = {
+        # Silences
+        '_': {'mouth_open': 0.0, 'lip_width': 0.5, 'lip_corner_pull': 0.0},
+        ' ': {'mouth_open': 0.1, 'lip_width': 0.5, 'lip_corner_pull': 0.0},
+
+        # Vowels
+        'A': {'mouth_open': 0.9, 'lip_width': 0.8, 'lip_corner_pull': 0.3},
+        'E': {'mouth_open': 0.5, 'lip_width': 0.6, 'lip_corner_pull': 0.5},
+        'I': {'mouth_open': 0.4, 'lip_width': 0.3, 'lip_corner_pull': 0.6},
+        'O': {'mouth_open': 0.5, 'lip_width': 0.7, 'lip_corner_pull': 0.0},
+        'U': {'mouth_open': 0.3, 'lip_width': 0.5, 'lip_corner_pull': 0.0},
+
+        # Consonants - Bilabial
+        'B': {'mouth_open': 0.1, 'lip_width': 0.1, 'lip_corner_pull': 0.0},
+        'P': {'mouth_open': 0.1, 'lip_width': 0.1, 'lip_corner_pull': 0.0},
+        'M': {'mouth_open': 0.0, 'lip_width': 0.1, 'lip_corner_pull': 0.0},
+
+        # Consonants - Labiodental
+        'F': {'mouth_open': 0.4, 'lip_width': 0.7, 'lip_corner_pull': 0.3},
+        'V': {'mouth_open': 0.3, 'lip_width': 0.6, 'lip_corner_pull': 0.2},
+
+        # Consonants - Dental
+        'T': {'mouth_open': 0.3, 'lip_width': 0.4, 'lip_corner_pull': 0.1},
+        'D': {'mouth_open': 0.3, 'lip_width': 0.4, 'lip_corner_pull': 0.1},
+        'S': {'mouth_open': 0.2, 'lip_width': 0.5, 'lip_corner_pull': 0.1},
+        'Z': {'mouth_open': 0.2, 'lip_width': 0.5, 'lip_corner_pull': 0.1},
+        'N': {'mouth_open': 0.2, 'lip_width': 0.4, 'lip_corner_pull': 0.1},
+        'L': {'mouth_open': 0.3, 'lip_width': 0.4, 'lip_corner_pull': 0.2},
+
+        # Consonants - Velar
+        'K': {'mouth_open': 0.3, 'lip_width': 0.5, 'lip_corner_pull': 0.0},
+        'G': {'mouth_open': 0.3, 'lip_width': 0.5, 'lip_corner_pull': 0.0},
+
+        # Consonant - Glottal
+        'H': {'mouth_open': 0.4, 'lip_width': 0.6, 'lip_corner_pull': 0.1},
+
+        # Semi-vowels
+        'R': {'mouth_open': 0.3, 'lip_width': 0.4, 'lip_corner_pull': 0.2},
+        'W': {'mouth_open': 0.2, 'lip_width': 0.6, 'lip_corner_pull': 0.0},
+        'Y': {'mouth_open': 0.4, 'lip_width': 0.3, 'lip_corner_pull': 0.3},
+    }
+
+    # Coarticulation matrix for smooth transitions
+    COARTICULATION = {
+        # Previous -> Current transition modifiers
+        ('A', 'E'): {'duration_factor': 0.7},
+        ('E', 'I'): {'duration_factor': 0.6},
+        ('O', 'U'): {'duration_factor': 0.5},
+        ('B', 'P'): {'duration_factor': 0.3},
+        ('T', 'D'): {'duration_factor': 0.3},
+    }
+
+    def __init__(self, fps: int = 30):
+        """Initialize the lip-sync engine."""
+        self.fps = fps
+        self.logger = logging.getLogger(__name__)
+
+    def text_to_visemes(self, text: str, duration: float) -> List[Dict[str, Any]]:
+        """
+        Convert text to viseme sequence with timing.
+
+        Args:
+            text: Text to convert
+            duration: Total duration in seconds
+
+        Returns:
+            List of viseme dictionaries with time and values
+        """
+        import re
+        words = text.split()
+        visemes = []
+        current_time = 0.0
+
+        # Calculate duration per word (proportional to length)
+        word_durations = self._calculate_word_durations(words, duration)
+
+        for word, word_duration in zip(words, word_durations):
+            # Convert word to phonemes (simplified)
+            phonemes = self._word_to_phonemes(word)
+            phoneme_duration = word_duration / max(len(phonemes), 1)
+
+            for i, phoneme in enumerate(phonemes):
+                viseme_time = current_time + (i * phoneme_duration)
+
+                # Apply coarticulation with previous viseme
+                viseme_data = self._get_coarticulated_viseme(
+                    phoneme,
+                    visemes[-1] if visemes else None
+                )
+
+                visemes.append({
+                    'time': viseme_time,
+                    'duration': phoneme_duration,
+                    'viseme': phoneme,
+                    'morph_targets': viseme_data
+                })
+
+            current_time += word_duration
+
+        return visemes
+
+    def _calculate_word_durations(self, words: List[str], total_duration: float) -> List[float]:
+        """Calculate duration for each word based on character count."""
+        if not words:
+            return []
+
+        total_chars = sum(len(w) for w in words)
+        return [
+            (len(w) / total_chars) * total_duration
+            for w in words
+        ]
+
+    def _word_to_phonemes(self, word: str) -> List[str]:
+        """
+        Convert word to phoneme sequence (simplified).
+
+        This is a basic implementation. For production, use a proper
+        phoneme library like epitran or g2p.
+        """
+        word = word.upper()
+        phonemes = []
+
+        # Simple letter-to-phoneme mapping
+        for letter in word:
+            if letter in self.VISEMES:
+                phonemes.append(letter)
+            elif letter in 'AEIOU':
+                phonemes.append(letter)  # Vowel
+            else:
+                phonemes.append('_')  # Default silence
+
+        return phonemes if phonemes else ['_']
+
+    def _get_coarticulated_viseme(
+        self,
+        phoneme: str,
+        prev_viseme: Optional[Dict[str, Any]]
+    ) -> Dict[str, float]:
+        """
+        Get viseme with coarticulation from previous viseme.
+
+        Args:
+            phoneme: Current phoneme
+            prev_viseme: Previous viseme dictionary
+
+        Returns:
+            Coarticulated morph target values
+        """
+        base_viseme = self.VISEMES.get(phoneme, self.VISEMES['_'])
+
+        if not prev_viseme:
+            return base_viseme.copy()
+
+        # Apply coarticulation blending
+        prev_phoneme = prev_viseme.get('viseme', '_')
+        coart_key = (prev_phoneme, phoneme)
+
+        if coart_key in self.COARTICULATION:
+            # Blend with previous viseme
+            prev_morphs = prev_viseme.get('morph_targets', {})
+            blend_factor = 0.3  # 30% influence from previous
+
+            return {
+                key: base_viseme[key] * (1 - blend_factor) +
+                      prev_morphs.get(key, base_viseme[key]) * blend_factor
+                for key in base_viseme
+            }
+
+        return base_viseme.copy()
+
+    def generate_lip_sync_keyframes(
+        self,
+        text: str,
+        duration: float,
+        fps: int = None
+    ) -> List[NMMKeyframe]:
+        """
+        Generate lip-sync keyframes for text.
+
+        Args:
+            text: Text to lip-sync
+            duration: Duration in seconds
+            fps: Frames per second (overrides instance fps)
+
+        Returns:
+            List of NMMKeyframe with lip_sync values
+        """
+        target_fps = fps or self.fps
+        visemes = self.text_to_visemes(text, duration)
+        keyframes = []
+
+        # Generate keyframes at fps intervals
+        frame_interval = 1.0 / target_fps
+        current_time = 0.0
+
+        while current_time <= duration:
+            # Find active viseme at this time
+            active_viseme = None
+            for viseme in visemes:
+                if viseme['time'] <= current_time < viseme['time'] + viseme['duration']:
+                    active_viseme = viseme
+                    break
+
+            if active_viseme:
+                morph_targets = active_viseme['morph_targets'].copy()
+                morph_targets['mouth_open'] = active_viseme['morph_targets'].get('mouth_open', 0.0)
+
+                keyframe = NMMKeyframe(
+                    time=current_time,
+                    morph_targets=morph_targets,
+                    lip_sync_value=active_viseme['morph_targets'].get('mouth_open', 0.0)
+                )
+                keyframes.append(keyframe)
+
+            current_time += frame_interval
+
+        # Ensure closing keyframe
+        keyframes.append(NMMKeyframe(
+            time=duration,
+            lip_sync_value=0.0,
+            morph_targets={'mouth_open': 0.0}
+        ))
+
+        return keyframes
+
+
+class FacialExpressionController:
+    """
+    Advanced facial expression controller with smooth transitions
+    and layered expressions for BSL avatar.
+    """
+
+    # Expression blend masks for selective animation
+    BLEND_MASKS = {
+        'upper_face': ['brows', 'eyes_open', 'eyes_look_left', 'eyes_look_right'],
+        'lower_face': ['smile', 'mouth_open', 'mouth_corner_pull', 'lip_purse'],
+        'full_face': None  # All morph targets
+    }
+
+    def __init__(self, fps: int = 30):
+        """Initialize the expression controller."""
+        self.fps = fps
+        self.logger = logging.getLogger(__name__)
+
+        # Current expression state
+        self._current_expressions = {}  # layer -> (expression, weight)
+        self._transition_queue = []  # queue of pending transitions
+
+        # Base expression reference
+        self.BASE_EXPRESSIONS = AvatarWebGLRenderer.FACIAL_EXPRESSIONS
+
+    def set_expression(
+        self,
+        expression: str,
+        intensity: float = 1.0,
+        duration: float = 0.3,
+        layer: str = 'full_face'
+    ) -> Dict[str, Any]:
+        """
+        Set facial expression with smooth transition.
+
+        Args:
+            expression: Expression name
+            intensity: Intensity 0.0-1.0
+            duration: Transition duration in seconds
+            layer: Blend layer ('upper_face', 'lower_face', 'full_face')
+
+        Returns:
+            Expression transition data
+        """
+        if expression not in self.BASE_EXPRESSIONS:
+            raise ValueError(f"Unknown expression: {expression}")
+
+        transition = {
+            'expression': expression,
+            'intensity': intensity,
+            'duration': duration,
+            'layer': layer,
+            'start_time': None,  # Will be set when played
+            'target_values': self._apply_blend_mask(
+                self.BASE_EXPRESSIONS[expression],
+                layer
+            )
+        }
+
+        self._transition_queue.append(transition)
+
+        return {
+            'success': True,
+            'queued': True,
+            'expression': expression,
+            'layer': layer,
+            'intensity': intensity
+        }
+
+    def blend_expressions(
+        self,
+        expression_layers: List[Tuple[str, str, float]]
+    ) -> Dict[str, Any]:
+        """
+        Blend multiple expression layers together.
+
+        Args:
+            expression_layers: List of (expression, layer, weight) tuples
+
+        Returns:
+            Blended morph target values
+        """
+        blended = {key: 0.0 for key in self.BASE_EXPRESSIONS['neutral'].keys()}
+
+        for expr_name, layer, weight in expression_layers:
+            if expr_name not in self.BASE_EXPRESSIONS:
+                continue
+
+            expr_values = self._apply_blend_mask(
+                self.BASE_EXPRESSIONS[expr_name],
+                layer
+            )
+
+            for key, value in expr_values.items():
+                blended[key] += value * weight
+
+        # Clamp values
+        for key in blended:
+            blended[key] = max(-1.0, min(1.0, blended[key]))
+
+        return {
+            'success': True,
+            'morph_targets': blended,
+            'layers': expression_layers
+        }
+
+    def _apply_blend_mask(
+        self,
+        values: Dict[str, float],
+        layer: str
+    ) -> Dict[str, float]:
+        """Apply blend mask to expression values."""
+        if layer not in self.BLEND_MASKS:
+            return values.copy()
+
+        mask = self.BLEND_MASKS[layer]
+        if mask is None:
+            return values.copy()
+
+        # Zero out masked values
+        result = {key: 0.0 for key in values}
+        for key in mask:
+            if key in values:
+                result[key] = values[key]
+
+        return result
+
+    def generate_transition_keyframes(
+        self,
+        from_expression: str,
+        to_expression: str,
+        duration: float,
+        fps: int = None
+    ) -> List[NMMKeyframe]:
+        """
+        Generate keyframes for smooth expression transition.
+
+        Args:
+            from_expression: Starting expression name
+            to_expression: Target expression name
+            duration: Transition duration
+            fps: Frames per second
+
+        Returns:
+            List of NMMKeyframe for the transition
+        """
+        target_fps = fps or self.fps
+        num_frames = int(duration * target_fps)
+        keyframes = []
+
+        from_values = self.BASE_EXPRESSIONS.get(from_expression, self.BASE_EXPRESSIONS['neutral'])
+        to_values = self.BASE_EXPRESSIONS.get(to_expression, self.BASE_EXPRESSIONS['neutral'])
+
+        # Generate transition keyframes with ease-in-out
+        for i in range(num_frames + 1):
+            t = i / num_frames if num_frames > 0 else 1.0
+
+            # Ease-in-out easing
+            eased_t = 2 * t * t if t < 0.5 else 1 - 2 * (1 - t) * (1 - t)
+
+            morph_targets = {}
+            for key in from_values:
+                from_val = from_values.get(key, 0.0)
+                to_val = to_values.get(key, 0.0)
+                morph_targets[key] = from_val + eased_t * (to_val - from_val)
+
+            keyframe = NMMKeyframe(
+                time=i / target_fps,
+                morph_targets=morph_targets,
+                facial_expression=to_expression if t >= 1.0 else from_expression
+            )
+            keyframes.append(keyframe)
+
+        return keyframes
+
+    def get_available_expressions(self) -> List[str]:
+        """Get list of available expressions."""
+        return list(self.BASE_EXPRESSIONS.keys())
+
+    def get_expression_layers(self) -> List[str]:
+        """Get list of available blend layers."""
+        return list(self.BLEND_MASKS.keys())
+
+
+class BodyPoseController:
+    """
+    Body pose controller for BSL avatar with IK support
+    for natural signing postures.
+    """
+
+    # Body joint hierarchy
+    JOINT_HIERARCHY = {
+        'root': ['spine', 'hips'],
+        'spine': ['chest'],
+        'chest': ['neck', 'shoulders'],
+        'neck': ['head'],
+        'shoulders': ['left_shoulder', 'right_shoulder'],
+        'left_shoulder': ['left_arm', 'left_upper_arm'],
+        'left_arm': ['left_forearm', 'left_elbow'],
+        'left_forearm': ['left_wrist', 'left_hand'],
+        'right_shoulder': ['right_arm', 'right_upper_arm'],
+        'right_arm': ['right_forearm', 'right_elbow'],
+        'right_forearm': ['right_wrist', 'right_hand'],
+        'hips': ['left_hip', 'right_hip'],
+        'left_hip': ['left_upper_leg'],
+        'right_hip': ['right_upper_leg'],
+    }
+
+    # Predefined poses for BSL signing
+    PREDEFINED_POSES = {
+        'neutral': {
+            'head': {'rotation': [0, 0, 0], 'position': [0, 1.7, 0]},
+            'spine': {'rotation': [0, 0, 0], 'position': [0, 1.2, 0]},
+            'chest': {'rotation': [0, 0, 0], 'position': [0, 1.0, 0]},
+            'left_shoulder': {'rotation': [0, 0, -10], 'position': [-0.2, 1.45, 0]},
+            'right_shoulder': {'rotation': [0, 0, 10], 'position': [0.2, 1.45, 0]},
+            'left_arm': {'rotation': [0, 0, -20], 'position': [-0.3, 1.3, 0]},
+            'right_arm': {'rotation': [0, 0, 20], 'position': [0.3, 1.3, 0]},
+            'left_forearm': {'rotation': [0, 0, -30], 'position': [-0.4, 1.1, 0]},
+            'right_forearm': {'rotation': [0, 0, 30], 'position': [0.4, 1.1, 0]},
+            'left_hand': {'position': [-0.5, 1.0, 0.2]},
+            'right_hand': {'position': [0.5, 1.0, 0.2]},
+        },
+        'signing_space': {
+            'head': {'rotation': [0, 0, 0], 'position': [0, 1.7, 0]},
+            'spine': {'rotation': [5, 0, 0], 'position': [0, 1.2, 0]},
+            'chest': {'rotation': [-5, 0, 0], 'position': [0, 1.0, 0]},
+            'left_shoulder': {'rotation': [0, 0, -30], 'position': [-0.25, 1.45, 0]},
+            'right_shoulder': {'rotation': [0, 0, 30], 'position': [0.25, 1.45, 0]},
+            'left_arm': {'rotation': [-45, 0, -30], 'position': [-0.35, 1.2, 0.2]},
+            'right_arm': {'rotation': [-45, 0, 30], 'position': [0.35, 1.2, 0.2]},
+            'left_forearm': {'rotation': [-30, 0, 0], 'position': [-0.45, 0.95, 0.3]},
+            'right_forearm': {'rotation': [-30, 0, 0], 'position': [0.45, 0.95, 0.3]},
+            'left_hand': {'position': [-0.5, 0.8, 0.4]},
+            'right_hand': {'position': [0.5, 0.8, 0.4]},
+        },
+        'one_handed_sign': {
+            'head': {'rotation': [0, 0, 0], 'position': [0, 1.7, 0]},
+            'spine': {'rotation': [0, 0, 0], 'position': [0, 1.2, 0]},
+            'chest': {'rotation': [0, 0, 0], 'position': [0, 1.0, 0]},
+            'right_shoulder': {'rotation': [0, 0, 45], 'position': [0.25, 1.45, 0]},
+            'right_arm': {'rotation': [-60, 0, 45], 'position': [0.4, 1.15, 0.3]},
+            'right_forearm': {'rotation': [-45, 0, 0], 'position': [0.55, 0.85, 0.5]},
+            'right_hand': {'position': [0.65, 0.7, 0.6]},
+        },
+        'two_handed_sign': {
+            'head': {'rotation': [0, 0, 0], 'position': [0, 1.7, 0]},
+            'spine': {'rotation': [0, 0, 0], 'position': [0, 1.2, 0]},
+            'chest': {'rotation': [0, 0, 0], 'position': [0, 1.0, 0]},
+            'left_shoulder': {'rotation': [0, 0, -45], 'position': [-0.25, 1.45, 0]},
+            'right_shoulder': {'rotation': [0, 0, 45], 'position': [0.25, 1.45, 0]},
+            'left_arm': {'rotation': [-60, 0, -45], 'position': [-0.4, 1.15, 0.3]},
+            'right_arm': {'rotation': [-60, 0, 45], 'position': [0.4, 1.15, 0.3]},
+            'left_forearm': {'rotation': [-45, 0, 0], 'position': [-0.55, 0.85, 0.5]},
+            'right_forearm': {'rotation': [-45, 0, 0], 'position': [0.55, 0.85, 0.5]},
+            'left_hand': {'position': [-0.65, 0.7, 0.6]},
+            'right_hand': {'position': [0.65, 0.7, 0.6]},
+        },
+    }
+
+    def __init__(self, fps: int = 30):
+        """Initialize the body pose controller."""
+        self.fps = fps
+        self.logger = logging.getLogger(__name__)
+
+        # Current pose state
+        self._current_pose = 'neutral'
+        self._joint_transforms = {}
+        self._ik_constraints = {}
+
+    def set_pose(self, pose_name: str) -> Dict[str, Any]:
+        """
+        Set predefined body pose.
+
+        Args:
+            pose_name: Name of predefined pose
+
+        Returns:
+            Pose configuration
+        """
+        if pose_name not in self.PREDEFINED_POSES:
+            raise ValueError(
+                f"Unknown pose: {pose_name}. "
+                f"Available: {list(self.PREDEFINED_POSES.keys())}"
+            )
+
+        self._current_pose = pose_name
+        self._joint_transforms = self.PREDEFINED_POSES[pose_name].copy()
+
+        self.logger.info(f"Body pose set to: {pose_name}")
+
+        return {
+            'success': True,
+            'pose': pose_name,
+            'joints': self._joint_transforms
+        }
+
+    def set_joint_transform(
+        self,
+        joint: str,
+        rotation: Optional[List[float]] = None,
+        position: Optional[List[float]] = None
+    ) -> Dict[str, Any]:
+        """
+        Set transform for a specific joint.
+
+        Args:
+            joint: Joint name
+            rotation: Euler rotation [x, y, z] in degrees
+            position: Position [x, y, z]
+
+        Returns:
+            Updated joint configuration
+        """
+        if joint not in self._joint_transforms:
+            self._joint_transforms[joint] = {}
+
+        joint_data = self._joint_transforms[joint]
+
+        if rotation is not None:
+            joint_data['rotation'] = rotation
+
+        if position is not None:
+            joint_data['position'] = position
+
+        return {
+            'success': True,
+            'joint': joint,
+            'transform': joint_data
+        }
+
+    def solve_ik(
+        self,
+        target_joint: str,
+        target_position: List[float],
+        chain: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Simple IK solver for reaching a target position.
+
+        Args:
+            target_joint: End effector joint name
+            target_position: Target [x, y, z] position
+            chain: Optional list of joints in the IK chain
+
+        Returns:
+            Solved joint transforms
+        """
+        # Simplified CCD IK solver
+        if chain is None:
+            # Determine chain from hierarchy
+            chain = self._get_chain_to_joint(target_joint)
+
+        # For now, return a placeholder - full IK implementation
+        # would require more complex math
+
+        return {
+            'success': True,
+            'target_joint': target_joint,
+            'target_position': target_position,
+            'chain': chain,
+            'solved': False,  # Requires full IK implementation
+            'message': 'IK solver placeholder - use predefined poses'
+        }
+
+    def _get_chain_to_joint(self, joint: str) -> List[str]:
+        """Get joint chain from root to target joint."""
+        chain = []
+        visited = set()
+
+        def find_path(current, target, path):
+            if current == target:
+                return path + [current]
+            if current in visited:
+                return None
+            visited.add(current)
+
+            if current in self.JOINT_HIERARCHY:
+                for child in self.JOINT_HIERARCHY[current]:
+                    result = find_path(child, target, path + [current])
+                    if result:
+                        return result
+            return None
+
+        result = find_path('root', joint, [])
+        return result if result else []
+
+    def generate_pose_keyframes(
+        self,
+        from_pose: str,
+        to_pose: str,
+        duration: float,
+        fps: int = None
+    ) -> List[NMMKeyframe]:
+        """
+        Generate keyframes for pose transition.
+
+        Args:
+            from_pose: Starting pose name
+            to_pose: Target pose name
+            duration: Transition duration
+            fps: Frames per second
+
+        Returns:
+            List of NMMKeyframe for the transition
+        """
+        target_fps = fps or self.fps
+        num_frames = int(duration * target_fps)
+        keyframes = []
+
+        from_joints = self.PREDEFINED_POSES.get(from_pose, {})
+        to_joints = self.PREDEFINED_POSES.get(to_pose, {})
+
+        # Generate transition keyframes
+        for i in range(num_frames + 1):
+            t = i / num_frames if num_frames > 0 else 1.0
+            eased_t = 2 * t * t if t < 0.5 else 1 - 2 * (1 - t) * (1 - t)
+
+            bone_positions = {}
+            bone_rotations = {}
+
+            # Interpolate all joints
+            for joint in to_joints:
+                from_data = from_joints.get(joint, {})
+                to_data = to_joints.get(joint, {})
+
+                from_pos = from_data.get('position', [0, 0, 0])
+                to_pos = to_data.get('position', [0, 0, 0])
+                from_rot = from_data.get('rotation', [0, 0, 0])
+                to_rot = to_data.get('rotation', [0, 0, 0])
+
+                bone_positions[joint] = tuple(
+                    from_pos[k] + eased_t * (to_pos[k] - from_pos[k])
+                    for k in range(3)
+                )
+                bone_rotations[joint] = tuple(
+                    from_rot[k] + eased_t * (to_rot[k] - from_rot[k])
+                    for k in range(3)
+                )
+
+            keyframe = NMMKeyframe(
+                time=i / target_fps,
+                bone_positions=bone_positions,
+                bone_rotations=bone_rotations
+            )
+            keyframes.append(keyframe)
+
+        return keyframes
+
+    def get_available_poses(self) -> List[str]:
+        """Get list of available poses."""
+        return list(self.PREDEFINED_POSES.keys())
+
+
+class GestureQueueManager:
+    """
+    Queue manager for BSL avatar gestures with priority,
+    blending, and smooth transitions.
+    """
+
+    # Gesture priority levels
+    PRIORITY = {
+        'critical': 0,  # Emergency stops, important alerts
+        'high': 1,      # User interactions, explicit requests
+        'normal': 2,    # Normal signing flow
+        'low': 3,       # Background/idle animations
+        'idle': 4,      # Idle animations
+    }
+
+    def __init__(self, fps: int = 30):
+        """Initialize the gesture queue manager."""
+        self.fps = fps
+        self.logger = logging.getLogger(__name__)
+
+        # Queue state
+        self._queue = []  # List of queued gestures
+        self._current_gesture = None
+        self._blending_gestures = {}  # gesture_id -> blend_data
+
+        # Configuration
+        self._blend_duration = 0.2  # Default blend duration
+        self._max_queue_size = 100
+
+    def enqueue(
+        self,
+        gesture_id: str,
+        animation: NMMAnimation,
+        priority: str = 'normal',
+        blend_mode: str = 'smooth',
+        interruptible: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Add a gesture to the queue.
+
+        Args:
+            gesture_id: Unique gesture identifier
+            animation: NMMAnimation to play
+            priority: Priority level ('critical', 'high', 'normal', 'low', 'idle')
+            blend_mode: How to blend with previous ('smooth', 'cut', 'crossfade')
+            interruptible: Whether this gesture can be interrupted
+
+        Returns:
+            Queue status
+        """
+        if priority not in self.PRIORITY:
+            raise ValueError(f"Invalid priority: {priority}")
+
+        gesture = {
+            'id': gesture_id,
+            'animation': animation,
+            'priority': self.PRIORITY[priority],
+            'blend_mode': blend_mode,
+            'interruptible': interruptible,
+            'queued_at': datetime.now(timezone.utc).isoformat(),
+            'status': 'queued'
+        }
+
+        # Insert in priority order
+        self._queue.append(gesture)
+        self._queue.sort(key=lambda g: g['priority'])
+
+        # Limit queue size
+        if len(self._queue) > self._max_queue_size:
+            removed = self._queue.pop()
+            self.logger.warning(f"Gesture {removed['id']} dropped (queue full)")
+
+        self.logger.info(f"Gesture {gesture_id} queued (priority={priority})")
+
+        return {
+            'success': True,
+            'gesture_id': gesture_id,
+            'queue_position': self._get_queue_position(gesture_id),
+            'queue_size': len(self._queue)
+        }
+
+    def dequeue(self) -> Optional[Dict[str, Any]]:
+        """
+        Get next gesture from queue.
+
+        Returns:
+            Next gesture or None if queue is empty
+        """
+        if not self._queue:
+            return None
+
+        return self._queue.pop(0)
+
+    def interrupt_current(self, gesture_id: str) -> bool:
+        """
+        Interrupt current gesture if it's interruptible.
+
+        Args:
+            gesture_id: New gesture to interrupt with
+
+        Returns:
+            True if interrupt was successful
+        """
+        if not self._current_gesture:
+            return True  # No current gesture to interrupt
+
+        if not self._current_gesture.get('interruptible', True):
+            self.logger.warning("Current gesture is not interruptible")
+            return False
+
+        self.logger.info(f"Interrupting current gesture with {gesture_id}")
+
+        # Move current gesture back to queue
+        if self._current_gesture:
+            self._queue.insert(0, self._current_gesture)
+
+        # Find and promote the new gesture
+        for i, gesture in enumerate(self._queue):
+            if gesture['id'] == gesture_id:
+                self._current_gesture = gesture
+                self._queue.pop(i)
+                return True
+
+        return False
+
+    def get_queue_status(self) -> Dict[str, Any]:
+        """Get current queue status."""
+        return {
+            'current_gesture': self._current_gesture['id'] if self._current_gesture else None,
+            'queue_size': len(self._queue),
+            'queue': [
+                {
+                    'id': g['id'],
+                    'priority': g['priority'],
+                    'blend_mode': g['blend_mode']
+                }
+                for g in self._queue[:10]  # First 10
+            ],
+            'max_queue_size': self._max_queue_size
+        }
+
+    def clear_queue(self, priority_threshold: Optional[str] = None) -> int:
+        """
+        Clear queue, optionally up to a priority threshold.
+
+        Args:
+            priority_threshold: Clear gestures with this priority or lower
+
+        Returns:
+            Number of gestures cleared
+        """
+        if priority_threshold is None:
+            cleared = len(self._queue)
+            self._queue.clear()
+        else:
+            threshold = self.PRIORITY.get(priority_threshold, 2)
+            original_size = len(self._queue)
+            self._queue = [g for g in self._queue if g['priority'] < threshold]
+            cleared = original_size - len(self._queue)
+
+        self.logger.info(f"Cleared {cleared} gestures from queue")
+        return cleared
+
+    def _get_queue_position(self, gesture_id: str) -> int:
+        """Get position of gesture in queue."""
+        for i, gesture in enumerate(self._queue):
+            if gesture['id'] == gesture_id:
+                return i
+        return -1
+
+    def blend_gestures(
+        self,
+        gesture1: NMMAnimation,
+        gesture2: NMMAnimation,
+        blend_duration: float,
+        blend_function: str = 'linear'
+    ) -> NMMAnimation:
+        """
+        Blend two gestures together.
+
+        Args:
+            gesture1: First gesture
+            gesture2: Second gesture
+            blend_duration: Duration of blend in seconds
+            blend_function: Blend function ('linear', 'ease-in-out')
+
+        Returns:
+            New blended animation
+        """
+        # Create blended animation
+        blended = NMMAnimation(
+            name=f"blend_{gesture1.name}_{gesture2.name}",
+            duration=gesture1.duration + blend_duration + gesture2.duration,
+            fps=self.fps,
+            loop=False
+        )
+
+        # Add gesture1 keyframes
+        for kf in gesture1.keyframes:
+            blended.add_keyframe(kf)
+
+        # Generate blend keyframes
+        blend_frames = int(blend_duration * self.fps)
+        if blend_frames > 0:
+            last_kf1 = gesture1.keyframes[-1] if gesture1.keyframes else NMMKeyframe(time=0)
+            first_kf2 = gesture2.keyframes[0] if gesture2.keyframes else NMMKeyframe(time=0)
+
+            for i in range(1, blend_frames + 1):
+                t = i / blend_frames
+                if blend_function == 'ease-in-out':
+                    t = 2 * t * t if t < 0.5 else 1 - 2 * (1 - t) * (1 - t)
+
+                blended_kf = self._interpolate_keyframes(last_kf1, first_kf2, t)
+                blended.add_keyframe(blended_kf)
+
+        # Add gesture2 keyframes (offset time)
+        offset = gesture1.duration + blend_duration
+        for kf in gesture2.keyframes:
+            new_kf = NMMKeyframe(
+                time=kf.time + offset,
+                morph_targets=kf.morph_targets.copy(),
+                bone_rotations=kf.bone_rotations.copy(),
+                bone_positions=kf.bone_positions.copy(),
+                bone_scales=kf.bone_scales.copy(),
+                facial_expression=kf.facial_expression,
+                handshape=kf.handshape,
+                lip_sync_value=kf.lip_sync_value
+            )
+            blended.add_keyframe(new_kf)
+
+        return blended
+
+    def _interpolate_keyframes(
+        self,
+        kf1: NMMKeyframe,
+        kf2: NMMKeyframe,
+        t: float
+    ) -> NMMKeyframe:
+        """Interpolate between two keyframes."""
+        return NMMKeyframe(
+            time=kf1.time + t * (kf2.time - kf1.time),
+            morph_targets={
+                k: kf1.morph_targets.get(k, 0) + t * (kf2.morph_targets.get(k, 0) - kf1.morph_targets.get(k, 0))
+                for k in set(kf1.morph_targets) | set(kf2.morph_targets)
+            },
+            bone_rotations={
+                k: tuple(
+                    kf1.bone_rotations.get(k, (0, 0, 0, 1))[j] + t * (
+                        kf2.bone_rotations.get(k, (0, 0, 0, 1))[j] -
+                        kf1.bone_rotations.get(k, (0, 0, 0, 1))[j]
+                    )
+                    for j in range(4)
+                )
+                for k in set(kf1.bone_rotations) | set(kf2.bone_rotations)
+            },
+            bone_positions={
+                k: tuple(
+                    kf1.bone_positions.get(k, (0, 0, 0))[j] + t * (
+                        kf2.bone_positions.get(k, (0, 0, 0))[j] -
+                        kf1.bone_positions.get(k, (0, 0, 0))[j]
+                    )
+                    for j in range(3)
+                )
+                for k in set(kf1.bone_positions) | set(kf2.bone_positions)
+            }
+        )
+
+
 __all__ = [
     "AvatarWebGLRenderer",
     "AvatarModel",
@@ -984,5 +1945,9 @@ __all__ = [
     "NMMKeyframe",
     "WebGLError",
     "AvatarLoadError",
-    "AnimationLoadError"
+    "AnimationLoadError",
+    "LipSyncEngine",
+    "FacialExpressionController",
+    "BodyPoseController",
+    "GestureQueueManager",
 ]
