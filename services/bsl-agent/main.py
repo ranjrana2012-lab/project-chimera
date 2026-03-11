@@ -27,7 +27,12 @@ from avatar_webgl import (
     FacialExpressionController,
     BodyPoseController,
     GestureQueueManager,
-    BSLAnimationLibrary
+    BSLAnimationLibrary,
+    AnimationWorkerPool,
+    GLBCompressor,
+    LRUCache,
+    AnimationStreamer,
+    GPUInstancer
 )
 from models import (
     TranslateRequest,
@@ -78,6 +83,13 @@ expression_controller = FacialExpressionController(fps=settings.avatar_fps)
 body_pose_controller = BodyPoseController(fps=settings.avatar_fps)
 gesture_queue_manager = GestureQueueManager(fps=settings.avatar_fps)
 animation_library = BSLAnimationLibrary(fps=settings.avatar_fps)
+
+# Performance optimization components
+animation_worker_pool = AnimationWorkerPool(max_workers=4)
+glb_compressor = GLBCompressor()
+animation_cache = LRUCache(max_size=100, max_memory_mb=500)
+animation_streamer = AnimationStreamer(chunk_size=4096, fps=settings.avatar_fps)
+gpu_instancer = GPUInstancer(max_instances=100)
 
 # WebSocket connection manager
 class ConnectionManager:
@@ -1501,6 +1513,209 @@ async def search_animations(q: str = "") -> Dict[str, Any]:
         "query": q,
         "count": len(results),
         "results": results[:20]  # Limit to 20 results
+    }
+
+
+# ============================================================================
+# Performance Optimization Endpoints
+# ============================================================================
+
+@app.get("/api/avatar/cache/stats")
+async def get_cache_stats() -> Dict[str, Any]:
+    """
+    Get animation cache statistics.
+
+    Returns:
+        Cache statistics including hit rate, memory usage, etc.
+    """
+    stats = animation_cache.get_stats()
+
+    return {
+        "success": True,
+        "cache": stats,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+
+@app.post("/api/avatar/cache/clear")
+async def clear_cache(category: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Clear animation cache.
+
+    Args:
+        category: Optional category to clear (phrases, letters, numbers, emotions)
+
+    Returns:
+        Cache clear status
+    """
+    if category:
+        # Clear specific category
+        prefix = f"phrase_{category}" if category in ['hello', 'goodbye', 'please', 'thank_you'] else f"{category}_"
+        cleared = 0
+
+        # Get all keys to iterate
+        all_keys = list(animation_cache._cache.keys())
+        for key in all_keys:
+            if key.startswith(prefix):
+                animation_cache.invalidate(key)
+                cleared += 1
+
+        return {
+            "success": True,
+            "cleared": cleared,
+            "category": category,
+            "message": f"Cleared {cleared} cached {category} animations"
+        }
+    else:
+        # Clear all cache
+        size_before = len(animation_cache._cache)
+        animation_cache.clear()
+
+        return {
+            "success": True,
+            "cleared": size_before,
+            "message": f"Cleared all {size_before} cached animations"
+        }
+
+
+@app.post("/api/avatar/stream/start")
+async def start_animation_stream(
+    category: str,
+    item: str
+) -> Dict[str, Any]:
+    """
+    Start streaming an animation.
+
+    Args:
+        category: Animation category (phrase, letter, number, emotion)
+        item: Animation item name
+
+    Returns:
+        Stream information with stream ID
+    """
+    animation_id = f"{category}_{item}"
+    animation = animation_library.get_animation(animation_id)
+
+    if not animation:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Animation '{animation_id}' not found"
+        )
+
+    stream_id = animation_streamer.start_stream(animation)
+
+    return {
+        "success": True,
+        "stream_id": stream_id,
+        "animation": {
+            "id": animation_id,
+            "name": animation.name,
+            "duration": animation.duration
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+
+@app.get("/api/avatar/stream/{stream_id}/chunk")
+async def get_stream_chunk(stream_id: str) -> Dict[str, Any]:
+    """
+    Get the next chunk of a streaming animation.
+
+    Args:
+        stream_id: Stream ID
+
+    Returns:
+        Chunk data with keyframes
+    """
+    chunk = animation_streamer.get_next_chunk(stream_id)
+
+    if not chunk:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Stream '{stream_id}' not found or complete"
+        )
+
+    return {
+        "success": True,
+        "chunk": chunk,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+
+@app.get("/api/avatar/stream/{stream_id}/progress")
+async def get_stream_progress(stream_id: str) -> Dict[str, Any]:
+    """
+    Get streaming animation progress.
+
+    Args:
+        stream_id: Stream ID
+
+    Returns:
+        Progress information
+    """
+    progress = animation_streamer.get_stream_progress(stream_id)
+
+    if not progress:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Stream '{stream_id}' not found"
+        )
+
+    return {
+        "success": True,
+        "progress": progress,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+
+@app.delete("/api/avatar/stream/{stream_id}")
+async def cancel_stream(stream_id: str) -> Dict[str, Any]:
+    """
+    Cancel an active animation stream.
+
+    Args:
+        stream_id: Stream ID
+
+    Returns:
+        Cancellation status
+    """
+    cancelled = animation_streamer.cancel_stream(stream_id)
+
+    if not cancelled:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Stream '{stream_id}' not found"
+        )
+
+    return {
+        "success": True,
+        "stream_id": stream_id,
+        "message": "Stream cancelled",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+
+@app.get("/api/avatar/performance")
+async def get_performance_stats() -> Dict[str, Any]:
+    """
+    Get overall performance statistics.
+
+    Returns:
+        Performance metrics for all optimization systems
+    """
+    return {
+        "success": True,
+        "performance": {
+            "cache": animation_cache.get_stats(),
+            "worker_pool": {
+                "max_workers": animation_worker_pool.max_workers,
+                "active_tasks": len(animation_worker_pool._task_queue),
+                "pending_results": len(animation_worker_pool._results)
+            },
+            "gpu_instancer": gpu_instancer.get_stats(),
+            "active_streams": len(animation_streamer._active_streams)
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 
