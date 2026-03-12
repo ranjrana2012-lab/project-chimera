@@ -139,13 +139,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add validation exception handler to return string error messages
+# Add validation exception handler to return standardized error responses
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from shared.models.errors import StandardErrorResponse, ErrorCode
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: RequestValidationError, exc: RequestValidationError):
-    """Return validation errors as string messages instead of arrays."""
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors with standardized error response."""
     errors = exc.errors()
     # Get the first error message and return as string
     error_msg = errors[0]["msg"] if errors else "Validation error"
@@ -161,7 +162,12 @@ async def validation_exception_handler(request: RequestValidationError, exc: Req
 
     return JSONResponse(
         status_code=422,
-        content={"detail": error_msg}
+        content=StandardErrorResponse(
+            error=error_msg,
+            code=ErrorCode.VALIDATION_ERROR,
+            detail=str(exc.errors()),
+            retryable=False
+        ).model_dump()
     )
 
 # Instrument FastAPI with automatic tracing
