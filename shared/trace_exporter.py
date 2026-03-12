@@ -43,6 +43,7 @@ try:
 except ImportError:
     OTEL_AVAILABLE = False
     ReadableSpan = None  # type: ignore
+    ExportResult = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ class TraceExporter:
             except Exception as e:
                 logger.error(f"Failed to initialize console exporter: {e}")
 
-    def export_spans(self, spans: List[Any]) -> ExportResult:
+    def export_spans(self, spans: List[Any]) -> Any:
         """
         Export spans to configured exporters.
 
@@ -191,10 +192,10 @@ class TraceExporter:
         """
         if not OTEL_AVAILABLE:
             logger.warning("OpenTelemetry not available, skipping span export")
-            return ExportResult.SUCCESS
+            return None
 
         if not spans:
-            return ExportResult.SUCCESS
+            return ExportResult.SUCCESS  # type: ignore
 
         # Apply sampling
         sampled_spans = self._apply_sampling(spans)

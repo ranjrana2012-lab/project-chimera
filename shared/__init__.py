@@ -26,6 +26,40 @@ from shared.trace_exporter import (
     format_duration_ms,
 )
 
+from shared.resilience import (
+    retry_on_exception,
+    retry_on_condition,
+    async_retry_on_exception,
+    RetryConfig,
+    RetryStrategy,
+    RetryTracker,
+    RETRY_CONFIGS,
+)
+
+from shared.circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerError,
+    CircuitBreakerConfig,
+    CircuitState,
+    CircuitBreakerRegistry,
+    with_circuit_breaker,
+    get_circuit_breaker,
+    get_all_circuit_breaker_stats,
+    CIRCUIT_CONFIGS,
+)
+
+from shared.degradation import (
+    DegradationLevel,
+    DegradationState,
+    DegradationManager,
+    ServiceCapability,
+    ServiceHealthMonitor,
+    with_degradation_fallback,
+    get_degradation_manager,
+    get_all_degradation_stats,
+    DEGRADATION_PRESETS,
+)
+
 __all__ = [
     # Tracing
     "setup_tracing",
@@ -48,4 +82,32 @@ __all__ = [
     "PerformanceReport",
     "calculate_percentiles",
     "format_duration_ms",
+    # Resilience
+    "retry_on_exception",
+    "retry_on_condition",
+    "async_retry_on_exception",
+    "RetryConfig",
+    "RetryStrategy",
+    "RetryTracker",
+    "RETRY_CONFIGS",
+    # Circuit Breaker
+    "CircuitBreaker",
+    "CircuitBreakerError",
+    "CircuitBreakerConfig",
+    "CircuitState",
+    "CircuitBreakerRegistry",
+    "with_circuit_breaker",
+    "get_circuit_breaker",
+    "get_all_circuit_breaker_stats",
+    "CIRCUIT_CONFIGS",
+    # Degradation
+    "DegradationLevel",
+    "DegradationState",
+    "DegradationManager",
+    "ServiceCapability",
+    "ServiceHealthMonitor",
+    "with_degradation_fallback",
+    "get_degradation_manager",
+    "get_all_degradation_stats",
+    "DEGRADATION_PRESETS",
 ]
