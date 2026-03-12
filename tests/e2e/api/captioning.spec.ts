@@ -9,7 +9,8 @@ import { join } from 'path';
  * Port: 8002
  *
  * Endpoints:
- * - GET /health - Service health check
+ * - GET /health/live - Basic liveness check
+ * - GET /health/ready - Readiness check with model info
  * - POST /api/transcribe - Transcribe audio to text
  */
 
@@ -164,8 +165,8 @@ test.describe('Captioning Agent API', () => {
     }
   });
 
-  test('@api health includes model information', async ({ request }) => {
-    const response = await request.get(`${baseURL}/health`);
+  test('@api health/ready includes model information', async ({ request }) => {
+    const response = await request.get(`${baseURL}/health/ready`);
 
     expect(response.status()).toBe(200);
 
