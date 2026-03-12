@@ -11,9 +11,9 @@ import json
 from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, UTC
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import Response, HTMLResponse, FileResponse
 from opentelemetry import trace
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
@@ -55,9 +55,17 @@ from models import (
 )
 from tracing import setup_telemetry, instrument_fastapi, add_span_attributes, record_error
 from metrics import record_translation, record_render
+import sys
+import os
+# Add shared module to path for health models
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+from shared.models.health import ReadinessResponse, ModelInfo, HealthMetrics
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+# Track startup time for enhanced health endpoints
+startup_time = time.time()
 
 # Initialize components
 tracer = setup_telemetry("bsl-agent")
@@ -184,14 +192,21 @@ async def liveness():
     return {"status": "alive"}
 
 
-@app.get("/health/ready")
+@app.get("/health/ready", response_model=ReadinessResponse)
 async def readiness():
-    """Readiness probe for Kubernetes."""
-    return HealthResponse(
+    """Enhanced readiness endpoint with model and dependency info."""
+    uptime = int(time.time() - startup_time)
+
+    return ReadinessResponse(
         status="ready",
-        service="bsl-agent",
-        translator_ready=True,
-        avatar_ready=True
+        version="1.0.0",
+        uptime=uptime,
+        model_info=ModelInfo(
+            loaded=True,
+            name="bsl-avatar-v1",
+            last_loaded=datetime.now(UTC)
+        ),
+        metrics=None  # Will be implemented with full metrics tracking
     )
 
 

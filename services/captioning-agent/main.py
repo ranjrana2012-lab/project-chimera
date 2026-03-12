@@ -9,8 +9,13 @@ from typing import Optional, Set
 
 from fastapi import FastAPI, File, UploadFile, Form, WebSocket, WebSocketDisconnect, Response, Query
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
+from datetime import datetime, UTC
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+import sys
+import os
+# Add shared module to path for health models
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+from shared.models.health import ReadinessResponse, ModelInfo, HealthMetrics
 
 from config import settings, get_settings
 from models import (
@@ -43,6 +48,9 @@ logger = logging.getLogger(__name__)
 # Global service instance
 whisper_service: Optional[WhisperService] = None
 tracer = None
+
+# Track startup time for enhanced health endpoints
+startup_time = time.time()
 
 
 # ============================================================================
@@ -185,17 +193,23 @@ async def liveness():
     return HealthResponse(status="alive")
 
 
-@app.get("/health/ready", response_model=HealthResponse)
+@app.get("/health/ready", response_model=ReadinessResponse)
 async def readiness():
-    """Readiness check - can we handle requests?"""
-    checks = {}
+    """Enhanced readiness endpoint with model and dependency info."""
+    uptime = int(time.time() - startup_time)
+    model_loaded = whisper_service is not None and whisper_service.is_loaded()
 
-    if whisper_service is not None and whisper_service.is_loaded():
-        checks["whisper_model"] = "loaded"
-        return HealthResponse(status="ready", checks=checks)
-    else:
-        checks["whisper_model"] = "not_loaded"
-        return HealthResponse(status="not_ready", checks=checks)
+    return ReadinessResponse(
+        status="ready" if model_loaded else "not_ready",
+        version="1.0.0",
+        uptime=uptime,
+        model_info=ModelInfo(
+            loaded=model_loaded,
+            name=settings.whisper_model_size if model_loaded else None,
+            last_loaded=datetime.now(UTC) if model_loaded else None
+        ),
+        metrics=None  # Will be implemented with full metrics tracking
+    )
 
 
 @app.get("/metrics")
