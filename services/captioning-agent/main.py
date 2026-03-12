@@ -171,26 +171,16 @@ app.add_middleware(
 
 
 # Health endpoints
-@app.get("/health")
-async def health():
-    """Health check endpoint for E2E compatibility with model info"""
-    model_loaded = whisper_service is not None and whisper_service.is_loaded()
-    return {
-        "status": "healthy",
-        "service": "captioning-agent",
-        "version": "1.0.0",
-        "model_info": {
-            "name": "whisper",
-            "loaded": model_loaded,
-            "version": "1.0.0"
-        }
-    }
-
-
 @app.get("/health/live", response_model=HealthResponse)
-async def liveness():
+async def health_live():
     """Basic liveness check - is the process running?"""
     return HealthResponse(status="alive")
+
+
+@app.get("/health")
+async def health():
+    """Health check alias - redirects to health_live."""
+    return await health_live()
 
 
 @app.get("/health/ready", response_model=ReadinessResponse)
