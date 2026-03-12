@@ -973,7 +973,8 @@ class AvatarWebGLRenderer:
             "current_animation": self._current_animation.name if self._current_animation else None,
             "available_expressions": list(self.FACIAL_EXPRESSIONS.keys()),
             "available_handshapes": list(self.HANDSHAPES.keys()),
-            "status": "ready"
+            "status": "ready",
+            "ready": True  # E2E test compatibility
         }
 
 
