@@ -1,0 +1,80 @@
+name: Check Documentation Links
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  workflow_dispatch:  # Allow manual trigger
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '*.md'
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - '*.md'
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for broken markdown links
+        run: |
+          echo "Checking for broken markdown links..."
+
+          # Find all markdown links
+          grep -r "\[.*\](.*.md)" docs/ --include="*.md" | grep -v "Binary file" > /tmp/all-links.txt
+
+          # Check each link
+          BROKEN=0
+          while IFS= read -r line; do
+            link=$(echo "$line" | sed -n 's/.*](\([^)]*\)).*/\1/p')
+            if [[ ! "$link" =~ ^http ]] && [[ ! -f "docs/$link" ]] && [[ ! -f "$link" ]]; then
+              echo "BROKEN: $link"
+              ((BROKEN++))
+            fi
+          done < /tmp/all-links.txt
+
+          if [ $BROKEN -gt 0 ]; then
+            echo "::error::Found $BROKEN broken markdown links"
+            exit 1
+          fi
+
+          echo "✅ No broken links found"
+
+      - name: Check external links
+        uses: gaurav-nelson/github-action-check-links@v1
+        with:
+          folder: docs/
+          file-types: |
+            **/*.md
+          check-anchors: true
+          base-url: /
+          timeout: 300000  # 5 minutes
+          continue-on-error: true
+
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              state: 'open',
+              labels: 'documentation,link-check'
+            });
+
+            if (issues.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.name,
+                title: 'Documentation link check failed',
+                body: 'The daily link checker found broken links in the documentation. Please investigate and fix.',
+                labels: ['documentation', 'bug', 'link-check']
+              });
+            }
