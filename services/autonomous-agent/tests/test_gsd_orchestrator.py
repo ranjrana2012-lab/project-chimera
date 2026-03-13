@@ -118,3 +118,21 @@ def test_write_and_read_plan(orchestrator, tmp_path):
     assert "Set up project structure" in content
     assert "Implement endpoints" in content
     assert "4" in content  # estimated hours
+
+
+def test_discuss_phase(orchestrator):
+    """Test discuss phase extracts requirements."""
+    user_request = "Build a REST API"
+    requirements = orchestrator.discuss_phase(user_request)
+    assert requirements.goal == user_request
+    assert orchestrator.requirements == requirements
+
+
+def test_plan_phase(orchestrator):
+    """Test plan phase creates tasks."""
+    user_request = "Create API"
+    requirements = orchestrator.discuss_phase(user_request)
+    plan = orchestrator.plan_phase(requirements)
+    assert len(plan.tasks) > 0
+    assert plan.estimated_hours > 0
+    assert orchestrator.plan == plan

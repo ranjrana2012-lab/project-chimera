@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from pathlib import Path
 
 
@@ -182,6 +182,8 @@ class GSDOrchestrator:
         """
         # Simplified implementation
         # In production, would use LLM to verify compliance
+        if not code:
+            raise SpecViolationError("Code is empty or None")
         return True
 
     def verify_code_quality(self, code: str) -> bool:
@@ -199,6 +201,8 @@ class GSDOrchestrator:
         """
         # Simplified implementation
         # In production, would run linters, type checkers, etc.
+        if not code:
+            raise QualityViolationError("Code is empty or None")
         return True
 
     def write_requirements(self, requirements: Requirements, filepath: str) -> None:
@@ -208,27 +212,33 @@ class GSDOrchestrator:
         Args:
             requirements: Requirements to write
             filepath: Path to write REQUIREMENTS.md
-        """
-        path = Path(filepath)
-        path.parent.mkdir(parents=True, exist_ok=True)
 
-        content = f"""# Requirements
+        Raises:
+            IOError: If file cannot be written
+        """
+        try:
+            path = Path(filepath)
+            path.parent.mkdir(parents=True, exist_ok=True)
+
+            content = f"""# Requirements
 
 ## Goal
 {requirements.goal}
 
 ## Constraints
 """
-        for constraint in requirements.constraints:
-            content += f"- {constraint}\n"
+            for constraint in requirements.constraints:
+                content += f"- {constraint}\n"
 
-        content += "\n## Acceptance Criteria\n"
-        for criteria in requirements.acceptance_criteria:
-            content += f"- {criteria}\n"
+            content += "\n## Acceptance Criteria\n"
+            for criteria in requirements.acceptance_criteria:
+                content += f"- {criteria}\n"
 
-        content += f"\n*Generated: {requirements.timestamp}*\n"
+            content += f"\n*Generated: {requirements.timestamp}*\n"
 
-        path.write_text(content)
+            path.write_text(content)
+        except (OSError, PermissionError) as e:
+            raise IOError(f"Failed to write requirements to {filepath}: {e}")
 
     def write_plan(self, plan: Plan, filepath: str) -> None:
         """
@@ -237,11 +247,15 @@ class GSDOrchestrator:
         Args:
             plan: Plan to write
             filepath: Path to write PLAN.md
-        """
-        path = Path(filepath)
-        path.parent.mkdir(parents=True, exist_ok=True)
 
-        content = f"""# Implementation Plan
+        Raises:
+            IOError: If file cannot be written
+        """
+        try:
+            path = Path(filepath)
+            path.parent.mkdir(parents=True, exist_ok=True)
+
+            content = f"""# Implementation Plan
 
 ## Overview
 - Total Tasks: {len(plan.tasks)}
@@ -249,14 +263,16 @@ class GSDOrchestrator:
 
 ## Tasks
 """
-        for task in plan.tasks:
-            deps = ", ".join(task.dependencies) if task.dependencies else "None"
-            content += f"""
+            for task in plan.tasks:
+                deps = ", ".join(task.dependencies) if task.dependencies else "None"
+                content += f"""
 ### Task {task.id}: {task.description}
 - Status: {task.status}
 - Dependencies: {deps}
 """
 
-        content += f"\n*Generated: {plan.timestamp}*\n"
+            content += f"\n*Generated: {plan.timestamp}*\n"
 
-        path.write_text(content)
+            path.write_text(content)
+        except (OSError, PermissionError) as e:
+            raise IOError(f"Failed to write plan to {filepath}: {e}")
