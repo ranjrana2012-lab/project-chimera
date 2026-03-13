@@ -1,7 +1,18 @@
 __pycache__/
 *.pyc
+*.pyo               # Python optimized bytecode
+*.pyd               # Compiled extension modules (Windows)
+*.so                # Compiled extension modules (Unix)
 .venv/
 venv/
 .pytest_cache/
 .coverage
+htmlcov/            # HTML coverage reports
 .state/
+.env                # CRITICAL - Security: environment files with secrets
+*.egg-info/         # Package metadata
+dist/               # Distribution directory
+build/              # Build directory
+*.egg               # Egg files
+.DS_Store           # macOS
+Thumbs.db           # Windows
