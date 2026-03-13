@@ -1,0 +1,58 @@
+groups:
+- name: autonomous_alerts
+  interval: 30s
+  rules:
+  - alert: AutonomousAgentStuck
+    expr: |
+      time() - autonomous_agent_task_executions_total{status="success"} > 3600
+    for: 5m
+    labels:
+      severity: critical
+      component: autonomous-agent
+    annotations:
+      summary: "Agent stuck on task for >1 hour"
+      description: "No successful task completions in the last hour"
+
+  - alert: AutonomousAgentHighFailureRate
+    expr: |
+      rate(autonomous_agent_task_executions_total{status="failed"}[5m]) > 0.5
+    for: 5m
+    labels:
+      severity: warning
+      component: autonomous-agent
+    annotations:
+      summary: "High task failure rate"
+      description: "Task failure rate: {{ $value | humanize }}/sec"
+
+  - alert: RalphBackstopHit
+    expr: |
+      rate(autonomous_agent_retries_total[5m]) > 1
+    for: 1m
+    labels:
+      severity: critical
+      component: autonomous-agent
+    annotations:
+      summary: "Ralph Mode backstop hit - manual intervention needed"
+      description: "High retry rate detected: {{ $value | humanize }}/sec"
+
+  - alert: AutonomousAgentTooManyActiveTasks
+    expr: |
+      autonomous_agent_active_tasks > 10
+    for: 5m
+    labels:
+      severity: warning
+      component: autonomous-agent
+    annotations:
+      summary: "Too many active tasks"
+      description: "{{ $value }} active tasks detected"
+
+  - alert: AutonomousAgentPodNotReady
+    expr: |
+      kube_deployment_status_replica_ready{deployment="autonomous-agent"} < kube_deployment_spec_replicas{deployment="autonomous-agent"}
+    for: 5m
+    labels:
+      severity: critical
+      component: autonomous-agent
+    annotations:
+      summary: "Autonomous Agent pods not ready"
+      description: "{{ $value }}/{{ $ }} pods ready"
