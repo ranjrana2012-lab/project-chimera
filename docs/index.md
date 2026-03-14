@@ -91,4 +91,5 @@ Welcome to the Project Chimera documentation hub. This is your central resource 
 | Lighting-Sound-Music | ✅ Operational | Port 8005 |
 | Safety Filter | ✅ Operational | Port 8006 |
 | Operator Console | ✅ Operational | Port 8007 |
+| Autonomous Agent | ✅ Operational | Port 8008, Ralph Engine + GSD Orchestrator |
 | Music Generation | ✅ Operational | Port 8011 |
