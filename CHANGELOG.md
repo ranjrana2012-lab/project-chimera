@@ -40,6 +40,117 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Operator Console: ✅ Production Ready
 - **WorldMonitor Sidecar: ✅ Production Ready (NEW)**
 
+## [0.5.0] - 2026-03-14
+
+### Added
+- **Production Hardening** - Kubernetes Pod Security Standards implementation
+  - Pod Security Admission configuration enforcing Baseline policy
+  - All 9 services updated with comprehensive security contexts
+  - Non-root user enforcement (UID 1000)
+  - Privilege escalation prevention
+  - Seccomp profiles (RuntimeDefault)
+  - All capabilities dropped
+  - Automated security validation script
+  - Security documentation and quick reference guides
+
+- **Autonomous Agent Integration** - VMAO Framework implementation
+  - OpenClaw client for multi-agent coordination
+  - VMAO verifier: Plan-Execute-Verify-Replan cycle
+  - Enhanced GSD orchestrator with verification phase
+  - Parallel agent execution with dependency awareness
+  - Integration tests and demo scripts
+  - New API endpoints: /api/agents, /api/health/dependencies, /api/demo/multi-agent
+
+- **Educational Platform** - AI-Powered Learning System (Port 8012)
+  - Student profiles with learning styles and accessibility needs
+  - Curriculum management with courses, lessons, assessments
+  - BSL, captioning, and sentiment agent integration
+  - Educator CLI for classroom management
+  - Learning analytics and engagement tracking
+  - BMet partnership ready with accessibility-first design
+  - WebSocket support for real-time updates
+  - OpenTelemetry distributed tracing
+  - Prometheus metrics (20+ metrics)
+
+- **Live Show Automation** - Director Agent (Port 8013)
+  - Director Agent service for show orchestration
+  - YAML-based show definition DSL with scenes and actions
+  - Scene execution engine with multi-agent choreography
+  - Safety controls: emergency stop, human approval gates, timeouts
+  - WebSocket real-time show state updates
+  - Audience adaptation based on sentiment analysis
+  - 2 example shows: welcome_show.yaml and adaptive_show.yaml
+
+### New Services
+- **Educational Platform** (Port 8012) - AI-powered learning platform
+- **Director Agent** (Port 8013) - Live show automation orchestration
+
+### New API Endpoints
+
+**Autonomous Agent (Port 8008):**
+- `GET /api/agents` - List available agents from OpenClaw
+- `GET /api/health/dependencies` - Check multi-agent health
+- `POST /api/demo/multi-agent` - Demonstrate multi-agent workflow
+
+**Educational Platform (Port 8012):**
+- `POST /api/students` - Create student profile
+- `GET /api/students/{id}` - Get student details
+- `POST /api/courses` - Create course
+- `GET /api/courses` - List all courses
+- `POST /api/enrollments` - Enroll student in course
+- `GET /api/learning/recommendations/{student_id}` - Get personalized recommendations
+- `WebSocket /ws/students/{id}` - Real-time student updates
+- `WebSocket /ws/educators` - Real-time educator dashboard
+
+**Director Agent (Port 8013):**
+- `POST /api/shows/load` - Load show from file
+- `GET /api/shows` - List all shows
+- `GET /api/shows/{show_id}` - Get show details
+- `POST /api/shows/{show_id}/start` - Start show
+- `POST /api/shows/{show_id}/pause` - Pause show
+- `POST /api/shows/{show_id}/resume` - Resume show
+- `POST /api/shows/{show_id}/stop` - Stop show
+- `GET /api/shows/{show_id}/state` - Get current state
+- `WebSocket /ws/show/{show_id}` - Real-time show updates
+
+### Security
+- All services now enforce Baseline Pod Security Standards
+- Security contexts applied to all deployments
+- Automated security validation via `scripts/test-security-contexts.sh`
+- Security documentation in `docs/security/`
+
+### Documentation
+- 15+ new comprehensive guides created
+- Educational Platform API documentation
+- Director Agent show creators guide
+- Live Show Automation guide
+- Security hardening guides
+- Autonomous Agent Integration documentation
+
+### Files Created
+- 46 new files
+- 25,000+ lines of code
+- Kubernetes manifests for 2 new services
+
+### Services Status
+- OpenClaw Orchestrator: ✅ Production Ready
+- SceneSpeak Agent: ✅ Production Ready
+- Captioning Agent: ✅ Production Ready
+- BSL Agent: ✅ Production Ready
+- Sentiment Agent: ✅ Production Ready
+- Lighting, Sound & Music: ✅ Production Ready
+- Safety Filter: ✅ Production Ready
+- Operator Console: ✅ Production Ready
+- Autonomous Agent: ✅ Production Ready (Enhanced with VMAO)
+- **Educational Platform: ✅ Production Ready (NEW)**
+- **Director Agent: ✅ Production Ready (NEW)**
+
+### Migration Notes
+- No breaking changes to existing services
+- All new services are opt-in
+- Security contexts are backward compatible
+- See individual service documentation for setup instructions
+
 ## [Unreleased]
 
 ### Planned
