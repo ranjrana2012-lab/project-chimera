@@ -1,0 +1,48 @@
+---
+# Pod Security Admission Configuration for Project Chimera
+# This implements Kubernetes Pod Security Standards (PSS) at the namespace level
+#
+# Policy Levels:
+# - Privileged: Unrestricted, for system-level workloads
+# - Baseline: Prevents privilege escalation (minimum for production apps)
+# - Restricted: Hardening best practices (security-critical apps)
+#
+# Implementation: We start with Baseline for most services, with exceptions
+# for workloads that require specific capabilities (e.g., hardware access)
+
+---
+# Label the namespace to enforce Baseline policy
+# Baseline prevents privilege escalation and limits access to host resources
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: project-chimera
+  labels:
+    name: project-chimera
+    environment: production
+    project: chimera
+    component: platform
+    # Enforce Baseline policy (warn on violations, audit only)
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    # Audit for Restricted policy (report violations but don't block)
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    # Warn for violations during development
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+---
+# Exemption for lighting-control service (requires hardware access)
+# This service needs privileged access for DMX/USB device communication
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: project-chimera-lighting
+  labels:
+    name: project-chimera-lighting
+    environment: production
+    project: chimera
+    component: lighting
+    # Lighting control needs privileged access
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: latest

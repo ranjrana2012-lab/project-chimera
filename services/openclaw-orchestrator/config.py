@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     sentiment_agent_url: str = "http://localhost:8004"
     lighting_sound_music_url: str = "http://localhost:8005"
     safety_filter_url: str = "http://localhost:8006"
+    autonomous_agent_url: str = "http://localhost:8008"
 
     # OpenTelemetry
     otlp_endpoint: str = "http://localhost:4317"

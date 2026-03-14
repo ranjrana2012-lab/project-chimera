@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     plan_file: str = "state/PLAN.md"
     state_file: str = "state/STATE.md"
 
+    # OpenClaw Orchestrator integration
+    openclaw_url: str = "http://localhost:8000"
+    enable_multi_agent: bool = True
+
 
 _settings = None
 

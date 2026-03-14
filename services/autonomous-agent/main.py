@@ -23,6 +23,8 @@ from models import (
 from gsd_orchestrator import GSDOrchestrator, Requirements, Plan, Results
 from ralph_engine import RalphEngine, Task, Result
 from flow_next import FlowNextManager
+from openclaw_client import get_openclaw_client
+from vmao_verifier import get_verifier
 from metrics import (
     init_service_info,
     record_task_execution,
@@ -88,6 +90,23 @@ ralph_engine = RalphEngine(
     max_retries=settings.max_retries,
     state_file=settings.state_file
 )
+
+# Initialize multi-agent components (if enabled)
+openclaw_client = None
+verifier = None
+
+if settings.enable_multi_agent:
+    try:
+        openclaw_client = get_openclaw_client()
+        logger.info(f"OpenClaw client initialized: {settings.openclaw_url}")
+    except Exception as e:
+        logger.warning(f"Failed to initialize OpenClaw client: {e}")
+
+    try:
+        verifier = get_verifier()
+        logger.info("VMAO verifier initialized")
+    except Exception as e:
+        logger.warning(f"Failed to initialize VMAO verifier: {e}")
 
 # In-memory task storage (in production, use a database)
 tasks: Dict[str, Dict] = {}
@@ -392,6 +411,129 @@ async def get_task_status(task_id: str):
         retry_count=task.get("retry_count", 0),
         status=task["status"]
     )
+
+
+@app.get("/api/agents")
+async def list_available_agents():
+    """List available agents from OpenClaw (multi-agent mode).
+
+    Returns capabilities of all registered agents if multi-agent mode is enabled.
+    """
+    if not openclaw_client:
+        return {
+            "enabled": False,
+            "message": "Multi-agent mode not enabled",
+            "agents": []
+        }
+
+    try:
+        capabilities = await openclaw_client.get_available_skills()
+        return {
+            "enabled": True,
+            "openclaw_url": settings.openclaw_url,
+            "agents": [
+                {
+                    "name": cap.name,
+                    "description": cap.description,
+                    "enabled": cap.enabled
+                }
+                for cap in capabilities
+            ],
+            "total": len(capabilities)
+        }
+    except Exception as e:
+        logger.error(f"Failed to fetch agent capabilities: {e}")
+        raise HTTPException(status_code=503, detail=f"Failed to fetch agents: {str(e)}")
+
+
+@app.get("/api/health/dependencies")
+async def check_dependencies_health():
+    """Check health of multi-agent dependencies (OpenClaw and specialized agents).
+
+    Returns health status of OpenClaw orchestrator and connected agents.
+    """
+    if not openclaw_client:
+        return {
+            "multi_agent_enabled": False,
+            "dependencies": {}
+        }
+
+    # Check OpenClaw health
+    openclaw_healthy = await openclaw_client.check_health()
+
+    dependencies = {
+        "openclaw_orchestrator": {
+            "healthy": openclaw_healthy,
+            "url": settings.openclaw_url
+        }
+    }
+
+    # Try to get show status (checks OpenClaw connectivity)
+    try:
+        show_status = await openclaw_client.get_show_status()
+        dependencies["openclaw_orchestrator"]["show_status"] = show_status
+    except Exception as e:
+        dependencies["openclaw_orchestrator"]["error"] = str(e)
+
+    return {
+        "multi_agent_enabled": True,
+        "dependencies": dependencies,
+        "overall_healthy": openclaw_healthy
+    }
+
+
+@app.post("/api/demo/multi-agent")
+async def demo_multi_agent_workflow():
+    """Demonstrate multi-agent workflow calling other agents via OpenClaw.
+
+    This endpoint showcases the VMAO framework:
+    1. Calls multiple specialized agents in parallel
+    2. Aggregates results
+    3. Verifies quality
+
+    Returns a demonstration of the multi-agent capabilities.
+    """
+    if not openclaw_client:
+        raise HTTPException(
+            status_code=503,
+            detail="Multi-agent mode not enabled. Set enable_multi_agent=True in config."
+        )
+
+    try:
+        # Demonstrate parallel agent calls
+        agent_calls = [
+            ("generate_dialogue", {"scene": "demo_scene", "context": "Demo context"}),
+            ("captioning", {"text": "This is a demo transcription"})
+        ]
+
+        results = await openclaw_client.call_agent_parallel(agent_calls)
+
+        # Aggregate results
+        successful = sum(1 for r in results if r.success)
+        total_time = sum(r.execution_time for r in results)
+
+        return {
+            "demo": "multi-agent_workflow",
+            "total_calls": len(agent_calls),
+            "successful": successful,
+            "failed": len(agent_calls) - successful,
+            "total_execution_time": total_time,
+            "results": [
+                {
+                    "skill": r.skill_used,
+                    "success": r.success,
+                    "execution_time": r.execution_time,
+                    "result": r.result if r.success else None,
+                    "error": r.error if not r.success else None
+                }
+                for r in results
+            ],
+            "vmao_framework": "Plan-Execute-Verify-Replan"
+        }
+
+    except Exception as e:
+        logger.error(f"Multi-agent demo failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.on_event("startup")

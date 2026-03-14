@@ -1,0 +1,36 @@
+# Educational Platform Service Requirements
+# Project Chimera - AI-powered educational platform
+
+# Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# HTTP Client
+httpx==0.26.0
+
+# Data Validation
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Database
+sqlalchemy==2.0.25
+
+# Metrics & Monitoring
+prometheus-client==0.19.0
+
+# Distributed Tracing
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0
+opentelemetry-instrumentation-fastapi==0.43b0
+opentelemetry-instrumentation-httpx==0.43b0
+opentelemetry-exporter-otlp-proto-grpc==1.22.0
+
+# Utilities
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+httpx==0.26.0  # For testing FastAPI endpoints

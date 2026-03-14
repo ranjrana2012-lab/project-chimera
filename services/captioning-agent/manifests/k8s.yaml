@@ -87,11 +87,26 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       hostNetwork: false
+      hostPID: false
+      hostIPC: false
       dnsPolicy: ClusterFirst
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: captioning-agent
         image: ghcr.io/project-chimera/captioning-agent:latest
         imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false
         ports:
         - containerPort: 8002
           protocol: TCP

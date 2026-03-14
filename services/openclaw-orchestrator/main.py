@@ -27,6 +27,7 @@ AGENTS = {
     "sentiment-agent": settings.sentiment_agent_url,
     "lighting-sound-music": settings.lighting_sound_music_url,
     "safety-filter": settings.safety_filter_url,
+    "autonomous-agent": settings.autonomous_agent_url,
 }
 
 @asynccontextmanager
@@ -151,6 +152,12 @@ async def list_skills():
             "description": "Analyze audience sentiment",
             "version": "1.0.0",
             "enabled": True
+        },
+        {
+            "name": "autonomous_execution",
+            "description": "Execute complex autonomous tasks with GSD framework",
+            "version": "1.0.0",
+            "enabled": True
         }
     ]
 
@@ -183,6 +190,12 @@ async def list_skills_api():
             "name": "analyze_sentiment",
             "description": "Analyze audience sentiment in real-time",
             "endpoint": "/api/analyze",
+            "method": "POST"
+        },
+        {
+            "name": "autonomous_execution",
+            "description": "Execute complex autonomous tasks with GSD Discuss→Plan→Execute→Verify framework",
+            "endpoint": "/execute",
             "method": "POST"
         }
     ]
@@ -491,6 +504,7 @@ def get_agent_for_skill(skill: str) -> str:
         "captioning": AGENTS["captioning-agent"],
         "bsl_translation": AGENTS["bsl-agent"],
         "sentiment_analysis": AGENTS["sentiment-agent"],
+        "autonomous_execution": AGENTS["autonomous-agent"],
     }
 
     if skill not in skill_to_agent:
@@ -499,6 +513,23 @@ def get_agent_for_skill(skill: str) -> str:
     return skill_to_agent[skill]
 
 async def call_agent(agent_url: str, skill: str, input_data: dict) -> dict:
+    """Call agent endpoint
+
+    Special handling for autonomous-agent which uses /execute endpoint
+    """
+    # Autonomous agent uses different endpoint structure
+    if skill == "autonomous_execution":
+        endpoint = "/execute"
+    else:
+        endpoint = f"/v1/{skill}"
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(
+            f"{agent_url}{endpoint}",
+            json=input_data
+        )
+        response.raise_for_status()
+        return response.json()
     """Call agent endpoint"""
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(

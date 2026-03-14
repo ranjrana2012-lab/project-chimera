@@ -16,10 +16,27 @@ spec:
         app: autonomous-agent
         component: autonomous
     spec:
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+      dnsPolicy: ClusterFirst
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: autonomous-agent
         image: autonomous-agent:latest
         imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false
         ports:
         - containerPort: 8008
           name: http

@@ -1,9 +1,13 @@
 """GSD Orchestrator - Goal-Setting and Delegation system for autonomous agent orchestration."""
 
+import asyncio
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 # Exceptions
@@ -165,6 +169,128 @@ class GSDOrchestrator:
 
         self.results = results
         return results
+
+    async def verify_phase(
+        self,
+        results: Results,
+        requirements: Requirements,
+        plan: Plan
+    ) -> Dict[str, Any]:
+        """
+        VMAO Verify phase: Check execution results against requirements.
+
+        This implements the Verify component of the Plan-Execute-Verify-Replan cycle.
+
+        Args:
+            results: Execution results to verify
+            requirements: Original requirements
+            plan: Plan that was executed
+
+        Returns:
+            Verification report with status and suggestions
+        """
+        try:
+            from vmao_verifier import get_verifier, VerificationStatus
+
+            verifier = get_verifier()
+
+            # Verify overall results
+            verification_report = {
+                "total_tasks": results.total_tasks,
+                "successful_tasks": results.successful_tasks,
+                "failed_tasks": results.failed_tasks,
+                "overall_status": "passed",
+                "issues": [],
+                "suggestions": [],
+                "task_verifications": []
+            }
+
+            # Check success rate
+            success_rate = results.successful_tasks / results.total_tasks if results.total_tasks > 0 else 0
+            if success_rate < 0.8:
+                verification_report["overall_status"] = "failed"
+                verification_report["issues"].append(
+                    f"Success rate ({success_rate:.1%}) below threshold (80%)"
+                )
+
+            # Verify individual task results
+            for result in results.results:
+                try:
+                    # Import here to avoid circular dependency
+                    from vmao_verifier import VerificationResult
+
+                    task_verification = await verifier.verify_execution_result(
+                        result=result,
+                        requirements=requirements,
+                        plan=plan
+                    )
+
+                    verification_report["task_verifications"].append({
+                        "task_id": result.task_id,
+                        "status": task_verification.status.value,
+                        "confidence": task_verification.confidence,
+                        "issues": task_verification.issues,
+                        "suggestions": task_verification.suggestions
+                    })
+
+                    # Collect issues and suggestions
+                    verification_report["issues"].extend(task_verification.issues)
+                    verification_report["suggestions"].extend(task_verification.suggestions)
+
+                    # Update overall status if needed
+                    if task_verification.status == VerificationStatus.FAILED:
+                        verification_report["overall_status"] = "failed"
+                    elif task_verification.status == VerificationStatus.NEEDS_REPLAN:
+                        if verification_report["overall_status"] == "passed":
+                            verification_report["overall_status"] = "needs_replan"
+
+                except Exception as e:
+                    logger.error(f"Error verifying task {result.task_id}: {e}")
+                    verification_report["issues"].append(f"Task {result.task_id} verification failed: {str(e)}")
+
+            logger.info(
+                f"Verification phase complete: {verification_report['overall_status']} "
+                f"({results.successful_tasks}/{results.total_tasks} tasks passed)"
+            )
+
+            return verification_report
+
+        except ImportError:
+            logger.warning("VMAO verifier not available, skipping verification")
+            return {
+                "total_tasks": results.total_tasks,
+                "successful_tasks": results.successful_tasks,
+                "failed_tasks": results.failed_tasks,
+                "overall_status": "skipped",
+                "issues": ["VMAO verifier not available"],
+                "suggestions": [],
+                "task_verifications": []
+            }
+
+    async def execute_with_verification(
+        self,
+        plan: Plan,
+        requirements: Requirements
+    ) -> tuple[Results, Dict[str, Any]]:
+        """
+        Execute plan with VMAO-style verification.
+
+        Implements Execute→Verify cycle with potential replanning.
+
+        Args:
+            plan: Plan to execute
+            requirements: Requirements to verify against
+
+        Returns:
+            Tuple of (Results, VerificationReport)
+        """
+        # Execute phase
+        results = self.execute_phase(plan)
+
+        # Verify phase
+        verification_report = await self.verify_phase(results, requirements, plan)
+
+        return results, verification_report
 
     def verify_spec_compliance(self, code: str, requirements: Requirements) -> bool:
         """
