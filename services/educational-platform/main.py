@@ -606,7 +606,7 @@ async def student_websocket(websocket: WebSocket, student_id: str):
                     "data": bsl_animation
                 })
 
-            elif data.get("type") == "ping"):
+            elif data.get("type") == "ping":
                 await websocket.send_json({"type": "pong"})
 
     except WebSocketDisconnect:
