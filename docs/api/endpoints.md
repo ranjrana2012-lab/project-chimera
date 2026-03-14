@@ -955,3 +955,51 @@ Auto-generated catalog of all Project Chimera API endpoints.
 
 ---
 
+
+---
+
+## Autonomous Agent
+
+**Base URL:** `http://localhost:8008`
+
+**API Docs:** [http://localhost:8008/docs](http://localhost:8008/docs)
+
+### GET /execute/{task_id}
+
+**Summary:** Get Task Status
+
+**Operation ID:** `get_task_status_execute__task_id__get`
+
+---
+
+### GET /health
+
+**Summary:** Health Check
+
+**Operation ID:** `health_check_health_get`
+
+---
+
+### GET /metrics
+
+**Summary:** Metrics
+
+**Operation ID:** `metrics_metrics_get`
+
+---
+
+### POST /execute
+
+**Summary:** Execute Task
+
+**Operation ID:** `execute_task_execute_post`
+
+---
+
+### GET /status
+
+**Summary:** Get Status
+
+**Operation ID:** `get_status_status_get`
+
+---
