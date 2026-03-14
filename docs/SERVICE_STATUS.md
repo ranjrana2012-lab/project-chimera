@@ -2,7 +2,7 @@
 
 Quick reference guide for all Project Chimera services, ports, endpoints, and health checks.
 
-## Core Services (8 Services)
+## Core Services (9 Services)
 
 | Service | Port | Health Endpoint | API Endpoints | GPU/CPU | Status |
 |---------|------|-----------------|---------------|---------|--------|
@@ -14,6 +14,7 @@ Quick reference guide for all Project Chimera services, ports, endpoints, and he
 | **Lighting Control** | 8005 | `/health`, `/` | `/v1/lighting/*`, `/v1/cues/*`, `/v1/presets/*`, `/metrics` | CPU | ✅ Built |
 | **Safety Filter** | 8006 | `/health`, `/` | `/api/v1/check`, `/api/v1/filter`, `/api/v1/policies`, `/stats`, `/metrics` | CPU | ✅ Built |
 | **Operator Console** | 8007 | `/health`, `/` | `/console`, `/events`, `/approvals`, `/` (UI) | CPU | ✅ Built |
+| **Autonomous Agent** | 8008 | `/health`, `/status` | `/execute`, `/metrics` | CPU | ✅ Built |
 | **WorldMonitor Sidecar** | 8010 | `/health`, `/` | `/ws/context` (WebSocket), `/api/v1/context`, `/metrics` | CPU | ✅ Built |
 
 ## Infrastructure Services
@@ -59,6 +60,7 @@ SERVICES=(
   "8005:Lighting, Sound & Music"
   "8006:Safety Filter"
   "8007:Operator Console"
+  "8008:Autonomous Agent"
   "8010:WorldMonitor Sidecar"
 )
 
@@ -148,6 +150,9 @@ curl http://localhost:8006/health
 
 # Operator Console
 curl http://localhost:8007/health
+
+# Autonomous Agent
+curl http://localhost:8008/health
 
 # WorldMonitor Sidecar
 curl http://localhost:8010/health
@@ -359,7 +364,7 @@ kubectl rollout restart deployment/<service-name> -n live
 
 ## Service Build Status
 
-All 8 core services are built and ready:
+All 9 core services are built and ready:
 1. ✅ OpenClaw Orchestrator
 2. ✅ SceneSpeak Agent
 3. ✅ Captioning Agent
@@ -368,9 +373,10 @@ All 8 core services are built and ready:
 6. ✅ Lighting, Sound & Music (unified service)
 7. ✅ Safety Filter
 8. ✅ Operator Console
+9. ✅ Autonomous Agent (Ralph Engine + GSD Orchestrator)
 
 Plus support services:
-9. ✅ WorldMonitor Sidecar (global context enrichment)
+10. ✅ WorldMonitor Sidecar (global context enrichment)
 
 ## Next Steps
 
