@@ -153,6 +153,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Visual Services Layer** - New video intelligence capability
+  - Visual Core service (port 8014) - LTX-2 integration hub
+  - Sentiment Agent enhanced with video briefing endpoints
+  - First Visual Intelligence Report demo
+  - End-to-end video generation pipeline from sentiment analysis
+  - Prompt engineering templates for corporate, documentary, social media styles
+  - FFmpeg video processing pipeline for ARM64 (DGX Spark optimized)
+  - Kubernetes deployment with security contexts and autoscaling (2-8 replicas)
+
 ### Planned
 - Additional service enhancements
 - Performance optimizations
