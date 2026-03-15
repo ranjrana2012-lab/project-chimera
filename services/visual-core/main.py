@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from typing import List, Optional
 
 from config import settings
 from tracing import setup_tracing, instrument_fastapi, shutdown_tracing
@@ -19,7 +20,9 @@ from metrics import request_latency
 from models import VideoGenerationRequest, VideoGenerationResponse, BatchGenerationRequest
 from ltx_client import get_ltx_client
 from prompt_factory import PromptFactory, VisualStyle, CameraMotion
+from video_pipeline import VideoPipeline
 import uuid
+import os
 
 
 # Configure logging
@@ -28,6 +31,10 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+# Video pipeline for FFmpeg processing
+video_pipeline = VideoPipeline(ffmpeg_path=settings.ffmpeg_path)
 
 
 # Initialize OpenTelemetry tracing
@@ -232,6 +239,37 @@ async def generate_from_prompt(
             status="error",
             error=str(e)
         )
+
+
+# ============================================================================
+# Video Pipeline Endpoints
+# ============================================================================
+
+@app.post("/api/v1/video/stitch")
+async def stitch_videos(
+    video_urls: List[str],
+    transitions: bool = True,
+    output_filename: Optional[str] = None
+):
+    """Stitch multiple videos together"""
+
+    try:
+        if output_filename is None:
+            output_filename = f"stitched_{uuid.uuid4().hex}.mp4"
+
+        output_path = os.path.join(settings.cache_path, output_filename)
+
+        result_path = await video_pipeline.stitch_videos(
+            video_urls=video_urls,
+            output_path=output_path,
+            transitions=transitions
+        )
+
+        return {"status": "success", "url": result_path}
+
+    except Exception as e:
+        logger.error(f"Video stitching failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============================================================================
