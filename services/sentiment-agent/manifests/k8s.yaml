@@ -18,6 +18,11 @@ data:
   BATCH_SIZE: "32"
   MAX_TEXT_LENGTH: "512"
   TORCH_THREADS: "4"
+  VISUAL_CORE_URL: "http://visual-core:8014"
+  ENABLE_VIDEO_BRIEFING: "true"
+  ENABLE_VIDEO_TRENDS: "true"
+  DEFAULT_BRIEFING_DURATION: "90"
+  DEFAULT_BRIEFING_STYLE: "corporate-briefing"
 ---
 apiVersion: v1
 kind: Service

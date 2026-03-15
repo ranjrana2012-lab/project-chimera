@@ -33,6 +33,8 @@ from sentiment_agent.models import (
 from sentiment_agent.sentiment_analyzer import SentimentAnalyzer
 from sentiment_agent.tracing import get_tracer
 from sentiment_agent.metrics import record_analysis
+from sentiment_agent.video.briefing import SentimentBriefingGenerator
+from sentiment_agent.video.integration import VisualCoreClient
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -43,6 +45,20 @@ analyzer = SentimentAnalyzer(use_ml_model=settings.use_ml_model)
 
 # Orchestrator webhook URL
 ORCHESTRATOR_WEBHOOK = "http://openclaw-orchestrator:8000/api/sentiment/webhook"
+
+# Video capabilities
+try:
+    visual_core_client = VisualCoreClient(
+        base_url=settings.visual_core_url if hasattr(settings, 'visual_core_url') else "http://visual-core:8014"
+    )
+    briefing_generator = SentimentBriefingGenerator(
+        visual_core_url=settings.visual_core_url if hasattr(settings, 'visual_core_url') else "http://visual-core:8014"
+    )
+    logger.info("Video capabilities initialized")
+except Exception as e:
+    logger.warning(f"Video capabilities not available: {e}")
+    visual_core_client = None
+    briefing_generator = None
 
 
 async def send_sentiment_webhook(text: str, sentiment: str, score: float, confidence: float):
@@ -518,6 +534,43 @@ async def metrics_endpoint():
     Returns Prometheus metrics in the standard format.
     """
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.post("/api/v1/video/briefing")
+async def create_sentiment_briefing(
+    topic: str,
+    timeframe: str = "7d",
+    style: str = "corporate_briefing",
+    duration: int = 90
+):
+    """Create sentiment briefing video"""
+    if briefing_generator is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Video capabilities not available"
+        )
+
+    try:
+        result = await briefing_generator.create_briefing(
+            topic=topic,
+            timeframe=timeframe,
+            style=style,
+            duration=duration
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Failed to create sentiment briefing: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/video/{briefing_id}")
+async def get_briefing_status(briefing_id: str):
+    """Get briefing generation status"""
+    return {
+        "briefing_id": briefing_id,
+        "status": "processing",
+        "progress": 50
+    }
 
 
 if __name__ == "__main__":
