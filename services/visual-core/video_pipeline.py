@@ -23,15 +23,34 @@ class VideoPipeline:
         transitions: bool = True,
         transition_duration: float = 1.0
     ) -> str:
-        """Stitch multiple videos together"""
+        """Stitch multiple videos together with optional transitions"""
 
         # Download videos locally
         local_paths = await self._download_videos(video_urls)
 
-        # Create concat file
+        if len(local_paths) == 1:
+            # Single video, just copy it
+            import shutil
+            shutil.copy(local_paths[0], output_path)
+            await self._cleanup_files(local_paths)
+            return output_path
+
+        if transitions and len(local_paths) > 1:
+            # Use xfade filter for crossfade transitions
+            await self._stitch_with_xfade(local_paths, output_path, transition_duration)
+        else:
+            # Simple concatenation without transitions
+            await self._stitch_simple_concat(local_paths, output_path)
+
+        # Cleanup
+        await self._cleanup_files(local_paths)
+
+        return output_path
+
+    async def _stitch_simple_concat(self, local_paths: List[str], output_path: str) -> None:
+        """Stitch videos using simple concatenation"""
         concat_file = await self._create_concat_file(local_paths)
 
-        # Build FFmpeg command
         cmd = [
             self.ffmpeg_path,
             "-f", "concat",
@@ -47,13 +66,58 @@ class VideoPipeline:
             output_path
         ]
 
-        # Execute
         await self._run_ffmpeg(cmd)
+        await self._cleanup_files([concat_file])
 
-        # Cleanup
-        await self._cleanup_files(local_paths + [concat_file])
+    async def _stitch_with_xfade(
+        self,
+        local_paths: List[str],
+        output_path: str,
+        transition_duration: float
+    ) -> None:
+        """Stitch videos with crossfade transitions using xfade filter"""
+        # For simplicity, use the first video's properties
+        # Build xfade filter chain
+        filter_complex = []
+        inputs = []
 
-        return output_path
+        # Add all video inputs
+        for i, path in enumerate(local_paths):
+            inputs.extend(["-i", path])
+
+        # Build xfade filter chain for crossfading
+        # For N videos, we need N-1 transitions
+        filter_parts = []
+        for i in range(len(local_paths) - 1):
+            if i == 0:
+                # First transition
+                filter_parts.append(
+                    f"[0:v][1:v]xfade=transition=fade:duration={transition_duration}:offset=0[v1]"
+                )
+            else:
+                # Subsequent transitions
+                filter_parts.append(
+                    f"[v{i}][{i+1}:v]xfade=transition=fade:duration={transition_duration}:offset=0[v{i+1}]"
+                )
+
+        filter_complex = ";".join(filter_parts)
+
+        cmd = [
+            self.ffmpeg_path,
+        ] + inputs + [
+            "-filter_complex", filter_complex,
+            "-map", f"[v{len(local_paths)-1}]",
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "23",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-movflags", "+faststart",
+            output_path
+        ]
+
+        await self._run_ffmpeg(cmd)
 
     async def add_overlays(
         self,
@@ -64,18 +128,24 @@ class VideoPipeline:
         """Add overlays to video (logos, captions, etc.)"""
 
         filter_complex = []
+        input_streams = "[0:v]"
 
         # Logo overlay
         if overlays.get("logo"):
             filter_complex.append(
-                f"[1:v]scale=100:-1[logo];[0:v][logo]overlay=10:10[video]"
+                f"[1:v]scale=100:-1[logo];{input_streams}[logo]overlay=10:10[video]"
             )
+            input_streams = "[video]"
+        elif overlays.get("captions"):
+            # No logo, start with video stream for captions
+            filter_complex.append(f"{input_streams}[video]")
+            input_streams = "[video]"
 
         # Captions
         if overlays.get("captions"):
             caption_text = overlays["captions"]
             filter_complex.append(
-                f"[video]drawtext=text='{caption_text}':"
+                f"{input_streams}drawtext=text='{caption_text}':"
                 f"fontsize=24:fontcolor=white:x=(w-tw)/2:y=h-50:text_align=center"
             )
 
@@ -86,11 +156,19 @@ class VideoPipeline:
         if overlays.get("logo"):
             cmd.extend(["-i", overlays["logo"]])
 
-        cmd.extend([
-            "-filter_complex", ",".join(filter_complex),
-            "-c:a", "copy",
-            output_path
-        ])
+        # Only add filter_complex if we have overlays
+        if filter_complex:
+            cmd.extend([
+                "-filter_complex", ";".join(filter_complex),
+                "-c:a", "copy",
+                output_path
+            ])
+        else:
+            # No overlays, just copy
+            cmd.extend([
+                "-c", "copy",
+                output_path
+            ])
 
         await self._run_ffmpeg(cmd)
         return output_path
@@ -141,11 +219,15 @@ class VideoPipeline:
                 response = await client.get(url)
                 response.raise_for_status()
 
-                # Save to temp file
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as f:
-                    f.write(response.content)
-                    f.flush()
-                    paths.append(f.name)
+                # Save to temp file using aiofiles
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+                temp_path = temp_file.name
+                temp_file.close()
+
+                async with aiofiles.open(temp_path, "wb") as f:
+                    await f.write(response.content)
+
+                paths.append(temp_path)
 
         return paths
 
@@ -157,12 +239,15 @@ class VideoPipeline:
             delete=False,
             suffix=".txt"
         )
-
-        for path in paths:
-            concat_file.write(f"file '{path}'\n")
-
+        concat_path = concat_file.name
         concat_file.close()
-        return concat_file.name
+
+        # Write using aiofiles
+        async with aiofiles.open(concat_path, "w") as f:
+            for path in paths:
+                await f.write(f"file '{path}'\n")
+
+        return concat_path
 
     async def _cleanup_files(self, paths: List[str]) -> None:
         """Clean up temporary files"""
