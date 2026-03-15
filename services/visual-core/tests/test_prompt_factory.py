@@ -41,12 +41,12 @@ def test_create_briefing_prompt():
         topic="Acme Corp Q3 Performance",
         sentiment_summary="Overall sentiment is positive with 75% favorable mentions",
         key_insights=["Revenue up 15%", "Market share expanded"],
-        duration=90
+        duration=15
     )
 
     assert "EXECUTIVE BRIEFING: Acme Corp Q3 Performance" in prompt
     assert "Revenue up 15%" in prompt
-    assert "90 seconds" in prompt
+    assert "15 seconds" in prompt
     assert "Overall sentiment is positive" in prompt
 
 
@@ -72,14 +72,14 @@ def test_build_prompt_social_media():
     prompt = PromptFactory.build_prompt(
         narrative="Viral product launch announcement",
         style=VisualStyle.SOCIAL_MEDIA,
-        camera_motion=CameraMotion.ZOOM_IN,
+        camera_motion=CameraMotion.DOLLY_IN,
         duration=8
     )
 
     assert "social media" in prompt.lower()
     assert "vibrant" in prompt.lower()
     assert "Viral product launch announcement" in prompt
-    assert "zoom_in" in prompt.lower()
+    assert "dolly_in" in prompt.lower()
 
 
 def test_build_prompt_news_report():
@@ -182,8 +182,6 @@ def test_camera_motion_enum():
     assert CameraMotion.DOLLY_OUT == "dolly_out"
     assert CameraMotion.TRACK_LEFT == "track_left"
     assert CameraMotion.TRACK_RIGHT == "track_right"
-    assert CameraMotion.ZOOM_IN == "zoom_in"
-    assert CameraMotion.ZOOM_OUT == "zoom_out"
 
 
 def test_visual_style_enum():
@@ -208,14 +206,14 @@ def test_create_briefing_prompt_multiple_insights():
             "Market position strengthened",
             "New product line launched"
         ],
-        duration=60
+        duration=20
     )
 
     assert "Revenue increased by 25%" in prompt
     assert "Customer satisfaction at 94%" in prompt
     assert "Market position strengthened" in prompt
     assert "New product line launched" in prompt
-    assert "60 seconds" in prompt
+    assert "20 seconds" in prompt
 
 
 def test_prompt_factory_class_methods():
@@ -244,3 +242,62 @@ def test_prompt_templates_exist():
     for style, template in PROMPT_TEMPLATES.items():
         assert len(template) > 0, f"Template for {style} is empty"
         assert "Style:" in template or "Setting:" in template
+
+
+def test_build_prompt_duration_validation():
+    """Test that build_prompt validates duration bounds"""
+
+    # Test duration too low
+    with pytest.raises(ValueError, match="Duration must be between 6 and 20 seconds"):
+        PromptFactory.build_prompt(
+            narrative="Test narrative",
+            style=VisualStyle.CORPORATE_BRIEFING,
+            camera_motion=CameraMotion.STATIC,
+            duration=5
+        )
+
+    # Test duration too high
+    with pytest.raises(ValueError, match="Duration must be between 6 and 20 seconds"):
+        PromptFactory.build_prompt(
+            narrative="Test narrative",
+            style=VisualStyle.CORPORATE_BRIEFING,
+            camera_motion=CameraMotion.STATIC,
+            duration=21
+        )
+
+    # Test boundary values - these should work
+    PromptFactory.build_prompt(
+        narrative="Test narrative",
+        style=VisualStyle.CORPORATE_BRIEFING,
+        camera_motion=CameraMotion.STATIC,
+        duration=6
+    )
+
+    PromptFactory.build_prompt(
+        narrative="Test narrative",
+        style=VisualStyle.CORPORATE_BRIEFING,
+        camera_motion=CameraMotion.STATIC,
+        duration=20
+    )
+
+
+def test_create_briefing_prompt_duration_validation():
+    """Test that create_briefing_prompt validates duration bounds"""
+
+    # Test duration too low
+    with pytest.raises(ValueError, match="Duration must be between 6 and 20 seconds"):
+        PromptFactory.create_briefing_prompt(
+            topic="Test Topic",
+            sentiment_summary="Test sentiment",
+            key_insights=["Insight 1"],
+            duration=5
+        )
+
+    # Test duration too high
+    with pytest.raises(ValueError, match="Duration must be between 6 and 20 seconds"):
+        PromptFactory.create_briefing_prompt(
+            topic="Test Topic",
+            sentiment_summary="Test sentiment",
+            key_insights=["Insight 1"],
+            duration=25
+        )

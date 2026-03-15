@@ -1,7 +1,8 @@
 """Prompt engineering templates and factory for LTX-2 video generation"""
 
-from enum import Enum
 from typing import Dict, Any, Optional, List
+from enum import Enum
+from models import CameraMotion, Resolution
 
 
 class VisualStyle(str, Enum):
@@ -11,19 +12,6 @@ class VisualStyle(str, Enum):
     SOCIAL_MEDIA = "social_media"
     NEWS_REPORT = "news_report"
     ANALYTICAL = "analytical"
-
-
-class CameraMotion(str, Enum):
-    """Camera motion options"""
-    STATIC = "static"
-    PAN_LEFT = "pan_left"
-    PAN_RIGHT = "pan_right"
-    DOLLY_IN = "dolly_in"
-    DOLLY_OUT = "dolly_out"
-    TRACK_LEFT = "track_left"
-    TRACK_RIGHT = "track_right"
-    ZOOM_IN = "zoom_in"
-    ZOOM_OUT = "zoom_out"
 
 
 PROMPT_TEMPLATES = {
@@ -95,7 +83,24 @@ class PromptFactory:
         duration: int,
         custom_elements: Optional[Dict[str, Any]] = None
     ) -> str:
-        """Build complete LTX-2 prompt from components"""
+        """Build complete LTX-2 prompt from components.
+
+        Args:
+            narrative: The story or scene description to generate
+            style: Visual style template to use (e.g., CORPORATE_BRIEFING, DOCUMENTARY)
+            camera_motion: Camera movement pattern (e.g., STATIC, PAN_LEFT, DOLLY_IN)
+            duration: Video duration in seconds (must be between 6 and 20)
+            custom_elements: Optional dictionary of custom prompt elements to include
+
+        Returns:
+            Complete LTX-2 prompt string ready for generation
+
+        Raises:
+            ValueError: If duration is outside valid range (6-20 seconds)
+        """
+        # Validate duration is within LTXVideoRequest bounds
+        if not 6 <= duration <= 20:
+            raise ValueError(f"Duration must be between 6 and 20 seconds, got {duration}")
 
         # Get base style template
         style_template = PROMPT_TEMPLATES.get(style, "")
@@ -121,12 +126,23 @@ CAMERA: {camera_motion.value}
         base_prompt: str,
         video_context: Dict[str, Any]
     ) -> str:
-        """Enhance prompt with video-specific context"""
+        """Enhance prompt with video-specific context.
 
+        Args:
+            base_prompt: The base prompt to enhance
+            video_context: Dictionary containing video generation parameters:
+                - resolution: Video resolution (e.g., "1920x1080", "3840x2160")
+                - generate_audio: Whether to generate synchronized audio
+                - camera_motion: Camera movement pattern
+                - previous_scene: Description of previous scene for continuity
+
+        Returns:
+            Enhanced prompt string with technical specifications
+        """
         enhancements = []
 
-        # Add resolution context
-        if video_context.get("resolution") == "3840x2160":
+        # Add resolution context using Resolution enum for type safety
+        if video_context.get("resolution") in [Resolution.FOUR_K.value, Resolution.UHD.value]:
             enhancements.append("4K ultra-high definition, maximum detail")
 
         # Add audio context
@@ -153,7 +169,23 @@ CAMERA: {camera_motion.value}
         key_insights: List[str],
         duration: int
     ) -> str:
-        """Create prompt for executive briefing video"""
+        """Create prompt for executive briefing video.
+
+        Args:
+            topic: The main topic or subject of the briefing
+            sentiment_summary: Summary of sentiment analysis results
+            key_insights: List of key insights to present
+            duration: Video duration in seconds (must be between 6 and 20)
+
+        Returns:
+            Complete prompt string formatted for executive briefing video
+
+        Raises:
+            ValueError: If duration is outside valid range (6-20 seconds)
+        """
+        # Validate duration
+        if not 6 <= duration <= 20:
+            raise ValueError(f"Duration must be between 6 and 20 seconds, got {duration}")
 
         insights_text = "\n".join([f"- {insight}" for insight in key_insights])
 
