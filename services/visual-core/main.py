@@ -18,6 +18,7 @@ from tracing import setup_tracing, instrument_fastapi, shutdown_tracing
 from metrics import request_latency
 from models import VideoGenerationRequest, VideoGenerationResponse, BatchGenerationRequest
 from ltx_client import get_ltx_client
+from prompt_factory import PromptFactory, VisualStyle, CameraMotion
 import uuid
 
 
@@ -168,6 +169,63 @@ async def generate_video_from_text(request: VideoGenerationRequest, background_t
 
     except Exception as e:
         logger.error(f"Video generation failed: {e}")
+        return VideoGenerationResponse(
+            request_id=request_id,
+            video_id="",
+            status="error",
+            error=str(e)
+        )
+
+
+@app.post("/api/v1/generate/prompt", response_model=VideoGenerationResponse)
+async def generate_from_prompt(
+    prompt: str,
+    style: str = "corporate_briefing",
+    duration: int = 10,
+    resolution: str = "1920x1080"
+):
+    """Generate video from enhanced prompt"""
+
+    request_id = str(uuid.uuid4())
+
+    try:
+        # Build prompt using factory
+        visual_style = VisualStyle(style)
+        camera_motion = CameraMotion.STATIC
+
+        enhanced_prompt = PromptFactory.build_prompt(
+            narrative=prompt,
+            style=visual_style,
+            camera_motion=camera_motion,
+            duration=duration
+        )
+
+        # Add technical enhancements
+        enhanced_prompt = PromptFactory.enhance_prompt_for_video(
+            enhanced_prompt,
+            {
+                "resolution": resolution,
+                "generate_audio": True
+            }
+        )
+
+        # Generate video
+        client = get_ltx_client()
+        result = await client.text_to_video(
+            prompt=enhanced_prompt,
+            duration=duration,
+            resolution=resolution
+        )
+
+        return VideoGenerationResponse(
+            request_id=request_id,
+            video_id=result.video_id,
+            status="complete",
+            url=result.url
+        )
+
+    except Exception as e:
+        logger.error(f"Prompt-based video generation failed: {e}")
         return VideoGenerationResponse(
             request_id=request_id,
             video_id="",
