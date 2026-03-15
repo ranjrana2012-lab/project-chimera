@@ -8,7 +8,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Dict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
@@ -16,6 +16,9 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from config import settings
 from tracing import setup_tracing, instrument_fastapi, shutdown_tracing
 from metrics import request_latency
+from models import VideoGenerationRequest, VideoGenerationResponse, BatchGenerationRequest
+from ltx_client import get_ltx_client
+import uuid
 
 
 # Configure logging
@@ -135,17 +138,41 @@ async def metrics():
 # Video Generation Endpoints
 # ============================================================================
 
-@app.post("/api/v1/generate/text")
-async def generate_video_from_text():
+@app.post("/api/v1/generate/text", response_model=VideoGenerationResponse)
+async def generate_video_from_text(request: VideoGenerationRequest, background_tasks: BackgroundTasks):
     """
-    Generate video from text prompt.
+    Generate video from text prompt using LTX-2 API.
+    """
+    request_id = str(uuid.uuid4())
 
-    This endpoint is a placeholder and will be implemented in Task 2.
-    """
-    with track_request_latency("generate_text"):
-        raise HTTPException(
-            status_code=501,
-            detail="Text-to-video generation not yet implemented. See Task 2 of the integration plan."
+    try:
+        client = get_ltx_client()
+
+        result = await client.text_to_video(
+            prompt=request.prompt,
+            duration=request.duration,
+            resolution=request.resolution,
+            fps=request.fps,
+            model=request.model,
+            generate_audio=request.generate_audio,
+            camera_motion=request.camera_motion,
+            lora_path=request.lora_id
+        )
+
+        return VideoGenerationResponse(
+            request_id=request_id,
+            video_id=result.video_id,
+            status="complete",
+            url=result.url
+        )
+
+    except Exception as e:
+        logger.error(f"Video generation failed: {e}")
+        return VideoGenerationResponse(
+            request_id=request_id,
+            video_id="",
+            status="error",
+            error=str(e)
         )
 
 
