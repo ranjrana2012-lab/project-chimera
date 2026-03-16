@@ -1,6 +1,7 @@
 from typing import Dict
 from enum import Enum
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -25,21 +26,23 @@ class TieredLLMRouter:
         self.call_count = 0
         self.local_count = 0
         self.api_count = 0
+        self._stats_lock = asyncio.Lock()
 
     async def route_decision(self, context: str = "") -> LLMBackend:
         """Decide which LLM to use based on context and cost ratio."""
         import random
 
-        self.call_count += 1
+        async with self._stats_lock:
+            self.call_count += 1
 
-        if random.random() < self.local_ratio:
-            self.local_count += 1
-            logger.debug(f"Routing to local LLM ({self.local_count}/{self.call_count})")
-            return LLMBackend.LOCAL_VLLM
-        else:
-            self.api_count += 1
-            logger.debug(f"Routing to API LLM ({self.api_count}/{self.call_count})")
-            return LLMBackend.OPENAI if random.random() < 0.5 else LLMBackend.ANTHROPIC
+            if random.random() < self.local_ratio:
+                self.local_count += 1
+                logger.debug(f"Routing to local LLM ({self.local_count}/{self.call_count})")
+                return LLMBackend.LOCAL_VLLM
+            else:
+                self.api_count += 1
+                logger.debug(f"Routing to API LLM ({self.api_count}/{self.call_count})")
+                return LLMBackend.OPENAI if random.random() < 0.5 else LLMBackend.ANTHROPIC
 
     def get_stats(self) -> Dict[str, int]:
         """Get routing statistics."""

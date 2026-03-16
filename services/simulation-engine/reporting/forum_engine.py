@@ -72,8 +72,12 @@ class ForumEngine:
         consensus = self.calculate_consensus(all_arguments)
         confidence = self.calculate_confidence(all_arguments)
 
-        # Generate summary
-        summary = await self._generate_summary(topic, all_arguments)
+        # Generate summary with error handling
+        try:
+            summary = await self._generate_summary(topic, all_arguments)
+        except Exception as e:
+            logger.error(f"Failed to generate summary: {e}")
+            summary = f"Debate on '{topic}' had {len(all_arguments)} arguments."
 
         return DebateResult(
             topic=topic,
@@ -179,10 +183,10 @@ Respond as JSON with fields:
         """
         prompt = context
 
-        # Call LLM via router
+        # Call LLM via router with dynamic backend selection
         response = await self.router.call_llm(
-            prompt=prompt,
-            backend=LLMBackend.LOCAL_VLLM
+            prompt=prompt
+            # Let router use its tiered logic for backend selection
         )
 
         # Parse JSON response
