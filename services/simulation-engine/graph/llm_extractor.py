@@ -407,7 +407,7 @@ Only return valid JSON. No explanations."""
                 try:
                     # Try dateutil parser as fallback
                     return date_parser.parse(date_input)
-                except Exception as e:
+                except (ValueError, TypeError, OverflowError) as e:
                     logger.warning(f"Failed to parse date '{date_input}': {e}")
 
         # Default to current time if parsing fails
