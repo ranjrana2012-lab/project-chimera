@@ -55,7 +55,7 @@ metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
 # Include routers (will be created in later tasks)
-from api import health, graph, simulation
+from api import health, graph, simulation, agents
 
 # Global simulation runner instance
 runner = None
@@ -63,6 +63,7 @@ runner = None
 app.include_router(health.router, prefix="/health", tags=["health"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["graph"])
 app.include_router(simulation.router, prefix="/api/v1/simulation", tags=["simulation"])
+app.include_router(agents.router, prefix="/api/v1/agents", tags=["agents"])
 
 
 @app.on_event("startup")
