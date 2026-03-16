@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from graph.models import Entity, Relationship, EntityType
 from graph.llm_extractor import LLMExtractor
@@ -66,7 +66,7 @@ class GraphBuilder:
         import re
 
         entities = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         words = re.findall(r'\b[A-Z][a-z]+\b', document)
         unique_words = list(set(words[:20]))
@@ -84,7 +84,7 @@ class GraphBuilder:
     async def _extract_relationships_simple(self, entities: List[Entity]) -> List[Relationship]:
         """Simple relationship extraction for Phase 0."""
         relationships = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         for i in range(len(entities) - 1):
             relationships.append(Relationship(
@@ -136,7 +136,7 @@ class GraphBuilder:
             List of Relationship objects
         """
         relationships = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Create simple sequential relationships
         # In future phases, this will be enhanced with LLM-based relationship extraction

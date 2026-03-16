@@ -287,3 +287,40 @@ async def test_error_handling_invalid_json():
 
     with pytest.raises(ValueError, match="Invalid JSON"):
         extractor._parse_facts_response("not valid json", "test text")
+
+
+@pytest.mark.asyncio
+async def test_graph_builder_integration():
+    """Test GraphBuilder integration with LLM-based entity extraction."""
+    from graph.builder import GraphBuilder
+    from unittest.mock import Mock
+
+    # Create a mock client
+    mock_client = Mock()
+    mock_client.create_entity = AsyncMock()
+    mock_client.create_relationship = AsyncMock()
+
+    # Create builder with LLM extraction enabled
+    builder = GraphBuilder(client=mock_client, use_llm_extraction=True)
+
+    # Test document
+    documents = ["Apple Inc. was founded by Steve Jobs in Cupertino, California."]
+
+    # Build graph from documents
+    result = await builder.build_from_documents(documents)
+
+    # Verify entities were created
+    assert result["entities"] > 0, "Should extract at least one entity"
+    assert mock_client.create_entity.call_count == result["entities"]
+    assert mock_client.create_relationship.call_count == result["relationships"]
+
+    # Verify at least one entity was created with expected attributes
+    create_entity_calls = mock_client.create_entity.call_args_list
+    assert len(create_entity_calls) > 0
+
+    # Extract the first entity created
+    first_entity = create_entity_calls[0][0][0]
+    assert hasattr(first_entity, 'id')
+    assert hasattr(first_entity, 'type')
+    assert hasattr(first_entity, 'attributes')
+    assert 'name' in first_entity.attributes

@@ -8,7 +8,8 @@ from typing import List, Dict, Any, Optional
 import logging
 import json
 import re
-from datetime import datetime
+import hashlib
+from datetime import datetime, timezone
 from dateutil import parser as date_parser
 
 from graph.models import Entity, EntityType, Fact
@@ -66,7 +67,7 @@ class LLMExtractor:
             logger.info(f"Extracted {len(entities)} entities from text")
             return entities
 
-        except Exception as e:
+        except (ValueError, json.JSONDecodeError, RuntimeError) as e:
             logger.error(f"LLM entity extraction failed: {e}")
             if self.fallback_enabled:
                 return self._extract_entities_fallback(text)
@@ -80,10 +81,11 @@ class LLMExtractor:
             text: Input text to extract facts from
 
         Returns:
-            List of extracted Fact objects with temporal information
+            List of extracted Fact objects with temporal information.
+            Returns empty list if text is too short (empty or < 10 characters).
 
         Raises:
-            ValueError: If text is empty or too short
+            RuntimeError: If LLM invocation fails and fallback is disabled
         """
         if not text or len(text.strip()) < 10:
             logger.warning("Text too short for fact extraction")
@@ -102,7 +104,7 @@ class LLMExtractor:
             logger.info(f"Extracted {len(facts)} facts from text")
             return facts
 
-        except Exception as e:
+        except (ValueError, json.JSONDecodeError, RuntimeError) as e:
             logger.error(f"LLM fact extraction failed: {e}")
             if self.fallback_enabled:
                 return self._extract_facts_fallback(text)
@@ -178,7 +180,7 @@ Only return valid JSON. No explanations."""
             else:
                 raise ValueError(f"Unknown prompt type: {prompt[:100]}")
 
-        except Exception as e:
+        except (ValueError, json.JSONDecodeError) as e:
             logger.error(f"LLM call failed: {e}")
             raise RuntimeError(f"LLM invocation failed: {e}") from e
 
@@ -281,15 +283,19 @@ Only return valid JSON. No explanations."""
             data = json.loads(cleaned_response)
 
             entities = []
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             for i, item in enumerate(data):
                 try:
                     # Map entity type string to enum
                     entity_type = self._map_entity_type(item.get("type", "concept"))
 
+                    # Generate deterministic entity ID using SHA256 hash
+                    name_hash = hashlib.sha256(item['name'].encode()).hexdigest()[:16]
+                    entity_id = f"entity_{name_hash}_{i}"
+
                     entity = Entity(
-                        id=f"entity_{hash(item['name'])}_{i}",
+                        id=entity_id,
                         type=entity_type,
                         attributes={
                             "name": item["name"],
@@ -335,7 +341,7 @@ Only return valid JSON. No explanations."""
             data = json.loads(cleaned_response)
 
             facts = []
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             for item in data:
                 try:
@@ -406,7 +412,7 @@ Only return valid JSON. No explanations."""
 
         # Default to current time if parsing fails
         logger.warning(f"Using current time as default for unparsable date: {date_input}")
-        return datetime.utcnow()
+        return datetime.now(timezone.utc)
 
     def _extract_entities_fallback(self, text: str) -> List[Entity]:
         """
@@ -416,7 +422,7 @@ Only return valid JSON. No explanations."""
         """
         import re
         entities = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Simple capitalization-based extraction
         words = re.findall(r'\b[A-Z][a-z]+\b', text)
@@ -451,7 +457,7 @@ Only return valid JSON. No explanations."""
         Used when LLM extraction fails.
         """
         facts = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Extract year patterns for temporal facts
         years = re.findall(r'\b(19|20)\d{2}\b', text)
