@@ -1,5 +1,6 @@
 """Prompt templates for ReACT ReportAgent report generation."""
 from typing import Dict, Any
+import html
 
 
 class PromptTemplates:
@@ -17,17 +18,25 @@ class PromptTemplates:
         return templates.get(section_type, self._default_prompt(context))
 
     def _executive_summary_prompt(self, context: Dict[str, Any]) -> str:
+        # Use .get() with defaults to prevent KeyError
+        topic = context.get('topic', 'Unknown Topic')
+        simulation_id = context.get('simulation_id', 'Unknown')
+        total_rounds = context.get('total_rounds', 0)
+        total_actions = context.get('total_actions', 0)
+        recent_actions = context.get('recent_actions', [])
+        entities = context.get('entities', [])
+
         return f"""You are generating an executive summary for a simulation report.
 
-Simulation Topic: {context['topic']}
-Simulation ID: {context['simulation_id']}
-Total Rounds: {context['total_rounds']}
-Total Actions: {context['total_actions']}
+Simulation Topic: {topic}
+Simulation ID: {simulation_id}
+Total Rounds: {total_rounds}
+Total Actions: {total_actions}
 
 Recent Agent Actions:
-{self._format_actions(context['recent_actions'])}
+{self._format_actions(recent_actions)}
 
-Knowledge Graph Entities: {', '.join(context['entities'][:5])}
+Knowledge Graph Entities: {', '.join(entities[:5])}
 
 Generate a concise 2-3 sentence executive summary that captures:
 1. What was simulated
@@ -37,13 +46,18 @@ Generate a concise 2-3 sentence executive summary that captures:
 Format your response as a clear paragraph."""
 
     def _key_findings_prompt(self, context: Dict[str, Any]) -> str:
+        # Use .get() with defaults to prevent KeyError
+        topic = context.get('topic', 'Unknown Topic')
+        recent_actions = context.get('recent_actions', [])
+        entities = context.get('entities', [])
+
         return f"""You are extracting key findings from a simulation.
 
-Simulation Topic: {context['topic']}
+Simulation Topic: {topic}
 Recent Agent Actions:
-{self._format_actions(context['recent_actions'])}
+{self._format_actions(recent_actions)}
 
-Knowledge Graph Entities: {', '.join(context['entities'][:10])}
+Knowledge Graph Entities: {', '.join(entities[:10])}
 
 Identify 3-5 key findings from this simulation. For each finding:
 1. State the finding clearly
@@ -53,9 +67,12 @@ Identify 3-5 key findings from this simulation. For each finding:
 Format as a bulleted list."""
 
     def _recommendations_prompt(self, context: Dict[str, Any]) -> str:
+        # Use .get() with defaults to prevent KeyError
+        topic = context.get('topic', 'Unknown Topic')
+
         return f"""You are generating recommendations based on simulation results.
 
-Simulation Topic: {context['topic']}
+Simulation Topic: {topic}
 Key Findings: Assume findings have been analyzed
 
 Based on this simulation, provide 3-5 actionable recommendations:
@@ -66,7 +83,9 @@ Based on this simulation, provide 3-5 actionable recommendations:
 Format as a numbered list with clear action items."""
 
     def _default_prompt(self, context: Dict[str, Any]) -> str:
-        return f"Generate a report section for simulation: {context['topic']}"
+        # Use .get() with defaults to prevent KeyError
+        topic = context.get('topic', 'Unknown Topic')
+        return f"Generate a report section for simulation: {topic}"
 
     def _format_actions(self, actions: list) -> str:
         """Format actions for display in prompts."""
@@ -75,7 +94,11 @@ Format as a numbered list with clear action items."""
 
         formatted = []
         for action in actions[:5]:
+            # Sanitize content to prevent XSS
+            safe_content = html.escape(str(action.get('content', '')))
+            agent = action.get('agent', 'Unknown')
+            action_type = action.get('action', 'unknown')
             formatted.append(
-                f"- {action['agent']}: {action['action']} - \"{action['content']}\""
+                f"- {agent}: {action_type} - \"{safe_content}\""
             )
         return "\n".join(formatted)

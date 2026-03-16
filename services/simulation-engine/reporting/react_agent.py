@@ -92,28 +92,37 @@ class ReACTReportAgent:
         completed_sections: Dict[str, ReportSection]
     ) -> ReportSection:
         """Generate content for a specific section."""
+        try:
+            # Build context from simulation trace
+            context = self._build_context(trace, completed_sections)
 
-        # Build context from simulation trace
-        context = self._build_context(trace, completed_sections)
+            # Get prompt template for this section
+            prompt = self.templates.get_prompt(section_type, context)
 
-        # Get prompt template for this section
-        prompt = self.templates.get_prompt(section_type, context)
+            # Call LLM to generate content
+            response = await self.router.call_llm(prompt)
 
-        # Call LLM to generate content
-        response = await self.router.call_llm(prompt)
+            # Parse response
+            title = self._format_title(section_type)
+            content = self._extract_content(response)
+            confidence = self._extract_confidence(response)
+            sources = self._extract_sources(trace, section_type)
 
-        # Parse response
-        title = self._format_title(section_type)
-        content = self._extract_content(response)
-        confidence = self._extract_confidence(response)
-        sources = self._extract_sources(trace, section_type)
-
-        return ReportSection(
-            title=title,
-            content=content,
-            confidence=confidence,
-            sources=sources
-        )
+            return ReportSection(
+                title=title,
+                content=content,
+                confidence=confidence,
+                sources=sources
+            )
+        except Exception as e:
+            logger.error(f"Failed to generate section {section_type}: {e}")
+            # Return fallback section
+            return ReportSection(
+                title=self._format_title(section_type),
+                content=f"Unable to generate {section_type} due to error.",
+                confidence=0.0,
+                sources=[]
+            )
 
     def _build_context(
         self,

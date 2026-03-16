@@ -65,6 +65,12 @@ class ReportSection(BaseModel):
     confidence: float = 0.5  # 0-1
     sources: List[str] = []
 
+    @field_validator('confidence')
+    @classmethod
+    def clamp_confidence(cls, v: float) -> float:
+        """Ensure confidence is within valid range [0.0, 1.0]."""
+        return max(0.0, min(1.0, v))
+
 
 class Report(BaseModel):
     """Complete simulation report with multiple sections."""
