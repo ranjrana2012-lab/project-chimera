@@ -1,5 +1,5 @@
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from main import app
 
 
@@ -7,7 +7,8 @@ from main import app
 async def test_full_simulation_pipeline():
     """Test complete pipeline from graph build to simulation."""
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
 
         # Step 1: Check health
         response = await client.get("/health/live")
@@ -48,7 +49,8 @@ async def test_full_simulation_pipeline():
 async def test_error_handling():
     """Test error handling for invalid requests."""
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
 
         # Invalid agent count
         response = await client.post(

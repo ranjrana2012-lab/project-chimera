@@ -1,4 +1,3 @@
-from neo4j import AsyncGraphDatabase
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 import logging
@@ -7,11 +6,24 @@ from graph.models import Entity, Relationship
 
 logger = logging.getLogger(__name__)
 
+# Try to import neo4j, gracefully handle if not available
+try:
+    from neo4j import AsyncGraphDatabase
+    NEO4J_AVAILABLE = True
+except ImportError:
+    NEO4J_AVAILABLE = False
+    AsyncGraphDatabase = None  # type: ignore
+    logger.warning("neo4j module not available - Neo4jClient will be disabled")
+
 
 class Neo4jClient:
     """Client for Neo4j graph database operations."""
 
     def __init__(self, uri: str, user: str, password: str):
+        if not NEO4J_AVAILABLE:
+            raise RuntimeError(
+                "neo4j module is not available. Install it with: pip install neo4j"
+            )
         self.driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
 
     async def close(self):

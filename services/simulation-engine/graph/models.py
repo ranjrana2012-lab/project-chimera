@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 from enum import Enum
 
@@ -51,3 +51,12 @@ class Fact(BaseModel):
     confidence: float
     valid_at: datetime
     invalid_at: Optional[datetime] = None
+
+
+class Graph(BaseModel):
+    """Represents a knowledge graph with entities and relationships."""
+    entities: List[Entity] = []
+    relationships: List[Relationship] = []
+    facts: List[Fact] = []
+    created_at: datetime = datetime.utcnow()
+    updated_at: datetime = datetime.utcnow()

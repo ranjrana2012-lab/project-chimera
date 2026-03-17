@@ -9,7 +9,7 @@ from simulation.models import SimulationConfig, SimulationResult, ActionType
 from agents.persona import PersonaGenerator
 from agents.profile import AgentProfile
 from simulation.llm_router import TieredLLMRouter
-from graph.builder import Graph
+from graph.models import Graph
 
 logger = logging.getLogger(__name__)
 
