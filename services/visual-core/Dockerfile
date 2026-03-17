@@ -6,13 +6,8 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
-# ffmpeg is required for video processing
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies (skip for now - using PyPI wheels)
+# Note: ffmpeg will be mounted from host or added later if needed
 
 # Set work directory
 WORKDIR /app
@@ -34,9 +29,9 @@ ENV PORT=8014
 # Expose port
 EXPOSE 8014
 
-# Health check
+# Health check (use Python instead of curl)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8014/health/live || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8014/health/live')" || exit 1
 
 # Create non-root user
 RUN useradd -m -u 1000 -s /bin/bash appuser && \
