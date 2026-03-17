@@ -62,3 +62,7 @@ class AgentProfile(BaseModel):
     political_leaning: PoliticalLeaning
     information_sources: List[str]
     memory_capacity: int
+
+    class Config:
+        # Allow creating from dict with simpler demographic/behavioral data
+        arbitrary_types_allowed = True

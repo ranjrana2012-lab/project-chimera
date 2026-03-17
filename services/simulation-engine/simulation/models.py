@@ -18,7 +18,9 @@ class SimulationConfig(BaseModel):
     agent_count: int = Field(default=10, ge=1, le=1000)
     simulation_rounds: int = Field(default=10, ge=1, le=100)
     scenario_description: str
-    seed_documents: List[str]
+    scenario_topic: Optional[str] = None
+    seed_documents: List[str] = []
+    generate_report: bool = False
 
 
 class SimulationResult(BaseModel):
@@ -28,3 +30,5 @@ class SimulationResult(BaseModel):
     rounds_completed: int
     total_actions: int
     final_summary: str
+    action_log: List[List[Dict[str, Any]]] = []
+    start_time: float = 0.0

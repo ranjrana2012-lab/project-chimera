@@ -81,3 +81,29 @@ class Report(BaseModel):
     recommendations: List[ReportSection]
     confidence_interval: tuple[float, float] = (0.0, 1.0)
     metadata: Dict[str, Any] = {}
+
+
+class ComprehensiveReport(BaseModel):
+    """Complete report combining ForumEngine debate and ReACT analysis"""
+    simulation_id: str
+    generated_at: datetime
+    topic: str
+
+    # ReACT Report content
+    executive_summary: ReportSection
+    findings: List[ReportSection]
+    recommendations: List[ReportSection]
+
+    # ForumEngine debate results
+    debate_summary: str
+    consensus_score: float
+    debate_arguments: List[Argument]
+
+    # Combined metrics
+    confidence_interval: tuple[float, float]
+    overall_confidence: float
+
+    # Metadata
+    forum_rounds: int = 3
+    react_iterations: int = 0
+    metadata: Dict[str, Any] = {}
