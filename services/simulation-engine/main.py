@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -32,13 +33,42 @@ simulation_duration = Histogram(
     ["scenario_type"]
 )
 
-# Create FastAPI app
+# Global simulation runner instance
+runner = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan events."""
+    # Startup
+    logger.info(f"Starting {settings.service_name} v0.1.0")
+    logger.info(f"Environment: {settings.environment}")
+
+    # Initialize simulation runner
+    from simulation.runner import SimulationRunner
+    from simulation.llm_router import TieredLLMRouter
+    from agents.persona import PersonaGenerator
+
+    global runner
+    persona_generator = PersonaGenerator(seed=42)
+    runner = SimulationRunner(persona_generator, TieredLLMRouter())
+
+    logger.info("Simulation runner initialized")
+
+    yield
+
+    # Shutdown
+    logger.info("Shutting down simulation engine")
+
+
+# Create FastAPI app with lifespan
 app = FastAPI(
     title="Chimera Simulation Engine",
     description="Multi-agent swarm intelligence simulation platform",
     version="0.1.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # CORS middleware
@@ -57,37 +87,10 @@ app.mount("/metrics", metrics_app)
 # Include routers (will be created in later tasks)
 from api import health, graph, simulation, agents
 
-# Global simulation runner instance
-runner = None
-
 app.include_router(health.router, prefix="/health", tags=["health"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["graph"])
 app.include_router(simulation.router, prefix="/api/v1/simulation", tags=["simulation"])
 app.include_router(agents.router, prefix="/api/v1/agents", tags=["agents"])
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize connections on startup."""
-    logger.info(f"Starting {settings.service_name} v0.1.0")
-    logger.info(f"Environment: {settings.environment}")
-
-    # Initialize simulation runner
-    from simulation.runner import SimulationRunner
-    from simulation.llm_router import TieredLLMRouter
-    from agents.persona import PersonaGenerator
-
-    global runner
-    persona_generator = PersonaGenerator(seed=42)
-    runner = SimulationRunner(persona_generator, TieredLLMRouter())
-
-    logger.info("Simulation runner initialized")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Clean up connections on shutdown."""
-    logger.info("Shutting down simulation engine")
 
 
 if __name__ == "__main__":

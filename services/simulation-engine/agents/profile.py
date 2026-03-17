@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Dict, Any
 from enum import Enum
 
@@ -55,6 +55,8 @@ class BehavioralProfile(BaseModel):
 
 class AgentProfile(BaseModel):
     """Complete agent persona definition."""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     id: str
     mbti: MBTIType
     demographics: Demographics
@@ -62,7 +64,3 @@ class AgentProfile(BaseModel):
     political_leaning: PoliticalLeaning
     information_sources: List[str]
     memory_capacity: int
-
-    class Config:
-        # Allow creating from dict with simpler demographic/behavioral data
-        arbitrary_types_allowed = True

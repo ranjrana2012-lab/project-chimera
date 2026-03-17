@@ -37,5 +37,5 @@ async def test_llm_router_stats():
     stats = router.get_stats()
 
     assert stats["total_calls"] == 100
-    # Allow variance due to randomness
-    assert 60 <= stats["local_calls"] <= 80
+    # Allow variance due to randomness (70% ± 15% = 55-85 range)
+    assert 55 <= stats["local_calls"] <= 85

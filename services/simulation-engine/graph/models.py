@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 
@@ -58,5 +58,5 @@ class Graph(BaseModel):
     entities: List[Entity] = []
     relationships: List[Relationship] = []
     facts: List[Fact] = []
-    created_at: datetime = datetime.utcnow()
-    updated_at: datetime = datetime.utcnow()
+    created_at: datetime = datetime.now(timezone.utc)
+    updated_at: datetime = datetime.now(timezone.utc)

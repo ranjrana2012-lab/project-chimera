@@ -2,7 +2,7 @@ import asyncio
 import uuid
 import time
 from typing import List, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from simulation.models import SimulationConfig, SimulationResult, ActionType
@@ -153,7 +153,7 @@ class SimulationRunner:
                 "round": round_num,
                 "action_type": ActionType.POST.value,
                 "backend_used": backend.value,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
             actions.append(action)
 

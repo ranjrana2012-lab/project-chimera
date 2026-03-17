@@ -1,6 +1,6 @@
 """AgentMemory: Store and retrieve agent memories from simulation."""
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class AgentMemory:
             "round": round_num,
             "action_type": action_type,
             "content": content,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "metadata": metadata or {}
         }
 

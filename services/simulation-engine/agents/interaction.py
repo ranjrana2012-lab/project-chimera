@@ -1,6 +1,6 @@
 """AgentInteraction: Query and interact with agents post-simulation."""
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass
 import logging
 
@@ -78,7 +78,7 @@ class AgentInteraction:
                 "memory_snippets": relevant_memories,
                 "rounds_covered": self._get_rounds_range(relevant_memories)
             },
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
 
     async def get_agent_memory(
