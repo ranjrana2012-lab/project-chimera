@@ -2,6 +2,8 @@
 
 Complete API endpoint reference for the Chimera Simulation Engine.
 
+> **Implementation Status**: This documentation reflects the current implementation (v0.1.0). Some endpoints documented under "Planned Features" are not yet implemented but are included for future reference.
+
 ## Base URLs
 
 - **Development**: `http://localhost:8016`
@@ -127,7 +129,7 @@ curl -X POST http://localhost:8016/api/v1/graph/build \
 
 ## Simulation Endpoints
 
-### POST /api/v1/simulate
+### POST /api/v1/simulation/simulate
 
 Start a new multi-agent simulation with the specified configuration.
 
@@ -181,7 +183,7 @@ Start a new multi-agent simulation with the specified configuration.
 **Example**:
 
 ```bash
-curl -X POST http://localhost:8016/api/v1/simulate \
+curl -X POST http://localhost:8016/api/v1/simulation/simulate \
   -H "Content-Type: application/json" \
   -d '{
     "agent_count": 25,
@@ -190,79 +192,6 @@ curl -X POST http://localhost:8016/api/v1/simulate \
     "scenario_topic": "Ethics of AI",
     "generate_report": true
   }'
-```
-
----
-
-### GET /api/v1/simulation/{simulation_id}/status
-
-Get the current status of a running simulation.
-
-**URL Parameters**:
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `simulation_id` | string | Unique identifier of the simulation |
-
-**Response**: `200 OK`
-
-```json
-{
-  "simulation_id": "sim_1234567890",
-  "status": "running",
-  "current_round": 7,
-  "total_rounds": 10,
-  "agents_active": 10,
-  "actions_so_far": 52
-}
-```
-
-**Example**:
-
-```bash
-curl -X GET http://localhost:8016/api/v1/simulation/sim_1234567890/status
-```
-
----
-
-### GET /api/v1/simulation/{simulation_id}/result
-
-Get the complete results of a completed simulation.
-
-**URL Parameters**:
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `simulation_id` | string | Unique identifier of the simulation |
-
-**Response**: `200 OK`
-
-```json
-{
-  "simulation_id": "sim_1234567890",
-  "status": "completed",
-  "rounds_completed": 10,
-  "total_actions": 87,
-  "final_summary": "The simulation explored multiple perspectives...",
-  "action_log": [
-    [
-      {
-        "agent_id": "agent_001",
-        "action_type": "post",
-        "content": "Initial perspective on the topic...",
-        "timestamp": 1640995200.0
-      }
-    ]
-  ],
-  "start_time": 1640995200.0,
-  "end_time": 1640995800.0
-}
-```
-
-**Example**:
-
-```bash
-curl -X GET http://localhost:8016/api/v1/simulation/sim_1234567890/result
 ```
 
 ---
@@ -334,7 +263,11 @@ curl -X POST http://localhost:8016/api/v1/agents/generate \
 
 ## Agent Interaction Endpoints
 
+> **Note**: Agent interaction endpoints are planned for future implementation.
+
 ### POST /api/v1/agent/{agent_id}/interview
+
+> **Status**: Planned - Not yet implemented
 
 Conduct an interview with a specific agent to understand their perspective.
 
@@ -398,7 +331,11 @@ curl -X POST http://localhost:8016/api/v1/agent/agent_001/interview \
 
 ## Reporting Endpoints
 
+> **Note**: Reporting endpoints are planned for future implementation.
+
 ### POST /api/v1/report/generate
+
+> **Status**: Planned - Not yet implemented
 
 Generate a comprehensive report from simulation results.
 
@@ -550,7 +487,23 @@ Check the [Getting Started Guide](../getting-started/quick-start.md) for the lat
 
 ## Related Documentation
 
-- [API Models Reference](./models.md) - Detailed data model documentation
-- [Usage Examples](./usage-examples.md) - Practical API usage examples
-- [Architecture Documentation](../architecture/system-design.md) - System architecture overview
-- [Running Simulations Guide](../guides/running-simulations.md) - Complete simulation guide
+- **API Models Reference** (coming soon) - Detailed data model documentation
+- **Usage Examples** (coming soon) - Practical API usage examples
+- **Architecture Documentation** (coming soon) - System architecture overview
+- **Running Simulations Guide** (coming soon) - Complete simulation guide
+- **Getting Started Guide** (coming soon) - Quick start and installation guide
+
+---
+
+## Planned Features
+
+The following endpoints are planned for future releases:
+
+- **Simulation Status & Results**: GET endpoints to query simulation status and retrieve results
+- **Agent Interaction**: Interview endpoints for deep agent interaction
+- **Reporting**: Comprehensive report generation from simulation results
+- **WebSocket Support**: Real-time simulation updates
+- **Authentication**: API authentication and authorization
+- **Rate Limiting**: Production-ready rate limiting
+
+Check the [Project Roadmap](https://github.com/your-org/chimera/blob/main/docs/ROADMAP.md) for implementation timelines.
