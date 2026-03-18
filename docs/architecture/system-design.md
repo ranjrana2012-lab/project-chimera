@@ -552,7 +552,7 @@ The simulation engine integrates with other Chimera services:
 
 ## Related Documentation
 
-- [Component Reference](components.md) - Detailed component documentation
+- [Component Reference](components.md) - Detailed component documentation (coming soon)
 - [API Endpoints](../api/endpoints.md) - Complete API reference
-- [Getting Started](../guides/getting-started.md) - Quick start guide
-- [Deployment Guide](../guides/deployment.md) - Production deployment
+- [Getting Started](../guides/getting-started.md) - Quick start guide (coming soon)
+- [Deployment Guide](../guides/deployment.md) - Production deployment (coming soon)
