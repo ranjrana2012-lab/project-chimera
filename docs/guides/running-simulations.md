@@ -28,7 +28,6 @@ All simulations start with a configuration object that defines the scenario para
   "agent_count": 100,
   "simulation_rounds": 10,
   "scenario_description": "A carbon tax of $50/ton is introduced. How does this affect consumer behavior, business decisions, and political support over 2 years?",
-  "scenario_type": "policy_analysis",
   "scenario_topic": "Carbon Tax Impact Assessment",
   "seed_documents": [
     "Carbon pricing mechanisms and their economic effects...",
@@ -45,7 +44,6 @@ All simulations start with a configuration object that defines the scenario para
 | `agent_count` | integer | Yes | 1-1000 | Number of agents in simulation | Start with 10-50 for testing, use 100-500 for production |
 | `simulation_rounds` | integer | Yes | 1-100 | Number of simulation rounds | 5-10 for quick results, 20-50 for thorough analysis |
 | `scenario_description` | string | Yes | - | Human-readable scenario context | Be specific and detailed (50-500 words) |
-| `scenario_type` | string | No | - | Type for routing and analysis | `policy_analysis`, `social_dynamics`, `organizational`, `general` |
 | `scenario_topic` | string | No | - | Short topic label | Used in reports and metrics |
 | `seed_documents` | array | No | - | Documents for knowledge graph | 1-10 documents, 500-5000 words each |
 | `generate_report` | boolean | No | - | Generate comprehensive report | `true` for final analysis, `false` for testing |
@@ -139,7 +137,6 @@ Analyze the impact of policy decisions on diverse populations.
   "agent_count": 100,
   "simulation_rounds": 20,
   "scenario_description": "A city introduces a congestion pricing policy of $15 per day for downtown driving during peak hours (7-10 AM, 4-7 PM). Exemptions apply to emergency vehicles and public transit. Revenue will fund public transportation improvements. Analyze impacts on: commuter behavior, local business revenue, environmental quality, and public support over 12 months.",
-  "scenario_type": "policy_analysis",
   "scenario_topic": "Urban Congestion Pricing Assessment"
 }
 ```
@@ -160,7 +157,6 @@ Study information spread, opinion formation, and social influence.
   "agent_count": 200,
   "simulation_rounds": 30,
   "scenario_description": "A new social media platform gains popularity among younger demographics (18-35). The platform uses an algorithm that prioritizes emotionally engaging content over factual accuracy. Track how information about a controversial topic (e.g., climate policy) spreads through the network, examining: echo chamber formation, opinion polarization, misinformation propagation, and cross-demographic information exchange.",
-  "scenario_type": "social_dynamics",
   "scenario_topic": "Social Media Information Spread"
 }
 ```
@@ -181,7 +177,6 @@ Analyze team dynamics, decision-making, and organizational change.
   "agent_count": 25,
   "simulation_rounds": 15,
   "scenario_description": "A mid-sized technology company (200 employees) announces a permanent remote work policy. Teams can choose fully remote, hybrid (2-3 days office), or fully in-office work. The company provides a stipend for home office setup. Analyze impacts on: team collaboration patterns, employee satisfaction and retention, productivity metrics, and innovation output over 6 months.",
-  "scenario_type": "organizational",
   "scenario_topic": "Remote Work Policy Impact"
 }
 ```
@@ -286,13 +281,7 @@ curl -X POST http://localhost:8016/api/v1/agents/generate \
   -H "Content-Type: application/json" \
   -d '{
     "count": 50,
-    "seed": 42,
-    "diversity_config": {
-      "mbti_distribution": "balanced",
-      "political_spectrum": "full",
-      "age_range": [25, 65],
-      "urban_ratio": 0.7
-    }
+    "seed": 42
   }'
 ```
 
@@ -325,14 +314,14 @@ Seed documents provide contextual knowledge that agents can reference during sim
 #### 1. Quality Over Quantity
 
 **Good:**
-```
+```text
 The carbon tax of $50 per metric ton was implemented in British Columbia in 2008.
 Studies show it reduced greenhouse gas emissions by 5-15% without harming economic growth.
 Revenue is returned to citizens through tax cuts.
 ```
 
 **Poor:**
-```
+```text
 Carbon tax is bad. It hurts economy. People don't like it.
 ```
 
@@ -368,7 +357,7 @@ Use clear, well-structured text:
 ### Example Seed Documents
 
 **Document 1: Policy Background**
-```
+```text
 Carbon Pricing Overview
 =======================
 Carbon pricing is an economic instrument that puts a price on carbon emissions.
@@ -390,7 +379,7 @@ Key mechanisms:
 ```
 
 **Document 2: Stakeholder Perspectives**
-```
+```text
 Stakeholder Views on Carbon Pricing
 ===================================
 Business Community:
@@ -416,7 +405,7 @@ Academic Research:
 ```
 
 **Document 3: Implementation Considerations**
-```
+```text
 Carbon Tax Implementation Design
 =================================
 Rate Structure:
@@ -483,7 +472,6 @@ curl -X POST http://localhost:8016/api/v1/simulation/simulate \
     "agent_count": 100,
     "simulation_rounds": 20,
     "scenario_description": "A carbon tax of $50/ton is introduced...",
-    "scenario_type": "policy_analysis",
     "generate_report": true
   }'
 ```
@@ -561,7 +549,7 @@ curl http://localhost:8016/api/v1/simulation/${SIMULATION_ID}/status
 
 The summary provides a high-level overview:
 
-```
+```text
 Simulation Summary
 ==================
 Scenario: A carbon tax of $50/ton is introduced...
@@ -712,12 +700,12 @@ Review results, refine scenario, then scale up:
 ### 2. Use Specific, Detailed Scenarios
 
 **Poor:**
-```
+```text
 Test a new tax policy
 ```
 
 **Good:**
-```
+```text
 A carbon tax of $50/ton is introduced on fossil fuels. Revenue is returned to citizens
 as quarterly dividends. The tax increases by $5/ton annually. Analyze impacts over 5 years
 on: consumer behavior, business investment, emissions, and political support among
@@ -755,7 +743,7 @@ curl http://localhost:8016/metrics | grep simulation
 ```
 
 **Output:**
-```
+```text
 simulations_total{scenario_type="policy_analysis"} 42.0
 simulation_duration_seconds_bucket{scenario_type="policy_analysis",le="1.0"} 38.0
 ```
@@ -830,12 +818,12 @@ Maintain a scenario library with:
 **Solution:** Provide clear context, constraints, and objectives.
 
 **Poor:**
-```
+```text
 Test the impact of a new policy
 ```
 
 **Good:**
-```
+```text
 A carbon tax of $50/ton on fossil fuels, with revenue returned as citizen dividends.
 Tax increases by $5/ton annually. Analyze impacts on: consumer behavior (gasoline demand,
 vehicle purchases), business decisions (investment, pricing), emissions, and political
@@ -1151,7 +1139,7 @@ Now that you understand how to run simulations effectively:
 - **[Architecture Overview](../architecture/system-design.md)** - System design and data flow
 - **[Component Reference](../architecture/components.md)** - Component details
 - **[API Reference](../api/endpoints.md)** - Complete API documentation
-- **[Extending the Engine](extending-engine.md)** - Customization guide
+- **[Extending the Engine](extending-engine.md)** (coming soon) - Customization guide
 
 ### Apply to Your Domain
 
