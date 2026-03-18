@@ -1769,6 +1769,5 @@ Planned improvements for components:
 ## References
 
 - [System Design](system-design.md) - High-level architecture
-- [Data Flow](data-flow.md) - Request flow diagrams
-- [Integration](integration.md) - Chimera ecosystem integration
+- [System Design](system-design.md) - High-level architecture and data flow
 - [API Endpoints](../api/endpoints.md) - REST API reference

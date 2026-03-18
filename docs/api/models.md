@@ -722,7 +722,7 @@ Integer fields are 64-bit signed integers.
 
 - [API Endpoints Reference](./endpoints.md) - Complete API endpoint documentation
 - [Usage Examples](./examples/) - Code examples for common operations
-- [Getting Started](../getting-started/quick-start.md) - Quick start guide
+- [Getting Started](../guides/getting-started.md) - Quick start guide
 - [System Architecture](../architecture/system-design.md) - Overall system design
 
 ---

@@ -1139,7 +1139,7 @@ Now that you understand how to run simulations effectively:
 - **[Architecture Overview](../architecture/system-design.md)** - System design and data flow
 - **[Component Reference](../architecture/components.md)** - Component details
 - **[API Reference](../api/endpoints.md)** - Complete API documentation
-- **[Extending the Engine](extending-engine.md)** (coming soon) - Customization guide
+- **[API Reference](../api/endpoints.md)** - Complete API documentation
 
 ### Apply to Your Domain
 

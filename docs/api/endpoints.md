@@ -491,7 +491,7 @@ Check the [Getting Started Guide](../getting-started/quick-start.md) for the lat
 - **Usage Examples** (coming soon) - Practical API usage examples
 - **Architecture Documentation** (coming soon) - System architecture overview
 - **Running Simulations Guide** (coming soon) - Complete simulation guide
-- **Getting Started Guide** (coming soon) - Quick start and installation guide
+- **Getting Started Guide** - [Quick Start Guide](../guides/getting-started.md)
 
 ---
 
