@@ -14,14 +14,28 @@ Complete reference for all data models used in the Chimera Simulation Engine API
   - [GraphBuildResponse](#graphbuildresponse)
   - [HealthResponse](#healthresponse)
 - [Nested Models](#nested-models)
+  - [Entity](#entity)
+  - [Relationship](#relationship)
+  - [Fact](#fact)
+  - [Graph](#graph)
+  - [SimulationAction](#simulationaction)
+  - [SimulationRound](#simulationround)
+  - [SimulationTrace](#simulationtrace)
+  - [ReportSection](#reportsection)
   - [Demographics](#demographics)
   - [BehavioralProfile](#behavioralprofile)
   - [Argument](#argument)
   - [DebateResult](#debateresult)
   - [Report](#report)
   - [ComprehensiveReport](#comprehensivereport)
+  - [AgentResponse](#agentresponse)
 - [Error Responses](#error-responses)
 - [Enumerations](#enumerations)
+  - [EntityType](#entitytype)
+  - [RelationType](#relationtype)
+  - [ActionType](#actiontype)
+  - [MBTIType](#mbtitype)
+  - [PoliticalLeaning](#politicalleaning)
 
 ---
 
@@ -245,6 +259,123 @@ Response from health check endpoints.
 
 ## Nested Models
 
+### Entity
+
+Represents an entity in the knowledge graph.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique identifier for the entity |
+| `type` | string | Entity type (person, organization, location, event, concept, policy) |
+| `attributes` | object | Key-value pairs of entity attributes |
+| `valid_at` | datetime | When this entity became valid |
+| `invalid_at` | datetime (optional) | When this entity became invalid (if applicable) |
+
+---
+
+### Relationship
+
+Represents a relationship between two entities in the knowledge graph.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `source` | string | ID of the source entity |
+| `target` | string | ID of the target entity |
+| `type` | string | Relationship type (knows, works_for, located_in, participated_in, related_to, influences) |
+| `attributes` | object | Key-value pairs of relationship attributes |
+| `valid_at` | datetime | When this relationship became valid |
+| `invalid_at` | datetime (optional) | When this relationship became invalid (if applicable) |
+
+---
+
+### Fact
+
+Represents a temporal fact in the knowledge graph.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `subject` | string | Subject of the fact |
+| `predicate` | string | Predicate/relationship |
+| `object` | string | Object of the fact |
+| `confidence` | float | Confidence score (0.0-1.0) |
+| `valid_at` | datetime | When this fact became valid |
+| `invalid_at` | datetime (optional) | When this fact became invalid (if applicable) |
+
+---
+
+### Graph
+
+Complete knowledge graph containing entities, relationships, and facts.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `entities` | array[Entity] | List of entities in the graph |
+| `relationships` | array[Relationship] | List of relationships |
+| `facts` | array[Fact] | List of temporal facts |
+| `created_at` | datetime | Graph creation timestamp |
+| `updated_at` | datetime | Last update timestamp |
+
+---
+
+### SimulationAction
+
+A single action taken by an agent during simulation.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `agent_id` | string | ID of the agent performing the action |
+| `action_type` | string | Type of action (post, reply, like, retweet, follow, quote) |
+| `content` | string | Action content/text |
+| `timestamp` | datetime | When the action occurred |
+| `metadata` | object | Additional action metadata |
+
+---
+
+### SimulationRound
+
+A round of simulation containing multiple agent actions.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `round_number` | integer | Round sequence number |
+| `actions` | array[SimulationAction] | All actions in this round |
+| `agent_states` | object | Agent state snapshots at round end |
+
+---
+
+### SimulationTrace
+
+Complete trace of a simulation run with all rounds and knowledge graph context.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `simulation_id` | string | Unique simulation identifier |
+| `topic` | string | Simulation topic |
+| `rounds` | array[SimulationRound] | All simulation rounds |
+| `knowledge_graph_entities` | array[string] | Entity IDs from knowledge graph |
+| `knowledge_graph_relationships` | array[string] | Relationship IDs from knowledge graph |
+| `started_at` | datetime | Simulation start time |
+| `completed_at` | datetime (optional) | Simulation completion time |
+| `metadata` | object | Additional trace metadata |
+
+---
+
+### ReportSection
+
+A section of a generated report with confidence scoring.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Section title |
+| `content` | string | Section content |
+| `confidence` | float | Confidence score (0.0-1.0) |
+| `sources` | array[string] | Source references |
+
+**Constraints:**
+- `confidence`: Automatically clamped to range [0.0, 1.0]
+
+---
+
 ### Demographics
 
 Demographic characteristics of an agent. Part of `AgentProfile`.
@@ -352,6 +483,20 @@ Complete report combining ForumEngine debate results and ReACT analysis.
 
 ---
 
+### AgentResponse
+
+Response from interviewing an agent post-simulation.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `agent_id` | string | ID of the interviewed agent |
+| `question` | string | Question asked to the agent |
+| `response` | string | Agent's response |
+| `context` | object | Context including memory snippets, rounds covered |
+| `timestamp` | datetime | When response was generated |
+
+---
+
 ## Error Responses
 
 The API uses standard HTTP status codes and returns error details in JSON format.
@@ -435,6 +580,36 @@ Required service not initialized or unavailable.
 ---
 
 ## Enumerations
+
+### EntityType
+
+Types of entities in the knowledge graph.
+
+| Value | Description |
+|-------|-------------|
+| `person` | Individual person |
+| `organization` | Company, institution, or group |
+| `location` | Geographic location |
+| `event` | Occurrence or incident |
+| `concept` | Abstract concept or idea |
+| `policy` | Policy or regulation |
+
+---
+
+### RelationType
+
+Types of relationships between entities in the knowledge graph.
+
+| Value | Description |
+|-------|-------------|
+| `knows` | Acquaintance or familiarity |
+| `works_for` | Employment relationship |
+| `located_in` | Geographic containment |
+| `participated_in` | Event participation |
+| `related_to` | General relationship |
+| `influences` | Causal or influential relationship |
+
+---
 
 ### ActionType
 
