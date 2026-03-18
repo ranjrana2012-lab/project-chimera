@@ -1,5 +1,10 @@
 # Getting Started with Chimera Simulation Engine
 
+> **Version:** 1.0.0
+> **Last Updated:** 2026-03-18
+> **Audience:** Developers, System Architects, Researchers
+> **Estimated Reading Time:** 15 minutes
+
 Get up and running with the Chimera Simulation Engine in under 15 minutes. This guide will walk you through installation, your first simulation, and verification steps.
 
 ## Prerequisites
@@ -127,7 +132,7 @@ curl -X POST http://localhost:8016/api/v1/agents/generate \
 **Expected Response:**
 ```json
 {
-  "agents": [
+  "personas": [
     {
       "id": "agent_001",
       "mbti": "INTJ",
@@ -146,9 +151,8 @@ curl -X POST http://localhost:8016/api/v1/agents/generate \
       "political_leaning": "moderate",
       "information_sources": ["academic_journals", "news_analysis"]
     }
-    // ... more agents
   ],
-  "total": 10
+  "count": 10
 }
 ```
 
@@ -172,72 +176,28 @@ curl -X POST http://localhost:8016/api/v1/simulate \
 ```json
 {
   "simulation_id": "550e8400-e29b-41d4-a716-446655440000",
-  "status": "running",
-  "message": "Simulation started successfully"
-}
-```
-
-Save the `simulation_id` from the response - you'll need it to check results.
-
-### Step 3: Check Simulation Status
-
-Monitor your simulation's progress:
-
-```bash
-# Replace with your actual simulation ID
-SIMULATION_ID="550e8400-e29b-41d4-a716-446655440000"
-curl http://localhost:8016/api/v1/simulation/${SIMULATION_ID}/status
-```
-
-**Response while running:**
-```json
-{
-  "simulation_id": "550e8400-e29b-41d4-a716-446655440000",
-  "status": "running",
-  "rounds_completed": 2,
-  "total_rounds": 5
-}
-```
-
-**Response when complete:**
-```json
-{
-  "simulation_id": "550e8400-e29b-41d4-a716-446655440000",
-  "status": "completed",
-  "rounds_completed": 5,
-  "total_rounds": 5
-}
-```
-
-### Step 4: Get Simulation Results
-
-Once complete, retrieve the full results:
-
-```bash
-SIMULATION_ID="550e8400-e29b-41d4-a716-446655440000"
-curl http://localhost:8016/api/v1/simulation/${SIMULATION_ID}/result | jq
-```
-
-**Expected Response:**
-```json
-{
-  "simulation_id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "completed",
   "rounds_completed": 5,
   "total_actions": 50,
-  "final_summary": "Simulation complete. Agents demonstrated diverse responses to congestion pricing. Key findings: 70% of commuters shifted to public transit, local retail businesses reported initial 15% revenue decline followed by recovery, environmental quality indicators improved by 25%. Confidence: High (0.82).",
-  "action_log": [
-    [
-      {
-        "agent_id": "agent_001",
-        "action": "analyze_policy",
-        "content": "Evaluating congestion pricing impact on daily commute..."
-      }
-    ]
-    // ... more actions
-  ]
+  "summary": "Simulation Summary\n==================\nScenario: A city introduces a congestion pricing policy...\nAgents: 10\nRounds: 5\nTotal Actions: 50"
 }
 ```
+
+Save the `simulation_id` from the response - you can use it to reference this simulation run.
+
+**Note:** The simulation engine runs simulations synchronously. The response contains the complete results immediately. For long-running simulations, consider implementing asynchronous execution patterns in your application.
+
+### Step 3: Understanding the Response
+
+The simulation response includes:
+
+- `simulation_id` - Unique identifier for this simulation run
+- `status` - Current status ("completed" for synchronous runs)
+- `rounds_completed` - Number of simulation rounds executed
+- `total_actions` - Total number of agent actions across all rounds
+- `summary` - High-level summary of the simulation results
+
+The simulation completes immediately and returns all results in the response. The action log is stored internally and can be accessed through the comprehensive report generation feature (available in Phase 1).
 
 ## Next Steps
 
