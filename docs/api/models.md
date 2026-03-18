@@ -721,12 +721,12 @@ Integer fields are 64-bit signed integers.
 ## Related Documentation
 
 - [API Endpoints Reference](./endpoints.md) - Complete API endpoint documentation
-- [Usage Examples](./usage-examples.md) - Code examples for common operations
-- [Getting Started](../getting-started.md) - Quick start guide
+- [Usage Examples](./examples/) - Code examples for common operations
+- [Getting Started](../getting-started/quick-start.md) - Quick start guide
 - [System Architecture](../architecture/system-design.md) - Overall system design
 
 ---
 
-**Last Updated:** 2025-03-17
+**Last Updated:** 2026-03-18
 
 **API Version:** 0.1.0
