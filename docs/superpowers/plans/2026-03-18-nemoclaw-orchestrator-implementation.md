@@ -443,8 +443,9 @@ class PolicyEngine:
         input_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Sanitize input data"""
-        # TODO: Implement actual sanitization
-        return input_data
+        from policy.filters import InputSanitizer
+        sanitizer = InputSanitizer()
+        return await sanitizer.sanitize(input_data)
 
     async def filter_output(
         self,
@@ -452,8 +453,9 @@ class PolicyEngine:
         response: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Filter output through policy"""
-        # TODO: Implement output filtering
-        return response
+        from policy.filters import OutputFilter
+        filter = OutputFilter()
+        return await filter.filter(response, agent)
 ```
 
 - [ ] **Step 5: Implement CHIMERA_POLICIES rules**
@@ -569,6 +571,167 @@ git commit -m "feat(nemoclaw): implement OpenShell policy engine
 - Add CHIMERA_POLICIES for all agents
 - Add unit tests for policy enforcement
 - Support ALLOW, DENY, SANITIZE, ESCALATE actions
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 2.5: Implement Policy Filters
+
+**Files:**
+- Create: `services/nemoclaw-orchestrator/policy/filters.py`
+- Create: `services/nemoclaw-orchestrator/tests/unit/test_policy_filters.py`
+
+- [ ] **Step 1: Write failing test for input sanitization**
+
+```python
+# services/nemoclaw-orchestrator/tests/unit/test_policy_filters.py
+import pytest
+from policy.filters import InputSanitizer, OutputFilter
+
+class TestInputSanitizer:
+    @pytest.mark.asyncio
+    async def test_removes_profanity(self):
+        sanitizer = InputSanitizer()
+        result = await sanitizer.sanitize({"text": "This is f***ing bad"})
+        assert "f***ing" not in result["text"]
+
+    @pytest.mark.asyncio
+    async def test_truncates_long_text(self):
+        sanitizer = InputSanitizer(max_length=100)
+        long_text = "x" * 1000
+        result = await sanitizer.sanitize({"dialogue": long_text})
+        assert len(result["dialogue"]) <= 100
+
+class TestOutputFilter:
+    @pytest.mark.asyncio
+    async def test_filters_pii_from_output(self):
+        filter = OutputFilter()
+        result = await filter.filter(
+            {"text": "Call me at 555-123-4567"},
+            "scenespeak-agent"
+        )
+        assert "555-123-4567" not in result["text"]
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+pytest tests/unit/test_policy_filters.py -v
+```
+
+Expected: FAIL with "InputSanitizer not defined"
+
+- [ ] **Step 3: Implement InputSanitizer and OutputFilter**
+
+```python
+# services/nemoclaw-orchestrator/policy/filters.py
+import re
+from typing import Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
+
+class InputSanitizer:
+    """Sanitizes input data to remove harmful content"""
+
+    def __init__(self, max_length: int = 5000):
+        self.max_length = max_length
+        # Simple profanity list (expand in production)
+        self.profanity_pattern = re.compile(
+            r'\b(fuck|shit|damn|ass|bitch)\b',
+            re.IGNORECASE
+        )
+
+    async def sanitize(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Sanitize input data"""
+        result = {}
+
+        for key, value in input_data.items():
+            if isinstance(value, str):
+                # Remove profanity
+                sanitized = self.profanity_pattern.sub('***', value)
+                # Truncate if too long
+                if len(sanitized) > self.max_length:
+                    sanitized = sanitized[:self.max_length] + "..."
+                result[key] = sanitized
+            elif isinstance(value, dict):
+                result[key] = await self.sanitize(value)
+            elif isinstance(value, list):
+                result[key] = [
+                    await self.sanitize(item) if isinstance(item, (dict, str))
+                    else item
+                    for item in value
+                ]
+            else:
+                result[key] = value
+
+        return result
+
+class OutputFilter:
+    """Filters agent output to remove sensitive information"""
+
+    def __init__(self):
+        # PII patterns (expand in production)
+        self.phone_pattern = re.compile(
+            r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b'
+        )
+        self.email_pattern = re.compile(
+            r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        )
+        self.ssn_pattern = re.compile(
+            r'\b\d{3}-\d{2}-\d{4}\b'
+        )
+
+    async def filter(
+        self,
+        response: Dict[str, Any],
+        agent: str
+    ) -> Dict[str, Any]:
+        """Filter output data"""
+        result = {}
+
+        for key, value in response.items():
+            if isinstance(value, str):
+                # Remove PII
+                filtered = self.phone_pattern.sub('[PHONE]', value)
+                filtered = self.email_pattern.sub('[EMAIL]', filtered)
+                filtered = self.ssn_pattern.sub('[SSN]', filtered)
+                result[key] = filtered
+            elif isinstance(value, dict):
+                result[key] = await self.filter(value, agent)
+            elif isinstance(value, list):
+                result[key] = [
+                    await self.filter(item, agent) if isinstance(item, (dict, str))
+                    else item
+                    for item in value
+                ]
+            else:
+                result[key] = value
+
+        return result
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+```bash
+pytest tests/unit/test_policy_filters.py -v
+```
+
+Expected: PASS
+
+- [ ] **Step 5: Commit policy filters**
+
+```bash
+git add services/nemoclaw-orchestrator/policy/filters.py
+git add services/nemoclaw-orchestrator/tests/unit/test_policy_filters.py
+git commit -m "feat(nemoclaw): implement input sanitization and output filtering
+
+- Add InputSanitizer for profanity removal and length limits
+- Add OutputFilter for PII removal (phone, email, SSN)
+- Add unit tests for filter functionality
+- Required by OpenShell policy enforcement
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```
@@ -770,6 +933,200 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 
 ---
 
+### Task 3.5: Implement Guarded Cloud Client
+
+**Files:**
+- Create: `services/nemoclaw-orchestrator/llm/guarded_cloud.py`
+- Create: `services/nemoclaw-orchestrator/tests/unit/test_guarded_cloud.py`
+
+- [ ] **Step 1: Write failing test for guarded cloud**
+
+```python
+# services/nemoclaw-orchestrator/tests/unit/test_guarded_cloud.py
+import pytest
+from llm.guarded_cloud import GuardedCloudClient
+
+class TestGuardedCloudClient:
+    @pytest.mark.asyncio
+    async def test_strips_pii_before_sending_to_cloud(self, mocker):
+        # Mock cloud API
+        mock_post = mocker.patch('httpx.AsyncClient.post')
+        mock_post.return_value.json.return_value = {"text": "Response"}
+        mock_post.return_value.raise_for_status = mocker.AsyncMock()
+
+        client = GuardedCloudClient(api_key="test-key")
+        result = await client.generate("Call me at 555-123-4567")
+
+        # Verify PII was stripped
+        call_args = mock_post.call_args
+        prompt_sent = call_args[1]["json"]["prompt"]
+        assert "555-123-4567" not in prompt_sent
+        assert "[PHONE]" in prompt_sent
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+pytest tests/unit/test_guarded_cloud.py -v
+```
+
+Expected: FAIL with "GuardedCloudClient not defined"
+
+- [ ] **Step 3: Implement GuardedCloudClient**
+
+```python
+# services/nemoclaw-orchestrator/llm/guarded_cloud.py
+import httpx
+import os
+from typing import Optional
+import re
+import logging
+
+logger = logging.getLogger(__name__)
+
+class GuardedCloudClient:
+    """Cloud LLM client with PII stripping for privacy"""
+
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        api_endpoint: str = "https://api.anthropic.com/v1/messages"
+    ):
+        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
+        self.api_endpoint = api_endpoint
+
+        # PII patterns (same as OutputFilter)
+        self.phone_pattern = re.compile(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b')
+        self.email_pattern = re.compile(
+            r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        )
+        self.ssn_pattern = re.compile(r'\b\d{3}-\d{2}-\d{4}\b')
+
+    def _strip_pii(self, text: str) -> str:
+        """Remove PII from text before sending to cloud"""
+        # Replace PII with placeholders
+        text = self.phone_pattern.sub('[PHONE]', text)
+        text = self.email_pattern.sub('[EMAIL]', text)
+        text = self.ssn_pattern.sub('[SSN]', text)
+        return text
+
+    async def generate(self, prompt: str, max_tokens: int = 1000) -> str:
+        """Generate text using cloud API with PII protection"""
+
+        # Strip PII before sending
+        sanitized_prompt = self._strip_pii(prompt)
+
+        headers = {
+            "x-api-key": self.api_key,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01"
+        }
+
+        payload = {
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": max_tokens,
+            "messages": [{"role": "user", "content": sanitized_prompt}]
+        }
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                self.api_endpoint,
+                headers=headers,
+                json=payload
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data["content"][0]["text"]
+
+    async def is_available(self) -> bool:
+        """Check if cloud API is available"""
+        if not self.api_key:
+            return False
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.post(
+                    self.api_endpoint,
+                    headers={
+                        "x-api-key": self.api_key,
+                        "Content-Type": "application/json",
+                        "anthropic-version": "2023-06-01"
+                    },
+                    json={
+                        "model": "claude-sonnet-4-20250514",
+                        "max_tokens": 10,
+                        "messages": [{"role": "user", "content": "test"}]
+                    }
+                )
+                return response.status_code == 200
+        except Exception:
+            return False
+```
+
+- [ ] **Step 4: Update PrivacyRouter to use GuardedCloudClient**
+
+```python
+# Update services/nemoclaw-orchestrator/llm/privacy_router.py
+
+# Add to imports
+from llm.guarded_cloud import GuardedCloudClient
+
+# Update PrivacyRouter.__init__
+def __init__(self, config: RouterConfig):
+    self.config = config
+    from llm.nemotron_client import NemotronClient
+    self.nemotron_client = NemotronClient(config.dgx_endpoint)
+    self.guarded_cloud = GuardedCloudClient()  # Add this line
+```
+
+- [ ] **Step 5: Update _call_guarded_cloud to use actual implementation**
+
+```python
+# Update services/nemoclaw-orchestrator/llm/privacy_router.py
+
+async def _call_guarded_cloud(self, prompt: str) -> str:
+    """Call cloud API with PII stripping"""
+    return await self.guarded_cloud.generate(prompt)
+```
+
+- [ ] **Step 6: Update llm/__init__.py to export GuardedCloudClient**
+
+```python
+# services/nemoclaw-orchestrator/llm/__init__.py
+from .privacy_router import PrivacyRouter, LLMBackend
+from .nemotron_client import NemotronClient
+from .guarded_cloud import GuardedCloudClient
+
+__all__ = ["PrivacyRouter", "LLMBackend", "NemotronClient", "GuardedCloudClient"]
+```
+
+- [ ] **Step 7: Run tests to verify they pass**
+
+```bash
+pytest tests/unit/test_guarded_cloud.py -v
+```
+
+Expected: PASS
+
+- [ ] **Step 8: Commit guarded cloud client**
+
+```bash
+git add services/nemoclaw-orchestrator/llm/guarded_cloud.py
+git add services/nemoclaw-orchestrator/tests/unit/test_guarded_cloud.py
+git add services/nemoclaw-orchestrator/llm/privacy_router.py
+git add services/nemoclaw-orchestrator/llm/__init__.py
+git commit -m "feat(nemoclaw): implement Guarded Cloud Client with PII stripping
+
+- Add GuardedCloudClient for Anthropic API calls
+- Implement PII stripping (phone, email, SSN) before cloud sends
+- Add unit tests for PII protection
+- Update PrivacyRouter to use guarded cloud for 5% fallback
+- Required for 95%/5% local/cloud routing split
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+```
+
+---
+
 ## Phase 4: Agent Coordination
 
 ### Task 4: Implement Agent Coordinator
@@ -785,9 +1142,30 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```python
 # services/nemoclaw-orchestrator/agents/__init__.py
 from .coordinator import AgentCoordinator
-from .adapters import AgentAdapter, SceneSpeakAdapter, SentimentAdapter
+from .adapters import (
+    AgentAdapter,
+    SceneSpeakAdapter,
+    SentimentAdapter,
+    CaptioningAdapter,
+    BSLAdapter,
+    LightingSoundMusicAdapter,
+    SafetyFilterAdapter,
+    MusicGenerationAdapter,
+    AutonomousAdapter
+)
 
-__all__ = ["AgentCoordinator", "AgentAdapter", "SceneSpeakAdapter", "SentimentAdapter"]
+__all__ = [
+    "AgentCoordinator",
+    "AgentAdapter",
+    "SceneSpeakAdapter",
+    "SentimentAdapter",
+    "CaptioningAdapter",
+    "BSLAdapter",
+    "LightingSoundMusicAdapter",
+    "SafetyFilterAdapter",
+    "MusicGenerationAdapter",
+    "AutonomousAdapter"
+]
 ```
 
 - [ ] **Step 2: Write failing test for agent coordinator**
@@ -1032,6 +1410,125 @@ class SentimentAdapter(AgentAdapter):
             )
             response.raise_for_status()
             return response.json()
+
+class CaptioningAdapter(AgentAdapter):
+    """Captioning Agent adapter (Whisper transcription)"""
+
+    def __init__(self, base_url: str):
+        self.base_url = base_url
+
+    @property
+    def requires_llm(self) -> bool:
+        return False
+
+    async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        import httpx
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{self.base_url}/v1/transcribe",
+                json=input_data
+            )
+            response.raise_for_status()
+            return response.json()
+
+class BSLAdapter(AgentAdapter):
+    """BSL (British Sign Language) Agent adapter"""
+
+    def __init__(self, base_url: str):
+        self.base_url = base_url
+
+    @property
+    def requires_llm(self) -> bool:
+        return False
+
+    async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        import httpx
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"{self.base_url}/v1/translate",
+                json=input_data
+            )
+            response.raise_for_status()
+            return response.json()
+
+class LightingSoundMusicAdapter(AgentAdapter):
+    """Lighting, Sound, and Music Agent adapter"""
+
+    def __init__(self, base_url: str):
+        self.base_url = base_url
+
+    @property
+    def requires_llm(self) -> bool:
+        return False
+
+    async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        import httpx
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"{self.base_url}/api/control",
+                json=input_data
+            )
+            response.raise_for_status()
+            return response.json()
+
+class SafetyFilterAdapter(AgentAdapter):
+    """Safety Filter Agent adapter (always allowed)"""
+
+    def __init__(self, base_url: str):
+        self.base_url = base_url
+
+    @property
+    def requires_llm(self) -> bool:
+        return False
+
+    async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        import httpx
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.post(
+                f"{self.base_url}/api/check",
+                json=input_data
+            )
+            response.raise_for_status()
+            return response.json()
+
+class MusicGenerationAdapter(AgentAdapter):
+    """Music Generation Agent adapter"""
+
+    def __init__(self, base_url: str):
+        self.base_url = base_url
+
+    @property
+    def requires_llm(self) -> bool:
+        return False
+
+    async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        import httpx
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{self.base_url}/api/generate",
+                json=input_data
+            )
+            response.raise_for_status()
+            return response.json()
+
+class AutonomousAdapter(AgentAdapter):
+    """Autonomous Agent adapter (uses LLM, requires escalation)"""
+
+    def __init__(self, base_url: str, privacy_router):
+        self.base_url = base_url
+        self.router = privacy_router
+
+    @property
+    def requires_llm(self) -> bool:
+        return True
+
+    async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        prompt = f"Execute autonomous task: {input_data.get('task', '')}"
+        result = await self.router.generate(
+            prompt,
+            context={"requires_privacy": True}
+        )
+        return {"result": result, "backend": "nemotron_local"}
 ```
 
 - [ ] **Step 6: Add PolicyViolationError to policy engine**
@@ -1461,8 +1958,13 @@ class WebSocketManager:
 
     async def _filter_broadcast(self, data: dict) -> dict:
         """Filter broadcast data through policy"""
-        # TODO: Implement actual filtering
-        return data
+        if not self.policy:
+            return data
+
+        # Use OutputFilter to remove sensitive information
+        from policy.filters import OutputFilter
+        output_filter = OutputFilter()
+        return await output_filter.filter(data, agent="broadcast")
 ```
 
 - [ ] **Step 5: Implement WebSocket message handlers**
@@ -1788,6 +2290,7 @@ git commit -m "feat(nemoclaw): implement WebSocket manager and integrate all com
 
 - Add WebSocketManager for real-time show updates
 - Add WebSocketMessageHandler for message routing
+- Implement broadcast filtering through OutputFilter (PII removal)
 - Integrate PolicyEngine, PrivacyRouter, AgentCoordinator, StateMachine
 - Update main.py with all endpoints and WebSocket support
 - Add integration tests for WebSocket
