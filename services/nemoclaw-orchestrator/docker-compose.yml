@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # Nemo Claw Orchestrator
+  nemoclaw-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nemoclaw-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      # Service Configuration
+      SERVICE_NAME: nemoclaw-orchestrator
+      PORT: 8000
+      DEBUG: "false"
+
+      # DGX / Nemotron Configuration
+      NEMOTRON_MODEL: nemotron-8b
+      DGX_GPU_ID: 0
+      DGX_ENDPOINT: http://dgx-nemotron:8000
+
+      # Privacy Router
+      LOCAL_RATIO: 0.95
+      CLOUD_FALLBACK_ENABLED: "true"
+
+      # Agent URLs
+      SCENESPEAK_AGENT_URL: http://scenespeak-agent:8001
+      CAPTIONING_AGENT_URL: http://captioning-agent:8002
+      BSL_AGENT_URL: http://bsl-agent:8003
+      SENTIMENT_AGENT_URL: http://sentiment-agent:8004
+      LIGHTING_SOUND_MUSIC_URL: http://lighting-agent:8005
+      SAFETY_FILTER_URL: http://safety-filter:8006
+      OPERATOR_CONSOLE_URL: http://operator-console:8007
+      MUSIC_GENERATION_URL: http://music-generation:8011
+      AUTONOMOUS_AGENT_URL: http://autonomous-agent:8008
+
+      # Redis State Store
+      REDIS_URL: redis://redis:6379
+      REDIS_SHOW_STATE_TTL: 86400
+
+      # Policy
+      POLICY_STRICTNESS: medium
+
+      # OpenTelemetry
+      OTLP_ENDPOINT: http://jaeger:4317
+
+      # Logging
+      LOG_LEVEL: INFO
+    volumes:
+      - ./state:/app/state
+    networks:
+      - chimera-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health/live').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    depends_on:
+      - redis
+      - dgx-nemotron
+
+  # Redis State Store
+  redis:
+    image: redis:7-alpine
+    container_name: chimera-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - chimera-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # DGX Nemotron Service (GPU-enabled)
+  dgx-nemotron:
+    image: nvcr.io/nvidia/nemotron:latest-arm64
+    container_name: dgx-nemotron
+    ports:
+      - "8000:8000"
+    environment:
+      GPU_ID: 0
+      MODEL_NAME: nemotron-8b
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - chimera-network
+    restart: unless-stopped
+
+networks:
+  chimera-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local

@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nemoclaw-orchestrator-config
+  namespace: chimera
+data:
+  SERVICE_NAME: "nemoclaw-orchestrator"
+  PORT: "8000"
+  DEBUG: "false"
+  NEMOTRON_MODEL: "nemotron-8b"
+  DGX_GPU_ID: "0"
+  DGX_ENDPOINT: "http://dgx-nemotron.chimera.svc.cluster.local:8000"
+  LOCAL_RATIO: "0.95"
+  CLOUD_FALLBACK_ENABLED: "true"
+  SCENESPEAK_AGENT_URL: "http://scenespeak-agent.chimera.svc.cluster.local:8001"
+  CAPTIONING_AGENT_URL: "http://captioning-agent.chimera.svc.cluster.local:8002"
+  BSL_AGENT_URL: "http://bsl-agent.chimera.svc.cluster.local:8003"
+  SENTIMENT_AGENT_URL: "http://sentiment-agent.chimera.svc.cluster.local:8004"
+  LIGHTING_SOUND_MUSIC_URL: "http://lighting-agent.chimera.svc.cluster.local:8005"
+  SAFETY_FILTER_URL: "http://safety-filter.chimera.svc.cluster.local:8006"
+  OPERATOR_CONSOLE_URL: "http://operator-console.chimera.svc.cluster.local:8007"
+  MUSIC_GENERATION_URL: "http://music-generation.chimera.svc.cluster.local:8011"
+  AUTONOMOUS_AGENT_URL: "http://autonomous-agent.chimera.svc.cluster.local:8008"
+  REDIS_URL: "redis://redis.chimera.svc.cluster.local:6379"
+  REDIS_SHOW_STATE_TTL: "86400"
+  POLICY_STRICTNESS: "medium"
+  OTLP_ENDPOINT: "http://jaeger.chimera.svc.cluster.local:4317"
+  LOG_LEVEL: "INFO"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chimera
+  labels:
+    name: chimera
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nemoclaw-orchestrator
+  namespace: chimera
+  labels:
+    app: nemoclaw-orchestrator
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nemoclaw-orchestrator
+  template:
+    metadata:
+      labels:
+        app: nemoclaw-orchestrator
+        version: v1
+    spec:
+      containers:
+      - name: nemoclaw-orchestrator
+        image: ghcr.io/project-chimera/nemoclaw-orchestrator:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: nemoclaw-orchestrator-config
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: state
+          mountPath: /app/state
+      volumes:
+      - name: state
+        emptyDir: {}
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nemoclaw-orchestrator
+  namespace: chimera
+  labels:
+    app: nemoclaw-orchestrator
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: nemoclaw-orchestrator
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nemoclaw-orchestrator-hpa
+  namespace: chimera
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nemoclaw-orchestrator
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
