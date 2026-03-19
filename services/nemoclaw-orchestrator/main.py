@@ -60,7 +60,7 @@ async def lifespan(app: FastAPI):
     # Initialize State Store
     try:
         state_store = RedisStateStore(
-            redis_url=settings.redis_url,
+            url=settings.redis_url,
             ttl=settings.redis_show_state_ttl
         )
         await state_store.connect()
@@ -70,7 +70,7 @@ async def lifespan(app: FastAPI):
         state_store = None
 
     # Initialize State Machine
-    state_machine = ShowStateMachine(state_store=state_store)
+    state_machine = ShowStateMachine(show_id="default", state_store=state_store)
     logger.info("Show state machine initialized")
 
     # Initialize Agent Coordinator
@@ -191,8 +191,8 @@ async def start_show(show_id: str = "default"):
         return {"status": "error", "message": "State machine not initialized"}
 
     try:
-        state_info = await state_machine.start(show_id)
-        return {"status": "success", "state": state_info}
+        state_machine.start()
+        return {"status": "success", "state": state_machine.to_dict()}
     except ValueError as e:
         return {"status": "error", "message": str(e)}
     except Exception as e:
@@ -214,8 +214,8 @@ async def end_show(show_id: str = "default"):
         return {"status": "error", "message": "State machine not initialized"}
 
     try:
-        state_info = await state_machine.end(show_id)
-        return {"status": "success", "state": state_info}
+        state_machine.end()
+        return {"status": "success", "state": state_machine.to_dict()}
     except ValueError as e:
         return {"status": "error", "message": str(e)}
     except Exception as e:

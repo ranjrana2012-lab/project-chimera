@@ -81,7 +81,8 @@ class TestAgentCoordinator:
         assert "music-generation" in coordinator.adapters
         assert "autonomous" in coordinator.adapters
 
-    def test_coordinator_policy_allow_flow(self, coordinator, mock_policy_engine):
+    @pytest.mark.asyncio
+    async def test_coordinator_policy_allow_flow(self, coordinator, mock_policy_engine):
         """Test policy ALLOW flow passes through"""
         mock_policy_engine.check_input.return_value = Mock(
             action=PolicyAction.ALLOW,
@@ -94,7 +95,7 @@ class TestAgentCoordinator:
         original_execute = coordinator.adapters["sentiment"].execute
         coordinator.adapters["sentiment"].execute = AsyncMock(return_value={"sentiment": "positive"})
 
-        result = coordinator.call_agent(
+        result = await coordinator.call_agent(
             agent="sentiment",
             skill="analyze",
             input_data={"text": "happy message"}
@@ -107,7 +108,8 @@ class TestAgentCoordinator:
         # Restore original
         coordinator.adapters["sentiment"].execute = original_execute
 
-    def test_coordinator_policy_deny_raises_error(self, coordinator, mock_policy_engine):
+    @pytest.mark.asyncio
+    async def test_coordinator_policy_deny_raises_error(self, coordinator, mock_policy_engine):
         """Test policy DENY raises PolicyViolationError"""
         mock_policy_engine.check_input.return_value = Mock(
             action=PolicyAction.DENY,
@@ -116,7 +118,7 @@ class TestAgentCoordinator:
         )
 
         with pytest.raises(PolicyViolationError) as exc_info:
-            coordinator.call_agent(
+            await coordinator.call_agent(
                 agent="autonomous",
                 skill="execute",
                 input_data={"command": "rm -rf /"}
@@ -125,20 +127,21 @@ class TestAgentCoordinator:
         assert "Dangerous command detected" in exc_info.value.message
         assert exc_info.value.code == "POLICY_DENY"
 
-    def test_coordinator_policy_sanitize_flow(self, coordinator, mock_policy_engine):
+    @pytest.mark.asyncio
+    async def test_coordinator_policy_sanitize_flow(self, coordinator, mock_policy_engine):
         """Test policy SANITIZE flow sanitizes input"""
         mock_policy_engine.check_input.return_value = Mock(
             action=PolicyAction.SANITIZE,
             reason="Profanity detected",
             rule_name="profanity_filter"
         )
-        mock_policy_engine.sanitize_input.return_value = {"text": "sanitized text"}
+        mock_policy_engine.sanitize_input = AsyncMock(return_value={"text": "sanitized text"})
 
         # Mock the execute method properly for async
         original_execute = coordinator.adapters["scenespeak"].execute
         coordinator.adapters["scenespeak"].execute = AsyncMock(return_value={"response": "generated"})
 
-        result = coordinator.call_agent(
+        result = await coordinator.call_agent(
             agent="scenespeak",
             skill="generate",
             input_data={"text": "bad words here"}
@@ -175,10 +178,11 @@ class TestAgentCoordinator:
         assert isinstance(coordinator.adapters["music-generation"], MusicGenerationAdapter)
         assert isinstance(coordinator.adapters["autonomous"], AutonomousAdapter)
 
-    def test_call_agent_with_invalid_agent(self, coordinator):
+    @pytest.mark.asyncio
+    async def test_call_agent_with_invalid_agent(self, coordinator):
         """Test calling invalid agent raises error"""
         with pytest.raises(ValueError) as exc_info:
-            coordinator.call_agent(
+            await coordinator.call_agent(
                 agent="nonexistent",
                 skill="test",
                 input_data={}

@@ -156,3 +156,36 @@ class ShowStateMachine:
         machine.created_at = datetime.fromisoformat(data["created_at"])
         machine.updated_at = datetime.fromisoformat(data["updated_at"])
         return machine
+
+    def get_state(self) -> Dict[str, Any]:
+        """Get the current state as a dictionary.
+
+        Returns:
+            Dictionary containing current state information
+        """
+        return self.to_dict()
+
+    def is_running(self) -> bool:
+        """Check if the show is currently running.
+
+        Returns:
+            True if in ACTIVE state, False otherwise
+        """
+        return self.current_state == ShowState.ACTIVE
+
+    def is_paused(self) -> bool:
+        """Check if the show is paused.
+
+        Returns:
+            True if in PRELUDE or POSTLUDE state, False otherwise
+        """
+        return self.current_state in (ShowState.PRELUDE, ShowState.POSTLUDE)
+
+    def is_ended(self) -> bool:
+        """Check if the show has ended.
+
+        Returns:
+            True if in IDLE state, False otherwise
+        """
+        return self.current_state == ShowState.IDLE
+

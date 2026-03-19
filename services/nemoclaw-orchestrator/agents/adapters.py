@@ -14,7 +14,13 @@ class AgentAdapter(ABC):
 
     def __init__(self, base_url: str):
         self.base_url = base_url.rstrip('/')
-        self.client = httpx.Client(timeout=30.0)
+        self._client = None
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        """Get or create async HTTP client"""
+        if self._client is None:
+            self._client = httpx.AsyncClient(timeout=30.0)
+        return self._client
 
     @property
     @abstractmethod
@@ -27,10 +33,19 @@ class AgentAdapter(ABC):
         """Execute a skill on this agent"""
         pass
 
-    def __del__(self):
+    async def close(self):
         """Clean up HTTP client"""
-        if hasattr(self, 'client'):
-            self.client.close()
+        if self._client is not None:
+            await self._client.aclose()
+            self._client = None
+
+    async def __aenter__(self):
+        """Async context manager entry"""
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit"""
+        await self.close()
 
 
 class SceneSpeakAdapter(AgentAdapter):
@@ -79,8 +94,9 @@ class SentimentAdapter(AgentAdapter):
 
     async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute sentiment analysis via HTTP"""
+        client = await self._get_client()
         try:
-            response = self.client.post(
+            response = await client.post(
                 f"{self.base_url}/api/v1/{skill}",
                 json=input_data
             )
@@ -103,8 +119,9 @@ class CaptioningAdapter(AgentAdapter):
 
     async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute captioning via HTTP"""
+        client = await self._get_client()
         try:
-            response = self.client.post(
+            response = await client.post(
                 f"{self.base_url}/api/v1/{skill}",
                 json=input_data
             )
@@ -127,8 +144,9 @@ class BSLAdapter(AgentAdapter):
 
     async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute BSL translation via HTTP"""
+        client = await self._get_client()
         try:
-            response = self.client.post(
+            response = await client.post(
                 f"{self.base_url}/api/v1/{skill}",
                 json=input_data
             )
@@ -151,8 +169,9 @@ class LightingSoundMusicAdapter(AgentAdapter):
 
     async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute lighting/sound/music control via HTTP"""
+        client = await self._get_client()
         try:
-            response = self.client.post(
+            response = await client.post(
                 f"{self.base_url}/api/v1/{skill}",
                 json=input_data
             )
@@ -175,8 +194,9 @@ class SafetyFilterAdapter(AgentAdapter):
 
     async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute safety filtering via HTTP"""
+        client = await self._get_client()
         try:
-            response = self.client.post(
+            response = await client.post(
                 f"{self.base_url}/api/v1/{skill}",
                 json=input_data
             )
@@ -199,8 +219,9 @@ class MusicGenerationAdapter(AgentAdapter):
 
     async def execute(self, skill: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Execute music generation via HTTP"""
+        client = await self._get_client()
         try:
-            response = self.client.post(
+            response = await client.post(
                 f"{self.base_url}/api/v1/{skill}",
                 json=input_data
             )

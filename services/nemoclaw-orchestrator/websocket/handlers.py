@@ -1,7 +1,9 @@
 # services/nemoclaw-orchestrator/websocket/handlers.py
 """WebSocket message handlers for real-time show control"""
 import logging
+import asyncio
 from typing import Dict, Any
+from inspect import iscoroutinefunction
 
 from websocket.manager import WebSocketManager
 
@@ -86,13 +88,19 @@ class WebSocketMessageHandler:
 
         # Call state machine to start show
         if hasattr(self.state_machine, 'start'):
-            await self.state_machine.start()
+            method = self.state_machine.start
         elif hasattr(self.state_machine, 'start_show'):
-            await self.state_machine.start_show()
+            method = self.state_machine.start_show
         else:
             logger.warning("State machine missing start method")
             await self._send_error(connection_id, "State machine not properly configured")
             return
+
+        # Call method (sync or async)
+        if iscoroutinefunction(method):
+            await method()
+        else:
+            method()
 
         # Broadcast state update to all connections
         state_data = {
@@ -115,13 +123,19 @@ class WebSocketMessageHandler:
 
         # Call state machine to end show
         if hasattr(self.state_machine, 'end'):
-            await self.state_machine.end()
+            method = self.state_machine.end
         elif hasattr(self.state_machine, 'end_show'):
-            await self.state_machine.end_show()
+            method = self.state_machine.end_show
         else:
             logger.warning("State machine missing end method")
             await self._send_error(connection_id, "State machine not properly configured")
             return
+
+        # Call method (sync or async)
+        if iscoroutinefunction(method):
+            await method()
+        else:
+            method()
 
         # Broadcast state update to all connections
         state_data = {
