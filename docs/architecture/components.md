@@ -23,6 +23,137 @@ This document provides detailed technical documentation for all major components
 
 ---
 
+## Nemo Claw Orchestrator
+
+**Location:** `services/nemoclaw-orchestrator/`
+
+**Purpose:** Central coordination service that manages show flow, agent communication, and audience interaction with enhanced security, privacy, and policy enforcement.
+
+**Key Responsibilities:**
+- Route requests to appropriate agents with policy enforcement
+- Manage show state and transitions with Redis-backed persistence
+- Coordinate real-time updates via WebSocket connections
+- Handle audience input processing with privacy-preserving routing
+- Enforce OpenShell policies for agent interactions
+- Implement 95% local / 5% cloud privacy routing for LLM requests
+
+**Key Classes and Methods:**
+
+```python
+class AgentCoordinator:
+    """Central coordinator for all Project Chimera agents"""
+
+    async def call_agent(
+        self,
+        agent: str,
+        skill: str,
+        input_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Call an agent with policy filtering
+
+        Flow:
+        1. Policy check (ALLOW/DENY/SANITIZE)
+        2. Sanitize input (if SANITIZE)
+        3. Call agent with resilience patterns
+        4. Filter output
+        """
+
+class PrivacyRouter:
+    """Routes LLM requests between local DGX and guarded cloud"""
+
+    def generate(
+        self,
+        prompt: str,
+        max_tokens: int = 512,
+        temperature: float = 0.7
+    ) -> Dict[str, Any]:
+        """
+        Generate text using appropriate backend
+        - 95% local DGX Nemotron
+        - 5% cloud with PII stripping
+        """
+
+class PolicyEngine:
+    """Enforces OpenShell policies for agent interactions"""
+
+    def check_input(
+        self,
+        agent: str,
+        skill: str,
+        input_data: Dict[str, Any]
+    ) -> PolicyResult:
+        """Check if input complies with policy"""
+
+    async def filter_output(
+        self,
+        agent: str,
+        response: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Filter output through policy"""
+```
+
+**Configuration Options:**
+
+```python
+# Privacy Router Configuration
+local_ratio: float = 0.95  # 95% local, 5% cloud
+cloud_fallback_enabled: bool = True
+nemotron_model: str = "nemotron-8b"
+
+# Policy Engine Configuration
+policies: List[PolicyRule] = CHIMERA_POLICIES
+
+# State Machine Configuration
+redis_url: str = "redis://localhost:6379"
+redis_show_state_ttl: int = 3600  # 1 hour
+```
+
+**Dependencies:**
+- FastAPI for REST API
+- Redis for state persistence
+- NVIDIA DGX for local LLM inference
+- Anthropic API for cloud fallback
+- httpx for async HTTP requests
+
+**Usage Example:**
+
+```python
+# Initialize coordinator
+coordinator = AgentCoordinator(settings, policy_engine)
+
+# Call agent with policy enforcement
+response = await coordinator.call_agent(
+    agent="scenespeak",
+    skill="generate",
+    input_data={
+        "prompt": "Generate dialogue for Romeo and Juliet",
+        "context": {"scene": "balcony", "sentiment": 0.7}
+    }
+)
+
+# Response includes policy metadata
+{
+    "result": {...},
+    "policy": {
+        "action": "allow",
+        "rule": "default_allow"
+    },
+    "routing": {
+        "backend": "nemotron_local"
+    }
+}
+```
+
+**Key Features:**
+- **Policy Enforcement**: All agent calls filtered through OpenShell policies
+- **Privacy Routing**: 95% of LLM requests processed locally on DGX
+- **Resilience Patterns**: Circuit breakers and retry logic for all agents
+- **State Persistence**: Redis-backed show state with automatic failover
+- **Real-time Updates**: WebSocket support for live show monitoring
+
+---
+
 ## Graph Components
 
 ### GraphBuilder

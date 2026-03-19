@@ -11,7 +11,7 @@ graph TB
     end
 
     subgraph "Central Coordination"
-        Orch[OpenClaw Orchestrator<br/>:8000]
+        Orch[Nemo Claw Orchestrator<br/>:8000]
     end
 
     subgraph "AI Agents"
@@ -41,12 +41,14 @@ graph TB
 
 ## Component Overview
 
-### OpenClaw Orchestrator (Port 8000)
-Central coordination service that manages show flow, agent communication, and audience interaction. The orchestrator:
-- Routes requests to appropriate agents
-- Manages show state and transitions
-- Coordinates real-time updates
-- Handles audience input processing
+### Nemo Claw Orchestrator (Port 8000)
+Central coordination service that manages show flow, agent communication, and audience interaction with enhanced security and privacy. The orchestrator:
+- Routes requests to appropriate agents with policy enforcement
+- Manages show state and transitions with Redis-backed persistence
+- Coordinates real-time updates via WebSocket
+- Handles audience input processing with privacy-preserving routing
+- Enforces OpenShell policies for agent interactions
+- Implements 95% local / 5% cloud privacy routing for LLM requests
 
 ### SceneSpeak Agent (Port 8001)
 Generates dialogue for theatre performances using local LLM or GLM API. Features:
@@ -138,9 +140,11 @@ sequenceDiagram
 
 - **Backend**: FastAPI (Python), async/await patterns
 - **Frontend**: Vue.js, Three.js (for avatar), WebSocket
-- **ML/AI**: OpenAI Whisper, GLM API, local LLM (Ollama)
+- **ML/AI**: OpenAI Whisper, GLM API, local LLM (Ollama), NVIDIA DGX Nemotron
 - **Lighting**: DMX protocol, OpenDMX library
 - **Orchestration**: Redis for state management
+- **Privacy**: Nemo Claw privacy router (95% local, 5% cloud with PII stripping)
+- **Policy**: OpenShell policy enforcement framework
 - **Monitoring**: Prometheus, Grafana
 - **Containerization**: Docker, Docker Compose, Kubernetes
 - **Testing**: Playwright (E2E), pytest (unit)

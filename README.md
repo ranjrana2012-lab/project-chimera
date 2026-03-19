@@ -11,7 +11,7 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| OpenClaw Orchestrator (8000) | ✅ Working | /api/skills, /api/show endpoints |
+| Nemo Claw Orchestrator (8000) | ✅ Working | Policy enforcement, privacy routing, /v1/orchestrate |
 | SceneSpeak Agent (8001) | ✅ Working | /api/generate endpoint implemented |
 | Captioning Agent (8002) | ✅ Working | WebSocket endpoint implemented |
 | BSL Agent (8003) | ⚠️ Needs Fixes | 2 E2E tests failing |
@@ -66,7 +66,7 @@ Project Chimera is an open-source, student-run Dynamic Performance Hub that uses
 
 ### AI Agents
 
-- **OpenClaw Orchestrator** - Central control plane coordinating all agents
+- **Nemo Claw Orchestrator** - Enhanced control plane with OpenShell policy enforcement and 95% local LLM routing
 - **SceneSpeak Agent** - Real-time dialogue generation using local LLMs
 - **Captioning Agent** - Live speech-to-text with accessibility descriptions
 - **BSL-Text2Gloss Agent** - British Sign Language gloss notation translation
@@ -111,7 +111,8 @@ For complete observability documentation, see [Observability Guide](docs/observa
 - **Caching:** Redis
 - **Vector DB:** Milvus
 - **Monitoring:** Prometheus + Grafana + Jaeger
-- **AI/ML:** PyTorch, Transformers, OpenAI Whisper, Meta MusicGen
+- **AI/ML:** PyTorch, Transformers, OpenAI Whisper, Meta MusicGen, NVIDIA DGX Nemotron
+- **Security:** OpenShell policy enforcement, privacy-preserving LLM routing
 
 ## Quick Start
 
@@ -163,8 +164,9 @@ For local development and demos, you can use Docker Compose to run all services:
 ```
 
 This will start:
-- 8 Core Services (ports 8000-8007)
+- 8 Core Services (ports 8000-8007, 8011)
 - Infrastructure: Redis, Kafka, Prometheus, Jaeger, Grafana
+- Nemo Claw Orchestrator with policy enforcement and privacy routing
 
 See [Docker Compose Guide](DOCKER.md) for detailed documentation.
 
@@ -228,8 +230,10 @@ docker compose up -d
 
 ### Technical Documentation
 
-- [Architecture Overview](docs/reference/architecture.md) - System architecture and design
-- [API Documentation](docs/reference/api.md) - Complete API reference for all services
+- [Architecture Overview](docs/architecture/overview.md) - System architecture and design
+- [Component Reference](docs/architecture/components.md) - Detailed component documentation
+- [API Documentation](docs/api/README.md) - Complete API reference for all services
+- [Nemo Claw Orchestrator API](docs/api/nemoclaw-orchestrator.md) - Nemo Claw-specific API docs
 - [Deployment Guide](docs/runbooks/deployment.md) - Deployment scenarios and procedures
 
 ### Services Documentation
@@ -252,8 +256,9 @@ docker compose up -d
 └────────────────────────┬────────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────────┐
-│                  OpenClaw Orchestrator                      │
-│              (Central Control Plane)                        │
+│                  Nemo Claw Orchestrator                      │
+│         (Policy Enforcement + Privacy Routing)              │
+│                 95% Local / 5% Cloud LLM                    │
 └─────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┘
       │       │       │       │       │       │       │
       ▼       ▼       ▼       ▼       ▼       ▼       ▼
@@ -376,6 +381,8 @@ Project Chimera is built on open-source technologies and would not be possible w
 - ⚠️ Docker rebuild to pick up recent code changes
 
 **Recent Commits:**
+- `4fe0917` - docs: add publication checklist for documentation release
+- `00ad3d2` - docs: complete Phase 1 documentation implementation
 - `f0a5281` - WebSocket endpoints for sentiment and captioning agents
 - `044abf0` - /health, /api/skills, /api/show endpoints to orchestrator
 - `b214b08` - /api/generate endpoint to scenespeak-agent
