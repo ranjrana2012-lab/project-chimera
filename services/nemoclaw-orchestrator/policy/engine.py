@@ -6,6 +6,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+class PolicyViolationError(Exception):
+    """Exception raised when policy check fails"""
+    def __init__(self, message: str, code: str = "POLICY_VIOLATION"):
+        self.message = message
+        self.code = code
+        super().__init__(message)
+
 class PolicyAction(Enum):
     ALLOW = "allow"
     DENY = "deny"
