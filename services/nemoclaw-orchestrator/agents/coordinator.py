@@ -2,9 +2,12 @@
 import asyncio
 from typing import Dict, Any, Optional
 import logging
+import httpx
 
 from policy.engine import PolicyEngine, PolicyAction, PolicyViolationError
 from llm.privacy_router import PrivacyRouter, RouterConfig
+from resilience.retry import ResilientAgentCaller, RetryConfig
+from resilience.circuit_breaker import CircuitBreaker, CircuitBreakerConfig
 
 from .adapters import (
     AgentAdapter,
@@ -68,6 +71,42 @@ class AgentCoordinator:
         )
         self.privacy_router = PrivacyRouter(router_config)
 
+        # Initialize resilience patterns
+        self.retry_config = RetryConfig(
+            max_retries=3,
+            base_delay=1.0,
+            max_delay=10.0,
+            exponential_base=2.0,
+            jitter=True,
+            fallback_mode="graceful"
+        )
+        self.circuit_config = CircuitBreakerConfig(
+            failure_threshold=5,
+            timeout=60.0,
+            success_threshold=2,
+            call_timeout=30.0
+        )
+
+        # Create circuit breakers for each agent
+        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
+        for agent_name in self.AGENT_NAMES.keys():
+            self.circuit_breakers[agent_name] = CircuitBreaker(
+                service_name=agent_name,
+                config=self.circuit_config
+            )
+
+        # Create retry callers for each agent
+        self.retry_callers: Dict[str, ResilientAgentCaller] = {}
+        for agent_name, display_name in self.AGENT_NAMES.items():
+            agent_url = getattr(settings, f"{agent_name}_agent_url", None)
+            if agent_url:
+                self.retry_callers[agent_name] = ResilientAgentCaller(
+                    agent_name=agent_name,
+                    agent_url=agent_url,
+                    retry_config=self.retry_config,
+                    circuit_config=self.circuit_config
+                )
+
         # Initialize all adapters
         self.adapters: Dict[str, AgentAdapter] = self._initialize_adapters()
 
@@ -109,7 +148,72 @@ class AgentCoordinator:
 
         return adapters
 
-    def call_agent(
+    async def _call_agent_http(
+        self,
+        agent_name: str,
+        agent_url: str,
+        skill: str,
+        input_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Make HTTP call to agent with resilience patterns
+
+        Args:
+            agent_name: Name of the agent
+            agent_url: URL of the agent service
+            skill: Skill/method to call
+            input_data: Input parameters
+
+        Returns:
+            Agent response
+
+        Raises:
+            AgentUnavailableError: If agent is unavailable
+            CircuitBreakerOpenError: If circuit breaker is open
+            RetryExhaustedError: If all retries exhausted
+        """
+        async def _http_call():
+            """Internal async HTTP call"""
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    f"{agent_url}/api/v1/{skill}",
+                    json=input_data
+                )
+                response.raise_for_status()
+                return response.json()
+
+        # Use circuit breaker and retry
+        circuit_breaker = self.circuit_breakers.get(agent_name)
+        if not circuit_breaker:
+            logger.warning(f"No circuit breaker for {agent_name}, making direct call")
+            return await _http_call()
+
+        # Check circuit state
+        if circuit_breaker.state == "open":
+            from errors.exceptions import CircuitBreakerOpenError
+            raise CircuitBreakerOpenError(
+                message=f"Circuit breaker is open for agent '{agent_name}'",
+                service=agent_name,
+                failure_count=circuit_breaker.stats.failure_count
+            )
+
+        # Make the call with retry logic
+        try:
+            result = await _http_call()
+            circuit_breaker._record_success()
+            return result
+        except Exception as e:
+            circuit_breaker._record_failure()
+
+            # Retry logic
+            retry_caller = self.retry_callers.get(agent_name)
+            if retry_caller:
+                return await retry_caller.call_with_retry_async(
+                    _http_call
+                )
+            raise
+
+    async def call_agent(
         self,
         agent: str,
         skill: str,
@@ -155,20 +259,81 @@ class AgentCoordinator:
         # Step 2: Sanitize input (if needed)
         processed_input = input_data
         if policy_result.action == PolicyAction.SANITIZE:
-            processed_input = asyncio.run(self.policy_engine.sanitize_input(input_data))
+            processed_input = await self.policy_engine.sanitize_input(input_data)
             logger.debug(f"Input sanitized: {policy_result.reason}")
 
-        # Step 3: Call agent
+        # Step 3: Call agent with resilience patterns
         try:
-            response = asyncio.run(adapter.execute(skill, processed_input))
+            # For non-LLM agents, use circuit breaker and retry
+            if not adapter.requires_llm:
+                circuit_breaker = self.circuit_breakers.get(agent)
+                if circuit_breaker:
+                    # Check circuit state
+                    if circuit_breaker.state.value == "open":
+                        from errors.exceptions import CircuitBreakerOpenError
+                        raise CircuitBreakerOpenError(
+                            message=f"Circuit breaker is open for agent '{agent}'",
+                            service=agent,
+                            failure_count=circuit_breaker.stats.failure_count
+                        )
+
+                    # Execute with circuit breaker tracking
+                    try:
+                        response = await adapter.execute(skill, processed_input)
+                        circuit_breaker._record_success()
+                    except Exception as e:
+                        circuit_breaker._record_failure()
+
+                        # Use retry logic for transient failures
+                        if self._is_retryable_error(e):
+                            retry_caller = self.retry_callers.get(agent)
+                            if retry_caller:
+                                logger.warning(f"Retrying {agent} after error: {e}")
+                                response = await retry_caller.call_with_retry_async(
+                                    adapter.execute,
+                                    skill,
+                                    processed_input
+                                )
+                            else:
+                                raise
+                        else:
+                            raise
+                else:
+                    # No circuit breaker, direct call
+                    response = await adapter.execute(skill, processed_input)
+            else:
+                # LLM agents go through PrivacyRouter which has its own resilience
+                response = await adapter.execute(skill, processed_input)
         except Exception as e:
             logger.error(f"Agent {agent} execution failed: {e}")
             raise
 
         # Step 4: Filter output
-        filtered_response = asyncio.run(self.policy_engine.filter_output(agent, response))
+        filtered_response = await self.policy_engine.filter_output(agent, response)
 
         return filtered_response
+
+    def _is_retryable_error(self, error: Exception) -> bool:
+        """
+        Check if an error is retryable
+
+        Args:
+            error: Exception to check
+
+        Returns:
+            True if error should trigger a retry
+        """
+        from errors.exceptions import AgentUnavailableError
+        import httpx
+
+        return isinstance(error, (
+            ConnectionError,
+            TimeoutError,
+            AgentUnavailableError,
+            httpx.HTTPError,
+            httpx.ConnectError,
+            httpx.TimeoutException
+        ))
 
     def get_adapter(self, agent: str) -> AgentAdapter:
         """
@@ -196,13 +361,20 @@ class AgentCoordinator:
         """
         return list(self.adapters.keys())
 
-    def close(self):
+    async def close(self):
         """Clean up resources"""
+        # Close all adapters
+        for adapter in self.adapters.values():
+            await adapter.close()
+
+        # Close privacy router
         if hasattr(self, 'privacy_router'):
             self.privacy_router.close()
 
-    def __enter__(self):
+    async def __aenter__(self):
+        """Async context manager entry"""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit"""
+        await self.close()
