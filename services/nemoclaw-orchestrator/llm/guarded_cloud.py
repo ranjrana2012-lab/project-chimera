@@ -3,6 +3,7 @@ import httpx
 from typing import Dict, Any, Optional
 import logging
 import os
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class GuardedCloudClient:
 
     def _strip_pii(self, text: str) -> str:
         """
-        Strip PII from text using OutputFilter
+        Strip PII from text using synchronous regex patterns
 
         Args:
             text: Text to sanitize
@@ -48,24 +49,17 @@ class GuardedCloudClient:
         Returns:
             Sanitized text
         """
-        from policy.filters import OutputFilter
+        # PII patterns (same as OutputFilter)
+        phone_pattern = re.compile(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b')
+        email_pattern = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+        ssn_pattern = re.compile(r'\b\d{3}-\d{2}-\d{4}\b')
 
-        output_filter = OutputFilter()
+        # Remove PII using regex (synchronous)
+        filtered = phone_pattern.sub('[PHONE]', text)
+        filtered = email_pattern.sub('[EMAIL]', filtered)
+        filtered = ssn_pattern.sub('[SSN]', filtered)
 
-        # Use the existing filter to remove PII
-        result = {"text": text}
-        import asyncio
-
-        # Run async filter in sync context
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            filtered = loop.run_until_complete(
-                output_filter.filter(result, "guarded_cloud")
-            )
-            return filtered["text"]
-        finally:
-            loop.close()
+        return filtered
 
     def generate(
         self,

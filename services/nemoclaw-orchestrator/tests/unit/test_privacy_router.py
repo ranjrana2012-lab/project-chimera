@@ -44,8 +44,8 @@ class TestPrivacyRouter:
         assert router.local_client is not None
         assert router.cloud_client is not None
 
-    @patch('llm.nemotron_client.NemotronClient')
-    @patch('llm.guarded_cloud.GuardedCloudClient')
+    @patch('llm.privacy_router.NemotronClient')
+    @patch('llm.privacy_router.GuardedCloudClient')
     def test_route_returns_local_when_available(self, mock_cloud, mock_local, config):
         mock_local_client = Mock()
         mock_local_client.is_available.return_value = True
@@ -58,8 +58,8 @@ class TestPrivacyRouter:
             backend = router.route("test prompt")
             assert backend == LLMBackend.NEMOTRON_LOCAL
 
-    @patch('llm.nemotron_client.NemotronClient')
-    @patch('llm.guarded_cloud.GuardedCloudClient')
+    @patch('llm.privacy_router.NemotronClient')
+    @patch('llm.privacy_router.GuardedCloudClient')
     def test_route_returns_cloud_when_ratio_exceeded(self, mock_cloud, mock_local, config):
         mock_local_client = Mock()
         mock_local_client.is_available.return_value = True
@@ -72,8 +72,8 @@ class TestPrivacyRouter:
             backend = router.route("test prompt")
             assert backend == LLMBackend.CLOUD_GUARDED
 
-    @patch('llm.nemotron_client.NemotronClient')
-    @patch('llm.guarded_cloud.GuardedCloudClient')
+    @patch('llm.privacy_router.NemotronClient')
+    @patch('llm.privacy_router.GuardedCloudClient')
     def test_route_returns_cloud_when_local_unavailable(self, mock_cloud, mock_local, config):
         mock_local_client = Mock()
         mock_local_client.is_available.return_value = False
@@ -84,8 +84,8 @@ class TestPrivacyRouter:
         backend = router.route("test prompt")
         assert backend == LLMBackend.CLOUD_GUARDED
 
-    @patch('llm.nemotron_client.NemotronClient')
-    @patch('llm.guarded_cloud.GuardedCloudClient')
+    @patch('llm.privacy_router.NemotronClient')
+    @patch('llm.privacy_router.GuardedCloudClient')
     def test_generate_uses_local_backend(self, mock_cloud, mock_local, config):
         mock_local_client = Mock()
         mock_local_client.is_available.return_value = True
@@ -107,8 +107,8 @@ class TestPrivacyRouter:
         assert result["backend"] == "nemotron_local"
         mock_local_client.generate.assert_called_once()
 
-    @patch('llm.nemotron_client.NemotronClient')
-    @patch('llm.guarded_cloud.GuardedCloudClient')
+    @patch('llm.privacy_router.NemotronClient')
+    @patch('llm.privacy_router.GuardedCloudClient')
     def test_generate_uses_cloud_backend(self, mock_cloud, mock_local, config):
         mock_cloud_client = Mock()
         mock_cloud_client.generate.return_value = {
@@ -134,8 +134,8 @@ class TestPrivacyRouter:
         assert result["pii_stripped"] is True
         mock_cloud_client.generate.assert_called_once()
 
-    @patch('llm.nemotron_client.NemotronClient')
-    @patch('llm.guarded_cloud.GuardedCloudClient')
+    @patch('llm.privacy_router.NemotronClient')
+    @patch('llm.privacy_router.GuardedCloudClient')
     def test_generate_falls_back_to_cloud_on_local_failure(self, mock_cloud, mock_local, config):
         mock_cloud_client = Mock()
         mock_cloud_client.generate.return_value = {
@@ -160,8 +160,8 @@ class TestPrivacyRouter:
         assert result["text"] == "cloud fallback response"
         mock_cloud_client.generate.assert_called_once()
 
-    @patch('llm.nemotron_client.NemotronClient')
-    @patch('llm.guarded_cloud.GuardedCloudClient')
+    @patch('llm.privacy_router.NemotronClient')
+    @patch('llm.privacy_router.GuardedCloudClient')
     def test_generate_raises_when_no_fallback_available(self, mock_cloud, mock_local):
         config = RouterConfig(
             dgx_endpoint="http://localhost:8000",
@@ -181,8 +181,8 @@ class TestPrivacyRouter:
                 force_backend=LLMBackend.NEMOTRON_LOCAL
             )
 
-    @patch('llm.nemotron_client.NemotronClient')
-    @patch('llm.guarded_cloud.GuardedCloudClient')
+    @patch('llm.privacy_router.NemotronClient')
+    @patch('llm.privacy_router.GuardedCloudClient')
     def test_close_closes_all_clients(self, mock_cloud, mock_local, config):
         mock_local_client = Mock()
         mock_cloud_client = Mock()
@@ -195,8 +195,8 @@ class TestPrivacyRouter:
         mock_local_client.close.assert_called_once()
         mock_cloud_client.close.assert_called_once()
 
-    @patch('llm.nemotron_client.NemotronClient')
-    @patch('llm.guarded_cloud.GuardedCloudClient')
+    @patch('llm.privacy_router.NemotronClient')
+    @patch('llm.privacy_router.GuardedCloudClient')
     def test_context_manager(self, mock_cloud, mock_local, config):
         mock_local_client = Mock()
         mock_cloud_client = Mock()

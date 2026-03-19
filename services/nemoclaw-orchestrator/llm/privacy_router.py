@@ -5,10 +5,13 @@ from enum import Enum
 from typing import Dict, Any, Optional
 import logging
 
+from llm.nemotron_client import NemotronClient
+from llm.guarded_cloud import GuardedCloudClient
+
 logger = logging.getLogger(__name__)
 
 
-class LLMBackend(Enum):
+class LLMBackend(str, Enum):
     """Available LLM backends"""
     NEMOTRON_LOCAL = "nemotron_local"
     CLOUD_GUARDED = "cloud_guarded"
@@ -48,10 +51,6 @@ class PrivacyRouter:
             config: Router configuration
         """
         self.config = config
-
-        # Import clients here to avoid circular imports
-        from llm.nemotron_client import NemotronClient
-        from llm.guarded_cloud import GuardedCloudClient
 
         self.local_client = NemotronClient(
             endpoint=config.dgx_endpoint,
