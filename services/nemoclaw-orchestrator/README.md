@@ -80,8 +80,8 @@ docker-compose down
 ### Health Check
 
 ```bash
-curl http://localhost:8000/health/live
-curl http://localhost:8000/health/ready
+curl http://localhost:8001/health/live
+curl http://localhost:8001/health/ready
 ```
 
 ---
@@ -175,7 +175,7 @@ All orchestration responses now include policy metadata:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SERVICE_NAME` | `nemoclaw-orchestrator` | Service identifier |
-| `DGX_ENDPOINT` | `http://localhost:8000` | Nemotron service URL |
+| `DGX_ENDPOINT` | `http://localhost:8001` | Nemotron service URL |
 | `REDIS_URL` | `redis://localhost:6379` | Redis connection |
 | `ZAI_API_KEY` | - | Z.AI API key for primary LLM backend |
 | `ZAI_PRIMARY_MODEL` | `glm-5-turbo` | Primary Z.AI model |
@@ -249,7 +249,7 @@ For complete migration instructions, see the [Migration Guide](../../docs/migrat
 
 4. **Verify**
    ```bash
-   curl http://localhost:8000/health/ready
+   curl http://localhost:8001/health/ready
    ```
 
 All existing OpenClaw endpoints remain compatible. Responses now include additional policy and routing metadata.

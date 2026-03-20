@@ -72,7 +72,7 @@ sleep 5
 MAX_ATTEMPTS=10
 ATTEMPT=0
 while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-    if curl -s http://localhost:8000/health/live > /dev/null 2>&1; then
+    if curl -s http://localhost:8001/health/live > /dev/null 2>&1; then
         echo -e "${GREEN}✓ Nemo Claw Orchestrator is healthy!${NC}"
         break
     fi
@@ -88,9 +88,9 @@ fi
 
 echo ""
 echo "📊 Service Status:"
-echo "  Service: http://localhost:8000"
-echo "  Health:  http://localhost:8000/health/live"
-echo "  Ready:   http://localhost:8000/health/ready"
+echo "  Service: http://localhost:8001"
+echo "  Health:  http://localhost:8001/health/live"
+echo "  Ready:   http://localhost:8001/health/ready"
 echo ""
 echo "📋 Available Endpoints:"
 echo "  POST /v1/orchestrate        - Agent orchestration with policy"

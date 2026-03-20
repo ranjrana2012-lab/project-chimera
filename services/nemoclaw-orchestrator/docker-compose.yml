@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
     container_name: nemoclaw-orchestrator
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       # Service Configuration
       SERVICE_NAME: nemoclaw-orchestrator
@@ -18,7 +18,7 @@ services:
       # DGX / Nemotron Configuration
       NEMOTRON_MODEL: nemotron-8b
       DGX_GPU_ID: 0
-      DGX_ENDPOINT: http://dgx-nemotron:8000
+      DGX_ENDPOINT: http://dgx-nemotron:8002
 
       # Privacy Router
       LOCAL_RATIO: 0.95
@@ -92,7 +92,7 @@ services:
     image: nvcr.io/nvidia/nemotron:latest-arm64
     container_name: dgx-nemotron
     ports:
-      - "8000:8000"
+      - "8002:8000"
     environment:
       GPU_ID: 0
       MODEL_NAME: nemotron-8b
