@@ -66,6 +66,20 @@ echo "  Show State:      GET  http://localhost:8000/api/show/state"
 echo "  WebSocket:       WS   http://localhost:8000/ws/show"
 echo ""
 
+echo "🤖 LLM Backends:"
+ZAI_STATUS=$(curl -s http://localhost:8000/llm/zai/status 2>/dev/null || echo '{"available":false}')
+if echo "$ZAI_STATUS" | grep -q '"available".*true'; then
+    echo -e "  ${GREEN}✓ Z.AI Available${NC}"
+else
+    echo -e "  ${YELLOW}⚠️  Z.AI Unavailable (credits exhausted or not configured)${NC}"
+fi
+echo ""
+echo "  Backend Status:"
+curl -s http://localhost:8000/llm/backends | python3 -m json.tool 2>/dev/null | grep -E '"name"|"model"|"available"' | sed 's/^[[:space:]]*//' | sed 's/"//g' | sed 's/: */: /' | while read line; do
+    echo "    $line"
+done
+echo ""
+
 # Test orchestration endpoint
 echo "🧪 Quick Test:"
 echo "  Testing orchestration endpoint..."

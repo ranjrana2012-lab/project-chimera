@@ -1,15 +1,17 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from typing import Dict, Any
 import logging
 
-from config import get_settings
+from config import get_settings, Settings
 from errors.handlers import register_error_handlers
 
 # Policy & Privacy
 from policy import CHIMERA_POLICIES, PolicyEngine
 from llm.privacy_router import RouterConfig, PrivacyRouter
+from llm.credit_cache import CreditStatusCache
+from llm.zai_client import ZAIClient, ZAIModel
 
 # State Management
 from state import ShowStateMachine, RedisStateStore
@@ -300,3 +302,69 @@ async def websocket_show_updates(websocket: WebSocket):
         logger.error(f"WebSocket error: {e}")
     finally:
         await ws_manager.disconnect(connection_id)
+
+
+@app.get("/llm/zai/status")
+async def get_zai_status(settings: Settings = Depends(get_settings)):
+    """Get current Z.AI availability status"""
+    cache = CreditStatusCache(ttl=settings.zai_cache_ttl)
+    available = cache.is_available()
+    cache.close()
+
+    return {
+        "available": available,
+        "models": {
+            "primary": settings.zai_primary_model,
+            "programming": settings.zai_programming_model,
+            "fast": settings.zai_fast_model
+        },
+        "cache_ttl": settings.zai_cache_ttl,
+        "thinking_enabled": settings.zai_thinking_enabled
+    }
+
+
+@app.post("/llm/zai/reset")
+async def reset_zai_status(settings: Settings = Depends(get_settings)):
+    """Manually reset Z.AI credit exhaustion flag"""
+    cache = CreditStatusCache(ttl=settings.zai_cache_ttl)
+    cache.reset()
+    cache.close()
+
+    return {"status": "reset", "message": "Z.AI status reset successfully"}
+
+
+@app.get("/llm/backends")
+async def list_backends(settings: Settings = Depends(get_settings)):
+    """List all available LLM backends with status"""
+    cache = CreditStatusCache(ttl=settings.zai_cache_ttl)
+    zai_available = cache.is_available()
+    cache.close()
+
+    return {
+        "backends": [
+            {
+                "name": "zai_primary",
+                "model": settings.zai_primary_model,
+                "available": zai_available,
+                "description": "GLM-5-Turbo - OpenClaw optimized"
+            },
+            {
+                "name": "zai_programming",
+                "model": settings.zai_programming_model,
+                "available": zai_available,
+                "description": "GLM-4.7 - Programming and reasoning"
+            },
+            {
+                "name": "zai_fast",
+                "model": settings.zai_fast_model,
+                "available": zai_available,
+                "description": "GLM-4.7-FlashX - Fast simple tasks"
+            },
+            {
+                "name": "nemotron_local",
+                "model": settings.nemotron_model,
+                "available": True,  # Always available as fallback
+                "description": "Local DGX Nemotron"
+            }
+        ]
+    }

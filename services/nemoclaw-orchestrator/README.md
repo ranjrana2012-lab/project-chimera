@@ -15,7 +15,7 @@ Nemo Claw Orchestrator is the replacement for OpenClaw Orchestrator, providing e
 ### Key Features
 
 - **OpenShell Policy Engine** - ALLOW/DENY/SANITIZE/ESCALATE actions for all agent interactions
-- **Privacy Router** - 95% local Nemotron inference, 5% guarded cloud fallback with PII stripping
+- **Z.AI-First Privacy Router** - Z.AI API as primary with 3 models (GLM-5-Turbo, GLM-4.7, GLM-4.7-FlashX), credit exhaustion caching, graceful Nemotron fallback
 - **Redis-Backed State Machine** - Persistent show state with automatic failover
 - **Circuit Breaker + Retry** - Resilience patterns for reliable agent communication
 - **WebSocket Manager** - Real-time show updates with policy-filtered broadcasts
@@ -26,7 +26,7 @@ Nemo Claw Orchestrator is the replacement for OpenClaw Orchestrator, providing e
 | Feature | OpenClaw | Nemo Claw |
 |---------|----------|-----------|
 | Policy Enforcement | ❌ None | ✅ OpenShell policies |
-| LLM Privacy | ❌ All cloud | ✅ 95% local, 5% cloud |
+| LLM Privacy | ❌ All cloud | ✅ Z.AI-first with Nemotron fallback |
 | State Persistence | ❌ In-memory | ✅ Redis-backed |
 | Resilience | ⚠️ Basic retry | ✅ Circuit breaker + exponential backoff |
 | Error Handling | ⚠️ Generic | ✅ Structured error codes |
@@ -41,7 +41,7 @@ Nemo Claw Orchestrator is the replacement for OpenClaw Orchestrator, providing e
 - Python 3.10+
 - Redis 7.x
 - NVIDIA DGX with Nemotron (for local inference)
-- Anthropic API key (for cloud fallback)
+- Z.AI API key (for primary LLM backend) - get from https://platform.z.ai/
 
 ### Installation
 
@@ -54,6 +54,7 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
+# IMPORTANT: Set ZAI_API_KEY for primary LLM backend
 # Edit .env with your settings
 
 # Start Redis (if not running)
@@ -108,6 +109,8 @@ curl http://localhost:8000/health/ready
 | `/policy/test` | POST | Test input against policies |
 | `/llm/status` | GET | Privacy Router and backend status |
 | `/llm/backends` | GET | Available LLM backends |
+| `/llm/zai/status` | GET | Z.AI availability and configuration |
+| `/llm/zai/reset` | POST | Reset Z.AI credit exhaustion flag |
 
 ### Enhanced Response Format
 
@@ -174,8 +177,11 @@ All orchestration responses now include policy metadata:
 | `SERVICE_NAME` | `nemoclaw-orchestrator` | Service identifier |
 | `DGX_ENDPOINT` | `http://localhost:8000` | Nemotron service URL |
 | `REDIS_URL` | `redis://localhost:6379` | Redis connection |
-| `LOCAL_RATIO` | `0.95` | Ratio of local vs cloud LLM (0-1) |
-| `ANTHROPIC_API_KEY` | - | Anthropic API key for cloud fallback |
+| `ZAI_API_KEY` | - | Z.AI API key for primary LLM backend |
+| `ZAI_PRIMARY_MODEL` | `glm-5-turbo` | Primary Z.AI model |
+| `ZAI_PROGRAMMING_MODEL` | `glm-4.7` | Programming Z.AI model |
+| `ZAI_FAST_MODEL` | `glm-4.7-flashx` | Fast Z.AI model |
+| `ZAI_CACHE_TTL` | `3600` | Credit exhaustion cache TTL (seconds) |
 | `POLICY_STRICTNESS` | `medium` | Policy enforcement level |
 
 ### Agent URLs
