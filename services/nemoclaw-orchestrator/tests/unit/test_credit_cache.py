@@ -96,3 +96,57 @@ class TestCreditStatusCache:
         cache.close()
 
         mock_redis_instance.close.assert_called_once()
+
+    @patch('llm.credit_cache.redis')
+    def test_context_manager_closes_connection(self, mock_redis_module):
+        """Test that context manager properly closes Redis connection"""
+        mock_redis_instance = Mock()
+        mock_redis_module.from_url.return_value = mock_redis_instance
+
+        with CreditStatusCache() as cache:
+            cache.redis  # Trigger lazy initialization
+
+        mock_redis_instance.close.assert_called_once()
+
+    @patch('llm.credit_cache.logger')
+    def test_is_available_returns_true_on_redis_error(self, mock_logger, mock_redis):
+        """Test that Redis errors return True (fail-open)"""
+        mock_redis_module, mock_client = mock_redis
+        mock_client.exists.side_effect = Exception("Redis connection failed")
+
+        cache = CreditStatusCache()
+        result = cache.is_available()
+
+        assert result is True  # Fail-open
+        mock_logger.error.assert_called_once()
+
+        error_call_args = mock_logger.error.call_args[0][0]
+        assert "Redis error checking credit status" in error_call_args
+
+    @patch('llm.credit_cache.logger')
+    def test_mark_exhausted_handles_redis_error(self, mock_logger, mock_redis):
+        """Test that mark_exhausted doesn't crash on Redis error"""
+        mock_redis_module, mock_client = mock_redis
+        mock_client.setex.side_effect = Exception("Redis connection failed")
+
+        cache = CreditStatusCache()
+        cache.mark_exhausted()  # Should not raise
+
+        mock_logger.error.assert_called_once()
+
+        error_call_args = mock_logger.error.call_args[0][0]
+        assert "Redis error marking exhausted" in error_call_args
+
+    @patch('llm.credit_cache.logger')
+    def test_reset_handles_redis_error(self, mock_logger, mock_redis):
+        """Test that reset doesn't crash on Redis error"""
+        mock_redis_module, mock_client = mock_redis
+        mock_client.delete.side_effect = Exception("Redis connection failed")
+
+        cache = CreditStatusCache()
+        cache.reset()  # Should not raise
+
+        mock_logger.error.assert_called_once()
+
+        error_call_args = mock_logger.error.call_args[0][0]
+        assert "Redis error resetting credit status" in error_call_args
