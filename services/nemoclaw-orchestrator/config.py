@@ -17,6 +17,14 @@ class Settings(BaseSettings):
     local_ratio: float = 0.95  # 95% local, 5% cloud
     cloud_fallback_enabled: bool = True
 
+    # Z.AI Configuration (Primary LLM backend)
+    zai_api_key: str = ""
+    zai_primary_model: str = "glm-5-turbo"
+    zai_programming_model: str = "glm-4.7"
+    zai_fast_model: str = "glm-4.7-flashx"
+    zai_cache_ttl: int = 3600
+    zai_thinking_enabled: bool = True
+
     # Agent URLs (existing agents)
     scenespeak_agent_url: str = "http://localhost:8001"
     captioning_agent_url: str = "http://localhost:8002"

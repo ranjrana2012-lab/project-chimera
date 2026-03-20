@@ -9,7 +9,7 @@ from errors.handlers import register_error_handlers
 
 # Policy & Privacy
 from policy import CHIMERA_POLICIES, PolicyEngine
-from llm import PrivacyRouter, NemotronClient, GuardedCloudClient
+from llm.privacy_router import RouterConfig, PrivacyRouter
 
 # State Management
 from state import ShowStateMachine, RedisStateStore
@@ -45,16 +45,19 @@ async def lifespan(app: FastAPI):
     logger.info("Policy engine initialized")
 
     # Initialize Privacy Router
-    nemotron_client = NemotronClient(
-        endpoint=settings.dgx_endpoint,
-        model=settings.nemotron_model
+    router_config = RouterConfig(
+        dgx_endpoint=settings.dgx_endpoint,
+        nemotron_model=settings.nemotron_model,
+        zai_api_key=settings.zai_api_key,
+        zai_primary_model=settings.zai_primary_model,
+        zai_programming_model=settings.zai_programming_model,
+        zai_fast_model=settings.zai_fast_model,
+        zai_cache_ttl=settings.zai_cache_ttl,
+        zai_thinking_enabled=settings.zai_thinking_enabled,
+        local_ratio=settings.local_ratio,
+        cloud_fallback_enabled=settings.cloud_fallback_enabled,
     )
-    guarded_cloud = GuardedCloudClient()
-    privacy_router = PrivacyRouter(
-        nemotron_client=nemotron_client,
-        guarded_cloud=guarded_cloud,
-        local_ratio=settings.local_ratio
-    )
+    privacy_router = PrivacyRouter(router_config)
     logger.info("Privacy router initialized")
 
     # Initialize State Store
