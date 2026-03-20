@@ -33,10 +33,14 @@ class TestZAIRoutingIntegration:
                 "credits_exhausted": False
             }
 
+            # Configure is_available to return True
+            router.credit_cache.is_available.return_value = True
+
             result = router.generate("test prompt", task_type="tool_invocation")
 
             assert result["text"] == "Z.AI response"
             assert result["backend"] == "zai_primary"
+            assert router.credit_cache.is_available()
             # Verify Z.AI generate was called
             mock_zai.assert_called_once()
 
@@ -56,15 +60,23 @@ class TestZAIRoutingIntegration:
                 "backend": "nemotron_local"
             }
 
+            # Configure is_available to return True initially (so we try Z.AI)
+            router.credit_cache.is_available.return_value = True
+
             result = router.generate("test prompt")
 
             assert result["text"] == "Local response"
             assert result["backend"] == "nemotron_local"
             # Verify mark_exhausted was called
             router.credit_cache.mark_exhausted.assert_called_once()
+            # After mark_exhausted, is_available should return False
+            router.credit_cache.is_available.return_value = False
+            assert not router.credit_cache.is_available()
 
     def test_ttl_expiration_recovery(self, router):
         """Test Z.AI recovery after TTL expiration"""
+        # Initially not available
+        router.credit_cache.is_available.return_value = False
         router.credit_cache.mark_exhausted()
 
         # Verify mark_exhausted was called
@@ -76,6 +88,9 @@ class TestZAIRoutingIntegration:
         # Cache should be cleared by Redis TTL
         # (In real Redis, key would expire; mock needs manual clearing)
         router.credit_cache.reset()
+        # After reset, is_available should return True
+        router.credit_cache.is_available.return_value = True
+        assert router.credit_cache.is_available()
 
         # Verify reset was called
         router.credit_cache.reset.assert_called_once()
