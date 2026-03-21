@@ -17,13 +17,16 @@ class Settings(BaseSettings):
     local_ratio: float = 0.95  # 95% local, 5% cloud
     cloud_fallback_enabled: bool = True
 
-    # Z.AI Configuration (Primary LLM backend)
+    # Z.AI Configuration (GLM-4.7 First Strategy)
+    # Primary: GLM-4.7 for everything (4000 prompts/5hrs generous quota)
+    # Fallback: GLM-4.7-FlashX for simple/repetitive tasks only
+    # Final: Local LLM when Z.AI credits exhausted
     zai_api_key: str = ""
-    zai_primary_model: str = "glm-5-turbo"
+    zai_primary_model: str = "glm-4.7"
     zai_programming_model: str = "glm-4.7"
     zai_fast_model: str = "glm-4.7-flashx"
     zai_cache_ttl: int = 3600
-    zai_thinking_enabled: bool = True
+    zai_thinking_enabled: bool = False
 
     # Agent URLs (existing agents)
     scenespeak_agent_url: str = "http://localhost:8001"

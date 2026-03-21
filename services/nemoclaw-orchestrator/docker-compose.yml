@@ -24,13 +24,13 @@ services:
       LOCAL_RATIO: 0.95
       CLOUD_FALLBACK_ENABLED: "true"
 
-      # Z.AI Configuration
+      # Z.AI Configuration (GLM-4.7 First Strategy)
       ZAI_API_KEY: ${ZAI_API_KEY}
-      ZAI_PRIMARY_MODEL: glm-5-turbo
+      ZAI_PRIMARY_MODEL: glm-4.7
       ZAI_PROGRAMMING_MODEL: glm-4.7
       ZAI_FAST_MODEL: glm-4.7-flashx
       ZAI_CACHE_TTL: 3600
-      ZAI_THINKING_ENABLED: "true"
+      ZAI_THINKING_ENABLED: "false"
 
       # Agent URLs
       SCENESPEAK_AGENT_URL: http://scenespeak-agent:8001

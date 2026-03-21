@@ -15,7 +15,7 @@ Nemo Claw Orchestrator is the replacement for OpenClaw Orchestrator, providing e
 ### Key Features
 
 - **OpenShell Policy Engine** - ALLOW/DENY/SANITIZE/ESCALATE actions for all agent interactions
-- **Z.AI-First Privacy Router** - Z.AI API as primary with 3 models (GLM-5-Turbo, GLM-4.7, GLM-4.7-FlashX), credit exhaustion caching, graceful Nemotron fallback
+- **GLM-4.7 First Privacy Router** - Z.AI GLM-4.7 as primary (4000 prompts/5hrs generous), GLM-4.7-FlashX for simple tasks, local LLM fallback
 - **Redis-Backed State Machine** - Persistent show state with automatic failover
 - **Circuit Breaker + Retry** - Resilience patterns for reliable agent communication
 - **WebSocket Manager** - Real-time show updates with policy-filtered broadcasts
@@ -26,7 +26,7 @@ Nemo Claw Orchestrator is the replacement for OpenClaw Orchestrator, providing e
 | Feature | OpenClaw | Nemo Claw |
 |---------|----------|-----------|
 | Policy Enforcement | ❌ None | ✅ OpenShell policies |
-| LLM Privacy | ❌ All cloud | ✅ Z.AI-first with Nemotron fallback |
+| LLM Privacy | ❌ All cloud | ✅ GLM-4.7 first (4000/5hrs), FlashX fallback, local LLM |
 | State Persistence | ❌ In-memory | ✅ Redis-backed |
 | Resilience | ⚠️ Basic retry | ✅ Circuit breaker + exponential backoff |
 | Error Handling | ⚠️ Generic | ✅ Structured error codes |
@@ -178,9 +178,9 @@ All orchestration responses now include policy metadata:
 | `DGX_ENDPOINT` | `http://localhost:8001` | Nemotron service URL |
 | `REDIS_URL` | `redis://localhost:6379` | Redis connection |
 | `ZAI_API_KEY` | - | Z.AI API key for primary LLM backend |
-| `ZAI_PRIMARY_MODEL` | `glm-5-turbo` | Primary Z.AI model |
-| `ZAI_PROGRAMMING_MODEL` | `glm-4.7` | Programming Z.AI model |
-| `ZAI_FAST_MODEL` | `glm-4.7-flashx` | Fast Z.AI model |
+| `ZAI_PRIMARY_MODEL` | `glm-4.7` | Primary Z.AI model (4000 prompts/5hrs) |
+| `ZAI_PROGRAMMING_MODEL` | `glm-4.7` | Programming Z.AI model (same as primary) |
+| `ZAI_FAST_MODEL` | `glm-4.7-flashx` | Fast Z.AI model (simple tasks only) |
 | `ZAI_CACHE_TTL` | `3600` | Credit exhaustion cache TTL (seconds) |
 | `POLICY_STRICTNESS` | `medium` | Policy enforcement level |
 

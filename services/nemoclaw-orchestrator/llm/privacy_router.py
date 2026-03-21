@@ -43,11 +43,10 @@ class PrivacyRouter:
     """
     Routes LLM requests with Z.AI-first priority
 
-    Implements Z.AI-first routing with:
-    - Primary Z.AI models for orchestration and tool invocation
-    - Programming Z.AI model for code generation
-    - Fast Z.AI model for simple tasks
-    - Automatic fallback to local DGX Nemotron on credit exhaustion
+    GLM-4.7 FIRST Strategy (4000 prompts/5hrs generous quota):
+    - Primary: GLM-4.7 for everything (orchestration, tool invocation, code, etc.)
+    - Fallback: GLM-4.7-FlashX only for explicitly simple/repetitive tasks
+    - Final: Local LLM (Ollama/Nemotron) when Z.AI credits exhausted
     """
 
     def __init__(self, config: RouterConfig):
@@ -77,20 +76,23 @@ class PrivacyRouter:
         """
         Select Z.AI model based on task type
 
+        PRIMARY: GLM-4.7 for everything (4000 prompts/5hrs, generous)
+        FALLBACK: GLM-4.7-FlashX for simple tasks only
+
         Args:
             task_type: Type of task (tool_invocation, programming, simple, etc.)
 
         Returns:
             LLMBackend for the selected Z.AI model
         """
-        if task_type in ["tool_invocation", "persistent", "orchestration", "default"]:
-            return LLMBackend.ZAI_PRIMARY
-        elif task_type in ["programming", "code_generation", "debugging"]:
-            return LLMBackend.ZAI_PROGRAMMING
-        elif task_type in ["simple", "repetitive", "quick", "classification"]:
+        # Use FlashX only for explicitly simple/repetitive tasks
+        if task_type in ["simple", "repetitive", "quick", "classification"]:
             return LLMBackend.ZAI_FAST
-        else:
-            return LLMBackend.ZAI_PRIMARY  # Default to primary
+
+        # Everything else uses GLM-4.7 (primary)
+        # This includes: tool_invocation, persistent, orchestration, default,
+        # programming, code_generation, debugging, and any unknown task types
+        return LLMBackend.ZAI_PROGRAMMING
 
     def route(self, prompt: str, task_type: str = "default") -> LLMBackend:
         """
