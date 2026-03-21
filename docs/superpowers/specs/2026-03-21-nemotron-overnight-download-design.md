@@ -66,7 +66,23 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 LOG_FILE="$PROJECT_ROOT/logs/nemotron-download.log"
 DATA_DIR="$PROJECT_ROOT/models/nemotron/data"
-NGC_API_KEY="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"
+ENV_FILE="$PROJECT_ROOT/.env.nemotron"
+
+# Load environment variables
+if [ -f "$ENV_FILE" ]; then
+    set -a
+    source "$ENV_FILE"
+    set +a
+fi
+
+# NGC API Key (from env or prompt)
+if [ -z "$NGC_API_KEY" ]; then
+    echo "Error: NGC_API_KEY not set. Please set it in $ENV_FILE or environment."
+    exit 1
+fi
+
+# Nemotron Image (verify exact name before first run)
+NEMOTRON_IMAGE="${NEMOTRON_IMAGE:-nvcr.io/nvidia/nemotron-3-super-120b-a12b-nvfp4:latest}"
 
 # Create directories
 mkdir -p "$DATA_DIR"
@@ -92,12 +108,13 @@ log "Logging into NGC registry..."
 echo "$NGC_API_KEY" | docker login nvcr.io -u '$oauthtoken' --password-stdin
 
 # Pull image
-log "Starting Docker pull (this will take several hours)..."
-docker pull nvcr.io/nvidia/nemotron-3-super-120b-a12b-nvfp4:latest
+log "Starting Docker pull: $NEMOTRON_IMAGE"
+log "This will take several hours (estimated 12 hours on slow connection)..."
+docker pull "$NEMOTRON_IMAGE"
 
 # Verify image
 log "Verifying downloaded image..."
-if docker inspect nvcr.io/nvidia/nemotron-3-super-120b-a12b-nvfp4:latest >/dev/null 2>&1; then
+if docker inspect "$NEMOTRON_IMAGE" >/dev/null 2>&1; then
     log "Image verified successfully"
 else
     log "ERROR: Image verification failed"
@@ -111,6 +128,17 @@ if docker ps -q -f name=nemotron-local | grep -q .; then
     docker rm nemotron-local || true
 fi
 
+# Check if port 8000 is available
+if ss -tlnp | grep -q ':8000'; then
+    log "WARNING: Port 8000 is already in use. Checking if Nemotron is already running..."
+    if docker ps -f name=nemotron-local --format "{{.Names}}" | grep -q nemotron-local; then
+        log "Nemotron container already running. Skipping start."
+        exit 0
+    fi
+    log "ERROR: Port 8000 occupied by another process"
+    exit 1
+fi
+
 # Start container
 log "Starting Nemotron container..."
 docker run -d \
@@ -121,7 +149,7 @@ docker run -d \
     -v "$DATA_DIR:/models" \
     -e GPU_ID=0 \
     -e MODEL_NAME=nemotron-3-super-120b-a12b-nvfp4 \
-    nvcr.io/nvidia/nemotron-3-super-120b-a12b-nvfp4:latest
+    "$NEMOTRON_IMAGE"
 
 # Health check
 log "Performing health check..."
@@ -129,6 +157,8 @@ sleep 10
 if docker ps -f name=nemotron-local --format "{{.Status}}" | grep -q "Up"; then
     log "=== Nemotron deployment complete ==="
     log "Container running on port 8000"
+    log "Image: $NEMOTRON_IMAGE"
+    log "Data directory: $DATA_DIR"
 else
     log "ERROR: Container failed to start"
     docker logs nemotron-local | tail -50 >> "$LOG_FILE"
@@ -156,8 +186,21 @@ fi
 
 **Update `config.py`:**
 ```python
+# Nemotron Configuration (local fallback)
 nemotron_enabled: bool = True  # Use Nemotron as local fallback
 nemotron_endpoint: str = "http://localhost:8000"
+nemotron_model: str = "nemotron-3-super-120b-a12b-nvfp4"
+nemotron_timeout: int = 120  # seconds
+nemotron_max_retries: int = 2
+```
+
+**Fallback Logic:**
+```python
+def route(self, prompt: str, task_type: str = "default") -> LLMBackend:
+    # 1. Try GLM-4.7 (primary)
+    # 2. If credit exhausted, try GLM-4.7-FlashX (fast)
+    # 3. If Z.AI unavailable, try Nemotron (local)
+    # 4. If Nemotron unavailable, try Ollama (final fallback)
 ```
 
 ## Data Flow
@@ -201,19 +244,45 @@ Cron (00:05) → Script Start → NGC Login → Docker Pull (~12 hours)
 ## Testing
 
 1. **Pre-download validation:**
-   - Verify NGC API key works: `docker login nvcr.io -u '$oauthtoken'`
-   - Check disk space has 200GB+ available
-   - Verify port 8000 is available
+   - Verify NGC API key works: `echo "$NGC_API_KEY" | docker login nvcr.io -u '$oauthtoken' --password-stdin`
+   - Check disk space has 200GB+ available: `df -BG /home/ranj/Project_Chimera`
+   - Verify port 8000 is available: `ss -tlnp | grep :8000` (should return nothing)
 
 2. **Post-download verification:**
    - Check container is running: `docker ps -f name=nemotron-local`
-   - Verify health endpoint: `curl http://localhost:8000/health`
-   - Test inference: `curl -X POST http://localhost:8000/generate`
+   - Verify health endpoint: `curl http://localhost:8000/health` (expected: `{"status":"healthy"}` or similar)
+   - Check container logs: `docker logs nemotron-local --tail 50`
 
-3. **Integration testing:**
+3. **API format testing:**
+   - Try OpenAI-compatible format: `curl http://localhost:8000/v1/models`
+   - Try Nemotron-specific format: `curl http://localhost:8000/api/models`
+   - Test inference with discovered format
+
+4. **Integration testing:**
    - Update Privacy Router to use Nemotron endpoint
    - Run orchestrator test with Nemotron fallback
    - Verify end-to-end orchestration flow
+
+## Manual Trigger
+
+For testing or manual execution (outside of cron):
+
+```bash
+# Run the script immediately
+./scripts/download-nemotron.sh
+
+# Or run with custom image
+NEMOTRON_IMAGE="custom/image:name" ./scripts/download-nemotron.sh
+```
+
+## Rollback Procedure
+
+If the download fails or container doesn't start:
+
+1. Check logs: `tail -100 /home/ranj/Project_Chimera/logs/nemotron-download.log`
+2. Stop failed container: `docker stop nemotron-local && docker rm nemotron-local`
+3. Clean up partial data if needed: `rm -rf /home/ranj/Project_Chimera/models/nemotron/data/*`
+4. Retry manually: `./scripts/download-nemotron.sh`
 
 ## Success Criteria
 
@@ -227,9 +296,43 @@ Cron (00:05) → Script Start → NGC Login → Docker Pull (~12 hours)
 
 ## Open Questions
 
-1. **Exact NGC image name:** Need to verify the full image path on NGC registry
-2. **Nemotron API format:** Does it use OpenAI-compatible `/v1/completions` or custom API?
-3. **Memory requirements:** 120B model with nvfp4 quantization - verify 87GB available RAM is sufficient
+1. **Exact NGC image name:** The exact image path on NGC registry will be verified during implementation by:
+   - Logging into NGC with the provided API key
+   - Running `nvcr.io/nvidia/nemotron-3-super-120b-a12b-nvfp4:latest` pull
+   - If pull fails, searching NGC catalog for the correct image name
+   - The `NEMOTRON_IMAGE` environment variable allows overriding the default
+
+2. **Nemotron API format:** NVIDIA Nemotron containers typically support OpenAI-compatible API (`/v1/completions` or `/v1/chat/completions`). During implementation:
+   - Test the health endpoint first: `http://localhost:8000/health` or `http://localhost:8000/v1/models`
+   - Try a simple generation request to verify the exact API format
+   - Update `NemotronClient` in `llm/nemotron_client.py` to match the actual API
+
+3. **Memory requirements:** The 120B model with nvfp4 (4-bit) quantization requires approximately:
+   - 120B parameters × 0.5 bytes (fp4) ≈ 60GB for model weights
+   - 20-30GB for activation cache and runtime overhead
+   - **Total estimate: 80-90GB RAM**
+   - With 87GB available, this should be sufficient but may be tight
+   - If memory issues occur, consider reducing batch size or using a smaller model
+
+## Environment Variables
+
+Create `/home/ranj/Project_Chimera/.env.nemotron`:
+
+```bash
+# NGC API Key (required)
+NGC_API_KEY=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
+
+# Nemotron Docker Image (optional, override if different)
+NEMOTRON_IMAGE=nvcr.io/nvidia/nemotron-3-super-120b-a12b-nvfp4:latest
+
+# Nemotron Service Port (optional, default 8000)
+NEMOTRON_PORT=8000
+```
+
+**Security Note:** The `.env.nemotron` file should be:
+- Added to `.gitignore` to prevent committing credentials
+- Owned by the user with restricted permissions (`chmod 600 .env.nemotron`)
+- Sourced by the download script at runtime
 
 ## References
 
