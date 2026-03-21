@@ -34,7 +34,7 @@ services:
 
       # Nemotron Configuration (local fallback)
       NEMOTRON_ENABLED: "true"
-      NEMOTRON_ENDPOINT: http://host.docker.internal:8001
+      NEMOTRON_ENDPOINT: http://host.docker.internal:8012
       NEMOTRON_MODEL: nemotron-3-super-120b-a12b-nvfp4
       NEMOTRON_TIMEOUT: 120
       NEMOTRON_MAX_RETRIES: 2
