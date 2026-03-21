@@ -15,10 +15,10 @@ services:
       PORT: 8000
       DEBUG: "false"
 
-      # DGX / Nemotron Configuration
-      NEMOTRON_MODEL: nemotron-8b
+      # DGX / Ollama Configuration
+      NEMOTRON_MODEL: llama3:instruct
       DGX_GPU_ID: 0
-      DGX_ENDPOINT: http://172.17.0.1:11434
+      DGX_ENDPOINT: http://host.docker.internal:11434
 
       # Privacy Router
       LOCAL_RATIO: 0.95
@@ -57,6 +57,8 @@ services:
       LOG_LEVEL: INFO
     volumes:
       - ./state:/app/state
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - chimera-network
     restart: unless-stopped
