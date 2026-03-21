@@ -32,6 +32,13 @@ services:
       ZAI_CACHE_TTL: 3600
       ZAI_THINKING_ENABLED: "false"
 
+      # Nemotron Configuration (local fallback)
+      NEMOTRON_ENABLED: "true"
+      NEMOTRON_ENDPOINT: http://host.docker.internal:8000
+      NEMOTRON_MODEL: nemotron-3-super-120b-a12b-nvfp4
+      NEMOTRON_TIMEOUT: 120
+      NEMOTRON_MAX_RETRIES: 2
+
       # Agent URLs
       SCENESPEAK_AGENT_URL: http://scenespeak-agent:8001
       CAPTIONING_AGENT_URL: http://captioning-agent:8002

@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     zai_cache_ttl: int = 3600
     zai_thinking_enabled: bool = False
 
+    # Nemotron Configuration (local fallback, after Z.AI)
+    nemotron_enabled: bool = True
+    nemotron_endpoint: str = "http://localhost:8000"
+    nemotron_model: str = "nemotron-3-super-120b-a12b-nvfp4"
+    nemotron_timeout: int = 120
+    nemotron_max_retries: int = 2
+
     # Agent URLs (existing agents)
     scenespeak_agent_url: str = "http://localhost:8001"
     captioning_agent_url: str = "http://localhost:8002"
