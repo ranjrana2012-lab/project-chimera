@@ -79,18 +79,7 @@ async def lifespan(app: FastAPI):
     logger.info("Show state machine initialized")
 
     # Initialize Agent Coordinator
-    agent_urls = {
-        "scenespeak": settings.scenespeak_agent_url,
-        "captioning": settings.captioning_agent_url,
-        "bsl": settings.bsl_agent_url,
-        "sentiment": settings.sentiment_agent_url,
-        "lighting": settings.lighting_sound_music_url,
-        "safety": settings.safety_filter_url,
-        "music": settings.music_generation_url,
-        "autonomous": settings.autonomous_agent_url,
-    }
-    agent_coordinator = AgentCoordinator(agent_urls)
-    await agent_coordinator.start()
+    agent_coordinator = AgentCoordinator(settings, policy_engine)
     logger.info("Agent coordinator initialized")
 
     # Initialize WebSocket Manager
@@ -108,7 +97,7 @@ async def lifespan(app: FastAPI):
     logger.info("Nemo Claw Orchestrator shutting down")
 
     if agent_coordinator:
-        await agent_coordinator.stop()
+        await agent_coordinator.close()
 
     if state_store:
         await state_store.disconnect()

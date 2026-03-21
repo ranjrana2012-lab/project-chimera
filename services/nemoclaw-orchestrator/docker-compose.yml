@@ -5,10 +5,10 @@ services:
   nemoclaw-orchestrator:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.zai
     container_name: nemoclaw-orchestrator
     ports:
-      - "8001:8000"
+      - "9000:8000"
     environment:
       # Service Configuration
       SERVICE_NAME: nemoclaw-orchestrator
@@ -68,7 +68,9 @@ services:
       start_period: 5s
     depends_on:
       - redis
-      - dgx-nemotron
+    # Note: dgx-nemotron is optional - Z.AI will be used as primary
+    # dgx-nemotron:
+    #   condition: service_healthy
 
   # Redis State Store
   redis:
@@ -87,25 +89,26 @@ services:
       timeout: 5s
       retries: 3
 
-  # DGX Nemotron Service (GPU-enabled)
-  dgx-nemotron:
-    image: nvcr.io/nvidia/nemotron:latest-arm64
-    container_name: dgx-nemotron
-    ports:
-      - "8002:8000"
-    environment:
-      GPU_ID: 0
-      MODEL_NAME: nemotron-8b
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    networks:
-      - chimera-network
-    restart: unless-stopped
+  # DGX Nemotron Service (GPU-enabled) - Optional, requires NGC authentication
+  # Uncomment to enable local Nemotron fallback
+  # dgx-nemotron:
+  #   image: nvcr.io/nvidia/nemotron:latest-arm64
+  #   container_name: dgx-nemotron
+  #   ports:
+  #     - "8002:8000"
+  #   environment:
+  #     GPU_ID: 0
+  #     MODEL_NAME: nemotron-8b
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   networks:
+  #     - chimera-network
+  #   restart: unless-stopped
 
 networks:
   chimera-network:
