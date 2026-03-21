@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     # Nemotron Configuration (local fallback, after Z.AI)
     nemotron_enabled: bool = True
-    nemotron_endpoint: str = "http://localhost:8000"
+    nemotron_endpoint: str = "http://localhost:8001"
     nemotron_model: str = "nemotron-3-super-120b-a12b-nvfp4"
     nemotron_timeout: int = 120
     nemotron_max_retries: int = 2
