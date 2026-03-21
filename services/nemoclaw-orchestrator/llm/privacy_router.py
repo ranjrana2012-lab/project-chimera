@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional
 import logging
 
 from llm.nemotron_client import NemotronClient
+from llm.ollama_client import OllamaClient
 from llm.zai_client import ZAIClient, ZAIModel
 from llm.credit_cache import CreditStatusCache
 
@@ -17,7 +18,7 @@ class LLMBackend(str, Enum):
     ZAI_PRIMARY = "zai_primary"
     ZAI_PROGRAMMING = "zai_programming"
     ZAI_FAST = "zai_fast"
-    NEMOTRON_LOCAL = "nemotron_local"
+    OLLAMA_LOCAL = "ollama_local"  # Changed from NEMOTRON_LOCAL
 
 
 @dataclass
@@ -66,8 +67,8 @@ class PrivacyRouter:
             ttl=config.zai_cache_ttl
         )
 
-        # Local Nemotron client (fallback)
-        self.local_client = NemotronClient(
+        # Local Ollama client (fallback)
+        self.local_client = OllamaClient(
             endpoint=config.dgx_endpoint,
             model=config.nemotron_model
         )
@@ -107,8 +108,8 @@ class PrivacyRouter:
         """
         # Check if Z.AI is available (not marked as exhausted)
         if not self.credit_cache.is_available():
-            logger.debug("Z.AI marked exhausted, routing to local Nemotron")
-            return LLMBackend.NEMOTRON_LOCAL
+            logger.debug("Z.AI marked exhausted, routing to local Ollama")
+            return LLMBackend.OLLAMA_LOCAL
 
         # Select Z.AI model based on task type
         return self._select_zai_model(task_type)
@@ -150,9 +151,9 @@ class PrivacyRouter:
                     **kwargs
                 )
 
-            # Local Nemotron fallback
-            elif backend == LLMBackend.NEMOTRON_LOCAL:
-                return self._generate_with_nemotron(
+            # Local Ollama fallback
+            elif backend == LLMBackend.OLLAMA_LOCAL:
+                return self._generate_with_ollama(
                     prompt=prompt,
                     max_tokens=max_tokens,
                     temperature=temperature,
@@ -166,10 +167,10 @@ class PrivacyRouter:
             backend_value = backend.value if isinstance(backend, LLMBackend) else backend
             logger.error(f"Generation failed with backend {backend_value}: {e}")
 
-            # Attempt fallback to Nemotron
-            if backend != LLMBackend.NEMOTRON_LOCAL and self.config.cloud_fallback_enabled:
-                logger.info("Attempting fallback to local Nemotron")
-                return self._generate_with_nemotron(
+            # Attempt fallback to Ollama
+            if backend != LLMBackend.OLLAMA_LOCAL and self.config.cloud_fallback_enabled:
+                logger.info("Attempting fallback to local Ollama")
+                return self._generate_with_ollama(
                     prompt=prompt,
                     max_tokens=max_tokens,
                     temperature=temperature,
@@ -211,8 +212,8 @@ class PrivacyRouter:
             logger.warning("Z.AI credits exhausted, marking and falling back")
             self.credit_cache.mark_exhausted()
 
-            # Retry with Nemotron
-            return self._generate_with_nemotron(
+            # Retry with Ollama
+            return self._generate_with_ollama(
                 prompt=prompt,
                 max_tokens=max_tokens,
                 temperature=temperature,
@@ -222,15 +223,15 @@ class PrivacyRouter:
         result["backend"] = backend.value
         return result
 
-    def _generate_with_nemotron(
+    def _generate_with_ollama(
         self,
         prompt: str,
         max_tokens: int,
         temperature: float,
         **kwargs
     ) -> Dict[str, Any]:
-        """Generate using local Nemotron client"""
-        logger.debug("Routing to local DGX Nemotron")
+        """Generate using local Ollama client"""
+        logger.debug("Routing to local Ollama")
 
         result = self.local_client.generate(
             prompt=prompt,
@@ -239,7 +240,7 @@ class PrivacyRouter:
             **kwargs
         )
 
-        result["backend"] = LLMBackend.NEMOTRON_LOCAL.value
+        result["backend"] = LLMBackend.OLLAMA_LOCAL.value
         return result
 
     def close(self):
