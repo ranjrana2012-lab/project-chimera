@@ -21,14 +21,14 @@ class ZAIClient:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = "https://api.z.ai/api/paas/v4/"
+        base_url: str = "https://open.bigmodel.cn/api/paas/v4/"
     ):
         """
         Initialize Z.AI client
 
         Args:
             api_key: Z.AI API key (defaults to ZAI_API_KEY env var)
-            base_url: Z.AI API base URL
+            base_url: Z.AI API base URL (https://open.bigmodel.cn/api/paas/v4/)
         """
         self.api_key = api_key or os.getenv("ZAI_API_KEY", "")
         self.base_url = base_url
@@ -64,12 +64,17 @@ class ZAIClient:
             return True
 
         # Check error message for credit-related keywords
+        # English and Chinese keywords
         credit_keywords = [
             "insufficient credits",
             "quota exceeded",
             "credit exhausted",
             "billing",
-            "payment required"
+            "payment required",
+            "余额不足",  # Chinese: insufficient balance
+            "无可用资源包",  # Chinese: no available resource package
+            "请充值",  # Chinese: please recharge
+            "1113"  # Z.AI specific error code for insufficient balance
         ]
         return any(keyword in error_str for keyword in credit_keywords)
 
