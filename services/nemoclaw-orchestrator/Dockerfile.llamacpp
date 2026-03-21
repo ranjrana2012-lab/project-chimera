@@ -1,0 +1,64 @@
+# Local LLM service with llama.cpp for GGUF models
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install llama-cpp-python
+RUN pip install --no-cache-dir llama-cpp-python[hf]
+
+# Copy models from host
+COPY ./models /app/models
+
+# Expose service port
+EXPOSE 8080
+
+# Simple FastAPI server for llama.cpp
+COPY <<EOF /app/server.py
+from fastapi import FastAPI
+from pydantic import BaseModel
+from llama_cpp import Llama
+import os
+
+app = FastAPI(title="Local LLM Server")
+
+# Load model (use smaller model by default)
+MODEL_PATH = os.getenv("MODEL_PATH", "/app/models/mythomax-l2-13b.Q4_K_M.gguf")
+llm = Llama(
+    model_path=MODEL_PATH,
+    n_ctx=2048,
+    n_gpu_layers=-1,  # Use all GPU layers
+    verbose=False
+)
+
+class GenerateRequest(BaseModel):
+    prompt: str
+    max_tokens: int = 512
+    temperature: float = 0.7
+
+@app.post("/v1/completions")
+async def generate(req: GenerateRequest):
+    output = llm(
+        req.prompt,
+        max_tokens=req.max_tokens,
+        temperature=req.temperature,
+        stop=["</s>", "Human:", "Assistant:"]
+    )
+    return {"choices": [{"message": {"content": output['choices'][0]['text']}}]}
+
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
+EOF
+
+CMD ["python", "/app/server.py"]

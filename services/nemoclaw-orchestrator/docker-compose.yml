@@ -18,7 +18,7 @@ services:
       # DGX / Nemotron Configuration
       NEMOTRON_MODEL: nemotron-8b
       DGX_GPU_ID: 0
-      DGX_ENDPOINT: http://dgx-nemotron:8002
+      DGX_ENDPOINT: http://172.17.0.1:11434
 
       # Privacy Router
       LOCAL_RATIO: 0.95
@@ -68,9 +68,8 @@ services:
       start_period: 5s
     depends_on:
       - redis
-    # Note: dgx-nemotron is optional - Z.AI will be used as primary
+    # Note: Using Ollama (host.docker.internal:11434) for local LLM fallback
     # dgx-nemotron:
-    #   condition: service_healthy
 
   # Redis State Store
   redis:
@@ -89,8 +88,8 @@ services:
       timeout: 5s
       retries: 3
 
-  # DGX Nemotron Service (GPU-enabled) - Optional, requires NGC authentication
-  # Uncomment to enable local Nemotron fallback
+  # DGX Nemotron Service - Using Ollama instead (host.docker.internal:11434)
+  # To use Nemotron Docker image, uncomment below and ensure NGC access
   # dgx-nemotron:
   #   image: nvcr.io/nvidia/nemotron:latest-arm64
   #   container_name: dgx-nemotron
