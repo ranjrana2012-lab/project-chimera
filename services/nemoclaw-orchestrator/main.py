@@ -160,11 +160,16 @@ async def orchestrate(request: Dict[str, Any]):
         return {"status": "error", "message": "Missing prompt"}
 
     try:
-        response = await privacy_router.route(prompt)
+        response = privacy_router.generate(
+            prompt=prompt,
+            max_tokens=512,
+            temperature=0.7
+        )
         return {
             "status": "success",
-            "response": response,
-            "routing_metadata": response.get("metadata", {})
+            "response": response.get("text", ""),
+            "backend": response.get("backend", ""),
+            "model_used": response.get("model_used", ""),
         }
     except Exception as e:
         logger.error(f"Orchestration error: {e}")

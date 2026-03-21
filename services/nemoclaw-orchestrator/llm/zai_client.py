@@ -108,9 +108,9 @@ class ZAIClient:
                 **kwargs
             }
 
-            # Add thinking parameter if enabled
-            if thinking:
-                request_params["thinking"] = {"type": "enabled"}
+            # Note: thinking parameter not supported by current Z.AI API version
+            # if thinking:
+            #     request_params["thinking"] = {"type": "enabled"}
 
             response = client.chat.completions.create(**request_params)
 
