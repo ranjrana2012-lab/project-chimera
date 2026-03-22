@@ -1,4 +1,6 @@
 #!/bin/bash
+# Set PATH for cron compatibility
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -67,14 +69,15 @@ if docker ps -q -f name=nemotron-local | grep -q .; then
     docker rm nemotron-local || true
 fi
 
-# Check if port 8000 is available
-if ss -tlnp 2>/dev/null | grep -q ':8000'; then
-    log "WARNING: Port 8000 is already in use. Checking if Nemotron is already running..."
+# Check if port is available
+NEMOTRON_PORT="${NEMOTRON_PORT:-8012}"
+if ss -tlnp 2>/dev/null | grep -q ":$NEMOTRON_PORT"; then
+    log "WARNING: Port $NEMOTRON_PORT is already in use. Checking if Nemotron is already running..."
     if docker ps -f name=nemotron-local --format "{{.Names}}" | grep -q nemotron-local; then
         log "Nemotron container already running. Skipping start."
         exit 0
     fi
-    log "ERROR: Port 8000 occupied by another process"
+    log "ERROR: Port $NEMOTRON_PORT occupied by another process"
     exit 1
 fi
 
@@ -84,7 +87,7 @@ docker run -d \
     --name nemotron-local \
     --gpus all \
     --restart unless-stopped \
-    -p "${NEMOTRON_PORT:-8000}:8000" \
+    -p "$NEMOTRON_PORT:8000" \
     -v "$DATA_DIR:/models" \
     -e GPU_ID=0 \
     -e MODEL_NAME=nemotron-3-super-120b-a12b-nvfp4 \
@@ -95,7 +98,7 @@ log "Performing health check..."
 sleep 10
 if docker ps -f name=nemotron-local --format "{{.Status}}" | grep -q "Up"; then
     log "=== Nemotron deployment complete ==="
-    log "Container running on port ${NEMOTRON_PORT:-8000}"
+    log "Container running on port $NEMOTRON_PORT"
     log "Image: $NEMOTRON_IMAGE"
     log "Data directory: $DATA_DIR"
 else
