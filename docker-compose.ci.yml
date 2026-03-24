@@ -1,0 +1,105 @@
+# Docker Compose override for CI/CD environments
+# - No deploy.replicas (avoids container_name conflicts)
+# - CPU-only mode (no GPU reservations)
+# - Auto-restart disabled for faster testing
+# - Simplified logging
+
+services:
+  # Infrastructure services - minimal config for CI
+  redis:
+    restart: "no"
+
+  kafka:
+    restart: "no"
+
+  zookeeper:
+    restart: "no"
+
+  milvus:
+    restart: "no"
+
+  prometheus:
+    restart: "no"
+
+  jaeger:
+    restart: "no"
+
+  grafana:
+    restart: "no"
+
+  # Core services - CPU mode, no replicas for CI
+  openclaw-orchestrator:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    # No deploy.replicas - avoids container_name conflict
+
+  scenespeak-agent:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+      - DEVICE=cpu
+    # No GPU devices or deploy.replicas for CI
+
+  captioning-agent:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+      - WHISPER_DEVICE=cpu
+      - WHISPER_COMPUTE_TYPE=int8
+    # No GPU devices or deploy.replicas for CI
+
+  bsl-agent:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    # No GPU devices or deploy.replicas for CI
+
+  sentiment-agent:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    # No deploy.replicas for CI
+
+  lighting-sound-music:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    # No deploy.replicas for CI
+
+  safety-filter:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    # No deploy.replicas for CI - fixes container_name conflict
+
+  operator-console:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    # No deploy.replicas for CI
+
+  music-generation:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+      - DEVICE=cpu
+    # No GPU devices or deploy.replicas for CI

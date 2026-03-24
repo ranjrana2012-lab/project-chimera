@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Infrastructure Services
   redis:
@@ -104,6 +102,7 @@ services:
       - COMMON_STORAGETYPE=${MILVUS_STORAGE_TYPE:-local}
     volumes:
       - chimera-milvus-data:/var/lib/milvus
+    command: /milvus/bin/milvus run standalone
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091/metrics"]
       interval: ${HEALTH_CHECK_INTERVAL:-30s}
@@ -128,10 +127,18 @@ services:
   etcd:
     image: quay.io/coreos/etcd:v3.5.5
     container_name: chimera-etcd
+    ports:
+      - "${ETCD_PORT:-2379}:2379"
+      - "${ETCD_PEER_PORT:-2380}:2380"
     environment:
       - ETCD_AUTO_COMPACTION_MODE=revision
       - ETCD_AUTO_COMPACTION_RETENTION=1000
       - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
+      - ETCD_INITIAL_CLUSTER=default=http://etcd:2380
     volumes:
       - chimera-etcd-data:/etcd
     networks:
@@ -457,6 +464,7 @@ services:
     volumes:
       - chimera-bsl-cache:/app/cache
       - chimera-bsl-models:/models/bsl_avatar
+      - ./services/shared:/app/shared:ro
     depends_on:
       redis:
         condition: service_healthy
