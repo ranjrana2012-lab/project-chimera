@@ -13,6 +13,7 @@ ENV PYTHONUNBUFFERED=1 \
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    curl \
     portaudio19-dev \
     python3-dev \
     libsdl2-dev \

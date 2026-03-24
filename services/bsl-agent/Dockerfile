@@ -13,6 +13,7 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -24,6 +25,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY *.py ./
 COPY tests/ ./tests/
+
+# Copy shared module
+COPY services/shared/ /app/shared/
 
 # Create directory for avatar models (placeholder)
 RUN mkdir -p /models/bsl_avatar
