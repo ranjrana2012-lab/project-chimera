@@ -4,6 +4,7 @@ Configuration for Sentiment Agent.
 Environment-based configuration with pydantic-settings.
 """
 
+import os
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 from typing import Optional
@@ -36,4 +37,8 @@ class Settings(BaseSettings):
 
 def get_settings() -> Settings:
     """Get application settings instance"""
-    return Settings()
+    # Override device for CI CPU-only mode
+    device = "auto"
+    if os.getenv("CI_GPU_AVAILABLE", "true").lower() == "false":
+        device = "cpu"
+    return Settings(device=device)
