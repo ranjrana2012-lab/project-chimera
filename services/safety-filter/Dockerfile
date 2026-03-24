@@ -1,7 +1,8 @@
-# Safety Filter Service - ARM64 Dockerfile
+# Safety Filter Service
 # Multi-layer content moderation for AI-generated content
+# Note: Remove --platform flag for CI compatibility with x86_64 runners
 
-FROM --platform=linux/arm64 python:3.11-slim
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
