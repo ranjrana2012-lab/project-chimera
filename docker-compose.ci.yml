@@ -1,5 +1,5 @@
 # Docker Compose override for CI/CD environments
-# - Disable GPU requests by setting GPU_COUNT=0
+# - Completely replace deploy configuration to remove GPU requests
 # - CPU-only mode
 # - Auto-restart disabled for faster testing
 
@@ -27,12 +27,21 @@ services:
     restart: "no"
 
   # Core services - CPU mode for CI
+  # Explicitly replace deploy configuration to remove GPU devices
   openclaw-orchestrator:
     restart: "no"
     environment:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
 
   scenespeak-agent:
     restart: "no"
@@ -41,7 +50,14 @@ services:
       - ENVIRONMENT=ci
       - RELOAD=false
       - DEVICE=cpu
-      - GPU_COUNT=0  # Disable GPU requests
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "1G"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
 
   captioning-agent:
     restart: "no"
@@ -51,7 +67,14 @@ services:
       - RELOAD=false
       - WHISPER_DEVICE=cpu
       - WHISPER_COMPUTE_TYPE=int8
-      - GPU_COUNT=0  # Disable GPU requests
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "1G"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
 
   bsl-agent:
     restart: "no"
@@ -59,7 +82,14 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-      - GPU_COUNT=0  # Disable GPU requests
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "1G"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
 
   sentiment-agent:
     restart: "no"
@@ -67,6 +97,14 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
 
   lighting-sound-music:
     restart: "no"
@@ -74,6 +112,14 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
 
   safety-filter:
     restart: "no"
@@ -81,6 +127,14 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "1G"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
 
   operator-console:
     restart: "no"
@@ -88,6 +142,14 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
 
   music-generation:
     restart: "no"
@@ -96,4 +158,11 @@ services:
       - ENVIRONMENT=ci
       - RELOAD=false
       - DEVICE=cpu
-      - GPU_COUNT=0  # Disable GPU requests
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
