@@ -160,8 +160,8 @@ test.describe('Complete Show Workflow', () => {
 
     for (const reaction of reactions) {
       await helper.sendAudienceReaction(reaction);
-      // Brief pause between inputs
-      await page.waitForTimeout(1000);
+      // Wait for sentiment analysis response instead of hard-coded delay
+      await page.waitForResponse(resp => resp.url().includes('/api/analyze'), { timeout: 5000 });
     }
 
     // Verify sentiment history is tracked
@@ -272,7 +272,8 @@ test.describe('Complete Show Workflow', () => {
 
     for (const input of rapidInputs) {
       await helper.sendAudienceReaction(input);
-      await page.waitForTimeout(200); // Very short delay
+      // Wait for response before sending next input
+      await page.waitForResponse(resp => resp.url().includes('/api/analyze'), { timeout: 5000 });
     }
 
     // Verify system remains stable
@@ -295,8 +296,8 @@ test.describe('Complete Show Workflow', () => {
     // Send audience reaction
     await helper.sendAudienceReaction('Test sentiment');
 
-    // Wait for processing
-    await page.waitForTimeout(2000);
+    // Wait for processing to complete
+    await expect(page.locator('[data-testid="sentiment-display"]')).toBeVisible({ timeout: 5000 });
 
     // Verify metrics are being tracked (may not exist in dev environment)
     try {
@@ -342,8 +343,8 @@ test.describe('Complete Show Workflow', () => {
     // Send initial reaction
     await helper.sendAudienceReaction('First reaction');
 
-    // Brief pause to simulate activity gap
-    await page.waitForTimeout(3000);
+    // Wait for first response
+    await page.waitForResponse(resp => resp.url().includes('/api/analyze'), { timeout: 10000 });
 
     // Send another reaction
     await helper.sendAudienceReaction('Second reaction after pause');
@@ -369,7 +370,7 @@ test.describe('Complete Show Workflow', () => {
     });
 
     // Wait for scene progression
-    await page.waitForTimeout(2000);
+    await expect(page.locator('[data-testid="scene-progress"]')).toBeVisible({ timeout: 10000 });
 
     // Simulate reactions for scene 2
     await helper.sendAudienceReaction('Scene 2 is even better!');
