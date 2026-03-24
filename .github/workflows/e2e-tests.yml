@@ -30,7 +30,7 @@ env:
 jobs:
   e2e-tests:
     name: E2E Test Suite
-    timeout-minutes: 60
+    timeout-minutes: 90
     runs-on: ubuntu-latest
 
     strategy:
@@ -40,6 +40,11 @@ jobs:
         total_shards: [4]
 
     steps:
+      - name: Validate Dockerfiles
+        run: |
+          chmod +x scripts/validate-dockerfiles.sh
+          ./scripts/validate-dockerfiles.sh
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -73,6 +78,24 @@ jobs:
         run: |
           chmod +x scripts/wait-for-services.sh
           ./scripts/wait-for-services.sh
+
+      - name: Upload Service Logs on Failure
+        if: failure()
+        run: |
+          mkdir -p logs
+          docker-compose logs > logs/docker-compose.log 2>&1 || true
+          for service in orchestrator scenespeak captioning bsl sentiment lighting safety console music; do
+            docker logs chimera-${service}-1 > logs/${service}.log 2>&1 || true
+          done
+          echo "Service logs saved"
+
+      - name: Upload Logs Artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-logs-shard-${{ matrix.shard }}
+          path: logs/
+          retention-days: 3
 
       - name: Run E2E Tests
         run: |
