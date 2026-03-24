@@ -71,7 +71,7 @@ jobs:
 
       - name: Start Services via Docker Compose
         run: |
-          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
           docker ps
 
       - name: Wait for Services to be Healthy
@@ -83,7 +83,7 @@ jobs:
         if: failure()
         run: |
           mkdir -p logs
-          docker-compose logs > logs/docker-compose.log 2>&1 || true
+          docker compose logs > logs/docker-compose.log 2>&1 || true
           for service in orchestrator scenespeak captioning bsl sentiment lighting safety console music; do
             docker logs chimera-${service}-1 > logs/${service}.log 2>&1 || true
           done
@@ -163,7 +163,7 @@ jobs:
 
       - name: Start Services via Docker Compose
         run: |
-          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
       - name: Wait for Services
         run: |
