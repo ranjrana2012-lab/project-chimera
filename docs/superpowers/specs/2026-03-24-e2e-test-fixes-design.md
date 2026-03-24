@@ -53,20 +53,50 @@ This design addresses all three root causes with durable, production-ready solut
 
 ## Solution Design
 
-### 1. CI Docker Build Fixes
+### 1. CI Environment Fixes
 
-#### 1.1 Standardized Image Versioning
+#### 1.1 CI Build Strategy Clarification
 
-**Implementation:**
-```bash
-# Generate VERSION file from git SHA
-VERSION="v1.0.0-$(git rev-parse --short HEAD)"
-echo $VERSION > docker/VERSION
+**Current CI Behavior:** The GitHub Actions workflow does NOT build Docker images. It runs `docker-compose up` which:
+- Pulls existing images from Docker Hub/registry (if available)
+- Builds images locally if not found (using local Dockerfile)
+- Does NOT use version tags or consistent image naming
+
+**Problem:** Local development has rebuilt images (with curl, shared modules), but CI builds from source each run, getting different results.
+
+**Solution A: Pre-build and Push Images (Recommended)**
+- Build all service images locally with consistent tags
+- Push to Docker Hub or GitHub Container Registry
+- Update CI to pull pre-built images instead of building
+- Update docker-compose.yml to use specific image tags
+
+**Solution B: CI Builds with Caching**
+- Use GitHub Actions cache for Docker layers
+- Add explicit build step to CI workflow before docker-compose up
+- Implement BuildKit with cache mounts for faster builds
+
+**Recommendation:** Use Solution A for consistency and speed.
+
+#### 1.2 GPU/CPU Mismatch
+
+**Problem:** ML services (scenespeak, captioning, bsl, sentiment, music) require CUDA/GPU, but GitHub Actions `ubuntu-latest` runners have no GPU.
+
+**Solution: CPU-Only CI Mode**
+
+Add environment variable to enable CPU mode in CI:
+```yaml
+env:
+  CI_GPU_AVAILABLE: "false"
+  DEVICE: "cpu"
 ```
 
-**Image tag format:** `chimera/{service-name}:v1.0.0-{git-sha}`
+Update services to detect this and:
+- Skip CUDA initialization
+- Use CPU versions of models (quantized where available)
+- Disable GPU-dependent features gracefully
+- Add mock/fast endpoints for CI testing
 
-#### 1.2 Dockerfile Standards
+#### 1.3 Dockerfile Standards
 
 All Dockerfiles MUST:
 - Install `curl` in apt-get RUN command
@@ -74,7 +104,7 @@ All Dockerfiles MUST:
 - Use consistent base images (python:3.12-slim where applicable)
 - Follow layer caching best practices (dependencies before code)
 
-#### 1.3 Build Context Configuration
+#### 1.4 Build Context Configuration
 
 Update docker-compose.yml build contexts:
 ```yaml
@@ -88,7 +118,7 @@ bsl-agent:
 
 This allows access to `./services/shared/` during build.
 
-#### 1.4 Dockerfile Validation Script
+#### 1.5 Dockerfile Validation Script
 
 **File:** `scripts/validate-dockerfiles.sh`
 
@@ -96,74 +126,94 @@ Checks:
 - All Dockerfiles install `curl`
 - All services importing from shared have proper COPY commands
 - Consistent EXPOSE ports across Dockerfile and docker-compose.yml
-- No deprecated patterns (deprecated FROM images, etc.)
+- No deprecated patterns
 
-**Integration:** Add to `e2e-tests.yml` as first step before docker-compose build.
+**Integration:** Add to `e2e-tests.yml` as first step.
 
 ### 2. Service Startup Optimization
 
-#### 2.1 Two-Stage Health Pattern
+**Problem:** Services don't become healthy within CI's 120-second timeout. Model downloads and initialization take too long. Additionally, CI has no GPU which changes model loading behavior.
 
-**Pattern:**
+**Solution:**
+
+**A. Implement Deferred Model Loading**
+- Change services to load ML models **on first request** rather than at startup
+- Add `model_loaded` status to `/health` endpoint
+- Services return 200 immediately (container running), models load lazily
+- First request to each service may be slow (model loading), subsequent requests fast
+- Update wait-for-services.sh to only check container startup, not model loading
+- In CI (no GPU), use smaller/quantized models or mock model responses
+
+**B. CI Model Caching Strategy**
+
+**Challenge:** GitHub Actions runners don't persist Docker volumes between runs.
+
+**Solution A: GitHub Actions Cache (Recommended)**
+```yaml
+- name: Cache HuggingFace Models
+  uses: actions/cache@v4
+  with:
+    path: ~/.cache/huggingface
+    key: ${{ runner.os }}-models-${{ hashFiles('**/models.txt') }}
 ```
-/health/ready → Returns 200 immediately (container running)
-/health/live → Returns 200 only when models loaded
-```
 
-**Implementation per service:**
+Add `models.txt` files listing required models for each service.
 
-| Service | /health/ready | /health/live |
-|---------|---------------|--------------|
-| orchestrator | Immediate | Immediate (no ML) |
-| scenespeak | Immediate | After LLM loads |
-| captioning | Immediate | After Whisper loads |
-| bsl | Immediate | After avatar loads |
-| sentiment | Immediate | After DistilBERT loads |
-| music-generation | Immediate | After MusicGen loads |
-| safety-filter | Immediate | Immediate |
-| operator-console | Immediate | Immediate |
+**Solution B: Pre-built CI Images with Models**
+- Create separate Docker images with models baked in
+- Tag as `chimera/{service}:ci-with-models`
+- Use these images only in CI workflows
+- Larger image size but instant startup
 
-#### 2.2 Model Cache Volume
+**Recommendation:** Use Solution A (GitHub Actions cache) for flexibility.
 
-**New volume:** `chimera-model-cache`
+**C. CPU-Optimized Model Loading**
+- In CI (no GPU), use smaller quantized models
+- Set `MODEL_VARIANT=ci` env var in CI workflows
+- Load 8-bit models instead of 16-bit where available
+- Skip optional features (avatar rendering, music generation) in CI
+- Add mock endpoints for CI where appropriate
 
-**Pre-population script:** `docker/pre-cache-models.sh`
+**D. Parallelize Service Dependencies**
+- Remove unnecessary `depends_on` conditions
+- Use `restart: on-failure` with appropriate retry counts
+- Let services start in parallel, fail independently if they have issues
 
-Downloads models to cache volume once before starting services. Services then load from cache (5-10s vs 60-90s).
-
-#### 2.3 Wait Script Rewrite
-
-**File:** `scripts/wait-for-services.sh`
-
-**New logic:**
-1. Wait for `/health/ready` on all services (30s timeout)
-2. Once all ready, wait for `/health/live` on ML services (180s timeout)
-3. Report which services are ready and which are still loading
-
-**Exit codes:**
-- 0: All services fully ready
-- 1: Service failed to start (container not running)
-- 2: Service timeout during model load
-
-#### 2.4 Parallel Startup
-
-Remove `depends_on` conditions where services don't actually depend on each other. Use `restart: on-failure` instead.
+**E. Optimize Healthcheck Intervals**
+- Reduce `start_period` in healthchecks from 60-90s to 30s where appropriate
+- Reduce `interval` from 30s to 10s for faster feedback
+- Adjust `retries` to balance speed vs reliability
 
 ### 3. Test Reliability Fixes
 
-#### 3.1 Orchestrator Endpoint Mapping
+#### 3.1 Orchestrator Endpoint Mapping Fix
 
-**File:** `services/openclaw-orchestrator/main.py`
+**Problem:** `call_agent()` function (line 524) constructs `/v1/{skill}` but agents actually use `/api/{action}` endpoints.
 
-Update `get_agent_for_skill()` mapping:
+**Current code (line 524):**
 ```python
-skill_to_agent = {
-    "dialogue_generator": f"{AGENTS['scenespeak-agent']}/api/generate",
-    "captioning": f"{AGENTS['captioning-agent']}/api/transcribe",
-    "bsl_translation": f"{AGENTS['bsl-agent']}/api/translate",
-    "sentiment_analysis": f"{AGENTS['sentiment-agent']}/api/analyze",
-    "autonomous_execution": f"{AGENTS['autonomous-agent']}/execute",
+endpoint = f"/v1/{skill}"  # Wrong! Constructs /v1/sentiment_analysis
+```
+
+**Agent endpoints actually implemented:**
+- scenespeak: `/api/generate`
+- captioning: `/api/transcribe`
+- bsl: `/api/translate`
+- sentiment: `/api/analyze`
+- autonomous: `/execute` (already correct)
+
+**Fix:** Update `call_agent()` function to use correct endpoint paths:
+```python
+# Map skill names to actual endpoint paths
+skill_endpoints = {
+    "dialogue_generator": "/api/generate",
+    "captioning": "/api/transcribe",
+    "bsl_translation": "/api/translate",
+    "sentiment_analysis": "/api/analyze",
+    "autonomous_execution": "/execute",
 }
+
+endpoint = skill_endpoints.get(skill, f"/v1/{skill}")
 ```
 
 #### 3.2 Test Timing Improvements
@@ -262,25 +312,75 @@ export function createShowRequest(overrides?: Partial<ShowRequest>): ShowRequest
 
 ## Implementation Phases
 
-### Phase 1: Docker Build Fixes (Week 1)
+### Phase 1: Pre-build and Push Docker Images (Week 1)
 
-**Priority:** HIGH - Blocks all other improvements
+**Priority:** HIGH - Establishes consistent baseline for CI
 
-1. Create `scripts/validate-dockerfiles.sh`
-2. Update all 13 Dockerfiles to install curl
-3. Add shared module COPY commands where needed
-4. Update docker-compose.yml build contexts
-5. Add VERSION generation to CI workflow
-6. Test locally: rebuild all services, verify they work
+1. Build all service images locally with consistent tagging
+2. Tag images: `chimera/{service}:v1.0.0-latest` and `chimera/{service}:ci`
+3. Push images to Docker Hub or GitHub Container Registry
+4. Update docker-compose.yml to use pre-built images in CI
+5. Test locally: verify images work correctly
+6. Create `scripts/validate-dockerfiles.sh` for future validation
 
-**Success Criteria:** All services rebuild successfully with curl and shared modules
+**Success Criteria:** CI pulls consistent images that match local environment
 
-### Phase 2: Test Fixes (Week 1-2)
+### Phase 1B: Add CI CPU Mode Support (Week 1)
+
+**Priority:** HIGH - Required for CI functionality
+
+1. Add `CI_GPU_AVAILABLE=false` environment variable to ML services
+2. Update services to detect CPU mode and use appropriate models
+3. Add `models.txt` files listing required models for GitHub Actions cache
+4. Configure GitHub Actions cache in `.github/workflows/e2e-tests.yml`
+
+**Success Criteria:** Services start in CI (without GPU) using CPU models
+
+### Phase 2: Orchestrator Endpoint Fix (Week 1)
+
+**Priority:** HIGH - Quick win, unblocks tests
+
+1. Fix `call_agent()` function in `services/openclaw-orchestrator/main.py`
+2. Update endpoint mapping to use `/api/{action}` paths
+3. Test orchestrator locally with mocked agent responses
+4. Deploy to CI and verify fix
+
+**Success Criteria:** Orchestration calls reach correct agent endpoints
+
+### Phase 3: Test Reliability Fixes (Week 1-2)
 
 **Priority:** HIGH - Can validate locally
 
-1. Fix orchestrator endpoint mappings
-2. Update test files with proper waits (no hardcoded timeouts)
+1. Update test files with proper waits (no hardcoded timeouts)
+2. Fix WebSocket test race conditions
+3. Add test data factories
+4. Run tests locally to achieve 93%+ pass rate
+5. Address specific failing tests identified from test runs
+
+**Success Criteria:** 93%+ tests passing locally
+
+### Phase 4: Service Startup Optimization (Week 2-3)
+
+**Priority:** MEDIUM - Reduces CI flakiness
+
+1. Implement deferred model loading (load on first request)
+2. Add GitHub Actions cache for HuggingFace models
+3. Create CI-specific configuration files
+4. Rewrite wait-for-services.sh with simpler logic (just check container is up)
+5. Add CPU-optimized model loading paths
+
+**Success Criteria:** CI consistently completes within timeout
+
+### Phase 5: Validation & Monitoring (Week 3)
+
+**Priority:** LOW - Quality assurance
+
+1. Run full CI pipeline 10+ times to verify stability
+2. Add test metrics tracking (pass rate by test suite)
+3. Create dashboard for CI health monitoring
+4. Document known issues and future work
+
+**Success Criteria:** 95%+ CI success rate over 20 runs
 3. Fix WebSocket test race conditions
 4. Add test data factories
 5. Run tests locally to achieve 93%+ pass rate
