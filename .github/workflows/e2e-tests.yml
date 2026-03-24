@@ -24,6 +24,8 @@ on:
 env:
   NODE_VERSION: '20'
   BASE_URL: http://localhost:8000
+  CI_GPU_AVAILABLE: "false"
+  DEVICE: "cpu"
 
 jobs:
   e2e-tests:
@@ -40,6 +42,14 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Cache HuggingFace Models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: ${{ runner.os }}-hf-models-${{ hashFiles('services/**/models.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-hf-models-
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
