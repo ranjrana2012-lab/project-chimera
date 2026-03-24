@@ -30,6 +30,15 @@ AGENTS = {
     "autonomous-agent": settings.autonomous_agent_url,
 }
 
+# Map skill names to actual agent endpoint paths
+SKILL_ENDPOINTS = {
+    "dialogue_generator": "/api/generate",
+    "captioning": "/api/transcribe",
+    "bsl_translation": "/api/translate",
+    "sentiment_analysis": "/api/analyze",
+    "autonomous_execution": "/execute",
+}
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager"""
@@ -517,23 +526,12 @@ async def call_agent(agent_url: str, skill: str, input_data: dict) -> dict:
 
     Special handling for autonomous-agent which uses /execute endpoint
     """
-    # Autonomous agent uses different endpoint structure
-    if skill == "autonomous_execution":
-        endpoint = "/execute"
-    else:
-        endpoint = f"/v1/{skill}"
+    # Use skill endpoint mapping for correct API paths
+    endpoint = SKILL_ENDPOINTS.get(skill, f"/v1/{skill}")
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
             f"{agent_url}{endpoint}",
-            json=input_data
-        )
-        response.raise_for_status()
-        return response.json()
-    """Call agent endpoint"""
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(
-            f"{agent_url}/v1/{skill}",
             json=input_data
         )
         response.raise_for_status()
