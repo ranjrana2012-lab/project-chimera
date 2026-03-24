@@ -271,6 +271,22 @@ export class WebSocketClient {
   }
 
   /**
+   * Wait for WebSocket to be ready (OPEN state)
+   * @param timeout - Maximum time to wait in ms (default: 5000)
+   * @throws Error if timeout is reached
+   */
+  async waitForReady(timeout: number = 5000): Promise<void> {
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeout) {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        return;
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    throw new Error('WebSocket not ready within timeout');
+  }
+
+  /**
    * Get WebSocket ready state
    * @returns The ready state constant
    */
