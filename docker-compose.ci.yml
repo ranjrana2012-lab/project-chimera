@@ -1,43 +1,46 @@
 # Docker Compose override for CI/CD environments
-# - No deploy.replicas (avoids container_name conflicts)
-# - CPU-only mode (no GPU reservations)
+# - Remove all deploy configurations (which contain GPU requests)
+# - CPU-only mode
 # - Auto-restart disabled for faster testing
-# - Simplified logging
 
 services:
   # Infrastructure services - minimal config for CI
   redis:
     restart: "no"
+    deploy: null  # Remove deploy config
 
   kafka:
     restart: "no"
+    deploy: null
 
   zookeeper:
     restart: "no"
+    deploy: null
 
   milvus:
     restart: "no"
+    deploy: null
 
   prometheus:
     restart: "no"
+    deploy: null
 
   jaeger:
     restart: "no"
+    deploy: null
 
   grafana:
     restart: "no"
+    deploy: null
 
-  # Core services - CPU mode, no replicas for CI
+  # Core services - CPU mode for CI
   openclaw-orchestrator:
     restart: "no"
     environment:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy:
-      resources:
-        reservations:
-          devices: []  # Remove GPU devices
+    deploy: null  # Remove deploy config (removes GPU requests)
 
   scenespeak-agent:
     restart: "no"
@@ -46,10 +49,7 @@ services:
       - ENVIRONMENT=ci
       - RELOAD=false
       - DEVICE=cpu
-    deploy:
-      resources:
-        reservations:
-          devices: []  # Remove GPU devices
+    deploy: null
 
   captioning-agent:
     restart: "no"
@@ -59,10 +59,7 @@ services:
       - RELOAD=false
       - WHISPER_DEVICE=cpu
       - WHISPER_COMPUTE_TYPE=int8
-    deploy:
-      resources:
-        reservations:
-          devices: []  # Remove GPU devices
+    deploy: null
 
   bsl-agent:
     restart: "no"
@@ -70,10 +67,7 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy:
-      resources:
-        reservations:
-          devices: []  # Remove GPU devices
+    deploy: null
 
   sentiment-agent:
     restart: "no"
@@ -81,10 +75,7 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy:
-      resources:
-        reservations:
-          devices: []  # Remove GPU devices
+    deploy: null
 
   lighting-sound-music:
     restart: "no"
@@ -92,10 +83,7 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy:
-      resources:
-        reservations:
-          devices: []  # Remove GPU devices
+    deploy: null
 
   safety-filter:
     restart: "no"
@@ -103,10 +91,7 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy:
-      resources:
-        reservations:
-          devices: []  # Remove GPU devices
+    deploy: null
 
   operator-console:
     restart: "no"
@@ -114,10 +99,7 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy:
-      resources:
-        reservations:
-          devices: []  # Remove GPU devices
+    deploy: null
 
   music-generation:
     restart: "no"
@@ -126,7 +108,4 @@ services:
       - ENVIRONMENT=ci
       - RELOAD=false
       - DEVICE=cpu
-    deploy:
-      resources:
-        reservations:
-          devices: []  # Remove GPU devices
+    deploy: null
