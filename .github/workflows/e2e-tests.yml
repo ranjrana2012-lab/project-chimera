@@ -71,6 +71,7 @@ jobs:
 
       - name: Start Services via Docker Compose
         run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml build
           docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
           docker ps
 
@@ -163,6 +164,7 @@ jobs:
 
       - name: Start Services via Docker Compose
         run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml build
           docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
 
       - name: Wait for Services
