@@ -278,8 +278,8 @@ services:
   # Core Services
   openclaw-orchestrator:
     build:
-      context: ./services/openclaw-orchestrator
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/openclaw-orchestrator/Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/openclaw-orchestrator:${SERVICE_VERSION:-1.0.0}
@@ -331,8 +331,8 @@ services:
 
   scenespeak-agent:
     build:
-      context: ./services/scenespeak-agent
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/scenespeak-agent/Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/scenespeak-agent:${SERVICE_VERSION:-1.0.0}
@@ -385,8 +385,8 @@ services:
 
   captioning-agent:
     build:
-      context: ./services/captioning-agent
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/captioning-agent/Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/captioning-agent:${SERVICE_VERSION:-1.0.0}
@@ -439,8 +439,8 @@ services:
 
   bsl-agent:
     build:
-      context: ./services/bsl-agent
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/bsl-agent/Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/bsl-agent:${SERVICE_VERSION:-1.0.0}
@@ -541,8 +541,8 @@ services:
 
   lighting-sound-music:
     build:
-      context: ./services/lighting-sound-music
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/lighting-sound-music/Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/lighting-sound-music:${SERVICE_VERSION:-1.0.0}
@@ -589,8 +589,8 @@ services:
   safety-filter:
     container_name: chimera-safety-filter
     build:
-      context: ./services/safety-filter
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/safety-filter/Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/safety-filter:${SERVICE_VERSION:-1.0.0}
@@ -635,8 +635,8 @@ services:
 
   operator-console:
     build:
-      context: ./services/operator-console
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/operator-console/Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/operator-console:${SERVICE_VERSION:-1.0.0}
@@ -689,8 +689,8 @@ services:
 
   music-generation:
     build:
-      context: ./services/music-generation
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/music-generation/Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/music-generation:${SERVICE_VERSION:-1.0.0}
