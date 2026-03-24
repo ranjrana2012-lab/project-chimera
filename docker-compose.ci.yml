@@ -34,6 +34,104 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
+    deploy: {}  # Override base config - no replicas, no GPU
+
+  scenespeak-agent:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+      - DEVICE=cpu
+    deploy: {}  # Override base config - no GPU devices
+
+  captioning-agent:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+      - WHISPER_DEVICE=cpu
+      - WHISPER_COMPUTE_TYPE=int8
+    deploy: {}  # Override base config - no GPU devices
+
+  bsl-agent:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    deploy: {}  # Override base config - no GPU devices
+
+  sentiment-agent:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    deploy: {}  # Override base config - no GPU devices
+
+  lighting-sound-music:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    deploy: {}  # Override base config - no replicas
+
+  safety-filter:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    deploy: {}  # Override base config - no replicas
+
+  operator-console:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+    deploy: {}  # Override base config - no replicas
+
+  music-generation:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
+      - DEVICE=cpu
+    deploy: {}  # Override base config - no GPU devices
+  # Infrastructure services - minimal config for CI
+  redis:
+    restart: "no"
+
+  kafka:
+    restart: "no"
+
+  zookeeper:
+    restart: "no"
+
+  milvus:
+    restart: "no"
+
+  prometheus:
+    restart: "no"
+
+  jaeger:
+    restart: "no"
+
+  grafana:
+    restart: "no"
+
+  # Core services - CPU mode, no replicas for CI
+  openclaw-orchestrator:
+    restart: "no"
+    environment:
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=ci
+      - RELOAD=false
     # No deploy.replicas - avoids container_name conflict
 
   scenespeak-agent:
