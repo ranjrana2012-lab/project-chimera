@@ -24,15 +24,15 @@ SERVICES=(
 )
 
 # Configuration
-TIMEOUT=120  # seconds
+TIMEOUT=60  # seconds (reduced for faster ready check)
 INTERVAL=2   # seconds
 
-# Function to check service health
+# Function to check service readiness (container running, not necessarily models loaded)
 check_service() {
   local port=$1
   local name=$2
 
-  if curl -sf "http://localhost:${port}/health" > /dev/null 2>&1; then
+  if curl -sf "http://localhost:${port}/health/ready" > /dev/null 2>&1; then
     return 0
   else
     return 1
@@ -64,6 +64,29 @@ wait_for_service() {
   return 1
 }
 
+# Function to wait for model loading (only for ML services)
+wait_for_models() {
+  local ml_services=("8001:scenespeak" "8002:captioning" "8003:bsl" "8004:sentiment" "8011:music")
+
+  echo ""
+  echo "Waiting for ML models to load..."
+
+  for service in "${ml_services[@]}"; do
+    IFS=':' read -r PORT NAME <<< "$service"
+    echo -n "  $NAME models... "
+
+    local elapsed=0
+    while [ $elapsed -lt 180 ]; do
+      if curl -sf "http://localhost:${PORT}/health/live" > /dev/null 2>&1; then
+        echo -e "${GREEN}loaded${NC}"
+        break
+      fi
+      sleep 5
+      elapsed=$((elapsed + 5))
+    done
+  done
+}
+
 # Main execution
 main() {
   echo "====================================================================="
@@ -83,6 +106,11 @@ main() {
       failed_services+=("$NAME")
     fi
   done
+
+  # Wait for ML models to load (only if all containers are ready)
+  if [ ${#failed_services[@]} -eq 0 ]; then
+    wait_for_models
+  fi
 
   echo ""
   echo "====================================================================="
