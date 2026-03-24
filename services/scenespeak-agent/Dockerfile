@@ -18,11 +18,11 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Install dependencies
-COPY requirements.txt .
+COPY services/scenespeak-agent/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY services/scenespeak-agent/ . .
 
 # Expose service port
 EXPOSE 8001

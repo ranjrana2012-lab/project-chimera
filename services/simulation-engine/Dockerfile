@@ -6,11 +6,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
-COPY requirements.txt .
+COPY services/simulation-engine/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application
-COPY . .
+COPY services/simulation-engine/ . .
 
 # Expose port
 EXPOSE 8016

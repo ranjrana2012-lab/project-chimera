@@ -7,12 +7,12 @@ RUN apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY services/operator-console/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY *.py ./
+COPY services/operator-console/*.py ./
 RUN mkdir -p static
-COPY static/ ./static/
+COPY services/operator-console/static/ ./static/
 
 EXPOSE 8007
 

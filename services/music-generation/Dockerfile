@@ -32,14 +32,14 @@ ENV CC=gcc \
     CMAKE_MAKE_PROGRAM=make
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY services/music-generation/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY *.py ./
-COPY tests/ ./tests/
+COPY services/music-generation/*.py ./
+COPY services/music-generation/tests/ ./tests/
 
 # Create directory for models
 RUN mkdir -p /models/musicgen /models/acestep /models/cache

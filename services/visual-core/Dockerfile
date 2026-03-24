@@ -13,14 +13,14 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install Python dependencies
-COPY requirements.txt .
+COPY services/visual-core/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Create necessary directories
 RUN mkdir -p /app/cache/videos /app/models/lora
 
 # Copy application code
-COPY . .
+COPY services/visual-core/ . .
 
 # Set Python path and port
 ENV PYTHONPATH=/app

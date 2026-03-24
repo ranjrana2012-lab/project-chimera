@@ -17,14 +17,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY services/bsl-agent/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY *.py ./
-COPY tests/ ./tests/
+COPY services/bsl-agent/*.py ./
+COPY services/bsl-agent/tests/ ./tests/
 
 # Copy shared module
 COPY services/shared/ /app/shared/

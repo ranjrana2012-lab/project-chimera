@@ -24,14 +24,14 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY services/lighting-sound-music/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY services/lighting-sound-music/ . .
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && \
