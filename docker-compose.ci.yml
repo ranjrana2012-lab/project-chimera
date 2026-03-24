@@ -1,5 +1,5 @@
 # Docker Compose override for CI/CD environments
-# - Remove all deploy configurations (which contain GPU requests)
+# - Disable GPU requests by setting GPU_COUNT=0
 # - CPU-only mode
 # - Auto-restart disabled for faster testing
 
@@ -7,31 +7,24 @@ services:
   # Infrastructure services - minimal config for CI
   redis:
     restart: "no"
-    deploy: null  # Remove deploy config
 
   kafka:
     restart: "no"
-    deploy: null
 
   zookeeper:
     restart: "no"
-    deploy: null
 
   milvus:
     restart: "no"
-    deploy: null
 
   prometheus:
     restart: "no"
-    deploy: null
 
   jaeger:
     restart: "no"
-    deploy: null
 
   grafana:
     restart: "no"
-    deploy: null
 
   # Core services - CPU mode for CI
   openclaw-orchestrator:
@@ -40,7 +33,6 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: null  # Remove deploy config (removes GPU requests)
 
   scenespeak-agent:
     restart: "no"
@@ -49,7 +41,7 @@ services:
       - ENVIRONMENT=ci
       - RELOAD=false
       - DEVICE=cpu
-    deploy: null
+      - GPU_COUNT=0  # Disable GPU requests
 
   captioning-agent:
     restart: "no"
@@ -59,7 +51,7 @@ services:
       - RELOAD=false
       - WHISPER_DEVICE=cpu
       - WHISPER_COMPUTE_TYPE=int8
-    deploy: null
+      - GPU_COUNT=0  # Disable GPU requests
 
   bsl-agent:
     restart: "no"
@@ -67,7 +59,7 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: null
+      - GPU_COUNT=0  # Disable GPU requests
 
   sentiment-agent:
     restart: "no"
@@ -75,7 +67,6 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: null
 
   lighting-sound-music:
     restart: "no"
@@ -83,7 +74,6 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: null
 
   safety-filter:
     restart: "no"
@@ -91,7 +81,6 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: null
 
   operator-console:
     restart: "no"
@@ -99,7 +88,6 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: null
 
   music-generation:
     restart: "no"
@@ -108,4 +96,4 @@ services:
       - ENVIRONMENT=ci
       - RELOAD=false
       - DEVICE=cpu
-    deploy: null
+      - GPU_COUNT=0  # Disable GPU requests
