@@ -34,7 +34,10 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: {}  # Override base config - no replicas, no GPU
+    deploy:
+      resources:
+        reservations:
+          devices: []  # Remove GPU devices
 
   scenespeak-agent:
     restart: "no"
@@ -43,7 +46,10 @@ services:
       - ENVIRONMENT=ci
       - RELOAD=false
       - DEVICE=cpu
-    deploy: {}  # Override base config - no GPU devices
+    deploy:
+      resources:
+        reservations:
+          devices: []  # Remove GPU devices
 
   captioning-agent:
     restart: "no"
@@ -53,7 +59,10 @@ services:
       - RELOAD=false
       - WHISPER_DEVICE=cpu
       - WHISPER_COMPUTE_TYPE=int8
-    deploy: {}  # Override base config - no GPU devices
+    deploy:
+      resources:
+        reservations:
+          devices: []  # Remove GPU devices
 
   bsl-agent:
     restart: "no"
@@ -61,7 +70,10 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: {}  # Override base config - no GPU devices
+    deploy:
+      resources:
+        reservations:
+          devices: []  # Remove GPU devices
 
   sentiment-agent:
     restart: "no"
@@ -69,7 +81,10 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: {}  # Override base config - no GPU devices
+    deploy:
+      resources:
+        reservations:
+          devices: []  # Remove GPU devices
 
   lighting-sound-music:
     restart: "no"
@@ -77,7 +92,10 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: {}  # Override base config - no replicas
+    deploy:
+      resources:
+        reservations:
+          devices: []  # Remove GPU devices
 
   safety-filter:
     restart: "no"
@@ -85,7 +103,10 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: {}  # Override base config - no replicas
+    deploy:
+      resources:
+        reservations:
+          devices: []  # Remove GPU devices
 
   operator-console:
     restart: "no"
@@ -93,7 +114,10 @@ services:
       - LOG_LEVEL=INFO
       - ENVIRONMENT=ci
       - RELOAD=false
-    deploy: {}  # Override base config - no replicas
+    deploy:
+      resources:
+        reservations:
+          devices: []  # Remove GPU devices
 
   music-generation:
     restart: "no"
@@ -102,4 +126,7 @@ services:
       - ENVIRONMENT=ci
       - RELOAD=false
       - DEVICE=cpu
-    deploy: {}  # Override base config - no GPU devices
+    deploy:
+      resources:
+        reservations:
+          devices: []  # Remove GPU devices
