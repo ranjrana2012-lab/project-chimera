@@ -26,25 +26,34 @@ class SentimentModel:
             return "cuda"
         return "cpu"
 
-    def load(self, max_retries: int = 3, retry_delay: int = 5):
+    def load(self, max_retries: int = 5, retry_delay: int = 10):
         """Load model and tokenizer with retry logic for network resilience."""
         logger.info(f"Loading {self.MODEL_NAME} on {self.device}")
 
         for attempt in range(max_retries):
             try:
-                # Set a longer timeout for HuggingFace downloads (60 seconds)
+                # Set longer timeouts for HuggingFace downloads
+                # HF_HUB_DOWNLOAD_TIMEOUT: total timeout for download operation
+                # Transformers library also has its own timeout via timeout parameter
                 import os
-                os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = '60'
 
+                # Set very long timeout for slow CI networks (300 seconds = 5 minutes)
+                os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = '300'
+
+                # Load tokenizer with extended timeout (30 seconds per file)
                 self.tokenizer = DistilBertTokenizer.from_pretrained(
                     self.MODEL_NAME,
                     cache_dir=self.cache_dir,
-                    local_files_only=False
+                    local_files_only=False,
+                    timeout=30
                 )
+
+                # Load model with extended timeout (60 seconds for model files)
                 self.model = DistilBertForSequenceClassification.from_pretrained(
                     self.MODEL_NAME,
                     cache_dir=self.cache_dir,
-                    local_files_only=False
+                    local_files_only=False,
+                    timeout=60
                 )
                 self.model.to(self.device)
                 self.model.eval()
