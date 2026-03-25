@@ -504,6 +504,7 @@ services:
       - SENTIMENT_THRESHOLD=${SENTIMENT_THRESHOLD:-0.5}
     volumes:
       - chimera-sentiment-cache:/app/cache
+      - chimera-sentiment-models:/app/models_cache
     depends_on:
       redis:
         condition: service_healthy
@@ -790,6 +791,8 @@ volumes:
     name: chimera-whisper-models
   chimera-bsl-models:
     name: chimera-bsl-models
+  chimera-sentiment-models:
+    name: chimera-sentiment-models
   chimera-music-models:
     name: chimera-music-models
   chimera-huggingface-cache:

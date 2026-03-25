@@ -3,6 +3,7 @@
 import torch
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -25,18 +26,42 @@ class SentimentModel:
             return "cuda"
         return "cpu"
 
-    def load(self):
-        """Load model and tokenizer."""
+    def load(self, max_retries: int = 3, retry_delay: int = 5):
+        """Load model and tokenizer with retry logic for network resilience."""
         logger.info(f"Loading {self.MODEL_NAME} on {self.device}")
-        self.tokenizer = DistilBertTokenizer.from_pretrained(
-            self.MODEL_NAME, cache_dir=self.cache_dir
-        )
-        self.model = DistilBertForSequenceClassification.from_pretrained(
-            self.MODEL_NAME, cache_dir=self.cache_dir
-        )
-        self.model.to(self.device)
-        self.model.eval()
-        logger.info("Model loaded successfully")
+
+        for attempt in range(max_retries):
+            try:
+                # Set a longer timeout for HuggingFace downloads (60 seconds)
+                import os
+                os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = '60'
+
+                self.tokenizer = DistilBertTokenizer.from_pretrained(
+                    self.MODEL_NAME,
+                    cache_dir=self.cache_dir,
+                    local_files_only=False
+                )
+                self.model = DistilBertForSequenceClassification.from_pretrained(
+                    self.MODEL_NAME,
+                    cache_dir=self.cache_dir,
+                    local_files_only=False
+                )
+                self.model.to(self.device)
+                self.model.eval()
+                logger.info("Model loaded successfully")
+                return
+
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait_time = retry_delay * (attempt + 1)
+                    logger.warning(
+                        f"Failed to load model (attempt {attempt + 1}/{max_retries}): {e}. "
+                        f"Retrying in {wait_time}s..."
+                    )
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f"Failed to load model after {max_retries} attempts: {e}")
+                    raise
 
     def analyze(self, text: str) -> dict:
         """Analyze sentiment of text."""

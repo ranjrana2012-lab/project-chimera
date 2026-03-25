@@ -18,8 +18,8 @@ COPY services/sentiment-agent/requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download ML model (if needed during build)
-RUN python3 -c 'from transformers import DistilBertTokenizer, DistilBertForSequenceClassification; import os; cache_dir = "./models_cache"; os.makedirs(cache_dir, exist_ok=True); print("Downloading DistilBERT model..."); DistilBertTokenizer.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english", cache_dir=cache_dir); DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english", cache_dir=cache_dir); print("Model downloaded successfully")'
+# Create models cache directory (model will be downloaded at runtime)
+RUN mkdir -p ./models_cache
 
 # Copy source code
 COPY services/sentiment-agent/src/ /app/src/
