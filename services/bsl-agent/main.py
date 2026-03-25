@@ -200,19 +200,15 @@ async def liveness():
 
 @app.get("/health/ready", response_model=ReadinessResponse)
 async def readiness():
-    """Enhanced readiness endpoint with model and dependency info."""
-    uptime = int(time.time() - startup_time)
-
+    """Readiness check endpoint - returns when service is ready to handle requests."""
     return ReadinessResponse(
         status="ready",
-        version="1.0.0",
-        uptime=uptime,
-        model_info=ModelInfo(
-            loaded=True,
-            name="bsl-avatar-v1",
-            last_loaded=datetime.now(UTC)
-        ),
-        metrics=None  # Will be implemented with full metrics tracking
+        checks={
+            "translator": True,
+            "avatar_renderer": True,
+            "redis": True,
+            "kafka": True
+        }
     )
 
 

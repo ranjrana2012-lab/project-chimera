@@ -378,10 +378,6 @@ services:
         reservations:
           cpus: ${SCENESPEAK_CPU_RESERVATION:-0.5}
           memory: ${SCENESPEAK_MEMORY_RESERVATION:-256M}
-          devices:
-            - driver: nvidia
-              count: ${GPU_COUNT:-1}
-              capabilities: [gpu, compute, utility]
 
   captioning-agent:
     build:
@@ -432,10 +428,6 @@ services:
         reservations:
           cpus: ${CAPTIONING_CPU_RESERVATION:-0.5}
           memory: ${CAPTIONING_MEMORY_RESERVATION:-256M}
-          devices:
-            - driver: nvidia
-              count: ${GPU_COUNT:-1}
-              capabilities: [gpu, compute, utility]
 
   bsl-agent:
     build:
@@ -451,7 +443,7 @@ services:
       - SERVICE_NAME=bsl-agent
       - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
       - PORT=${BSL_AGENT_PORT:-8003}
-      - REDIS_URL=${REDIS_URL:-redis:redis:6379}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
       - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
       - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
@@ -487,10 +479,6 @@ services:
         reservations:
           cpus: ${BSL_CPU_RESERVATION:-0.5}
           memory: ${BSL_MEMORY_RESERVATION:-256M}
-          devices:
-            - driver: nvidia
-              count: ${GPU_COUNT:-1}
-              capabilities: [gpu, compute, utility]
 
   sentiment-agent:
     build:
@@ -744,10 +732,6 @@ services:
         reservations:
           cpus: ${MUSIC_CPU_RESERVATION:-0.5}
           memory: ${MUSIC_MEMORY_RESERVATION:-512M}
-          devices:
-            - driver: nvidia
-              count: ${GPU_COUNT:-1}
-              capabilities: [gpu, compute, utility]
 
 networks:
   chimera-backend:
