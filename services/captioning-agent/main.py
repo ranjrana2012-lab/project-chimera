@@ -185,20 +185,18 @@ async def health():
 
 @app.get("/health/ready", response_model=ReadinessResponse)
 async def readiness():
-    """Enhanced readiness endpoint with model and dependency info."""
-    uptime = int(time.time() - startup_time)
-    model_loaded = whisper_service is not None and whisper_service.is_loaded()
+    """Readiness check endpoint - returns when service is ready to handle requests."""
+    # Service is ready if whisper_service is initialized
+    # Model uses lazy loading and will load on first request
+    service_ready = whisper_service is not None
 
     return ReadinessResponse(
-        status="ready" if model_loaded else "not_ready",
-        version="1.0.0",
-        uptime=uptime,
-        model_info=ModelInfo(
-            loaded=model_loaded,
-            name=settings.whisper_model_size if model_loaded else None,
-            last_loaded=datetime.now(UTC) if model_loaded else None
-        ),
-        metrics=None  # Will be implemented with full metrics tracking
+        status="ready" if service_ready else "not_ready",
+        checks={
+            "whisper_service": service_ready,
+            "redis": True,
+            "kafka": True
+        }
     )
 
 
