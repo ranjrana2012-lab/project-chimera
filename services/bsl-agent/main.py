@@ -163,10 +163,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=422,
         content=StandardErrorResponse(
-            error=error_msg,
-            code=ErrorCode.VALIDATION_ERROR,
-            detail=str(exc.errors()),
-            retryable=False
+            error=ErrorCode.VALIDATION_ERROR,
+            message=error_msg,
+            detail=str(exc.errors())
         ).model_dump()
     )
 
