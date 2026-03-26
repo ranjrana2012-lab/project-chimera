@@ -1,0 +1,17 @@
+[project]
+name = "chimera-perf-optimizer"
+version = "0.1.0"
+description = "Performance optimization service"
+requires-python = ">=3.10"
+dependencies = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "httpx>=0.25.2",
+    "psutil>=5.9.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]

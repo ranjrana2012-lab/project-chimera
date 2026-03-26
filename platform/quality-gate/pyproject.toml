@@ -1,0 +1,16 @@
+[project]
+name = "chimera-quality-gate"
+version = "0.1.0"
+description = "SLO gate and quality checks"
+requires-python = ">=3.10"
+dependencies = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "httpx>=0.25.2",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
