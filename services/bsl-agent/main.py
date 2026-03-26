@@ -162,11 +162,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     return JSONResponse(
         status_code=422,
-        content=StandardErrorResponse(
-            error=ErrorCode.VALIDATION_ERROR,
-            message=error_msg,
-            detail=str(exc.errors())
-        ).model_dump()
+        content={
+            "detail": error_msg,
+            "errors": exc.errors()
+        }
     )
 
 # Instrument FastAPI with automatic tracing
