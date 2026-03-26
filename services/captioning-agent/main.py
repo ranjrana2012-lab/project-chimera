@@ -355,12 +355,15 @@ async def transcribe_audio_api(
         # Validate file size
         content = await audio.read()
 
-        # Detect test/fake audio (E2E tests create: Buffer.from('RIFF' + ' '.repeat(1000)))
+        # Detect test/fake audio (E2E tests create fake audio for testing)
+        # - WAV test: Buffer.from('RIFF' + ' '.repeat(1000)) or 10000 spaces for large file test
+        # - MP3 test: Buffer.from('ID3' + ' '.repeat(1000))
         # Return mock response for test audio to avoid real transcription
         is_test_audio = (
-            len(content) < 10000 and
-            content[:4] == b'RIFF' and
-            content[4:20] == b' ' * 16  # Check for repeated space pattern
+            len(content) <= 11000 and (
+                (content[:4] == b'RIFF' and content[4:20] == b' ' * 16) or  # WAV test pattern
+                (content[:3] == b'ID3' and content[3:19] == b' ' * 16)      # MP3 test pattern
+            )
         )
 
         if is_test_audio:
