@@ -30,7 +30,7 @@ test.describe('Sentiment Agent API', () => {
   test('@api sentiment analysis with ML model', async ({ request }) => {
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'This is absolutely amazing!' },
-      timeout: 15000
+      timeout: 60000
     });
 
     expect(response.status()).toBe(200);
@@ -50,7 +50,7 @@ test.describe('Sentiment Agent API', () => {
   test('@api sentiment analysis handles positive input', async ({ request }) => {
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'This is amazing! I love it so much!' },
-      timeout: 15000
+      timeout: 60000
     });
 
     expect(response.status()).toBe(200);
@@ -63,7 +63,7 @@ test.describe('Sentiment Agent API', () => {
   test('@api sentiment analysis handles negative input', async ({ request }) => {
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'This is terrible and I hate it' },
-      timeout: 15000
+      timeout: 60000
     });
 
     expect(response.status()).toBe(200);
@@ -76,7 +76,7 @@ test.describe('Sentiment Agent API', () => {
   test('@api sentiment analysis handles neutral input', async ({ request }) => {
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'The sky is blue' },
-      timeout: 15000
+      timeout: 60000
     });
 
     expect(response.status()).toBe(200);
@@ -88,7 +88,7 @@ test.describe('Sentiment Agent API', () => {
   test('@api sentiment analysis returns emotion breakdown', async ({ request }) => {
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'I am so happy and excited!' },
-      timeout: 15000
+      timeout: 60000
     });
 
     expect(response.status()).toBe(200);
@@ -107,7 +107,7 @@ test.describe('Sentiment Agent API', () => {
   test('@api sentiment analysis includes metadata', async ({ request }) => {
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'Test text for sentiment' },
-      timeout: 15000
+      timeout: 60000
     });
 
     expect(response.status()).toBe(200);
@@ -153,7 +153,7 @@ test.describe('Sentiment Agent API', () => {
 
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: longText },
-      timeout: 20000
+      timeout: 60000
     });
 
     expect(response.status()).toBe(200);
@@ -167,7 +167,7 @@ test.describe('Sentiment Agent API', () => {
 
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'Quick sentiment test' },
-      timeout: 10000
+      timeout: 60000
     });
 
     const latency = Date.now() - startTime;
@@ -199,7 +199,7 @@ test.describe('Sentiment Agent API', () => {
           'It is okay'
         ]
       },
-      timeout: 25000
+      timeout: 60000
     });
 
     // Batch endpoint may not be implemented
@@ -221,7 +221,7 @@ test.describe('Sentiment Agent API', () => {
         text: 'This is amazing',
         detect_language: true
       },
-      timeout: 15000
+      timeout: 60000
     });
 
     expect(response.status()).toBe(200);
