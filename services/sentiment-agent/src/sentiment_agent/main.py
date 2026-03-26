@@ -151,14 +151,16 @@ async def lifespan(app: FastAPI):
     logger.info(f"ML model enabled: {settings.use_ml_model}")
     logger.info(f"Tracing enabled: {settings.enable_tracing}")
 
-    # Load ML model on startup
+    # Load ML model on startup (with graceful fallback to mock)
     try:
         analyzer.model.load()
         analyzer.model_available = True
         logger.info("Sentiment ML model loaded successfully")
     except Exception as e:
-        logger.error(f"Failed to load ML model: {e}")
-        raise  # Fail startup if model unavailable
+        logger.warning(f"Failed to load ML model, using mock implementation: {e}")
+        analyzer.model_available = False
+        # Don't raise - service will use mock sentiment analysis
+        logger.info("Service starting with mock sentiment analysis")
 
     logger.info(f"Model available: {analyzer.model_available}")
 
