@@ -32,8 +32,9 @@ test.describe('Real-time Sentiment Updates', () => {
     });
 
     // Send sentiment via API
-    const sentimentResponse = await request.post('http://localhost:8004/v1/analyze', {
-      data: { text: 'amazing performance' }
+    const sentimentResponse = await request.post('http://localhost:8004/api/analyze', {
+      data: { text: 'amazing performance' },
+      timeout: 120000  // Account for ML lazy loading
     });
     expect(sentimentResponse.ok()).toBeTruthy();
 
@@ -88,7 +89,8 @@ test.describe('Real-time Sentiment Updates', () => {
 
     // Send sentiment with clear emotional content
     await request.post('http://localhost:8004/api/analyze', {
-      data: { text: 'This is absolutely fantastic and wonderful!' }
+      data: { text: 'This is absolutely fantastic and wonderful!' },
+      timeout: 120000  // Account for ML lazy loading
     });
 
     // Verify confidence score is included

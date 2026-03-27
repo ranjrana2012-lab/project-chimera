@@ -328,11 +328,11 @@ test.describe('Service Failure Resilience', () => {
   });
 
   test('@failure network timeout handling', async ({ page, request }) => {
-    // Test with extremely short timeout to simulate network issues
-    const response = await request.get('http://localhost:8001/api/generate', {
-      timeout: 1,
+    // Test with short timeout to simulate network issues (100ms is realistic for testing)
+    const response = await request.post('http://localhost:8001/api/generate', {
+      timeout: 100,
       data: {
-        prompt: 'This should timeout',
+        prompt: 'This should timeout due to slow processing',
         context: { scene: 'test' }
       }
     });
