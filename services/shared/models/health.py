@@ -8,7 +8,7 @@ class ReadinessResponse(BaseModel):
     """Readiness check response with component status."""
     status: str = Field(..., description="Overall readiness status: ready, not_ready")
     checks: Dict[str, bool] = Field(default_factory=dict, description="Component readiness checks")
-    model_info: Optional[ModelInfo] = Field(None, description="Information about ML models used by this service")
+    model_info: Optional['ModelInfo'] = Field(None, description="Information about ML models used by this service")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
