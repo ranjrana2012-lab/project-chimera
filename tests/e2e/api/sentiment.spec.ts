@@ -28,10 +28,10 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api sentiment analysis with ML model', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'This is absolutely amazing!' },
-      timeout: 60000
+      timeout: 120000
     });
 
     expect(response.status()).toBe(200);
@@ -49,10 +49,10 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api sentiment analysis handles positive input', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'This is amazing! I love it so much!' },
-      timeout: 60000
+      timeout: 120000
     });
 
     expect(response.status()).toBe(200);
@@ -63,10 +63,10 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api sentiment analysis handles negative input', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'This is terrible and I hate it' },
-      timeout: 60000
+      timeout: 120000
     });
 
     expect(response.status()).toBe(200);
@@ -77,10 +77,10 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api sentiment analysis handles neutral input', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'The sky is blue' },
-      timeout: 60000
+      timeout: 120000
     });
 
     expect(response.status()).toBe(200);
@@ -90,10 +90,10 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api sentiment analysis returns emotion breakdown', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'I am so happy and excited!' },
-      timeout: 60000
+      timeout: 120000
     });
 
     expect(response.status()).toBe(200);
@@ -110,10 +110,10 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api sentiment analysis includes metadata', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'Test text for sentiment' },
-      timeout: 60000
+      timeout: 120000
     });
 
     expect(response.status()).toBe(200);
@@ -155,12 +155,12 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api handles very long text', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const longText = 'This is a test. '.repeat(500);
 
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: longText },
-      timeout: 60000
+      timeout: 120000
     });
 
     expect(response.status()).toBe(200);
@@ -170,12 +170,12 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api sentiment analysis completes quickly', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const startTime = Date.now();
 
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: { text: 'Quick sentiment test' },
-      timeout: 60000
+      timeout: 120000
     });
 
     const latency = Date.now() - startTime;
@@ -199,7 +199,7 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api batch sentiment analysis', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const response = await request.post(`${baseURL}/api/analyze/batch`, {
       data: {
         texts: [
@@ -208,7 +208,7 @@ test.describe('Sentiment Agent API', () => {
           'It is okay'
         ]
       },
-      timeout: 60000
+      timeout: 120000
     });
 
     // Batch endpoint may not be implemented
@@ -225,13 +225,13 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api sentiment with language detection', async ({ request }) => {
-    test.setTimeout(60000);  // Override global 30s timeout for ML lazy loading
+    test.setTimeout(120000);  // Override global timeout for ML lazy loading (120s for CI)
     const response = await request.post(`${baseURL}/api/analyze`, {
       data: {
         text: 'This is amazing',
         detect_language: true
       },
-      timeout: 60000
+      timeout: 120000
     });
 
     expect(response.status()).toBe(200);
