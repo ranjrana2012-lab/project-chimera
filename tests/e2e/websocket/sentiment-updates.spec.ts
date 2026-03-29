@@ -18,14 +18,14 @@ import { ChimeraTestHelper } from '../helpers/test-utils';
  * - @realtime: Real-time communication tests
  */
 
-test.describe.skip('Real-time Sentiment Updates - WebSocket client helper needs Node.js compatibility fix (use ws package or Playwright browser context)', () => {
+test.describe('Real-time Sentiment Updates', () => {
   let helper: ChimeraTestHelper;
 
   test.beforeEach(async ({ page, request }) => {
     helper = new ChimeraTestHelper(page, request);
   });
 
-  test.skip('@smoke @websocket sentiment updates flow through WebSocket - WebSocket client helper needs Node.js compatibility fix', async ({ request }) => {
+  test('@smoke @websocket sentiment updates flow through WebSocket', async ({ request }) => {
     // Connect to orchestrator WebSocket
     const wsClient = await createWebSocketClient('ws://localhost:8000/ws/show', {
       connectionTimeout: 10000
@@ -575,7 +575,7 @@ test.describe.skip('Real-time Sentiment Updates - WebSocket client helper needs 
 /**
  * WebSocket connection management tests
  */
-test.describe.skip('WebSocket Connection Management - WebSocket client helper needs Node.js compatibility fix', () => {
+test.describe('WebSocket Connection Management', () => {
   test.skip('@websocket connection timeout can be configured - flaky in CI environment', async () => {
     // Test with very short timeout
     const client = new WebSocketClient('ws://localhost:9999/ws/show', {

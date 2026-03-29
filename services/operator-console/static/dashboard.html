@@ -22,7 +22,9 @@
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
-    <!-- Header -->
+    <!-- Root element for E2E testing and React compatibility -->
+    <div id="root">
+        <!-- Header -->
     <header class="bg-gray-800 border-b border-gray-700 px-6 py-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
@@ -114,6 +116,7 @@
                 <!-- Events will be dynamically inserted -->
             </div>
         </div>
+    </div>
     </main>
 
     <script src="/static/dashboard.js"></script>

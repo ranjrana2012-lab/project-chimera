@@ -23,7 +23,7 @@ test.describe('Operator Console UI', () => {
     helper = new ChimeraTestHelper(page, request);
   });
 
-  test.skip('@smoke @ui dashboard loads successfully - React app #root element not visible, needs frontend investigation', async ({ page }) => {
+  test('@smoke @ui dashboard loads successfully', async ({ page }) => {
     // Navigate to console
     await helper.navigateToConsole();
 

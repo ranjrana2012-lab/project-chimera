@@ -5,13 +5,33 @@ Defines request/response models for sentiment analysis with rule-based
 and ML model support.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, constr
 from typing import List, Dict, Optional
 
 
 class AnalyzeRequest(BaseModel):
     """Request for sentiment analysis"""
     text: str = Field(..., min_length=0, description="Text to analyze for sentiment")
+
+
+class ApiAnalyzeRequest(BaseModel):
+    """Request for /api/analyze endpoint with proper validation
+
+    This model is used by the /api/analyze endpoint to ensure
+    proper JSON validation and return 422 for malformed requests.
+    """
+    text: constr(min_length=1, max_length=5000) = Field(
+        ...,
+        description="Text to analyze for sentiment (required, 1-5000 chars)"
+    )
+    language: Optional[str] = Field(
+        None,
+        description="Optional language code (e.g., 'en', 'es')"
+    )
+    detect_language: bool = Field(
+        False,
+        description="Whether to detect language automatically"
+    )
 
 
 class BatchRequest(BaseModel):

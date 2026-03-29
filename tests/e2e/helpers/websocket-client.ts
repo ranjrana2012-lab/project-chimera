@@ -16,6 +16,21 @@ export interface WebSocketOptions {
 }
 
 /**
+ * Node.js WebSocket type for the ws package
+ */
+type NodeWebSocket = import('ws').WebSocket;
+
+/**
+ * ReadyState constants for WebSocket (matching browser API)
+ */
+const READY_STATE = {
+  CONNECTING: 0,
+  OPEN: 1,
+  CLOSING: 2,
+  CLOSED: 3
+};
+
+/**
  * WebSocketClient - Wrapper for WebSocket with enhanced features
  *
  * Provides:
@@ -24,9 +39,10 @@ export interface WebSocketOptions {
  * - Message filtering by type
  * - Reconnection support
  * - Message history
+ * - Node.js compatibility via ws package
  */
 export class WebSocketClient {
-  private ws: WebSocket | null = null;
+  private ws: NodeWebSocket | null = null;
   private messages: WebSocketMessage[] = [];
   private messageHandlers: Map<string, Array<(msg: WebSocketMessage) => void>> = new Map();
   private reconnectAttempts: number = 0;
@@ -65,33 +81,44 @@ export class WebSocketClient {
       }, this.options.connectionTimeout);
 
       try {
-        this.ws = new WebSocket(this.url);
+        // Dynamic import of ws package for Node.js compatibility
+        import('ws').then(({ default: WebSocket }) => {
+          this.ws = new WebSocket(this.url, {
+            followRedirects: true,
+            rejectUnauthorized: false // For local development
+          });
 
-        this.ws.onopen = () => {
-          clearTimeout(timeout);
-          this.reconnectAttempts = 0;
-          console.log(`✅ WebSocket connected to ${this.url}`);
-          resolve();
-        };
+          // Set up event handlers using ws package API
+          this.ws.on('open', () => {
+            clearTimeout(timeout);
+            this.reconnectAttempts = 0;
+            console.log(`✅ WebSocket connected to ${this.url}`);
+            resolve();
+          });
 
-        this.ws.onerror = (error) => {
-          clearTimeout(timeout);
-          const errorMessage = `WebSocket error: ${error}`;
-          console.error(errorMessage);
-          this.handleReconnect().then(resolve).catch(reject);
-        };
-
-        this.ws.onclose = (event) => {
-          console.log(`WebSocket closed: ${event.code} - ${event.reason}`);
-
-          if (!this.isManualClose && this.reconnectAttempts < (this.options.maxReconnectAttempts || 5)) {
+          this.ws.on('error', (error: Error) => {
+            clearTimeout(timeout);
+            const errorMessage = `WebSocket error: ${error}`;
+            console.error(errorMessage);
             this.handleReconnect().then(resolve).catch(reject);
-          }
-        };
+          });
 
-        this.ws.onmessage = (event) => {
-          this.handleMessage(event);
-        };
+          this.ws.on('close', () => {
+            console.log(`WebSocket closed`);
+
+            if (!this.isManualClose && this.reconnectAttempts < (this.options.maxReconnectAttempts || 5)) {
+              this.handleReconnect().then(resolve).catch(reject);
+            }
+          });
+
+          this.ws.on('message', (data: Buffer) => {
+            this.handleMessage(data);
+          });
+
+        }).catch((error) => {
+          clearTimeout(timeout);
+          reject(new Error(`Failed to import WebSocket: ${error}`));
+        });
 
       } catch (error) {
         clearTimeout(timeout);
@@ -130,11 +157,11 @@ export class WebSocketClient {
 
   /**
    * Handle incoming WebSocket message
-   * @param event - Message event
+   * @param data - Message data (Buffer from ws package)
    */
-  private handleMessage(event: MessageEvent): void {
+  private handleMessage(data: Buffer): void {
     try {
-      const message: WebSocketMessage = JSON.parse(event.data.toString());
+      const message: WebSocketMessage = JSON.parse(data.toString());
       this.messages.push(message);
 
       // Call any registered handlers for this message type
@@ -146,7 +173,7 @@ export class WebSocketClient {
       // Store raw message if parsing fails
       this.messages.push({
         type: 'raw',
-        data: event.data.toString(),
+        data: data.toString(),
         parseError: String(error)
       });
     }
@@ -158,7 +185,7 @@ export class WebSocketClient {
    * @throws Error if WebSocket is not connected
    */
   send(data: any): void {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+    if (!this.ws || this.ws.readyState !== READY_STATE.OPEN) {
       throw new Error('WebSocket is not connected. Call connect() first.');
     }
 
@@ -267,7 +294,7 @@ export class WebSocketClient {
    * @returns true if connected, false otherwise
    */
   isConnected(): boolean {
-    return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
+    return this.ws !== null && this.ws.readyState === READY_STATE.OPEN;
   }
 
   /**
@@ -278,7 +305,7 @@ export class WebSocketClient {
   async waitForReady(timeout: number = 5000): Promise<void> {
     const startTime = Date.now();
     while (Date.now() - startTime < timeout) {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      if (this.ws && this.ws.readyState === READY_STATE.OPEN) {
         return;
       }
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -288,10 +315,10 @@ export class WebSocketClient {
 
   /**
    * Get WebSocket ready state
-   * @returns The ready state constant
+   * @returns The ready state constant (0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED)
    */
   getReadyState(): number {
-    return this.ws?.readyState ?? WebSocket.CLOSED;
+    return this.ws?.readyState ?? READY_STATE.CLOSED;
   }
 
   /**
@@ -302,7 +329,7 @@ export class WebSocketClient {
   close(code: number = 1000, reason?: string): void {
     this.isManualClose = true;
 
-    if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
+    if (this.ws && this.ws.readyState !== READY_STATE.CLOSED) {
       this.ws.close(code, reason);
     }
 

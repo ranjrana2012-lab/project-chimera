@@ -40,20 +40,18 @@ class SentimentModel:
                 # Set very long timeout for slow CI networks (300 seconds = 5 minutes)
                 os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = '300'
 
-                # Load tokenizer with extended timeout (30 seconds per file)
+                # Load tokenizer (HF_HUB_DOWNLOAD_TIMEOUT env var handles download timeout)
                 self.tokenizer = DistilBertTokenizer.from_pretrained(
                     self.MODEL_NAME,
                     cache_dir=self.cache_dir,
-                    local_files_only=False,
-                    timeout=30
+                    local_files_only=False
                 )
 
-                # Load model with extended timeout (60 seconds for model files)
+                # Load model (HF_HUB_DOWNLOAD_TIMEOUT env var handles download timeout)
                 self.model = DistilBertForSequenceClassification.from_pretrained(
                     self.MODEL_NAME,
                     cache_dir=self.cache_dir,
-                    local_files_only=False,
-                    timeout=60
+                    local_files_only=False
                 )
                 self.model.to(self.device)
                 self.model.eval()

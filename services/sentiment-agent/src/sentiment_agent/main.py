@@ -16,13 +16,16 @@ import httpx
 from typing import Optional, Set
 from contextlib import asynccontextmanager
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import Response
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
+from fastapi.responses import Response, JSONResponse
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 from sentiment_agent.config import get_settings
 from sentiment_agent.models import (
     AnalyzeRequest,
+    ApiAnalyzeRequest,
     BatchRequest,
     SentimentResponse,
     BatchResponse,
@@ -168,6 +171,19 @@ app = FastAPI(
 )
 
 
+# Exception handler for JSON validation errors
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle JSON validation errors with proper 422 response."""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "Invalid request format",
+            "errors": exc.errors()
+        }
+    )
+
+
 @app.get("/health/live", response_model=LivenessResponse)
 async def liveness():
     """Liveness probe for Kubernetes."""
@@ -214,14 +230,15 @@ async def health_with_model_info():
 
 
 @app.post("/api/analyze")
-async def analyze_sentiment_api(request: dict):
+async def analyze_sentiment_api(request: ApiAnalyzeRequest):
     """
     Analyze sentiment using /api/analyze endpoint (E2E test compatible).
 
     Simplified API for sentiment analysis that matches E2E test expectations.
+    Uses Pydantic model for automatic JSON validation and proper error responses.
 
     Args:
-        request: Analysis request with text to analyze
+        request: Analysis request with text to analyze (Pydantic validated)
 
     Returns:
         Response with sentiment classification, score, confidence, and emotions
@@ -234,28 +251,12 @@ async def analyze_sentiment_api(request: dict):
     """
     start_time = time.time()
 
+    # Extract fields from validated Pydantic model
+    text = request.text
+    language = request.language
+    detect_language = request.detect_language
+
     try:
-        # Validate request has text field FIRST (before any processing)
-        if "text" not in request:
-            raise HTTPException(status_code=422, detail="Text is required")
-
-        text = request.get("text", "")
-        language = request.get("language")  # Optional language parameter
-        detect_language = request.get("detect_language", False)
-
-        # Validate text is not empty
-        if not text or not text.strip():
-            raise HTTPException(status_code=422, detail="Text is required")
-
-        text_length = len(text)
-
-        # Validate text length
-        if text_length > settings.max_text_length:
-            raise HTTPException(
-                status_code=422,
-                detail=f"Text length exceeds maximum of {settings.max_text_length}"
-            )
-
         # Analyze sentiment
         result = analyzer.analyze(text)
 
