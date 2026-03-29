@@ -28,7 +28,7 @@ test.describe('Operator Console UI', () => {
     await helper.navigateToConsole();
 
     // Verify page title
-    await expect(page).toHaveTitle(/frontend/);  // Actual title from index.html
+    await expect(page).toHaveTitle(/Project Chimera - Operator Console/);  // Actual title from index.html
 
     // Verify main content loaded (React root)
     await expect(page.locator('#root')).toBeVisible();
