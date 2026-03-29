@@ -309,6 +309,14 @@ async def analyze_sentiment_api(request: ApiAnalyzeRequest):
         if detect_language:
             response["language"] = language or "en"
 
+        # Send webhook to orchestrator (fire and forget)
+        await send_sentiment_webhook(
+            text=text,
+            sentiment=result["sentiment"],
+            score=result["score"],
+            confidence=result["confidence"]
+        )
+
         # Broadcast to WebSocket clients (non-blocking)
         try:
             await ws_manager.broadcast_sentiment({
