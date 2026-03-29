@@ -224,7 +224,7 @@ async def get_show_status_api():
     if show:
         return {
             "show_id": show.show_id,
-            "state": show.state.value,
+            "state": show.state,  # ShowState is str enum, no .value needed
             "active": show.state != ShowState.IDLE,
             "scene": show.current_scene or "none",
             "audience_metrics": {
@@ -257,7 +257,7 @@ async def control_show_api(request: dict):
     if action in ("start", "start_show"):
         # Check if show is already active
         current_show = show_manager.get_current_show()
-        if current_show and current_show.state.value in ("running", "active"):
+        if current_show and current_show.state in ("running", "active"):
             raise HTTPException(
                 status_code=409,
                 detail=f"Show {current_show.show_id} is already active"
@@ -266,7 +266,7 @@ async def control_show_api(request: dict):
         show.start()
         return {
             "show_id": show.show_id,
-            "state": show.state.value,
+            "state": show.state,
             "status": "starting"
         }
     elif action in ("stop", "stop_show"):
@@ -274,7 +274,7 @@ async def control_show_api(request: dict):
         if show:
             return {
                 "show_id": show.show_id,
-                "state": show.state.value,
+                "state": show.state,
                 "action": "stop",
                 "status": "success"
             }

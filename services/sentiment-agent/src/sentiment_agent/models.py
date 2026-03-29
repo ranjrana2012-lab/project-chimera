@@ -20,9 +20,9 @@ class ApiAnalyzeRequest(BaseModel):
     This model is used by the /api/analyze endpoint to ensure
     proper JSON validation and return 422 for malformed requests.
     """
-    text: constr(min_length=1, max_length=5000) = Field(
+    text: constr(min_length=1, max_length=10000) = Field(
         ...,
-        description="Text to analyze for sentiment (required, 1-5000 chars)"
+        description="Text to analyze for sentiment (required, 1-10000 chars)"
     )
     language: Optional[str] = Field(
         None,

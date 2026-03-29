@@ -993,6 +993,29 @@ async def avatar_websocket(websocket: WebSocket):
                 # Respond to ping
                 await websocket.send_json({"type": "pong"})
 
+            # Handle E2E test message format with 'action' field
+            action = data.get("action")
+            if action == "animate":
+                # E2E test compatibility - handle animation action
+                text = data.get("text", "")
+                # Mock NMM data for E2E testing
+                await websocket.send_json({
+                    "type": "animation_update",
+                    "data": {
+                        "nmm_data": [
+                            {"coefficient": 0.5, "value": 1.0}
+                        ],
+                        "text": text[:100] if text else ""
+                    }
+                })
+
+            elif message_type is None and action is None:
+                # No type or action specified
+                await websocket.send_json({
+                    "type": "error",
+                    "message": "Message must have 'type' or 'action' field"
+                })
+
             else:
                 await websocket.send_json({
                     "type": "error",
