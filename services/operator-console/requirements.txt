@@ -16,3 +16,4 @@ pytest-cov==4.1.0
 
 # Security & Middleware
 slowapi>=0.1.9
+structlog>=2.4.0
