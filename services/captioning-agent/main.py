@@ -310,7 +310,7 @@ async def transcribe_file(
             # Clean up temp file
             try:
                 os.unlink(temp_path)
-            except:
+            except (FileNotFoundError, OSError):
                 pass
 
     except Exception as e:
@@ -512,7 +512,7 @@ async def transcribe_audio_api(
             # Clean up temp file
             try:
                 os.unlink(temp_path)
-            except:
+            except (FileNotFoundError, OSError):
                 pass
 
     except Exception as e:
