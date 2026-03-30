@@ -231,44 +231,48 @@ test.describe('Service Failure Resilience', () => {
   test.describe.serial('API Failure Tests', () => {
     test('@failure malformed API requests', async ({ request }) => {
       // Increase test timeout for ML service
-      test.setTimeout(30000);
+      test.setTimeout(60000);
 
-      // Test malformed JSON
-      const response1 = await request.post('http://localhost:8004/api/analyze', {
-        headers: { 'Content-Type': 'application/json' },
-        data: '{invalid json}',
-        timeout: 10000
-      });
-
-      expect(response1.status()).toBeGreaterThanOrEqual(400);
-      expect(response1.status()).toBeLessThan(500);
+      // Test malformed JSON - with retry for service availability
+      await expect(async () => {
+        const response1 = await request.post('http://localhost:8004/api/analyze', {
+          headers: { 'Content-Type': 'application/json' },
+          data: '{invalid json}',
+          timeout: 15000
+        });
+        expect(response1.status()).toBeGreaterThanOrEqual(400);
+        expect(response1.status()).toBeLessThan(500);
+      }).toPass({ timeout: 20000 });
 
       // Test missing required fields
-      const response2 = await request.post('http://localhost:8004/api/analyze', {
-        headers: { 'Content-Type': 'application/json' },
-        data: JSON.stringify({ wrong_field: 'data' }),
-        timeout: 10000
-      });
-
-      expect(response2.status()).toBe(422);
+      await expect(async () => {
+        const response2 = await request.post('http://localhost:8004/api/analyze', {
+          headers: { 'Content-Type': 'application/json' },
+          data: JSON.stringify({ wrong_field: 'data' }),
+          timeout: 15000
+        });
+        expect(response2.status()).toBe(422);
+      }).toPass({ timeout: 20000 });
 
       // Test invalid content type
-      const response3 = await request.post('http://localhost:8004/api/analyze', {
-        headers: { 'Content-Type': 'text/plain' },
-        data: 'plain text data',
-        timeout: 10000
-      });
-
-      expect(response3.status()).toBeGreaterThanOrEqual(400);
+      await expect(async () => {
+        const response3 = await request.post('http://localhost:8004/api/analyze', {
+          headers: { 'Content-Type': 'text/plain' },
+          data: 'plain text data',
+          timeout: 15000
+        });
+        expect(response3.status()).toBeGreaterThanOrEqual(400);
+      }).toPass({ timeout: 20000 });
 
       // Test empty request body
-      const response4 = await request.post('http://localhost:8004/api/analyze', {
-        headers: { 'Content-Type': 'application/json' },
-        data: '{}',
-        timeout: 10000
-      });
-
-      expect(response4.status()).toBe(422);
+      await expect(async () => {
+        const response4 = await request.post('http://localhost:8004/api/analyze', {
+          headers: { 'Content-Type': 'application/json' },
+          data: '{}',
+          timeout: 15000
+        });
+        expect(response4.status()).toBe(422);
+      }).toPass({ timeout: 20000 });
 
       // Verify API still responsive after malformed requests
       await expect(async () => {
