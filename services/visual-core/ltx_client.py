@@ -2,8 +2,11 @@
 
 import httpx
 import asyncio
+import logging
 from typing import List, Optional
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from models import (
     LTXVideoRequest, LTXVideoResult, LTXModel, Resolution, CameraMotion
@@ -131,7 +134,7 @@ class LTXAPIClient:
             for result in batch_results:
                 if isinstance(result, Exception):
                     # Log error but continue
-                    print(f"Error in batch generation: {result}")
+                    logger.error(f"Error in batch generation: {result}")
                 elif result is not None:
                     results.append(result)
 

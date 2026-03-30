@@ -6,11 +6,14 @@ with support for student profiles, courses, enrollments, and analytics.
 
 import sqlite3
 import json
+import logging
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from contextlib import contextmanager
 import threading
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from models import (
     StudentProfile, Course, Lesson, Enrollment, Assessment,
@@ -295,7 +298,7 @@ class EducationalDatabase:
         except sqlite3.IntegrityError:
             return False
         except Exception as e:
-            print(f"Error creating student: {e}")
+            logger.error(f"Error creating student: {e}")
             return False
 
     def get_student(self, student_id: str) -> Optional[StudentProfile]:
@@ -332,7 +335,7 @@ class EducationalDatabase:
                     )
                 return None
         except Exception as e:
-            print(f"Error getting student: {e}")
+            logger.error(f"Error getting student: {e}")
             return None
 
     def update_student(self, student_id: str, updates: Dict[str, Any]) -> bool:
@@ -354,7 +357,7 @@ class EducationalDatabase:
                 conn.commit()
                 return cursor.rowcount > 0
         except Exception as e:
-            print(f"Error updating student: {e}")
+            logger.error(f"Error updating student: {e}")
             return False
 
     # Course operations
@@ -388,7 +391,7 @@ class EducationalDatabase:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error creating course: {e}")
+            logger.error(f"Error creating course: {e}")
             return False
 
     def get_course(self, course_id: str) -> Optional[Course]:
@@ -422,7 +425,7 @@ class EducationalDatabase:
                     )
                 return None
         except Exception as e:
-            print(f"Error getting course: {e}")
+            logger.error(f"Error getting course: {e}")
             return None
 
     def list_courses(self, educator_id: Optional[str] = None, is_published: Optional[bool] = None) -> List[Course]:
@@ -471,7 +474,7 @@ class EducationalDatabase:
                     ))
                 return courses
         except Exception as e:
-            print(f"Error listing courses: {e}")
+            logger.error(f"Error listing courses: {e}")
             return []
 
     # Enrollment operations
@@ -505,7 +508,7 @@ class EducationalDatabase:
         except sqlite3.IntegrityError:
             return False
         except Exception as e:
-            print(f"Error creating enrollment: {e}")
+            logger.error(f"Error creating enrollment: {e}")
             return False
 
     def get_enrollment(self, student_id: str, course_id: str) -> Optional[Enrollment]:
@@ -537,7 +540,7 @@ class EducationalDatabase:
                     )
                 return None
         except Exception as e:
-            print(f"Error getting enrollment: {e}")
+            logger.error(f"Error getting enrollment: {e}")
             return None
 
     def update_enrollment_progress(self, enrollment_id: str, updates: Dict[str, Any]) -> bool:
@@ -558,7 +561,7 @@ class EducationalDatabase:
                 conn.commit()
                 return cursor.rowcount > 0
         except Exception as e:
-            print(f"Error updating enrollment: {e}")
+            logger.error(f"Error updating enrollment: {e}")
             return False
 
     # Learning session operations
@@ -593,7 +596,7 @@ class EducationalDatabase:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error creating learning session: {e}")
+            logger.error(f"Error creating learning session: {e}")
             return False
 
     def get_student_sessions(self, student_id: str, limit: int = 50) -> List[LearningSession]:
@@ -631,7 +634,7 @@ class EducationalDatabase:
                     ))
                 return sessions
         except Exception as e:
-            print(f"Error getting student sessions: {e}")
+            logger.error(f"Error getting student sessions: {e}")
             return []
 
     # Assessment operations
@@ -662,7 +665,7 @@ class EducationalDatabase:
                 conn.commit()
                 return True
         except Exception as e:
-            print(f"Error creating assessment attempt: {e}")
+            logger.error(f"Error creating assessment attempt: {e}")
             return False
 
     def get_assessment_attempts(self, assessment_id: str, student_id: str) -> List[AssessmentAttempt]:
@@ -699,7 +702,7 @@ class EducationalDatabase:
                     ))
                 return attempts
         except Exception as e:
-            print(f"Error getting assessment attempts: {e}")
+            logger.error(f"Error getting assessment attempts: {e}")
             return []
 
     # Analytics operations
@@ -773,7 +776,7 @@ class EducationalDatabase:
                     help_requests=0
                 )
         except Exception as e:
-            print(f"Error getting student analytics: {e}")
+            logger.error(f"Error getting student analytics: {e}")
             return None
 
     # Educator operations
@@ -807,7 +810,7 @@ class EducationalDatabase:
         except sqlite3.IntegrityError:
             return False
         except Exception as e:
-            print(f"Error creating educator: {e}")
+            logger.error(f"Error creating educator: {e}")
             return False
 
     def get_educator(self, educator_id: str) -> Optional[EducatorProfile]:
@@ -839,7 +842,7 @@ class EducationalDatabase:
                     )
                 return None
         except Exception as e:
-            print(f"Error getting educator: {e}")
+            logger.error(f"Error getting educator: {e}")
             return None
 
 

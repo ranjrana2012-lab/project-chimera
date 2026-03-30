@@ -1,7 +1,7 @@
 # Security Fixes Applied to Project Chimera Services
 
 **Date**: 2026-03-30
-**Status**: ✅ COMPLETE - All security middleware and Docker hardening applied across all 13 services
+**Status**: ✅ COMPLETE - All security middleware and Docker hardening applied across all 16 services
 
 ---
 
@@ -288,14 +288,14 @@ done
 
 **Applied By**: Claude Code Security Review
 **Date**: 2026-03-30
-**Status**: ✅ ALL SECURITY HARDENING COMPLETE - All 14 services production-ready
-**Services**: autonomous-agent, bsl-agent, captioning-agent, director-agent, educational-platform, lighting-sound-music, music-generation, nemoclaw-orchestrator, openclaw-orchestrator, operator-console, safety-filter, scenespeak-agent, sentiment-agent, simulation-engine, visual-core
+**Status**: ✅ ALL SECURITY HARDENING COMPLETE - All 17 services production-ready
+**Services**: autonomous-agent, bsl-agent, captioning-agent, director-agent, educational-platform, lighting-sound-music, music-generation, nemoclaw-orchestrator, openclaw-orchestrator, operator-console, opinion-pipeline-agent, safety-filter, scenespeak-agent, sentiment-agent, simulation-engine, template, visual-core
 
 ---
 
 ## Final Verification (2026-03-30)
 
-### Complete Service Inventory (14 services)
+### Complete Service Inventory (17 services)
 | Service | Dockerfile | Python | NonRoot | SharedReq | SharedMod | HealthCheck |
 |---------|-----------|--------|---------|-----------|-----------|-------------|
 | autonomous-agent | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
@@ -308,10 +308,12 @@ done
 | nemoclaw-orchestrator | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
 | openclaw-orchestrator | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
 | operator-console | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
+| opinion-pipeline-agent | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
 | safety-filter | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
 | scenespeak-agent | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
 | sentiment-agent | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
 | simulation-engine | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
+| template | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
 | visual-core | ✅ | 3.12 | ✅ | ✅ | ✅ | ✅ |
 
 ### Security Verification
@@ -320,4 +322,17 @@ done
 - ✅ All services have configure_cors()
 - ✅ All services have rate limiting support
 - ✅ No hardcoded secrets found
-- ✅ No debug print statements found
+- ✅ All debug print statements converted to proper logging
+
+### Latest Fixes (2026-03-30 Session)
+- ✅ Fixed 16 debug print statements in `services/educational-platform/database.py` - converted to `logger.error()`
+- ✅ Fixed 1 debug print statement in `services/visual-core/ltx_client.py` - converted to `logger.error()`
+- ✅ Added logging import to both files for proper error handling
+
+### New Services Added
+- ✅ `opinion-pipeline-agent` - New service with Dockerfile configured
+- ✅ `sentiment-agent` - Enhanced with proper main.py structure
+
+---
+
+## Complete Service Inventory (16+ services)
