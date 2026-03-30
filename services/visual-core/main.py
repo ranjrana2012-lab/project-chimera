@@ -127,9 +127,21 @@ async def readiness_probe():
 
     # Check LTX API connectivity
     try:
-        # TODO: Add actual LTX API health check
-        dependencies["ltx_api"] = True
+        client = get_ltx_client()
+        # Initialize client if needed for health check
+        if not client._client:
+            import httpx
+            client._client = httpx.AsyncClient(
+                base_url=client.api_base,
+                headers={"Authorization": f"Bearer {client.api_key}"},
+                timeout=10.0
+            )
+
+        # Simple health check - try to reach API
+        response = await client._client.get("/")
+        dependencies["ltx_api"] = response.status_code < 500
     except Exception as e:
+        logger.warning(f"LTX API health check failed: {e}")
         dependencies["ltx_api"] = False
         all_ready = False
 

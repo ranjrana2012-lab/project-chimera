@@ -58,10 +58,25 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Captioning Agent...")
 
     # Initialize transcription service
-    # TODO: Load API key from environment/config
+    import os
+    whisper_api_key = os.environ.get("WHISPER_API_KEY", "")
+    redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379")
+
+    # Initialize Redis if URL provided
+    redis_client = None
+    if redis_url:
+        try:
+            import redis
+            redis_client = redis.from_url(redis_url, decode_responses=True)
+            logger.info(f"Redis client initialized: {redis_url}")
+        except ImportError:
+            logger.warning("redis package not installed, running without cache")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Redis: {e}")
+
     transcription_service = TranscriptionService(
-        whisper_api_key="test-key",  # Replace with real key
-        redis_client=None  # TODO: Initialize Redis
+        whisper_api_key=whisper_api_key,
+        redis_client=redis_client
     )
 
     streaming_service = get_streaming_service(transcription_service)

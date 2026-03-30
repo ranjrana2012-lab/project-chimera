@@ -137,6 +137,22 @@ class LTXAPIClient:
 
         return results
 
+    async def health_check(self) -> bool:
+        """Check if LTX API is accessible"""
+        try:
+            if not self._client:
+                # Initialize client for health check
+                self._client = httpx.AsyncClient(
+                    base_url=self.api_base,
+                    headers={"Authorization": f"Bearer {self.api_key}"},
+                    timeout=10.0
+                )
+
+            response = await self._client.get("/health")
+            return response.status_code == 200
+        except Exception:
+            return False
+
 
 # Global client instance
 _client: Optional[LTXAPIClient] = None
