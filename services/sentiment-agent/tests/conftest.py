@@ -7,6 +7,9 @@ Sets up PYTHONPATH to include shared modules.
 import sys
 import os
 
+# Force CPU mode for tests (no CUDA available in test environment)
+os.environ["CI_GPU_AVAILABLE"] = "false"
+
 # Add src directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
