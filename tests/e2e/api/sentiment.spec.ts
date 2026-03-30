@@ -128,8 +128,10 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api rejects invalid input', async ({ request }) => {
+    test.setTimeout(60000);  // Allow time for potential ML lazy loading
     const response = await request.post(`${baseURL}/api/analyze`, {
-      data: { invalid: 'data' }
+      data: { invalid: 'data' },
+      timeout: 30000
     });
 
     expect(response.status()).toBe(422);
@@ -139,16 +141,20 @@ test.describe('Sentiment Agent API', () => {
   });
 
   test('@api rejects missing text parameter', async ({ request }) => {
+    test.setTimeout(60000);  // Allow time for potential ML lazy loading
     const response = await request.post(`${baseURL}/api/analyze`, {
-      data: {}
+      data: {},
+      timeout: 30000
     });
 
     expect(response.status()).toBe(422);
   });
 
   test('@api rejects empty text', async ({ request }) => {
+    test.setTimeout(60000);  // Allow time for potential ML lazy loading
     const response = await request.post(`${baseURL}/api/analyze`, {
-      data: { text: '' }
+      data: { text: '' },
+      timeout: 30000
     });
 
     expect(response.status()).toBe(422);
