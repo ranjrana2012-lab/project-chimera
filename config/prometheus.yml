@@ -15,3 +15,11 @@ scrape_configs:
         - 'safety-filter:8006'
         - 'operator-console:8007'
     metrics_path: '/metrics'
+
+  - job_name: 'netdata'
+    static_configs:
+      - targets: ['netdata:19999']
+    metrics_path: '/api/v1/allmetrics'
+    params:
+      format: ['prometheus']
+    scrape_interval: 15s

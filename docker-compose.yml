@@ -275,6 +275,48 @@ services:
           cpus: ${GRAFANA_CPU_RESERVATION:-0.25}
           memory: ${GRAFANA_MEMORY_RESERVATION:-256M}
 
+  # Infrastructure Monitoring
+  netdata:
+    image: netdata/netdata:latest
+    container_name: chimera-netdata
+    hostname: chimera-dev
+    ports:
+      - "${NETDATA_PORT:-19999}:19999"
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - chimera-netdata-config:/etc/netdata
+      - chimera-netdata-lib:/var/lib/netdata
+      - chimera-netdata-cache:/var/cache/netdata
+    environment:
+      - NETDATA_CLAIM_TOKEN=${NETDATA_CLAIM_TOKEN:-}
+      - NETDATA_CLAIM_URL=${NETDATA_CLAIM_URL:-}
+      - NETDATA_CLAIM_ROOMS=${NETDATA_CLAIM_ROOMS:-}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19999/api/v1/info"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: ${HEALTH_CHECK_START_PERIOD:-30s}
+    networks:
+      - chimera-monitoring
+    restart: ${RESTART_POLICY:-unless-stopped}
+    deploy:
+      resources:
+        limits:
+          cpus: ${NETDATA_CPU_LIMIT:-0.5}
+          memory: ${NETDATA_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${NETDATA_CPU_RESERVATION:-0.1}
+          memory: ${NETDATA_MEMORY_RESERVATION:-128M}
+
   # Core Services
   openclaw-orchestrator:
     build:
@@ -767,6 +809,12 @@ volumes:
     name: chimera-prometheus-data
   chimera-grafana-data:
     name: chimera-grafana-data
+  chimera-netdata-config:
+    name: chimera-netdata-config
+  chimera-netdata-lib:
+    name: chimera-netdata-lib
+  chimera-netdata-cache:
+    name: chimera-netdata-cache
 
   # Service cache volumes
   chimera-openclaw-cache:
