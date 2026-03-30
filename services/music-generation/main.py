@@ -3,6 +3,12 @@ Music Generation Service - Main FastAPI Application
 Project Chimera v0.5.0
 """
 
+import sys
+import os
+
+# Add shared module to path for security middleware
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../shared'))
+
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -130,6 +136,21 @@ app = FastAPI(
 # Include routers (when they are created, they will be included here)
 # app.include_router(models_router, prefix="/api/v1", tags=["models"])
 # app.include_router(generate_router, prefix="/api/v1", tags=["generate"])
+
+
+# ============================================================================
+# Security Middleware (Environment-based CORS, Security Headers, Rate Limiting)
+# ============================================================================
+from shared.middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    setup_rate_limit_error_handler,
+)
+
+# Apply security configurations
+configure_cors(app)
+app.add_middleware(SecurityHeadersMiddleware)
+setup_rate_limit_error_handler(app)
 
 
 @app.get("/health/live")

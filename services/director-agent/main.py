@@ -5,6 +5,12 @@ Automated show director service for Project Chimera.
 Parses show definitions, coordinates multiple agents, and manages live show execution.
 """
 
+import sys
+import os
+
+# Add shared module to path for security middleware
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../shared'))
+
 import asyncio
 import logging
 import os
@@ -165,6 +171,20 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# ============================================================================
+# Security Middleware (Environment-based CORS, Security Headers, Rate Limiting)
+# ============================================================================
+from shared.middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    setup_rate_limit_error_handler,
+)
+
+# Apply security configurations
+configure_cors(app)
+app.add_middleware(SecurityHeadersMiddleware)
+setup_rate_limit_error_handler(app)
 
 
 # ============================================================================

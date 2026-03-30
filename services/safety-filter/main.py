@@ -15,6 +15,12 @@ from fastapi.responses import Response
 from opentelemetry import trace
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
+import sys
+import os
+
+# Add shared module to path for security middleware
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../shared'))
+
 from config import get_settings
 from content_moderator import ContentModerator
 from models import (
@@ -65,6 +71,20 @@ app = FastAPI(
 
 # Instrument FastAPI with automatic tracing
 instrument_fastapi(app)
+
+# ============================================================================
+# Security Middleware (Environment-based CORS, Security Headers, Rate Limiting)
+# ============================================================================
+from shared.middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    setup_rate_limit_error_handler,
+)
+
+# Apply security configurations
+configure_cors(app)
+app.add_middleware(SecurityHeadersMiddleware)
+setup_rate_limit_error_handler(app)
 
 # Add validation exception handler to return string error messages
 from fastapi.exceptions import RequestValidationError

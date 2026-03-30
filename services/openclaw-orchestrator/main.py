@@ -1,16 +1,28 @@
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from datetime import datetime
 import logging
 import httpx
 import json
+import os
+import sys
+
+# Add parent directory to path for shared imports
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../shared'))
 
 from config import get_settings
 from tracing import setup_telemetry, instrument_fastapi
 from metrics import init_service_info, record_request
 from models import OrchestrateRequest, OrchestrateResponse, HealthResponse
 from show_manager import show_manager, ShowState
+
+# Import shared security middleware
+from middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    limiter,
+    setup_rate_limit_error_handler,
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -53,14 +65,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Configure CORS with environment-based origins (SECURITY: no longer allows all origins)
+configure_cors(app)
+
+# Add security headers middleware (SECURITY: prevents XSS, clickjacking, etc.)
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Set up rate limiting error handler
+setup_rate_limit_error_handler(app)
 
 # Instrument FastAPI
 instrument_fastapi(app, "openclaw-orchestrator")

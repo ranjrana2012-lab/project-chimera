@@ -16,6 +16,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy shared requirements first
+COPY services/shared/requirements.txt .
+RUN pip install --no-cache-dir services/shared/requirements.txt
+
 # Copy requirements first for better caching
 COPY services/bsl-agent/requirements.txt .
 
@@ -31,6 +35,11 @@ COPY services/shared/ /app/shared/
 
 # Create directory for avatar models (placeholder)
 RUN mkdir -p /models/bsl_avatar
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
 
 # Set environment variables
 ENV PORT=8003 \

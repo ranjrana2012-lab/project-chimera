@@ -25,3 +25,6 @@ pygame>=2.5.0
 # Utilities
 python-dotenv>=1.0.0
 structlog>=2.4.0
+
+# Security & Middleware
+slowapi>=0.1.9

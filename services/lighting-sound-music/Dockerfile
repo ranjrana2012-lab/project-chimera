@@ -23,6 +23,10 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
+# Copy shared requirements first
+COPY services/shared/requirements.txt .
+RUN pip install --no-cache-dir services/shared/requirements.txt
+
 # Copy requirements first for better caching
 COPY services/lighting-sound-music/requirements.txt .
 
@@ -33,7 +37,7 @@ RUN pip install --upgrade pip && \
 # Copy application code
 COPY services/lighting-sound-music/ . .
 
-# Create non-root user
+# Create non-root user (already there)
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 USER appuser

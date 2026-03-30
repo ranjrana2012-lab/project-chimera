@@ -23,6 +23,10 @@ prometheus-client>=0.19.0
 # Environment
 python-dotenv>=1.0.0
 
+# Security & Middleware
+slowapi>=0.1.9
+structlog>=2.4.0
+
 # Testing (dev dependencies)
 pytest>=7.4.0
 pytest-asyncio>=0.21.0

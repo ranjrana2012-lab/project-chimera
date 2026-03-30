@@ -1,19 +1,31 @@
 # ARM64-optimized Dockerfile for Nemo Claw Orchestrator
-# Designed for DGX Spark GB0 deployment
+# Fixed: Replaced invalid nvcr.io/nvidia/nemoclaw image with standard Python base
+# Designed for DGX Spark GB10 deployment
 
-FROM nvcr.io/nvidia/nemoclaw:latest-arm64
+FROM python:3.12-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies (curl for healthchecks, gcc for building packages)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install system dependencies (curl for healthchecks)
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-# Install dependencies
-COPY services/nemoclaw-orchestrator/requirements.txt .
+# Install Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY services/nemoclaw-orchestrator/ . .
+COPY . .
+
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
 
 # Expose service port
 EXPOSE 8000

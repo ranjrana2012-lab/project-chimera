@@ -34,3 +34,7 @@ pytest==7.4.4
 pytest-asyncio==0.23.3
 pytest-cov==4.1.0
 httpx==0.26.0  # For testing FastAPI endpoints
+
+# Security & Middleware
+slowapi>=0.1.9
+structlog>=2.4.0

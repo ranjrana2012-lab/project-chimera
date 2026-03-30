@@ -1,6 +1,6 @@
 # Visual Core Service Dockerfile
 # Optimized for ARM64 (Nvidia DGX Spark GB10)
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -12,6 +12,10 @@ ENV PYTHONUNBUFFERED=1
 # Set work directory
 WORKDIR /app
 
+# Copy shared requirements first
+COPY services/shared/requirements.txt .
+RUN pip install --no-cache-dir services/shared/requirements.txt
+
 # Install Python dependencies
 COPY services/visual-core/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -21,6 +25,9 @@ RUN mkdir -p /app/cache/videos /app/models/lora
 
 # Copy application code
 COPY services/visual-core/ . .
+
+# Copy shared module
+COPY services/shared/ /app/shared/
 
 # Set Python path and port
 ENV PYTHONPATH=/app

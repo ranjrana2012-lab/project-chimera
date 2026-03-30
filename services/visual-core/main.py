@@ -92,13 +92,20 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+# ============================================================================
+# Security Middleware (Environment-based CORS, Security Headers, Rate Limiting)
+# ============================================================================
+import sys
+import os
+
+# Add shared module to path for security middleware
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../shared'))
+
+# Add CORS middleware - replaced with security middleware
+from shared.middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    setup_rate_limit_error_handler,
 )
 
 

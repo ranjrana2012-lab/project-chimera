@@ -1,3 +1,12 @@
+# ============================================================================
+# Security Middleware (Environment-based CORS, Security Headers, Rate Limiting)
+# ============================================================================
+import sys
+import os
+
+# Add shared module to path for security middleware
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../shared'))
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -109,14 +118,17 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+# Add CORS middleware - replaced with security middleware
+from shared.middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    setup_rate_limit_error_handler,
 )
+
+# Apply security configurations
+configure_cors(app)
+app.add_middleware(SecurityHeadersMiddleware)
+setup_rate_limit_error_handler(app)
 
 # Register error handlers
 register_error_handlers(app)

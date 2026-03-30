@@ -4,6 +4,15 @@ Operator Console - FastAPI Application
 Central monitoring and control dashboard for Project Chimera services.
 """
 
+# ============================================================================
+# Security Middleware (Environment-based CORS, Security Headers, Rate Limiting)
+# ============================================================================
+import sys
+import os
+
+# Add shared module to path for security middleware
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../shared'))
+
 import asyncio
 import datetime
 import logging
@@ -220,6 +229,17 @@ app = FastAPI(
 
 # Instrument FastAPI
 instrument_fastapi(app)
+
+# Apply security configurations
+from shared.middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    setup_rate_limit_error_handler,
+)
+
+configure_cors(app)
+app.add_middleware(SecurityHeadersMiddleware)
+setup_rate_limit_error_handler(app)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")

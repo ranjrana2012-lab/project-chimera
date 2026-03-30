@@ -15,3 +15,7 @@ numpy==1.26.2
 python-multipart==0.0.6
 pytest==7.4.3
 pytest-asyncio==0.21.1
+
+# Security & Middleware
+slowapi>=0.1.9
+structlog>=2.4.0

@@ -28,3 +28,7 @@ playwright>=1.40.0
 
 # Development
 python-dotenv>=1.0.0
+
+# Security & Middleware
+slowapi>=0.1.9
+structlog>=2.4.0

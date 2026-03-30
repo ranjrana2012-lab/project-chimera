@@ -27,3 +27,5 @@ httpx==0.25.1
 
 # Development
 python-dotenv==1.0.0
+slowapi>=0.1.9
+structlog>=2.4.0

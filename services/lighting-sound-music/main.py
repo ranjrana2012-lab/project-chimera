@@ -13,6 +13,12 @@ from fastapi import FastAPI, HTTPException, Body
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
+import sys
+import os
+
+# Add shared module to path for security middleware
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../shared'))
+
 from config import get_settings
 from models import (
     LightingSceneRequest,
@@ -121,6 +127,20 @@ app = FastAPI(
 
 # Instrument FastAPI with automatic tracing
 instrument_fastapi(app)
+
+# ============================================================================
+# Security Middleware (Environment-based CORS, Security Headers, Rate Limiting)
+# ============================================================================
+from shared.middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    setup_rate_limit_error_handler,
+)
+
+# Apply security configurations
+configure_cors(app)
+app.add_middleware(SecurityHeadersMiddleware)
+setup_rate_limit_error_handler(app)
 
 
 @app.get("/health/live")

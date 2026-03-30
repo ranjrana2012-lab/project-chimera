@@ -31,6 +31,10 @@ ENV CC=gcc \
     CXX=g++ \
     CMAKE_MAKE_PROGRAM=make
 
+# Copy shared requirements first
+COPY services/shared/requirements.txt .
+RUN pip install --no-cache-dir services/shared/requirements.txt
+
 # Copy requirements first for better caching
 COPY services/music-generation/requirements.txt .
 
@@ -41,8 +45,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY services/music-generation/*.py ./
 COPY services/music-generation/tests/ ./tests/
 
+# Copy shared module
+COPY services/shared/ /app/shared/
+
 # Create directory for models
 RUN mkdir -p /models/musicgen /models/acestep /models/cache
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
 
 # Set environment variables
 ENV PORT=8011 \

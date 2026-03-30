@@ -7,10 +7,17 @@ RUN apt-get update && apt-get install -y gcc git curl && rm -rf /var/lib/apt/lis
 
 WORKDIR /app
 
+# Copy shared requirements first
+COPY services/shared/requirements.txt .
+RUN pip install --no-cache-dir services/shared/requirements.txt
+
 COPY services/autonomous-agent/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY services/autonomous-agent/ . .
+
+# Copy shared module
+COPY services/shared/ /app/shared/
 
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app

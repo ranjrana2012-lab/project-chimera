@@ -7,12 +7,25 @@ RUN apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
+# Copy shared requirements first
+COPY services/shared/requirements.txt .
+RUN pip install --no-cache-dir services/shared/requirements.txt
+
 COPY services/operator-console/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY services/operator-console/*.py ./
+
+# Copy shared module
+COPY services/shared/ /app/shared/
+
 RUN mkdir -p static
 COPY services/operator-console/static/ ./static/
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
 
 EXPOSE 8007
 

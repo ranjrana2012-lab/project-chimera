@@ -21,8 +21,17 @@ WORKDIR /app
 COPY services/scenespeak-agent/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy shared security modules
+COPY services/shared/requirements.txt .
+RUN pip install --no-cache-dir -r services/shared/requirements.txt
+COPY services/shared/ /app/shared/
+
 # Copy application code
 COPY services/scenespeak-agent/ . .
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
 
 # Expose service port
 EXPOSE 8001
