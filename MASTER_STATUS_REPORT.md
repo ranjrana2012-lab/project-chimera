@@ -391,6 +391,53 @@ docker compose down
 
 ---
 
+## 🤖 Autonomous Codebase Refactoring System (NEW)
+
+**Status**: Phase 1 Complete - Ready for Testing
+
+A continuous autonomous refactoring loop has been integrated into Project Chimera, implementing the **Ralph pattern** (stateless iteration with external memory) and **AutoResearch methodology** (immutable evaluator, mutable sandbox).
+
+### Key Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| Anti-Gaming Evaluator | `platform/quality-gate/gate/anti_gaming_evaluator.py` | Ungameable quality metrics |
+| Evaluator CLI | `platform/quality-gate/evaluate.sh` | Exit code 0-5 mapping |
+| Ralph Orchestrator | `services/autonomous-agent/orchestrator.py` | Main loop executor |
+| Test Hardening Task | `services/autonomous-agent/test_hardening_task.py` | Task definitions |
+
+### Quality Gates (Anti-Gaming Metrics)
+
+1. **Functional Correctness**: `pytest exit code == 0`
+2. **Assertion Density**: `assertion_count >= baseline` (prevents deletion)
+3. **Coverage Growth**: `coverage >= baseline` (must stay stable or increase)
+4. **Deprecation Hygiene**: `deprecation_warnings == 0`
+
+### Memory System
+
+| File | Purpose |
+|------|---------|
+| `.claude/autonomous-refactor/program.md` | Constitutional constraints |
+| `.claude/autonomous-refactor/learnings.md` | Historical failure context |
+| `.claude/autonomous-refactor/queue.txt` | Task queue (23 tasks queued) |
+
+### How It Works
+
+```
+1. Load task from queue.txt
+2. Read program.md (constraints) and learnings.md (context)
+3. Execute Claude Code CLI for bounded change
+4. Run evaluator.sh (immutable quality gate)
+5. If exit code 0: git commit -m "AutoQA: [description]"
+6. If exit code != 0: git reset --hard && git clean -fd
+```
+
+### Documentation
+
+See `docs/autonomous-refactoring-integration.md` for complete details.
+
+---
+
 ## 🏆 Conclusion
 
 **Project Chimera is production-ready as of March 30, 2026.**

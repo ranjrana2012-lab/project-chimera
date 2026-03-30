@@ -1,0 +1,30 @@
+# Autonomous Refactoring Task Queue
+# Format: PRIORITY | MODE | MODULE_PATH | TEST_PATH | DESCRIPTION
+# Priorities: HIGH, MEDIUM, LOW
+# Modes: test_hardening, refactor, both
+
+# HIGH PRIORITY - Core services needing test hardening
+HIGH | test_hardening | services/openclaw-orchestrator/show_manager.py | services/openclaw-orchestrator/tests/ | Add parameterized tests for show control flow edge cases
+HIGH | test_hardening | services/bsl-agent/main.py | services/bsl-agent/tests/ | Add tests for BSL command processing edge cases
+HIGH | test_hardening | services/sentiment-agent/src/sentiment_agent/video/briefing.py | services/sentiment-agent/tests/ | Add tests for video briefing generation edge cases
+HIGH | test_hardening | services/nemoclaw-orchestrator/main.py | services/nemoclaw-orchestrator/tests/ | Add tests for NLP command parsing edge cases
+
+# MEDIUM PRIORITY - Services with good test coverage that could be improved
+MEDIUM | test_hardening | services/captioning-agent/src/captioning_agent/main.py | services/captioning-agent/tests/ | Add tests for caption timing edge cases
+MEDIUM | test_hardening | services/safety-filter/src/safety_filter/main.py | services/safety-filter/tests/ | Add tests for safety check edge cases
+MEDIUM | test_hardening | services/scenespeak-agent/src/scenespeak_agent/models.py | services/scenespeak-agent/tests/ | Add tests for 3D model loading edge cases
+MEDIUM | test_hardening | services/director-agent/src/director_agent/main.py | services/director-agent/tests/ | Add tests for director cue generation edge cases
+
+# LOW PRIORITY - Less critical services
+LOW | test_hardening | services/lighting-sound-music/main.py | services/lighting-sound-music/tests/ | Add tests for DMX control edge cases
+LOW | test_hardening | services/visual-core/src/visual_core/main.py | services/visual-core/tests/ | Add tests for visual effect rendering edge cases
+LOW | test_hardening | services/operator-console/src/dashboard/routes.py | services/operator-console/tests/ | Add tests for WebSocket connection edge cases
+
+# REFACTORING TASKS - Code quality improvements
+MEDIUM | refactor | services/sentiment-agent/src/sentiment_agent/main.py | services/sentiment-agent/tests/ | Extract ML model loading into separate module
+MEDIUM | refactor | services/bsl-agent/main.py | services/bsl-agent/tests/ | Extract avatar command generation into separate module
+MEDIUM | refactor | services/openclaw-orchestrator/main.py | services/openclaw-orchestrator/tests/ | Extract show state management into separate module
+
+# BOTH - Test hardening + refactoring combined
+HIGH | both | services/autonomous-agent/ralph_engine.py | services/autonomous-agent/tests/ | Add tests and refactor state persistence
+HIGH | both | services/simulation-engine/src/simulation_engine/main.py | services/simulation-engine/tests/ | Add tests and refactor physics engine integration
