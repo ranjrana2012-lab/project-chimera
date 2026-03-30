@@ -188,7 +188,7 @@ services:
       - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-15d}'
       - '--web.enable-lifecycle'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
       interval: ${HEALTH_CHECK_INTERVAL:-30s}
       timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
       retries: ${HEALTH_CHECK_RETRIES:-3}
@@ -223,7 +223,7 @@ services:
       - COLLECTOR_OTLP_ENABLED=true
       - SPAN_STORAGE_TYPE=${JAEGER_STORAGE_TYPE:-memory}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:16686"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:16686"]
       interval: ${HEALTH_CHECK_INTERVAL:-30s}
       timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
       retries: ${HEALTH_CHECK_RETRIES:-3}
