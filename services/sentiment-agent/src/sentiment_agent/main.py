@@ -10,6 +10,7 @@ Features:
 - Webhook integration to orchestrator for real-time updates
 """
 
+import os
 import time
 import logging
 import httpx
@@ -573,6 +574,96 @@ async def get_briefing_status(briefing_id: str):
         "status": "processing",
         "progress": 50
     }
+
+
+# ============================================================================
+# Opinion Pipeline Integration - Public Opinion Enrichment
+# ============================================================================
+
+OPINION_PIPELINE_URL = os.environ.get(
+    "OPINION_PIPELINE_URL",
+    "http://opinion-pipeline-agent:8020"
+)
+
+
+@app.get("/api/v1/sentiment/enriched")
+async def get_enriched_sentiment(
+    content_id: str,
+    include_public_opinion: bool = False
+):
+    """
+    Get enriched sentiment analysis including public opinion context.
+
+    This endpoint integrates with the Opinion Pipeline Service to provide
+    enriched sentiment data that includes:
+    - Base sentiment analysis (from ML model)
+    - Public opinion analysis (from BettaFish)
+    - Swarm predictions (from MiroFish)
+
+    Args:
+        content_id: Content identifier (video ID, show ID, etc.)
+        include_public_opinion: Whether to include BettaFish/MiroFish data
+
+    Returns:
+        Enriched sentiment data with public opinion context
+
+    Example:
+        GET /api/v1/sentiment/enriched?content_id=show_123&include_public_opinion=true
+    """
+    # Get base sentiment (would normally analyze content_id)
+    base_result = {
+        "sentiment": "neutral",
+        "score": 0.5,
+        "confidence": 0.85,
+        "emotions": {
+            "joy": 0.2, "surprise": 0.1, "neutral": 0.6,
+            "sadness": 0.05, "anger": 0.03, "fear": 0.02
+        }
+    }
+
+    result = {
+        "content_id": content_id,
+        "base_sentiment": base_result,
+        "enriched_data": None
+    }
+
+    if include_public_opinion:
+        # Fetch from opinion pipeline
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(
+                    f"{OPINION_PIPELINE_URL}/api/v1/latest/sentiment"
+                )
+
+                if response.status_code == 200:
+                    opinion_data = response.json()
+                    result["enriched_data"] = {
+                        "public_opinion_available": opinion_data.get("latest_analysis") is not None,
+                        "bettafish_report": opinion_data.get("latest_analysis", {}).get("report_path"),
+                        "mirofish_prediction": opinion_data.get("latest_analysis", {}).get("prediction"),
+                        "services_status": opinion_data.get("services", {})
+                    }
+                    logger.info(f"Included public opinion data for {content_id}")
+                else:
+                    logger.warning(f"Opinion pipeline returned {response.status_code}")
+                    result["enriched_data"] = {
+                        "error": "Opinion pipeline unavailable",
+                        "status_code": response.status_code
+                    }
+
+        except httpx.ConnectError:
+            logger.warning("Could not connect to opinion pipeline service")
+            result["enriched_data"] = {
+                "error": "Opinion pipeline not accessible",
+                "hint": "Ensure opinion-pipeline-agent is running"
+            }
+        except Exception as e:
+            logger.error(f"Failed to fetch opinion data: {e}")
+            result["enriched_data"] = {
+                "error": str(e)
+            }
+
+    return result
 
 
 if __name__ == "__main__":

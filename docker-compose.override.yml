@@ -1,0 +1,32 @@
+# Docker Compose Override for BettaFish/MiroFish Integration
+# This file creates isolated networks for the opinion pipeline systems
+
+version: '3.8'
+
+networks:
+  # Isolated network for BettaFish (public opinion analysis)
+  bettafish-isolated:
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+
+  # Isolated network for MiroFish (swarm intelligence simulation)
+  mirofish-isolated:
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
+          gateway: 172.29.0.1
+
+  # Opinion pipeline network (connects to Chimera backend)
+  opinion-pipeline:
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+          gateway: 172.30.0.1
