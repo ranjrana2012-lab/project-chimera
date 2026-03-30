@@ -2,7 +2,7 @@
 
 Welcome to the Project Chimera documentation. Use this hub to find what you need.
 
-> **New in v0.5.0:** [WorldMonitor Integration](services/core-services.md#Sentiment Agent-port-8004) - Enhanced sentiment analysis with global context. Read more
+> **New in v0.5.0:** [Autonomous Refactoring System](autonomous-refactoring-integration.md) - Continuous codebase improvement with Ralph Loop + AutoResearch methodology. [Quality Platform](services/quality-platform.md) - Enhanced testing infrastructure with anti-gaming quality gates.
 
 ## Quick Links
 
@@ -16,6 +16,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | Understand the GitHub workflow | [GitHub Workflow](guides/github-workflow.md) |
 | Read the API docs | [API Reference](api/) |
 | Deploy to production | [Deployment Guide](DEPLOYMENT.md) |
+| Set up autonomous refactoring | [Autonomous Refactoring Guide](autonomous-refactoring-integration.md) |
 
 ## By Audience
 
@@ -30,6 +31,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 - [Contributing Guide](CONTRIBUTING.md)
 - [GitHub Workflow](guides/github-workflow.md)
 - [API Reference](api/)
+- [Autonomous Refactoring Guide](autonomous-refactoring-integration.md) - Continuous improvement system
 
 ### Operators
 - [Observability Guide](observability.md) - Production monitoring, tracing, and SLOs
