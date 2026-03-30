@@ -13,10 +13,10 @@ class Settings(BaseSettings):
     # Graph Database
     graph_db_url: str = "bolt://localhost:7687"
     graph_db_user: str = "neo4j"
-    graph_db_password: str = "chimera_graph_2026"
+    graph_db_password: str = "CHANGE_ME_GRAPH_PASSWORD"
 
     # Vector Database
-    vector_db_url: str = "postgresql+asyncpg://postgres:password@localhost:5432/chimera"
+    vector_db_url: str = "postgresql+asyncpg://postgres:CHANGE_ME_DB_PASSWORD@localhost:5432/chimera"
 
     # LLM Configuration
     openai_api_key: Optional[str] = None
