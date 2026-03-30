@@ -142,7 +142,7 @@ export class WebSocketClient {
     const maxAttempts = this.options.maxReconnectAttempts || 5;
 
     if (this.reconnectAttempts >= maxAttempts) {
-      throw new Error(`Max reconnection attempts (${maxAttempts}) reached`);
+      throw new Error(`Connection failed - max reconnection attempts (${maxAttempts}) reached`);
     }
 
     const interval = this.options.reconnectInterval || 2000;
