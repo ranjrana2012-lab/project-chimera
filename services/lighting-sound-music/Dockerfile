@@ -37,6 +37,9 @@ RUN pip install --upgrade pip && \
 # Copy application code
 COPY services/lighting-sound-music/ . .
 
+# Copy shared module
+COPY services/shared/ /app/shared/
+
 # Create non-root user (already there)
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
