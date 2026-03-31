@@ -28,15 +28,15 @@ class RouterConfig:
     dgx_endpoint: str
     nemotron_model: str = "nemotron-8b"
 
-    # Z.AI Configuration
+    # Z.AI Configuration - GLM-5.1 Turbo First Strategy
     zai_api_key: str = ""
-    zai_primary_model: str = "glm-5-turbo"
-    zai_programming_model: str = "glm-4.7"
-    zai_fast_model: str = "glm-4.7-flashx"
+    zai_primary_model: str = "glm-5-turbo"      # GLM-5.1 Turbo - Primary
+    zai_programming_model: str = "glm-4.7"      # GLM-4.7 - Fallback
+    zai_fast_model: str = "glm-4.7-flashx"      # GLM-4.7-FlashX - Last Z.AI option
     zai_cache_ttl: int = 3600
     zai_thinking_enabled: bool = True
 
-    # Nemotron Configuration
+    # Nemotron Configuration (local fallback after Z.AI)
     nemotron_enabled: bool = True
     nemotron_endpoint: str = "http://localhost:8000"
     nemotron_model_120b: str = "nemotron-3-super-120b-a12b-nvfp4"
@@ -44,18 +44,19 @@ class RouterConfig:
     nemotron_max_retries: int = 2
 
     # Legacy config (kept for backward compatibility)
-    local_ratio: float = 0.0  # No longer used (Z.AI-first)
+    local_ratio: float = 0.0  # No longer used (Z.AI-first with cascade)
     cloud_fallback_enabled: bool = True  # Now means Nemotron/Ollama fallback
 
 
 class PrivacyRouter:
     """
-    Routes LLM requests with Z.AI-first priority
+    Routes LLM requests with Z.AI GLM-5.1 Turbo first priority
 
-    GLM-4.7 FIRST Strategy (4000 prompts/5hrs generous quota):
-    - Primary: GLM-4.7 for everything (orchestration, tool invocation, code, etc.)
-    - Fallback: GLM-4.7-FlashX only for explicitly simple/repetitive tasks
-    - Final: Local LLM (Nemotron → Ollama) when Z.AI credits exhausted
+    GLM-5.1 TURBO FIRST Strategy:
+    - Primary: GLM-5.1 Turbo (glm-5-turbo) for everything
+    - Fallback 1: GLM-4.7 (glm-4.7) if GLM-5.1 Turbo fails
+    - Fallback 2: GLM-4.7-FlashX (glm-4.7-flashx) for simple tasks
+    - Final: Local LLM (Nemotron → Ollama) when all Z.AI options exhausted
     """
 
     def __init__(self, config: RouterConfig):
@@ -95,23 +96,28 @@ class PrivacyRouter:
         """
         Select Z.AI model based on task type
 
-        PRIMARY: GLM-4.7 for everything (4000 prompts/5hrs, generous)
-        FALLBACK: GLM-4.7-FlashX for simple tasks only
+        CASCADE: GLM-5.1 Turbo → GLM-4.7 → GLM-4.7-FlashX → Local
+        - Simple/repetitive tasks: Skip directly to GLM-4.7-FlashX (fastest)
+        - Programming/complex tasks: GLM-5.1 Turbo (can fallback to GLM-4.7)
+        - Everything else: GLM-5.1 Turbo (default, most capable)
 
         Args:
             task_type: Type of task (tool_invocation, programming, simple, etc.)
 
         Returns:
-            LLMBackend for the selected Z.AI model
+            LLMBackend for the selected Z.AI model (initial choice - fallback happens in generate())
         """
-        # Use FlashX only for explicitly simple/repetitive tasks
+        # Use FlashX directly for explicitly simple/repetitive tasks (skip GLM-5.1 for speed)
         if task_type in ["simple", "repetitive", "quick", "classification"]:
             return LLMBackend.ZAI_FAST
 
-        # Everything else uses GLM-4.7 (primary)
-        # This includes: tool_invocation, persistent, orchestration, default,
-        # programming, code_generation, debugging, and any unknown task types
-        return LLMBackend.ZAI_PROGRAMMING
+        # For complex programming tasks, prefer GLM-4.7 (can still start with GLM-5.1)
+        # The router will fallback from GLM-5.1 → GLM-4.7 if needed
+        if task_type in ["programming", "code_generation", "debugging", "complex"]:
+            return LLMBackend.ZAI_PROGRAMMING
+
+        # Default to GLM-5.1 Turbo (fastest, most capable)
+        return LLMBackend.ZAI_PRIMARY
 
     def route(self, prompt: str, task_type: str = "default") -> LLMBackend:
         """
@@ -206,9 +212,50 @@ class PrivacyRouter:
             backend_value = backend.value if isinstance(backend, LLMBackend) else backend
             logger.error(f"Generation failed with backend {backend_value}: {e}")
 
-            # Attempt fallback to Nemotron, then Ollama
-            if backend != LLMBackend.NEMOTRON_LOCAL and self.config.nemotron_enabled and self.nemotron_client:
-                logger.info("Attempting fallback to Nemotron")
+            # Z.AI-to-Z.AI fallback cascade
+            if backend == LLMBackend.ZAI_PRIMARY:
+                # GLM-5.1 Turbo failed, try GLM-4.7
+                logger.info("GLM-5.1 Turbo failed, attempting fallback to GLM-4.7")
+                try:
+                    return self._generate_with_zai(
+                        prompt=prompt,
+                        backend=LLMBackend.ZAI_PROGRAMMING,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        **kwargs
+                    )
+                except Exception as e2:
+                    logger.warning(f"GLM-4.7 fallback also failed: {e2}")
+                    # Try FlashX as last Z.AI option
+                    logger.info("Attempting fallback to GLM-4.7-FlashX")
+                    try:
+                        return self._generate_with_zai(
+                            prompt=prompt,
+                            backend=LLMBackend.ZAI_FAST,
+                            max_tokens=max_tokens,
+                            temperature=temperature,
+                            **kwargs
+                        )
+                    except Exception as e3:
+                        logger.warning(f"GLM-4.7-FlashX fallback also failed: {e3}")
+
+            elif backend == LLMBackend.ZAI_PROGRAMMING:
+                # GLM-4.7 failed, try FlashX
+                logger.info("GLM-4.7 failed, attempting fallback to GLM-4.7-FlashX")
+                try:
+                    return self._generate_with_zai(
+                        prompt=prompt,
+                        backend=LLMBackend.ZAI_FAST,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        **kwargs
+                    )
+                except Exception as e2:
+                    logger.warning(f"GLM-4.7-FlashX fallback failed: {e2}")
+
+            # Attempt fallback to Nemotron, then Ollama (local models)
+            if self.config.nemotron_enabled and self.nemotron_client:
+                logger.info("Attempting fallback to Nemotron (local)")
                 try:
                     return self._generate_with_nemotron(
                         prompt=prompt,
@@ -219,8 +266,8 @@ class PrivacyRouter:
                 except Exception as e:
                     logger.warning(f"Nemotron fallback failed: {e}")
 
-            if backend != LLMBackend.OLLAMA_LOCAL and self.config.cloud_fallback_enabled:
-                logger.info("Attempting fallback to Ollama")
+            if self.config.cloud_fallback_enabled:
+                logger.info("Attempting final fallback to Ollama (local)")
                 return self._generate_with_ollama(
                     prompt=prompt,
                     max_tokens=max_tokens,
