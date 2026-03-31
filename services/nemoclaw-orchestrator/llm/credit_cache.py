@@ -18,14 +18,17 @@ class CreditStatusCache:
     def __init__(
         self,
         redis_url: Optional[str] = None,
-        ttl: int = 3600
+        ttl: int = 1800
     ):
         """
         Initialize credit status cache
 
         Args:
             redis_url: Redis connection URL (defaults to REDIS_URL env var)
-            ttl: Time-to-live for exhausted flag in seconds (default: 1 hour)
+            ttl: Time-to-live for exhausted flag in seconds
+                 - Max plan (5hr quota): 1800s (30 min) - faster retry
+                 - Standard plan: 3600s (1 hour) - stable fallback
+                 - Override via ZAI_CACHE_TTL env var
         """
         self.ttl = ttl
         self.key = "zai:credit:status"

@@ -33,8 +33,8 @@ class RouterConfig:
     zai_primary_model: str = "glm-5-turbo"      # GLM-5.1 Turbo - Primary
     zai_programming_model: str = "glm-4.7"      # GLM-4.7 - Fallback
     zai_fast_model: str = "glm-4.7-flashx"      # GLM-4.7-FlashX - Last Z.AI option
-    zai_cache_ttl: int = 3600
-    zai_thinking_enabled: bool = True
+    zai_cache_ttl: int = 1800                   # Max plan: 1800s (30min), Standard: 3600s (1hr)
+    zai_thinking_enabled: bool = True           # Enable extended reasoning for best intelligence
 
     # Nemotron Configuration (local fallback after Z.AI)
     nemotron_enabled: bool = True
