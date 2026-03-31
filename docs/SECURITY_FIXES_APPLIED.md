@@ -53,7 +53,7 @@ slowapi>=0.1.9
 structlog>=2.4.0
 ```
 
-**Services updated (all 13 services):**
+**Services updated (all 17 services):**
 - scenespeak-agent/requirements.txt ✅
 - captioning-agent/requirements.txt ✅
 - bsl-agent/requirements.txt ✅
