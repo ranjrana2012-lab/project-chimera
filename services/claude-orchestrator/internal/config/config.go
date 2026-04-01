@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -94,6 +95,9 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
+	// Normalize LogLevel to lowercase
+	cfg.LogLevel = strings.ToLower(cfg.LogLevel)
+
 	// Set default services if not configured
 	if len(cfg.Services) == 0 {
 		cfg.Services = GetDefaultServices()
@@ -119,6 +123,10 @@ func GetDefaultServices() []ServiceConfig {
 
 // Validate validates the configuration
 func (c *Config) Validate() error {
+	if c.ServiceName == "" {
+		return fmt.Errorf("service_name is required")
+	}
+
 	if c.Port < 1 || c.Port > 65535 {
 		return fmt.Errorf("invalid port: %d", c.Port)
 	}
@@ -129,6 +137,14 @@ func (c *Config) Validate() error {
 
 	if c.RedisURL == "" {
 		return fmt.Errorf("redis_url is required")
+	}
+
+	if c.StateDir == "" {
+		return fmt.Errorf("state_dir is required")
+	}
+
+	if c.HealthCheckTimeout < 0 {
+		return fmt.Errorf("health_check_timeout cannot be negative: %d", c.HealthCheckTimeout)
 	}
 
 	return nil
