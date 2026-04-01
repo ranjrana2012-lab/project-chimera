@@ -1,0 +1,234 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chimera
+  labels:
+    name: chimera
+    project: project-chimera
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orchestrator-config
+  namespace: chimera
+data:
+  policies.yaml: |
+    policies: []
+    escalation_policies:
+      - id: critical-escalation
+        name: Critical Error Escalation
+        trigger:
+          type: severity_threshold
+        actions:
+          - escalate
+        severity: CRITICAL
+        auto_escalate: true
+    approval_gates: []
+    mode_transitions: []
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-orchestrator
+  namespace: chimera
+  labels:
+    app: claude-orchestrator
+    project: project-chimera
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: claude-orchestrator
+  template:
+    metadata:
+      labels:
+        app: claude-orchestrator
+        project: project-chimera
+    spec:
+      containers:
+      - name: orchestrator
+        image: ghcr.io/project-chimera/claude-orchestrator:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8010
+          protocol: TCP
+        env:
+        - name: CLAUDE_SERVICE_NAME
+          value: "claude-orchestrator"
+        - name: CLAUDE_PORT
+          value: "8010"
+        - name: CLAUDE_HOST
+          value: "0.0.0.0"
+        - name: CLAUDE_NEMOCLAW_BASE_URL
+          value: "http://nemoclaw-orchestrator.chimera.svc.cluster.local:8000"
+        - name: CLAUDE_REDIS_URL
+          value: "redis://redis.chimera.svc.cluster.local:6379"
+        - name: CLAUDE_STATE_DIR
+          value: "/state/claude-orchestrator"
+        - name: CLAUDE_POLICY_CONFIG_PATH
+          value: "/config/policies.yaml"
+        - name: CLAUDE_LOG_LEVEL
+          value: "info"
+        - name: CLAUDE_RALPH_LOOP_ENABLED
+          value: "true"
+        - name: CLAUDE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: orchestrator-secrets
+              key: api-key
+        volumeMounts:
+        - name: config
+          mountPath: /config
+          readOnly: true
+        - name: state
+          mountPath: /state
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/status
+            port: 8010
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/status
+            port: 8010
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: config
+        configMap:
+          name: orchestrator-config
+      - name: state
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-orchestrator
+  namespace: chimera
+  labels:
+    app: claude-orchestrator
+    project: project-chimera
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8010
+    targetPort: 8010
+    protocol: TCP
+  selector:
+    app: claude-orchestrator
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: claude-orchestrator
+  namespace: chimera
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - orchestrator.chimera.local
+    secretName: claude-orchestrator-tls
+  rules:
+  - host: orchestrator.chimera.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: claude-orchestrator
+            port:
+              number: 8010
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: claude-orchestrator
+  namespace: chimera
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: claude-orchestrator
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: claude-orchestrator
+  namespace: chimera
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: claude-orchestrator
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: orchestrator-secrets
+  namespace: chimera
+type: Opaque
+stringData:
+  # Base64 encoded API key - replace with actual value
+  api-key: YXBpLWtleS1yZXBsYWNlLXdpdGgtYWN0dWFsLXZhbHVl
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: orchestrator
+  namespace: chimera
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: orchestrator
+  namespace: chimera
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: orchestrator
+  namespace: chimera
+subjects:
+- kind: ServiceAccount
+  name: orchestrator
+roleRef:
+  kind: Role
+  name: orchestrator
+  apiGroup: rbac.authorization.k8s.io
