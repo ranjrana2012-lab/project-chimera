@@ -1,0 +1,97 @@
+# Claude Code Orchestrator Policy Configuration
+
+escalation_policies:
+  critical_services:
+    - service: safety-filter
+      on_failure: escalate_immediately
+    - service: nemoclaw-orchestrator
+      on_failure: retry_3x_then_escalate
+    - service: scenespeak-agent
+      on_failure: retry_5x_with_backoff
+      backoff_duration: 30s
+    - service: captioning-agent
+      on_failure: retry_5x_with_backoff
+      backoff_duration: 30s
+
+  non_critical_services:
+    - service: sentiment-agent
+      on_failure: retry_5x_with_backoff
+      backoff_duration: 60s
+    - service: autonomous-agent
+      on_failure: retry_3x_then_escalate
+    - service: music-generation
+      on_failure: retry_3x_then_escalate
+
+approval_gates:
+  control_mode_during_show: required
+  service_restart: required
+  config_changes: required
+  policy_reload: required
+  refactoring_during_show: denied
+  mode_override: required
+
+mode_transitions:
+  standby_to_control:
+    trigger: show_state_active
+    approval_required: false
+  control_to_standby:
+    trigger: show_state_ended
+    approval_required: false
+  any_to_escalated:
+    trigger: critical_error
+    approval_required: false
+  escalated_to_standby:
+    trigger: manual_resolution
+    approval_required: true
+
+# Task-specific policies
+task_policies:
+  service_restart:
+    max_retries: 3
+    retry_backoff: 30s
+    requires_approval: true
+    allowed_during_show: false
+
+  config_change:
+    max_retries: 1
+    requires_approval: true
+    allowed_during_show: false
+
+  refactoring:
+    max_retries: 3
+    requires_approval: false
+    allowed_during_show: false
+
+  health_check:
+    max_retries: 5
+    retry_backoff: 15s
+    requires_approval: false
+    allowed_during_show: true
+
+# Error classification rules
+error_classification:
+  critical:
+    patterns:
+      - "safety.*down"
+      - "nemoclaw.*unreachable"
+      - "security.*breach"
+    action: escalate_immediately
+
+  high:
+    patterns:
+      - ".*timeout"
+      - ".*connection refused"
+      - ".*memory exhausted"
+    action: retry_3x_then_escalate
+
+  medium:
+    patterns:
+      - ".*latency.*high"
+      - ".*degraded"
+    action: retry_5x_with_backoff
+
+  low:
+    patterns:
+      - ".*warning"
+      - ".*deprecated"
+    action: log_only

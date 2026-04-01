@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  claude-orchestrator:
+    build: .
+    ports:
+      - "8010:8010"
+    environment:
+      - CLAUDE_NEMOCLAW_BASE_URL=http://nemoclaw-orchestrator:8000
+      - CLAUDE_REDIS_URL=redis://redis:6379
+    volumes:
+      - ./state:/state/claude-orchestrator
+      - ./config/policies.yaml:/config/policies.yaml
+    depends_on:
+      - nemoclaw-orchestrator
+      - redis
+    restart: unless-stopped
+    networks:
+      - chimera-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - chimera-network
+
+  # Nemo Claw Orchestrator (external, already running)
+  nemoclaw-orchestrator:
+    image: project-chimera/nemoclaw-orchestrator:latest
+    ports:
+      - "8000:8000"
+    networks:
+      - chimera-network
+
+volumes:
+  redis-data:
+
+networks:
+  chimera-network:
+    driver: bridge
