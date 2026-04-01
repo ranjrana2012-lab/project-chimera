@@ -100,9 +100,12 @@ func (h HealthStatus) String() string {
 type ShowState string
 
 const (
+	ShowStateInactive   ShowState = "INACTIVE"
 	ShowStateNotStarted ShowState = "NOT_STARTED"
+	ShowStateStarting   ShowState = "STARTING"
 	ShowStateActive     ShowState = "ACTIVE"
 	ShowStateIntermission ShowState = "INTERMISSION"
+	ShowStateEnding     ShowState = "ENDING"
 	ShowStateEnded      ShowState = "ENDED"
 	ShowStateUnknown    ShowState = "UNKNOWN"
 )
@@ -110,6 +113,28 @@ const (
 // String returns the string representation of ShowState
 func (s ShowState) String() string {
 	return string(s)
+}
+
+// ShowStateFromString parses a ShowState from a string
+func ShowStateFromString(s string) ShowState {
+	switch s {
+	case "INACTIVE":
+		return ShowStateInactive
+	case "NOT_STARTED":
+		return ShowStateNotStarted
+	case "STARTING":
+		return ShowStateStarting
+	case "ACTIVE":
+		return ShowStateActive
+	case "INTERMISSION":
+		return ShowStateIntermission
+	case "ENDING":
+		return ShowStateEnding
+	case "ENDED":
+		return ShowStateEnded
+	default:
+		return ShowStateUnknown
+	}
 }
 
 // Task represents a task in the queue
