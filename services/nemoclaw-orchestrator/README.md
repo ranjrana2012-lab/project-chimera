@@ -16,6 +16,7 @@ Nemo Claw Orchestrator is the replacement for OpenClaw Orchestrator, providing e
 
 - **OpenShell Policy Engine** - ALLOW/DENY/SANITIZE/ESCALATE actions for all agent interactions
 - **GLM-4.7 First Privacy Router** - Z.AI GLM-4.7 as primary (4000 prompts/5hrs generous), GLM-4.7-FlashX for simple tasks, local LLM fallback
+- **GGUF Model Support** - Local quantized models (Llama 3.1, BSL phases, Director models, SceneSpeak)
 - **Redis-Backed State Machine** - Persistent show state with automatic failover
 - **Circuit Breaker + Retry** - Resilience patterns for reliable agent communication
 - **WebSocket Manager** - Real-time show updates with policy-filtered broadcasts
@@ -27,6 +28,7 @@ Nemo Claw Orchestrator is the replacement for OpenClaw Orchestrator, providing e
 |---------|----------|-----------|
 | Policy Enforcement | ❌ None | ✅ OpenShell policies |
 | LLM Privacy | ❌ All cloud | ✅ GLM-4.7 first (4000/5hrs), FlashX fallback, local LLM |
+| Local Models | ❌ Nemotron only | ✅ GGUF models (Llama 3.1, BSL, Director, SceneSpeak) |
 | State Persistence | ❌ In-memory | ✅ Redis-backed |
 | Resilience | ⚠️ Basic retry | ✅ Circuit breaker + exponential backoff |
 | Error Handling | ⚠️ Generic | ✅ Structured error codes |
@@ -108,7 +110,9 @@ curl http://localhost:8001/health/ready
 | `/policy/rules` | GET | List active OpenShell policies |
 | `/policy/test` | POST | Test input against policies |
 | `/llm/status` | GET | Privacy Router and backend status |
-| `/llm/backends` | GET | Available LLM backends |
+| `/llm/backends` | GET | Available LLM backends (Z.AI, Ollama, GGUF) |
+| `/llm/gguf/list` | GET | List available GGUF models |
+| `/llm/gguf/load` | POST | Load a GGUF model into Ollama |
 | `/llm/zai/status` | GET | Z.AI availability and configuration |
 | `/llm/zai/reset` | POST | Reset Z.AI credit exhaustion flag |
 
@@ -149,10 +153,16 @@ All orchestration responses now include policy metadata:
 │  │                  PRIVACY ROUTER                              │   │
 │  │     Intelligent LLM Backend Selection                       │   │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │   │
-│  │  │   LOCAL      │  │   CLOUD      │  │  HYBRID      │      │   │
-│  │  │  Nemotron    │  │  Fallback    │  │  Smart       │      │   │
-│  │  │  (DGX GPU)   │  │  (Guarded)   │  │  Routing     │      │   │
+│  │  │   CLOUD      │  │   LOCAL      │  │   GGUF       │      │   │
+│  │  │  Z.AI GLM    │  │  Ollama      │  │  Specialized │      │   │
+│  │  │  (Primary)   │  │  llama3:8b   │  │  Models      │      │   │
 │  └──────────────┘  └──────────────┘  └──────────────┘      │   │
+│  │                                                  │   │
+│  │  GGUF Models:                                   │   │
+│  │  • llama-3.1-8b-instruct (General)            │   │
+│  │  • bsl-phase7/8/9 (BSL tasks)                 │   │
+│  │  • director-v4/v5 (Director tasks)           │   │
+│  │  • scenespeak-queryd (SceneSpeak tasks)      │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 │                                                                      │
 │  ┌─────────────────────────────────────────────────────────────┐   │
@@ -197,6 +207,102 @@ LIGHTING_SOUND_MUSIC_URL=http://lighting-sound-music:8005
 SAFETY_FILTER_URL=http://safety-filter:8006
 AUTONOMOUS_AGENT_URL=http://autonomous-agent:8008
 MUSIC_GENERATION_URL=http://music-generation:8011
+```
+
+### GGUF Model Configuration
+
+Local GGUF models for specialized tasks:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GGUF_BASE_PATH` | `/home/ranj/Project_Chimera_Downloads/LLM Models/gguf` | Base path to GGUF models |
+| `GGUF_LLAMA_MODEL` | `other/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf` | General purpose GGUF model |
+| `GGUF_BSL7_MODEL` | `bsl-phases/bsl_phase7.Q4_K_M.gguf` | BSL Phase 7 model |
+| `GGUF_BSL8_MODEL` | `bsl-phases/bsl_phase8.Q4_K_M.gguf` | BSL Phase 8 model |
+| `GGUF_BSL9_MODEL` | `bsl-phases/bsl_phase9.Q4_K_M.gguf` | BSL Phase 9 model |
+| `GGUF_DIRECTOR_V4_MODEL` | `directors/director_v4.Q4_K_M.gguf` | Director v4 model |
+| `GGUF_DIRECTOR_V5_MODEL` | `directors/director_v5.Q4_K_M.gguf` | Director v5 model |
+| `GGUF_SCENESPEAK_MODEL` | `scene-speak/scenespeak_queryd.Q4_K_M.gguf` | SceneSpeak QueryD model |
+
+---
+
+## GGUF Model Management
+
+### Available GGUF Models
+
+NemoClaw supports local quantized (GGUF) models for specialized tasks:
+
+| Model Name | Type | Size | Purpose |
+|------------|------|------|---------|
+| `llama-3.1-8b-instruct` | General | 4.6 GB | General inference |
+| `bsl-phase7` | Specialized | ~4 GB | BSL Phase 7 tasks |
+| `bsl-phase8` | Specialized | ~4 GB | BSL Phase 8 tasks |
+| `bsl-phase9` | Specialized | ~4 GB | BSL Phase 9 tasks |
+| `director-v4` | Specialized | ~4 GB | Director v4 tasks |
+| `director-v5` | Specialized | ~4 GB | Director v5 tasks |
+| `scenespeak-queryd` | Specialized | ~4 GB | SceneSpeak QueryD tasks |
+
+### Model Loader Script
+
+Interactive model management via bash script:
+
+```bash
+# List all available models
+./scripts/model_loader.sh list
+
+# Load a GGUF model into Ollama
+./scripts/model_loader.sh load llama-3.1-8b-instruct
+
+# Switch to a model (updates .env)
+./scripts/model_loader.sh switch llama-3.1-8b-instruct
+
+# Test a model
+./scripts/model_loader.sh test llama-3.1-8b-instruct
+
+# Show current status
+./scripts/model_loader.sh status
+```
+
+### Python Model Manager
+
+Programmatic model management:
+
+```python
+from scripts.model_manager import ModelManager
+
+manager = ModelManager()
+
+# List models
+for model in manager.list_models("gguf"):
+    print(f"{model.name}: {model.description}")
+
+# Load a model
+manager.load_model("llama-3.1-8b-instruct")
+
+# Switch to a model
+manager.switch_model("llama-3.1-8b-instruct")
+
+# Test a model
+manager.test_model("llama-3.1-8b-instruct")
+```
+
+### Using GGUF Models in Code
+
+```python
+from llm.privacy_router import PrivacyRouter, RouterConfig, LLMBackend
+
+config = RouterConfig(
+    dgx_endpoint="http://localhost:11434",
+    gguf_base_path="/home/ranj/Project_Chimera_Downloads/LLM Models/gguf"
+)
+
+router = PrivacyRouter(config)
+
+# Use specific GGUF model
+result = router.generate(
+    prompt="Your prompt here",
+    force_backend=LLMBackend.GGUF_LLAMA
+)
 ```
 
 ---

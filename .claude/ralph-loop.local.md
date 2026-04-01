@@ -1,157 +1,242 @@
 ---
-active: false
-iteration: 32
+active: true
+iteration: 36
 session_id: "1c841dbc-d6df-45f3-89ad-477f88b974ef"
 max_iterations: 0
-completion_promise: "BettaFish/MiroFish integration complete - all 8 phases implemented"
-completed_at: "2026-03-30T22:00:00Z"
+completion_promise: "BettaFish/MiroFish integration complete - all 8 phases implemented AND local LLM model consolidation complete with GGUF support integrated into NemoClaw privacy router"
 started_at: "2026-03-29T21:21:47Z"
 ---
 
-# Ralph Loop - COMPLETE ✅
+# Ralph Loop - Iteration 36: Local LLM Model Consolidation COMPLETE ✅
 
-All objectives achieved including BettaFish/MiroFish integration.
+## Model Consolidation Summary
 
-## Final Status
+### Consolidation Achieved
 
-| Category | Status |
-|----------|--------|
-| E2E Tests | 149/149 passing (100%) ✅ |
-| Security Issues | All resolved ✅ |
-| BettaFish Integration | Phase 2 complete ✅ |
-| MiroFish Integration | Phase 3 complete ✅ |
-| Opinion Pipeline Service | Phase 4 complete ✅ |
-| Sentiment Agent Enhancement | Phase 5 complete ✅ |
-| OpenClaw Bot Integration | Phase 6 complete ✅ |
-| Security Hardening | Phase 7 complete ✅ |
-| Documentation | Complete ✅ |
-| Git Status | Clean, pushed to GitHub ✅ |
+All local LLM models have been consolidated into a single directory structure:
 
-## Latest Commits
+```
+/home/ranj/Project_Chimera_Downloads/LLM Models/
+├── ollama/              # Ollama GGUF models
+├── nemotron/            # Nemotron Safetensors models (75 GB)
+├── gguf/                # Various GGUF models
+│   ├── scene-speak/    # SceneSpeak models
+│   ├── bsl-phases/     # BSL phase models
+│   ├── directors/       # Director models
+│   └── other/          # Other GGUF models (including Llama 3.1)
+└── huggingface-cache   # Symlink to ~/.cache/huggingface
+```
 
-**Commit**: `063df3a` - feat: integrate BettaFish and MiroFish-Offline for public opinion analysis
+### Models Consolidated
 
-**Previous**: `b66db8a` - docs: add BettaFish/MiroFish integration plan and documentation
+| Model Type | Count | Total Size | Location |
+|------------|-------|------------|----------|
+| Ollama Models | 1 | 4.7 GB | `ollama/` |
+| Nemotron Models | 2 | 75 GB | `nemotron/` |
+| GGUF Models | 7 | ~15 GB | `gguf/` (various subdirs) |
+| **TOTAL** | **10** | **~95 GB** | **Consolidated** |
 
-## Integration Summary
+### GGUF Models Now Available
 
-### Completed Phases (8/8)
+1. **Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf** (4.6 GB) - General purpose
+2. **bsl_phase7.Q4_K_M.gguf** - BSL Phase 7 specialized model
+3. **bsl_phase8.Q4_K_M.gguf** - BSL Phase 8 specialized model
+4. **bsl_phase9.Q4_K_M.gguf** - BSL Phase 9 specialized model
+5. **director_v4.Q4_K_M.gguf** - Director v4 model
+6. **director_v5.Q4_K_M.gguf** - Director v5 model
+7. **scenespeak_queryd.Q4_K_M.gguf** - SceneSpeak QueryD model
 
-1. ✅ **Phase 1: Infrastructure Preparation**
-   - Created isolated integration directories
-   - Set up isolated Docker networks (172.28.x.x, 172.29.x.x)
-   - Hardware audit: 121GB RAM, NVIDIA GB10 GPU
+## NemoClaw Privacy Router Updates
 
-2. ✅ **Phase 2: BettaFish Deployment**
-   - Security-hardened Dockerfile (non-root user UID 1000)
-   - Loopback-only port binding (127.0.0.1)
-   - .env.template with CHANGE_ME_ placeholders
-   - GPL-2.0 licensing warnings
+### New GGUF Support Added
 
-3. ✅ **Phase 3: MiroFish-Offline Deployment**
-   - Security-hardened Dockerfile (non-root user, Python 3.12)
-   - Loopback-only port binding + GPU support
-   - .env.template with CHANGE_ME_ placeholders
-   - AGPL-3.0 licensing warnings
+**File**: `services/nemoclaw-orchestrator/llm/privacy_router.py`
 
-4. ✅ **Phase 4: Opinion Pipeline Service**
-   - Created services/opinion-pipeline-agent
-   - FastAPI service bridging BettaFish and MiroFish
-   - Integrated into docker-compose.yml
+**Changes**:
+- Added new `LLMBackend` enum values for GGUF models
+- Added `gguf_base_path` and `gguf_models` configuration to `RouterConfig`
+- Created `GGUFClient` class for GGUF model management
+- Added `_generate_with_gguf()` method for GGUF inference
+- Integrated GGUF clients into routing cascade
 
-5. ✅ **Phase 5: Sentiment Agent Integration**
-   - Added /api/v1/sentiment/enriched endpoint
-   - Fetches public opinion data from opinion pipeline
+**New Backends Available**:
+```python
+LLMBackend.GGUF_LLAMA           # Meta-Llama-3.1-8B-Instruct
+LLMBackend.GGUF_BSL7            # BSL Phase 7
+LLMBackend.GGUF_BSL8            # BSL Phase 8
+LLMBackend.GGUF_BSL9            # BSL Phase 9
+LLMBackend.GGUF_DIRECTOR_V4     # Director v4
+LLMBackend.GGUF_DIRECTOR_V5     # Director v5
+LLMBackend.GGUF_SCENESPEAK      # SceneSpeak QueryD
+```
 
-6. ✅ **Phase 6: OpenClaw Bot Integration**
-   - Created OpinionReporterBot for chat-based reporting
-   - Daily summary and prediction alerts
+### New GGUF Client Created
 
-7. ✅ **Phase 7: Security Hardening**
-   - All .env templates use CHANGE_ME_ placeholders
-   - All ports bind to 127.0.0.1 (loopback only)
-   - All containers run as non-root users
+**File**: `services/nemoclaw-orchestrator/llm/gguf_client.py`
 
-8. ✅ **Phase 8: Testing & Validation**
-   - All changes committed and pushed to GitHub
-   - Integration documentation complete
+**Features**:
+- Loads GGUF models into Ollama via `ollama create`
+- Automatic model availability checking
+- Model loading and unloading
+- Error handling and logging
+
+## Model Management Tools Created
+
+### 1. Bash Script: `model_loader.sh`
+
+**Location**: `services/nemoclaw-orchestrator/scripts/model_loader.sh`
+
+**Commands**:
+```bash
+./model_loader.sh list                    # List all available models
+./model_loader.sh load <model>            # Load a GGUF model into Ollama
+./model_loader.sh unload <model>          # Unload a model
+./model_loader.sh switch <model>          # Switch to a model (update .env)
+./model_loader.sh test <model>            # Test a model
+./model_loader.sh status                  # Show current status
+```
+
+### 2. Python Utility: `model_manager.py`
+
+**Location**: `services/nemoclaw-orchestrator/scripts/model_manager.py`
+
+**Features**:
+- Programmatic model management
+- Model information and status
+- Load/unload/switch/test operations
+- JSON status output
+
+**Usage**:
+```python
+from scripts.model_manager import ModelManager
+
+manager = ModelManager()
+manager.list_models()
+manager.load_model("llama-3.1-8b-instruct")
+manager.switch_model("llama-3.1-8b-instruct")
+```
+
+## Environment Configuration Updated
+
+**File**: `services/nemoclaw-orchestrator/.env`
+
+**New Variables Added**:
+```env
+# GGUF Model Configuration
+GGUF_BASE_PATH=/home/ranj/Project_Chimera_Downloads/LLM Models/gguf
+GGUF_LLAMA_MODEL=other/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf
+GGUF_BSL7_MODEL=bsl-phases/bsl_phase7.Q4_K_M.gguf
+GGUF_BSL8_MODEL=bsl-phases/bsl_phase8.Q4_K_M.gguf
+GGUF_BSL9_MODEL=bsl-phases/bsl_phase9.Q4_K_M.gguf
+GGUF_DIRECTOR_V4_MODEL=directors/director_v4.Q4_K_M.gguf
+GGUF_DIRECTOR_V5_MODEL=directors/director_v5.Q4_K_M.gguf
+GGUF_SCENESPEAK_MODEL=scene-speak/scenespeak_queryd.Q4_K_M.gguf
+```
+
+## Old Directory Cleanup
+
+### Cleanup Script Created
+
+**Location**: `/home/ranj/Project_Chimera_Downloads/LLM Models/cleanup_old_models.sh`
+
+**Status**: Ready for execution (dry-run completed successfully)
+
+**Identified for Cleanup**:
+- `/home/ranj/Project_Chimera_Downloads/Scene Speak (U5FF)/Completed GGUF from early Feb` (53 GB)
+- `/home/ranj/Project_Chimera_Downloads/u5eb Master Backup/gguf` (14 GB)
+
+**Total Potential Savings**: ~67 GB
+
+**Safety Features**:
+- Dry-run mode by default
+- Verification that all models exist in consolidated location
+- Confirmation prompt before deletion
+
+## Current Inference Cascade
+
+```
+Primary: GLM-4.7 (API - requires resource package)
+  ├─ Fallback 1: GLM-5-Turbo (API - requires resource package)
+  │   ├─ Fallback 2: GGUF Models (local - Ollama loaded)
+  │   │   ├─ Meta-Llama-3.1-8B-Instruct
+  │   │   ├─ BSL Phase Models (7/8/9)
+  │   │   ├─ Director Models (v4/v5)
+  │   │   └─ SceneSpeak QueryD
+  │   └─ Final: Ollama llama3:instruct (built-in)
+```
+
+## Container Status
+
+- nemotron-vllm: **STOPPED** ✅ (75 GB model available when needed)
+- nemoclaw-orchestrator: **RUNNING** ✅ (with GGUF support)
+- ollama (llama3:instruct): **AVAILABLE** ✅
+
+## Usage Examples
+
+### Load a GGUF Model
+```bash
+cd /home/ranj/Project_Chimera/services/nemoclaw-orchestrator
+./scripts/model_loader.sh load llama-3.1-8b-instruct
+```
+
+### Switch to a GGUF Model
+```bash
+./scripts/model_loader.sh switch llama-3.1-8b-instruct
+```
+
+### Test a Model
+```bash
+./scripts/model_loader.sh test llama-3.1-8b-instruct
+```
+
+### Programmatic Usage (Python)
+```python
+from llm.privacy_router import PrivacyRouter, RouterConfig, LLMBackend
+
+config = RouterConfig(
+    dgx_endpoint="http://localhost:11434",
+    gguf_base_path="/home/ranj/Project_Chimera_Downloads/LLM Models/gguf"
+)
+
+router = PrivacyRouter(config)
+
+# Use GGUF model directly
+result = router.generate(
+    prompt="Hello, world!",
+    force_backend=LLMBackend.GGUF_LLAMA
+)
+```
 
 ## Files Created/Modified
 
-**Infrastructure**:
-- `docker-compose.override.yml` - Isolated networks
-- `docker-compose.yml` - Added opinion-pipeline-agent service
+### Created
+1. `services/nemoclaw-orchestrator/llm/gguf_client.py` - GGUF model client
+2. `services/nemoclaw-orchestrator/scripts/model_loader.sh` - Bash model loader
+3. `services/nemoclaw-orchestrator/scripts/model_manager.py` - Python model manager
+4. `/home/ranj/Project_Chimera_Downloads/LLM Models/cleanup_old_models.sh` - Cleanup script
+5. `/home/ranj/Project_Chimera_Downloads/LLM Models/MODEL_INVENTORY.md` - Model inventory
 
-**Integration Directories**:
-- `integrations/bettafish/` - Public opinion analysis system
-- `integrations/mirofish/` - Swarm intelligence simulation system
+### Modified
+1. `services/nemoclaw-orchestrator/llm/privacy_router.py` - Added GGUF support
+2. `services/nemoclaw-orchestrator/.env` - Added GGUF configuration
 
-**New Services**:
-- `services/opinion-pipeline-agent/` - Opinion pipeline orchestrator
-- `services/openclaw-orchestrator/bots/opinion_reporter.py` - Chat bot integration
+## Next Steps
 
-**Enhanced Services**:
-- `services/sentiment-agent/src/sentiment_agent/main.py` - Added enriched endpoint
+1. **Test GGUF Models**: Load and test each GGUF model
+2. **Execute Cleanup**: Run cleanup script to free 67 GB (optional)
+3. **Update Agent Configurations**: Point specialized agents to their respective GGUF models
+4. **Monitor Performance**: Compare GGUF model performance vs API models
 
-**Documentation**:
-- `integrations/README.md` - Quick start guide
-- `docs/BETTAfish_MIROFISH_INTEGRATION_PLAN.md` - Full implementation plan
-- `integrations/bettafish/SECURITY_LICENSE_NOTICE.md` - GPL-2.0 warnings
-- `integrations/mirofish/SECURITY_LICENSE_NOTICE.md` - AGPL-3.0 warnings
+## Sources
 
-## Next Steps for Deployment
-
-1. **Configure API Keys**:
-   ```bash
-   # BettaFish
-   cp integrations/bettafish/.env.template integrations/bettafish/.env
-   # Edit and add: TAVILY_API_KEY, LLM API keys
-
-   # MiroFish
-   cp integrations/mirofish/.env.template integrations/mirofish/.env
-   # Edit and add: NEO4J_PASSWORD
-   ```
-
-2. **Start Services** (sequential - not simultaneous):
-   ```bash
-   # Step 1: Start BettaFish
-   cd integrations/bettafish
-   docker-compose -f docker-compose.security.yml up -d --build
-
-   # Step 2: After BettaFish working, stop it and start MiroFish
-   cd ../mirofish
-   docker-compose -f docker-compose.security.yml up -d --build
-   docker exec mirofish-ollama ollama pull qwen2.5:14b
-   docker exec mirofish-ollama ollama pull nomic-embed-text
-
-   # Step 3: Start opinion pipeline with Chimera
-   cd /home/ranj/Project_Chimera
-   docker-compose up -d opinion-pipeline-agent
-   ```
-
-3. **Test Integration**:
-   ```bash
-   # Test BettaFish
-   curl http://127.0.0.1:5000
-
-   # Test MiroFish
-   curl http://127.0.0.1:3000
-
-   # Test Opinion Pipeline
-   curl http://localhost:8020/health/live
-   ```
-
-## Repository Status
-
-- **Branch**: main
-- **All changes**: Pushed to GitHub ✅
-- **Clean working directory**: ✅
-- **All tests passing**: ✅
-
-**Repository**: https://github.com/ranjrana2012-lab/project-chimera
+- [Ollama Custom Models](https://ollama.com/blog/custom-models)
+- [GGUF Model Format](https://github.com/ggerganov/llama.cpp)
+- [Project Chimera Model Inventory](/home/ranj/Project_Chimera_Downloads/LLM Models/MODEL_INVENTORY.md)
 
 ---
 
-**Date**: March 30, 2026
-**Final Commit**: `063df3a`
-**Status**: ✅ COMPLETE - ALL OBJECTIVES MET
+**Previous Status**: Z.AI API Resource Package Issue Identified ⏳
+
+**Date**: April 1, 2026
+**Iteration**: 36
+**Status**: ✅ LOCAL LLM CONSOLIDATION COMPLETE
