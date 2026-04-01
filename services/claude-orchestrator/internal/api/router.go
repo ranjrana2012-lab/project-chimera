@@ -80,6 +80,17 @@ func (r *Router) registerRoutes() {
 		ralphGroup.POST("/resume", r.ralph.Resume)
 		ralphGroup.POST("/iteration", r.ralph.Iteration)
 		ralphGroup.GET("/queue", r.ralph.Queue)
+		ralphGroup.POST("/tasks", r.ralph.CreateTask)
+		ralphGroup.POST("/tasks/:task_id/approve", r.ralph.ApproveTask)
+		ralphGroup.POST("/tasks/:task_id/deny", r.ralph.DenyTask)
+		ralphGroup.PUT("/tasks/:task_id/priority", r.ralph.PrioritizeTask)
+		ralphGroup.GET("/learnings", r.ralph.Learnings)
+		ralphGroup.GET("/learnings/search", r.ralph.SearchLearnings)
+		ralphGroup.GET("/learnings/tags", r.ralph.GetTags)
+		ralphGroup.GET("/learnings/statistics", r.ralph.GetStatistics)
+		ralphGroup.POST("/goals", r.ralph.CreateGoal)
+		ralphGroup.POST("/goals/:goal_id/scenarios", r.ralph.CreateScenario)
+		ralphGroup.POST("/goals/:goal_id/scenarios/:scenario_id/deliverables", r.ralph.CreateDeliverable)
 	}
 
 	// Policy Management
