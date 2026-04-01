@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Orchestrator - Project Chimera</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Claude Orchestrator</h1>
+                <div class="header-info">
+                    <span id="connection-status" class="status-indicator disconnected">Disconnected</span>
+                    <span id="show-state" class="show-state">INACTIVE</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mode Control Panel -->
+        <section class="panel mode-panel">
+            <h2>Operational Mode</h2>
+            <div class="mode-display">
+                <div class="current-mode">
+                    <span class="mode-label">Current Mode:</span>
+                    <span id="current-mode" class="mode-value">STANDBY</span>
+                </div>
+                <div class="mode-controls">
+                    <button class="btn btn-primary" onclick="transitionTo('CHECKING')">Check All Services</button>
+                    <button class="btn btn-success" onclick="transitionTo('CONTROL')">Enter Control Mode</button>
+                    <button class="btn btn-warning" onclick="transitionTo('STANDBY')">Standby</button>
+                    <button class="btn btn-danger" onclick="transitionTo('PAUSED')">Pause</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Health Status Panel -->
+        <section class="panel health-panel">
+            <h2>Service Health</h2>
+            <div class="health-summary">
+                <div class="health-overview">
+                    <span class="health-label">Overall:</span>
+                    <span id="overall-health" class="health-value healthy">HEALTHY</span>
+                    <span id="slo-status" class="slo-status">SLO: PASS</span>
+                </div>
+                <div class="health-last-checked">
+                    <span id="last-check-time">Last check: Never</span>
+                </div>
+            </div>
+            <div id="service-list" class="service-list">
+                <!-- Services will be populated here -->
+            </div>
+        </section>
+
+        <!-- Active Errors Panel -->
+        <section class="panel errors-panel">
+            <h2>Active Errors <span id="error-count" class="badge">0</span></h2>
+            <div id="error-list" class="error-list">
+                <div class="empty-state">No active errors</div>
+            </div>
+        </section>
+
+        <!-- Tasks Panel -->
+        <section class="panel tasks-panel">
+            <h2>Active Tasks <span id="task-count" class="badge">0</span></h2>
+            <div id="task-list" class="task-list">
+                <div class="empty-state">No active tasks</div>
+            </div>
+            <div class="task-actions">
+                <button class="btn btn-secondary" onclick="showNewTaskModal()">New Task</button>
+            </div>
+        </section>
+
+        <!-- Show Info Panel -->
+        <section class="panel show-panel">
+            <h2>Show Information</h2>
+            <div id="show-info" class="show-info">
+                <div class="show-details">
+                    <div class="show-detail">
+                        <span class="detail-label">Show ID:</span>
+                        <span id="show-id" class="detail-value">-</span>
+                    </div>
+                    <div class="show-detail">
+                        <span class="detail-label">Title:</span>
+                        <span id="show-title" class="detail-value">-</span>
+                    </div>
+                    <div class="show-detail">
+                        <span class="detail-label">State:</span>
+                        <span id="show-state-detail" class="detail-value">INACTIVE</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Activity Log Panel -->
+        <section class="panel log-panel">
+            <h2>Activity Log</h2>
+            <div id="activity-log" class="activity-log">
+                <!-- Log entries will be added here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- New Task Modal -->
+    <div id="new-task-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Task</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="new-task-form" onsubmit="submitTask(event)">
+                    <div class="form-group">
+                        <label for="task-title">Title:</label>
+                        <input type="text" id="task-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-description">Description:</label>
+                        <textarea id="task-description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-priority">Priority:</label>
+                        <select id="task-priority">
+                            <option value="1">Low</option>
+                            <option value="2" selected>Normal</option>
+                            <option value="3">High</option>
+                            <option value="4">Critical</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-requires-approval">
+                            <input type="checkbox" id="task-requires-approval">
+                            Requires Approval
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Create Task</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
