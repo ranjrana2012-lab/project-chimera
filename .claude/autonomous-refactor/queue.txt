@@ -1,30 +1,43 @@
-# Autonomous Refactoring Task Queue
-# Format: PRIORITY | MODE | MODULE_PATH | TEST_PATH | DESCRIPTION
-# Priorities: HIGH, MEDIUM, LOW
-# Modes: test_hardening, refactor, both
+# Ralph Loop Task Queue
+# Format: [priority] [service] task_description
+# Priorities: high, medium, low
 
-# HIGH PRIORITY - Core services needing test hardening
-HIGH | test_hardening | services/openclaw-orchestrator/show_manager.py | services/openclaw-orchestrator/tests/ | Add parameterized tests for show control flow edge cases
-HIGH | test_hardening | services/bsl-agent/main.py | services/bsl-agent/tests/ | Add tests for BSL command processing edge cases
-HIGH | test_hardening | services/sentiment-agent/src/sentiment_agent/video/briefing.py | services/sentiment-agent/tests/ | Add tests for video briefing generation edge cases
-HIGH | test_hardening | services/nemoclaw-orchestrator/main.py | services/nemoclaw-orchestrator/tests/ | Add tests for NLP command parsing edge cases
+[high] [baseline] Run baseline tests across all 6 active services
+[high] [baseline] Record baseline coverage metrics to baseline_metrics.json
+[high] [baseline] Count and record baseline assertion count
+[high] [baseline] Check for and record deprecation warnings
 
-# MEDIUM PRIORITY - Services with good test coverage that could be improved
-MEDIUM | test_hardening | services/captioning-agent/src/captioning_agent/main.py | services/captioning-agent/tests/ | Add tests for caption timing edge cases
-MEDIUM | test_hardening | services/safety-filter/src/safety_filter/main.py | services/safety-filter/tests/ | Add tests for safety check edge cases
-MEDIUM | test_hardening | services/scenespeak-agent/src/scenespeak_agent/models.py | services/scenespeak-agent/tests/ | Add tests for 3D model loading edge cases
-MEDIUM | test_hardening | services/director-agent/src/director_agent/main.py | services/director-agent/tests/ | Add tests for director cue generation edge cases
+[medium] [nemo-claw] Add unit tests for LLM orchestration logic
+[medium] [nemo-claw] Add type hints to public API functions
+[medium] [nemo-claw] Improve error handling in prompt generation
+[medium] [nemo-claw] Add docstrings to core modules
 
-# LOW PRIORITY - Less critical services
-LOW | test_hardening | services/lighting-sound-music/main.py | services/lighting-sound-music/tests/ | Add tests for DMX control edge cases
-LOW | test_hardening | services/visual-core/src/visual_core/main.py | services/visual-core/tests/ | Add tests for visual effect rendering edge cases
-LOW | test_hardening | services/operator-console/src/dashboard/routes.py | services/operator-console/tests/ | Add tests for WebSocket connection edge cases
+[medium] [scenespeak] Add unit tests for scene dialogue generation
+[medium] [scenespeak] Add type hints to script processing functions
+[medium] [scenespeak] Improve error handling for invalid input
+[medium] [scenespeak] Add docstrings to dialogue modules
 
-# REFACTORING TASKS - Code quality improvements
-MEDIUM | refactor | services/sentiment-agent/src/sentiment_agent/main.py | services/sentiment-agent/tests/ | Extract ML model loading into separate module
-MEDIUM | refactor | services/bsl-agent/main.py | services/bsl-agent/tests/ | Extract avatar command generation into separate module
-MEDIUM | refactor | services/openclaw-orchestrator/main.py | services/openclaw-orchestrator/tests/ | Extract show state management into separate module
+[medium] [sentiment] Add unit tests for sentiment analysis engine
+[medium] [sentiment] Add type hints to analysis functions
+[medium] [sentiment] Fix deprecation warnings in ML dependencies
+[medium] [sentiment] Add docstrings to sentiment modules
 
-# BOTH - Test hardening + refactoring combined
-HIGH | both | services/autonomous-agent/ralph_engine.py | services/autonomous-agent/tests/ | Add tests and refactor state persistence
-HIGH | both | services/simulation-engine/src/simulation_engine/main.py | services/simulation-engine/tests/ | Add tests and refactor physics engine integration
+[medium] [safety] Add unit tests for content moderation
+[medium] [safety] Add type hints to safety check functions
+[medium] [safety] Improve error handling for blocked content
+[medium] [safety] Add docstrings to safety modules
+
+[medium] [captioning] Add unit tests for image captioning
+[medium] [captioning] Add type hints to caption generation
+[medium] [captioning] Improve error handling for invalid images
+[medium] [captioning] Add docstrings to captioning modules
+
+[medium] [audio] Add unit tests for audio processing
+[medium] [audio] Add type hints to TTS functions
+[medium] [audio] Improve error handling for audio formats
+[medium] [audio] Add docstrings to audio modules
+
+[low] [all] Replace all `# type: ignore` comments with proper type hints
+[low] [all] Extract magic values to named constants
+[low] [all] Add input validation to all API endpoints
+[low] [all] Improve error messages for better debugging

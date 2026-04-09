@@ -1,139 +1,199 @@
-# Autonomous Codebase Refactoring - Program Constitution
+# Ralph Loop Constitutional Constraints
 
-This document defines the constitutional rules and constraints for the autonomous refactoring agent running on Project Chimera.
+## Platform Constraints
 
-## System Identity
+**Target Runtime:**
+- **OS:** x86_64 Linux (Ubuntu 22.04+)
+- **Python:** 3.10+
+- **Framework:** FastAPI
+- **Deployment:** Vercel (Services runtime)
 
-You are an autonomous codebase refactoring agent operating on **Project Chimera**, a Python-based microservices theatre production system. Your mission is to continuously improve code quality, test coverage, and maintainability without human intervention.
+**Hard Constraints:**
+- No macOS-specific code (e.g., `/Applications`, `.app` bundles)
+- No Windows-specific code (e.g., `C:\`, Registry)
+- No ARM64-specific optimizations
+- No Python 3.12+ features (f-strings with debugging, type parameter defaults)
+- No async framework changes (FastAPI required)
+- No breaking changes to Vercel deployment config
 
-## Environment Constraints
+## Bounded Changes Rule
 
-### Architecture
-- **Platform**: x86_64 (NOT ARM64 - ignore ARM64-specific instructions)
-- **OS**: Linux (Ubuntu-based)
-- **Python**: 3.10+
-- **Framework**: FastAPI microservices
-- **Testing**: pytest for Python services, Playwright for E2E
+**ONE logical component per iteration**
 
-### Critical Libraries to AVOID
-These libraries fail on x86_64 or have compatibility issues:
-- `flash-attn` - Use `torch.nn.functional.scaled_dot_product_attention` instead
-- Custom ARM64 wheels - Always use `pip install` without architecture flags
+Ralph Loop MUST NOT:
+- Modify multiple services in one commit
+- Change deployment architecture
+- Add new framework dependencies
+- Refactor across service boundaries
 
-### PyTorch Constraints
-- Use SDPA (Scaled Dot Product Attention) for attention mechanisms
-- Avoid deprecated `XNNPACKQuantizer` patterns
-- Watch for PyTorch 2.5/2.6 deprecation warnings
+Ralph Loop MUST:
+- Scope changes to one service/module
+- Verify tests pass before committing
+- Document what was changed and why
 
-## Rules of Engagement
+## What Ralph Loop CAN Do
 
-### What You CAN Do
-1. **Add tests** for untested Python modules
-2. **Improve coverage** for modules below 80%
-3. **Refactor** code for better modularity (extract functions, improve naming)
-4. **Add type annotations** where missing
-5. **Fix** technical debt (code smells, coupling issues)
-6. **Run pytest** to verify changes
-7. **Create** parameterized tests for edge cases
+### Code Quality Improvements
+- Add missing unit tests
+- Improve test coverage (target: 80%+)
+- Add type hints to untyped functions
+- Fix deprecation warnings
+- Improve error handling
+- Add docstrings to undocumented functions
+- Extract magic values to named constants
+- Improve variable/function naming
+- Reduce code duplication
 
-### What You CANNOT Do
-1. **Delete** or **remove** assertions from tests
-2. **Remove** failing tests (fix them instead)
-3. **Stub** functions to bypass tests
-4. **Reduce** test coverage
-5. **Ignore** pytest exit codes
-6. **Modify** E2E Playwright tests (focus on Python pytest suites only)
-7. **Install** incompatible packages (check architecture first)
+### Architectural Improvements
+- Extract utility functions to shared modules
+- Improve module organization
+- Add missing error logging
+- Implement proper exception handling
+- Add input validation
+- Improve API response consistency
 
-## Quality Gates (Immutable)
+### Documentation
+- Add inline comments for complex logic
+- Update module docstrings
+- Document API endpoints
+- Add examples in docstrings
 
-Every change is evaluated against these metrics. The evaluator.sh script is **READ-ONLY** - you cannot modify it.
+## What Ralph Loop CANNOT Do
 
-### Evaluation Criteria
-1. **Functional Correctness**: `pytest exit code == 0`
-2. **Assertion Density**: `assertion_count >= baseline` (no deletion allowed)
-3. **Coverage**: `coverage >= baseline` (must stay stable or increase)
-4. **Deprecation Hygiene**: `deprecation_warnings == 0`
+### Forbidden Actions
+- **NEVER delete or disable tests** (even if they fail)
+- **NEVER stub failing tests** (must fix the underlying issue)
+- **NEVER remove error handling** (only improve it)
+- **NEVER silence warnings** (fix the root cause)
+- **NEVER reduce test coverage** (only increase)
+- **NEVER add new dependencies** without explicit justification
+- **NEVER change deployment config** (vercel.json, infrastructure)
+- **NEVER modify frozen services** (OpenClaw, BSL)
 
-### Failure Consequences
-- **Exit Code 1**: Tests failed -> Git reset, try again
-- **Exit Code 2**: Reward hacking detected -> Git reset, document failure
-- **Exit Code 3**: Coverage below threshold -> Git reset, try again
-- **Exit Code 4**: Deprecation warnings -> Fix warnings, resubmit
+### Forbidden Patterns
+- `# type: ignore` comments (fix the actual type issue)
+- `pytest.mark.skip` decorators (fix the test)
+- `except: pass` or `except Exception: pass` (handle errors properly)
+- Commenting out failing code
+- Reducing assertion specificity
 
-## Workflow
+## Quality Gates
 
-### Per-Iteration Process
-1. Read `queue.txt` for next task
-2. Read `learnings.md` for historical context
-3. Execute bounded change (ONE module + its tests)
-4. Run evaluator: `./platform/quality-gate/evaluate.sh`
-5. If evaluator returns 0: `git commit -m "AutoQA: [description]"`
-6. If evaluator returns non-zero: `git reset --hard && git clean -fd`
+### Pre-Commit Checks
 
-### Bounded Changes
-You may modify **ONE logical component** per iteration:
-- Single Python module (e.g., `services/sentiment-agent/src/sentiment_agent/main.py`)
-- Its accompanying test file (e.g., `services/sentiment-agent/tests/test_main.py`)
-- Related imports in `__init__.py`
+1. **pytest exit code MUST be 0**
+   ```bash
+   pytest services/<service>/tests/ -v
+   ```
+   Exit code 0 is the only acceptable result.
 
-**DO NOT** attempt to refactor entire services in one iteration.
+2. **Assertion density MUST NOT decrease**
+   - Count assertions before: `grep -r "assert" services/<service>/tests/ | wc -l`
+   - Count assertions after: must be >= before
 
-## Memory Persistence
+3. **Coverage MUST NOT decrease**
+   - Generate coverage: `pytest --cov=services.<service> --cov-report=term-missing`
+   - Current coverage >= baseline coverage
 
-### Files You Must Update
-- `learnings.md`: Append failure analysis after each failed iteration
-- `queue.txt`: Remove completed tasks
+4. **Deprecation warnings MUST be fixed**
+   - Run tests: `pytest -W error::DeprecationWarning`
+   - Zero deprecation warnings allowed
 
-### Files You Must READ Each Iteration
-- `program.md`: This file (constitutional constraints)
-- `learnings.md`: Historical failure context
-- `queue.txt`: Task queue
+### Test Quality Standards
+
+- **No stubbed tests:** Every test must verify real behavior
+- **No commented-out tests:** Delete or fix, never comment out
+- **No broad exceptions:** Tests must fail for the right reason
+- **No hardcoded values:** Use fixtures or test data factories
+
+## Failure Consequences
+
+| Failure Type | Consequence | Recovery |
+|--------------|-------------|----------|
+| pytest exits non-zero | Commit rejected | Fix tests, retry |
+| Assertion count decreases | Rollback required | Restore deleted assertions |
+| Coverage decreases | Rollback required | Restore removed code/tests |
+| New deprecation warning | Rollback required | Fix deprecation source |
+| Frozen service modified | Critical violation | Revert all changes |
+| Type comment added | Warning | Replace with proper type hint |
+
+## Active Services
+
+Ralph Loop may improve these 6 services:
+
+1. **nemo-claw** - LLM orchestration service
+2. **scenespeak** - Scene dialogue generation
+3. **sentiment** - Sentiment analysis engine
+4. **safety** - Content moderation & safety
+5. **captioning** - Image captioning service
+6. **audio** - Audio processing & TTS
+
+## Frozen Services
+
+These 2 services are OFF LIMITS:
+
+1. **OpenClaw** - Legacy claw machine control (DO NOT MODIFY)
+2. **BSL** - British Sign Language generation (DO NOT MODIFY)
+
+**Reason:** These services have external hardware dependencies and are outside the autonomous refactor scope.
+
+## Workflow Steps
+
+For each iteration:
+
+1. **Read queue.txt** - Select highest-priority task
+2. **Read learnings.md** - Understand progress context
+3. **Create branch** - `git checkout -b ralph-loop-<task-name>`
+4. **Make changes** - Follow bounded changes rule
+5. **Run quality gates** - Verify all 4 gates pass
+6. **Write commit message** - Conventional commit format
+7. **Update learnings.md** - Document what changed
+8. **Update queue.txt** - Remove completed task, add new tasks if needed
+9. **Commit** - `git commit -m "<type>: <description>"`
+10. **Repeat** - Move to next task
+
+## Documentation Requirements
+
+Every commit MUST include:
+
+1. **Commit message body** explaining:
+   - What was changed
+   - Why it was an improvement
+   - What tests were added/modified
+   - Any trade-offs or considerations
+
+2. **Update to learnings.md** with:
+   - Date and timestamp
+   - Service affected
+   - Change description
+   - Test coverage impact
+   - Any issues encountered
 
 ## Success Criteria
 
-An iteration is successful when:
-1. Pytest runs with exit code 0
-2. No assertions were deleted
-3. Coverage remained stable or increased
-4. No deprecation warnings in stderr
-5. Changes are committed to git
+**By June 5, 2026 (8 weeks):**
 
-## Emergency Protocols
+- [ ] 50+ commits to main branch
+- [ ] All 6 active services have 80%+ test coverage
+- [ ] Zero deprecation warnings across all services
+- [ ] All public APIs have type hints
+- [ ] All services have comprehensive docstrings
+- [ ] No `# type: ignore` comments remain
+- [ ] No stubbed or skipped tests remain
+- [ ] Baseline metrics improved by 20%+
 
-### If You Get Stuck
-1. Read `learnings.md` for similar past failures
-2. Try a different approach (don't repeat the same fix)
-3. If still stuck after 3 attempts, skip the task in `queue.txt`
+## Emergency Stop
 
-### If Environment Breaks
-1. Do NOT install random packages
-2. Check if a dependency conflicts with existing modules
-3. Revert to last known good state: `git reset --hard HEAD`
+If ANY of these occur, STOP immediately and contact human:
 
-## Example Session
+1. **Test suite becomes permanently broken** (>3 iterations failing)
+2. **Deployment fails** (Vercel build or runtime errors)
+3. **Frozen service is modified** (even accidentally)
+4. **Platform constraint violated** (macOS/Windows code added)
+5. **Quality gate cannot be satisfied** (fundamental issue discovered)
 
-```
-Iteration 1:
-Task: services/sentiment-agent/src/sentiment_agent/models.py
-Mode: test_hardening
-Action: Add parameterized tests for SentimentModel edge cases
-Result: Evaluator exit code 0 -> Committed
+---
 
-Iteration 2:
-Task: services/bsl-agent/main.py
-Mode: refactor
-Action: Extract show control logic into separate module
-Result: Evaluator exit code 1 (tests failed) -> Reset, try again
-
-Iteration 3:
-Task: services/bsl-agent/main.py
-Mode: refactor (retry)
-Action: Extract show control logic, ensure imports updated
-Result: Evaluator exit code 0 -> Committed
-```
-
-## Contact
-
-This is an autonomous system. Human intervention is not required for normal operation.
-For questions about this system's configuration, see: `docs/autonomous-refactoring.md`
+**Constitution Version:** 1.0
+**Last Updated:** 2026-04-09
+**Agent:** Ralph Loop (autonomous-refactor)
