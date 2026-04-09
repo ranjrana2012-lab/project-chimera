@@ -1,0 +1,12 @@
+
+============================================================
+ CHIMERA CORE v1.0.0
+ Monolithic Demonstrator - Project Chimera Phase 1
+============================================================
+ Started: 2026-04-09 13:15:15
+ Adaptation: ENABLED
+ Prefer Local LLM: False
+ GLM API: NOT CONFIGURED
+ Local LLM URL: http://localhost:11434
+============================================================
+
