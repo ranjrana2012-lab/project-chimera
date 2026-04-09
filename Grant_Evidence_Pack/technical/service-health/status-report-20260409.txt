@@ -1,0 +1,47 @@
+Project Chimera Service Health Report
+Generated: Thu Apr  9 11:44:09 AM GMT 2026
+
+=== SERVICES SUMMARY ===
+Total Services Checked: 8
+Ports: 8000-8007
+
+=== CONTAINER STATUS ===
+chimera-netdata	Up 9 days (healthy)
+chimera-bsl	Up 10 days (healthy)
+chimera-orchestrator	Up 10 days (healthy)
+chimera-sentiment	Up 10 days (healthy)
+chimera-captioning	Up 10 days (healthy)
+chimera-operator-console	Up 10 days (healthy)
+chimera-lighting-sound-music	Up 10 days (healthy)
+chimera-music-generation	Up 10 days (healthy)
+chimera-scenespeak	Up 10 days (healthy)
+chimera-safety-filter	Up 10 days (healthy)
+chimera-milvus	Up 10 days (healthy)
+chimera-kafka	Up 10 days (healthy)
+chimera-zookeeper	Up 10 days (healthy)
+chimera-redis	Up 10 days (healthy)
+chimera-grafana	Up 10 days (healthy)
+chimera-jaeger	Up 10 days (unhealthy)
+chimera-prometheus	Up 10 days (unhealthy)
+chimera-minio	Up 10 days
+chimera-etcd	Up 10 days
+
+=== HEALTH CHECK RESPONSES ===
+   Response: {"status":"alive"}
+   Response: {"status":"alive"}
+   Response: {"status":"alive","service":null,"version":null,"checks":null,"model_info":null}
+   Response: {"status":"alive"}
+   Response: {"status":"alive"}
+   Response: {"status":"alive"}
+   Response: {"status":"alive"}
+   Response: {"status":"alive","timestamp":"2026-04-09T11:44:05.943185"}
+
+=== INFRASTRUCTURE ===
+Redis: PONG
+Kafka: kafka:9092 (id: 1001 rack: null) -> (
+
+=== UPTIME ===
+Most containers: 10+ days continuous operation
+
+=== LOG FILE ===
+Full details: evidence/logs/health-check-20260409-114405.log
