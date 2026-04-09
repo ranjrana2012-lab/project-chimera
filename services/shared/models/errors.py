@@ -1,7 +1,7 @@
 """Shared error models for all Chimera services."""
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 
@@ -24,6 +24,6 @@ class StandardErrorResponse(BaseModel):
     error: str = Field(..., description="Error code")
     message: str = Field(..., description="Human-readable error message")
     detail: Optional[str] = Field(None, description="Detailed error information")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     request_id: Optional[str] = Field(None, description="Request ID for tracing")
     stack_trace: Optional[str] = Field(None, description="Stack trace (development only)")

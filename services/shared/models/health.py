@@ -1,7 +1,7 @@
 """Shared health check models for all Chimera services."""
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class ReadinessResponse(BaseModel):
@@ -9,7 +9,7 @@ class ReadinessResponse(BaseModel):
     status: str = Field(..., description="Overall readiness status: ready, not_ready")
     checks: Dict[str, bool] = Field(default_factory=dict, description="Component readiness checks")
     model_info: Optional['ModelInfo'] = Field(None, description="Information about ML models used by this service")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ModelInfo(BaseModel):
@@ -31,4 +31,4 @@ class HealthMetrics(BaseModel):
     avg_latency_ms: float = Field(default=0.0, description="Average request latency in milliseconds")
     memory_usage_mb: float = Field(..., description="Current memory usage in MB")
     cpu_usage_percent: float = Field(..., description="Current CPU usage percentage")
-    last_check: datetime = Field(default_factory=datetime.utcnow)
+    last_check: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
