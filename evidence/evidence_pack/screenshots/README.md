@@ -185,7 +185,24 @@ For each screenshot, add:
 
 ---
 
-## Batch Capture Script
+## Automated Capture Script
+
+An automated screenshot capture script is provided:
+
+```bash
+cd evidence/evidence_pack/screenshots
+bash capture_screenshots.sh
+```
+
+This script will:
+1. Launch chimera_core.py for each scene
+2. Provide clear instructions for each capture
+3. Ensure consistent naming with timestamps
+4. Guide you through all 5 screenshots sequentially
+
+### Manual Capture (Alternative)
+
+If you prefer manual capture:
 
 ```bash
 #!/bin/bash
@@ -199,31 +216,31 @@ clear
 # Screenshot 1: Positive Sentiment
 echo "Capturing positive sentiment..."
 python chimera_core.py "I'm so excited!"
-gnome-screenshot -f positive_sentiment.png
+# Take screenshot manually
 sleep 1
 
 # Screenshot 2: Negative Sentiment
 echo "Capturing negative sentiment..."
 python chimera_core.py "I'm frustrated."
-gnome-screenshot -f negative_sentiment.png
+# Take screenshot manually
 sleep 1
 
 # Screenshot 3: Neutral Sentiment
 echo "Capturing neutral sentiment..."
 python chimera_core.py "Tell me more."
-gnome-screenshot -f neutral_sentiment.png
+# Take screenshot manually
 sleep 1
 
 # Screenshot 4: Comparison Mode
 echo "Capturing comparison mode..."
 python chimera_core.py compare "I'm excited!"
-gnome-screenshot -f comparison_mode.png
+# Take screenshot manually
 sleep 1
 
 # Screenshot 5: Caption Mode
 echo "Capturing caption mode..."
 python chimera_core.py caption "I'm excited!"
-gnome-screenshot -f caption_mode.png
+# Take screenshot manually
 
 echo "All screenshots captured!"
 mv *.png ../../evidence/evidence_pack/screenshots/
