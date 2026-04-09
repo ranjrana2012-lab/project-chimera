@@ -1,0 +1,175 @@
+# Project Chimera Phase 2 - Alerting Rules
+
+groups:
+  - name: phase2_service_health
+    interval: 30s
+    rules:
+      # Service is down
+      - alert: ServiceDown
+        expr: up{job=~"dmx-controller|audio-controller|bsl-avatar-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: phase2
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{job=~"dmx-controller|audio-controller|bsl-avatar-service",status=~"5.."}[5m])
+            /
+            rate(http_requests_total{job=~"dmx-controller|audio-controller|bsl-avatar-service"}[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: phase2
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+      # High latency
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job=~"dmx-controller|audio-controller|bsl-avatar-service"}[5m])
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: phase2
+        annotations:
+          summary: "High latency on {{ $labels.job }}"
+          description: "95th percentile latency is {{ $value }}s for {{ $labels.job }}"
+
+  - name: dmx_controller_alerts
+    interval: 30s
+    rules:
+      # Emergency stop activated
+      - alert: DMXEmergencyStopActivated
+        expr: dmx_controller_state{state="emergency_stop"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          service: dmx-controller
+        annotations:
+          summary: "DMX Controller emergency stop activated"
+          description: "DMX Controller has been in emergency stop state for more than 1 minute"
+
+      # Too many channel changes
+      - alert: DMXHighChannelChangeRate
+        expr: |
+          rate(dmx_controller_channel_changes_total[1m]) > 100
+        for: 5m
+        labels:
+          severity: info
+          service: dmx-controller
+        annotations:
+          summary: "High DMX channel change rate"
+          description: "DMX channel changes exceed 100 per minute"
+
+  - name: audio_controller_alerts
+    interval: 30s
+    rules:
+      # Emergency mute activated
+      - alert: AudioEmergencyMuteActivated
+        expr: audio_controller_state{state="emergency_mute"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          service: audio-controller
+        annotations:
+          summary: "Audio Controller emergency mute activated"
+          description: "Audio Controller has been in emergency mute state for more than 1 minute"
+
+      # High volume level
+      - alert: AudioHighVolumeLevel
+        expr: |
+          max(audio_controller_track_volume_db) > -6
+        for: 5m
+        labels:
+          severity: warning
+          service: audio-controller
+        annotations:
+          summary: "Audio volume level too high"
+          description: "Maximum track volume is {{ $value }}dB, exceeds safe threshold"
+
+  - name: bsl_avatar_service_alerts
+    interval: 30s
+    rules:
+      # Low gesture library hit rate
+      - alert: BSLLowGestureHitRate
+        expr: |
+          (
+            rate(bsl_avatar_service_translation_gestures_from_library_total[5m])
+            /
+            rate(bsl_avatar_service_translation_total_gestures_total[5m])
+          ) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+          service: bsl-avatar-service
+        annotations:
+          summary: "Low BSL gesture library hit rate"
+          description: "Less than 50% of translated words are found in the gesture library"
+
+      # High fingerspelling rate
+      - alert: BSLHighFingerspellingRate
+        expr: |
+          (
+            rate(bsl_avatar_service_translation_gestures_fingerspelled_total[5m])
+            /
+            rate(bsl_avatar_service_translation_total_gestures_total[5m])
+          ) > 0.3
+        for: 10m
+        labels:
+          severity: info
+          service: bsl-avatar-service
+        annotations:
+          summary: "High BSL fingerspelling rate"
+          description: "More than 30% of translations require fingerspelling"
+
+  - name: system_alerts
+    interval: 30s
+    rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          (
+            100 - (avg by (instance) (rate(node_cpu_seconds_total{mode!="idle"}[5m])) * 100)
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}%"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}%"
+
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            (node_filesystem_avail_bytes{fstype=~"ext4|xfs"} / node_filesystem_size_bytes{fstype=~"ext4|xfs"}) * 100
+          ) < 20
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space low"
+          description: "Disk space is {{ $value }}% available"

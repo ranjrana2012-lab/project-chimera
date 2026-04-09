@@ -1,0 +1,119 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Project Chimera Phase 2 - Service Overview",
+    "tags": ["project-chimera", "phase2", "dmx", "audio", "bsl"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "10s",
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=~\"dmx-controller|audio-controller|bsl-avatar-service\"}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [
+              {
+                "type": 1,
+                "value": "down",
+                "text": "Down"
+              },
+              {
+                "type": 0,
+                "value": "up",
+                "text": "Up"
+              }
+            ]
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=~\"dmx-controller|audio-controller|bsl-avatar-service\"}[1m])",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 3,
+        "title": "Response Time (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~\"dmx-controller|audio-controller|bsl-avatar-service\"}[5m]))",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 4,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=~\"dmx-controller|audio-controller|bsl-avatar-service\",status=~\"5..\"}[5m]) / rate(http_requests_total{job=~\"dmx-controller|audio-controller|bsl-avatar-service\"}[5m])",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "max": 1,
+            "min": 0
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      }
+    ]
+  }
+}

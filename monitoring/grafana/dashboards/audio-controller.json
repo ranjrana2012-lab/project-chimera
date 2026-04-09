@@ -1,0 +1,147 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Project Chimera Phase 2 - Audio Controller",
+    "tags": ["project-chimera", "phase2", "audio"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Controller State",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "audio_controller_state"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 2,
+        "title": "Active Tracks",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "audio_controller_track_count"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 10
+          }
+        },
+        "options": {
+          "orientation": "auto"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 3,
+        "title": "Playing Tracks",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "audio_controller_playing_tracks"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 10
+          }
+        },
+        "options": {
+          "orientation": "auto"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 4,
+        "title": "Muted Tracks",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "audio_controller_muted_tracks"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 10
+          }
+        },
+        "options": {
+          "orientation": "auto"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 5,
+        "title": "Master Volume",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "audio_controller_master_volume_db"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": -60,
+            "max": 0
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 6,
+        "title": "Track Volumes",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "audio_controller_track_volume_db"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "dB"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 7,
+        "title": "Emergency Mute Count",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "audio_controller_emergency_mute_total"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none"
+        },
+        "pluginVersion": "9.0.0"
+      }
+    ]
+  }
+}

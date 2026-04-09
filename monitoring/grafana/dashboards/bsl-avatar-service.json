@@ -1,0 +1,151 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Project Chimera Phase 2 - BSL Avatar Service",
+    "tags": ["project-chimera", "phase2", "bsl"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service State",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "bsl_avatar_service_state"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 2,
+        "title": "Gesture Library Size",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "bsl_avatar_service_gesture_library_size"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 3,
+        "title": "Translation Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(bsl_avatar_service_translation_total[1m])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ops"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "hidden"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 4,
+        "title": "Gestures from Library",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(bsl_avatar_service_translation_gestures_from_library_total[1m])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ops"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "hidden"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 5,
+        "title": "Fingerspelling Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(bsl_avatar_service_translation_gestures_fingerspelled_total[1m])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ops"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "hidden"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 6,
+        "title": "Library Hit Rate",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "rate(bsl_avatar_service_translation_gestures_from_library_total[5m]) / rate(bsl_avatar_service_translation_total[5m])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "max": 1,
+            "min": 0
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 7,
+        "title": "Average Translation Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(bsl_avatar_service_translation_duration_seconds_sum[5m]) / rate(bsl_avatar_service_translation_duration_seconds_count[5m])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "hidden"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+# Project Chimera Phase 2 - Prometheus Configuration
+
+# Prometheus configuration for monitoring Phase 2 services
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'project-chimera'
+    environment: 'phase2'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # Add your Alertmanager URL here
+          # - alertmanager:9093
+
+# Rule files
+rule_files:
+  - "alerting_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # DMX Controller Service
+  - job_name: 'dmx-controller'
+    static_configs:
+      - targets: ['dmx-controller:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Audio Controller Service
+  - job_name: 'audio-controller'
+    static_configs:
+      - targets: ['audio-controller:8002']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # BSL Avatar Service
+  - job_name: 'bsl-avatar-service'
+    static_configs:
+      - targets: ['bsl-avatar-service:8003']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Node Exporter (system metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  # cAdvisor (container metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s

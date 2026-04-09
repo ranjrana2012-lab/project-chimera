@@ -1,0 +1,139 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Project Chimera Phase 2 - DMX Controller",
+    "tags": ["project-chimera", "phase2", "dmx"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Controller State",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "dmx_controller_state"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 2,
+        "title": "Active Fixtures",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "dmx_controller_fixture_count"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 10
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 3,
+        "title": "Scene Count",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "dmx_controller_scene_count"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 4,
+        "title": "Current Scene",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "dmx_controller_current_scene"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none"
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 5,
+        "title": "Channel Changes Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(dmx_controller_channel_changes_total[1m])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ops"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "hidden"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 6,
+        "title": "Scene Activations",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(dmx_controller_scene_activations_total[1m])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ops"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "hidden"
+          }
+        },
+        "pluginVersion": "9.0.0"
+      },
+      {
+        "id": 7,
+        "title": "Emergency Stop Count",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "dmx_controller_emergency_stop_total"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none"
+        },
+        "pluginVersion": "9.0.0"
+      }
+    ]
+  }
+}
