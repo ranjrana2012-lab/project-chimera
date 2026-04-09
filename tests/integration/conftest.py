@@ -17,7 +17,7 @@ import json
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ConnectError, TimeoutException
-from websockets.client import connect as websocket_connect
+import websockets.asyncio.client
 from websockets.exceptions import ConnectionClosed
 
 # Add project root to Python path
@@ -224,7 +224,7 @@ async def console_websocket(all_services_running: Dict[str, bool]) -> AsyncGener
     ws_url = get_service_ws_url("console")
     ws_path = "/ws"
 
-    async with websocket_connect(f"{ws_url}{ws_path}") as websocket:
+    async with websockets.asyncio.client.connect(f"{ws_url}{ws_path}") as websocket:
         yield websocket
 
 

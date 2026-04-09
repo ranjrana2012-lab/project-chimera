@@ -118,18 +118,21 @@ class TestAlertManagerKubernetesManifests:
         """Test that deployment.yaml is valid YAML."""
         deployment_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/deployment.yaml")
         with open(deployment_path, 'r') as f:
-            deployment = yaml.safe_load(f)
-        assert deployment is not None, "Deployment file is empty or invalid"
+            # Load all documents from multi-document YAML
+            documents = list(yaml.safe_load_all(f))
+        assert len(documents) == 3, "YAML should contain 3 documents (Deployment, PVC, Service)"
+        assert documents[0] is not None, "First document (Deployment) should not be empty"
 
     def test_deployment_structure(self):
         """Test that deployment has correct structure."""
         deployment_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/deployment.yaml")
         with open(deployment_path, 'r') as f:
-            deployment = yaml.safe_load(f)
+            documents = list(yaml.safe_load_all(f))
+        deployment = documents[0]  # First document is the Deployment
 
         assert deployment['kind'] == 'Deployment', "Should be a Deployment"
         assert deployment['metadata']['name'] == 'alertmanager', "Deployment name should be 'alertmanager'"
-        assert deployment['metadata']['namespace'] == 'shared', "Namespace should be 'shared'"
+        assert deployment['metadata']['namespace'] == 'project-chimera', "Namespace should be 'project-chimera'"
 
         # Check spec
         spec = deployment['spec']
@@ -140,7 +143,8 @@ class TestAlertManagerKubernetesManifests:
         """Test that AlertManager container is properly configured."""
         deployment_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/deployment.yaml")
         with open(deployment_path, 'r') as f:
-            deployment = yaml.safe_load(f)
+            documents = list(yaml.safe_load_all(f))
+        deployment = documents[0]  # First document is the Deployment
 
         container = deployment['spec']['template']['spec']['containers'][0]
         assert container['name'] == 'alertmanager', "Container name should be 'alertmanager'"
@@ -163,7 +167,8 @@ class TestAlertManagerKubernetesManifests:
         """Test that deployment has proper volume mounts."""
         deployment_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/deployment.yaml")
         with open(deployment_path, 'r') as f:
-            deployment = yaml.safe_load(f)
+            documents = list(yaml.safe_load_all(f))
+        deployment = documents[0]  # First document is the Deployment
 
         volumes = deployment['spec']['template']['spec']['volumes']
         volume_names = [v['name'] for v in volumes]
