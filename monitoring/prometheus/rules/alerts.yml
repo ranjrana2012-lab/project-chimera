@@ -1,0 +1,154 @@
+# Prometheus Alerting Rules
+# Project Chimera Phase 2 - Alert Definitions
+
+groups:
+  - name: chimera_service_health
+    interval: 30s
+    rules:
+      # Service Down Alerts
+      - alert: DMXControllerDown
+        expr: up{job="dmx-controller"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: dmx-controller
+        annotations:
+          summary: "DMX Controller service is down"
+          description: "DMX Controller has been down for more than 1 minute"
+
+      - alert: AudioControllerDown
+        expr: up{job="audio-controller"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: audio-controller
+        annotations:
+          summary: "Audio Controller service is down"
+          description: "Audio Controller has been down for more than 1 minute"
+
+      - alert: BSLAvatarServiceDown
+        expr: up{job="bsl-avatar-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: bsl-avatar-service
+        annotations:
+          summary: "BSL Avatar Service is down"
+          description: "BSL Avatar Service has been down for more than 1 minute"
+
+  - name: chimera_emergency_procedures
+    interval: 10s
+    rules:
+      # Emergency Stop/Mute Alerts
+      - alert: DMXEmergencyStopActive
+        expr: chimera_dmx_emergency_stop_active == 1
+        for: 10s
+        labels:
+          severity: critical
+          service: dmx-controller
+        annotations:
+          summary: "DMX Emergency Stop is active"
+          description: "DMX Controller is in emergency stop state"
+
+      - alert: AudioEmergencyMuteActive
+        expr: chimera_audio_emergency_mute_active == 1
+        for: 10s
+        labels:
+          severity: critical
+          service: audio-controller
+        annotations:
+          summary: "Audio Emergency Mute is active"
+          description: "Audio Controller is in emergency mute state"
+
+  - name: chimera_performance
+    interval: 30s
+    rules:
+      # High Response Time Alerts
+      - alert: DMXHighResponseTime
+        expr: chimera_dmx_request_duration_seconds{quantile="0.99"} > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: dmx-controller
+        annotations:
+          summary: "DMX Controller high response time"
+          description: "P99 response time is {{ $value }}s"
+
+      - alert: AudioHighResponseTime
+        expr: chimera_audio_request_duration_seconds{quantile="0.99"} > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: audio-controller
+        annotations:
+          summary: "Audio Controller high response time"
+          description: "P99 response time is {{ $value }}s"
+
+      - alert: BSLHighResponseTime
+        expr: chimera_bsl_request_duration_seconds{quantile="0.99"} > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: bsl-avatar-service
+        annotations:
+          summary: "BSL Avatar Service high response time"
+          description: "P99 response time is {{ $value }}s"
+
+  - name: chimera_error_rates
+    interval: 30s
+    rules:
+      # High Error Rate Alerts
+      - alert: DMXHighErrorRate
+        expr: rate(chimera_dmx_requests_total{status="error"}[5m]) / rate(chimera_dmx_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: dmx-controller
+        annotations:
+          summary: "DMX Controller high error rate"
+          description: "Error rate is {{ $value | humanizePercentage }}"
+
+      - alert: AudioHighErrorRate
+        expr: rate(chimera_audio_requests_total{status="error"}[5m]) / rate(chimera_audio_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: audio-controller
+        annotations:
+          summary: "Audio Controller high error rate"
+          description: "Error rate is {{ $value | humanizePercentage }}"
+
+      - alert: BSLHighErrorRate
+        expr: rate(chimera_bsl_requests_total{status="error"}[5m]) / rate(chimera_bsl_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: bsl-avatar-service
+        annotations:
+          summary: "BSL Avatar Service high error rate"
+          description: "Error rate is {{ $value | humanizePercentage }}"
+
+  - name: chimera_business_metrics
+    interval: 60s
+    rules:
+      # Scene Activation Metrics
+      - alert: LowSceneActivationRate
+        expr: rate(chimera_dmx_scene_activations_total[10m]) < 0.1
+        for: 15m
+        labels:
+          severity: info
+          service: dmx-controller
+        annotations:
+          summary: "Low scene activation rate"
+          description: "Scene activation rate is {{ $value }}/s"
+
+      # BSL Translation Metrics
+      - alert: BSLLowLibraryHitRate
+        expr: chimera_bsl_library_hit_rate < 0.7
+        for: 10m
+        labels:
+          severity: info
+          service: bsl-avatar-service
+        annotations:
+          summary: "BSL library hit rate is low"
+          description: "Library hit rate is {{ $value | humanizePercentage }}"
