@@ -1,102 +1,68 @@
-# Project Chimera Evidence Pack
+# Evidence Folder - Project Chimera
 
-This folder contains documented evidence of Project Chimera's delivered capabilities, infrastructure, and technical achievements for grant closeout and audit purposes.
+**Purpose**: Central repository for all grant-related evidence, documentation, and deliverables.
+
+**Created**: April 9, 2026
+**Phase**: 8-Week Delivery Plan Implementation
 
 ## Folder Structure
 
-### service-health/
-Health check results and uptime statistics for all running services.
-
-### demo-videos/
-Video demonstrations of the operational system showing:
-- Service health checks
-- API integrations
-- Service-to-service communication
-- Adaptive AI features
-
-### screenshots/
-Screenshots of:
-- Running services
-- Dashboard interfaces
-- Health monitoring
-- Architecture visualizations
-
-### logs/
-Service logs showing:
-- Startup sequences
-- API communications
-- Error handling
-- Performance metrics
-
-### invoices/
-Hardware and infrastructure documentation:
-- DGX server invoices
-- Cloud service receipts
-- Budget tracking
-- Spend breakdowns
-
-### architecture-diagrams/
-Visual documentation of:
-- Service topology
-- Data flow diagrams
-- Deployment architecture
-- Communication patterns
-
-### test-results/
-Test coverage reports:
-- Unit test results
-- Integration test results
-- Performance benchmarks
-- Security scans
-
-### api-documentation/
-API specifications and examples:
-- Endpoint documentation
-- Request/response examples
-- Integration guides
-- Service contracts
-
-## Quick Links
-
-- **Phase 1 Summary**: [PHASE_1_DELIVERED.md](../PHASE_1_DELIVERED.md)
-- **Main Repository**: [README.md](../README.md)
-- **Factual Correction**: [FACTUAL_CORRECTION.md](../FACTUAL_CORRECTION.md)
-
-## Evidence Collection Date
-
-**Date**: 2026-04-09
-**Status**: All services operational and healthy
-**Uptime**: 10+ days continuous operation
-
-## Verification Commands
-
-```bash
-# Check all services health
-for port in 8000 8001 8002 8003 8004 8005 8006 8007; do
-  echo "Port $port:"
-  curl -s http://localhost:$port/health/live | jq .
-done
-
-# Check container status
-docker ps --filter "name=chimera-" --format "table {{.Names}}\t{{.Status}}"
-
-# Check service metrics
-docker stats --no-stream --filter "name=chimera-"
+```
+evidence/
+├── README.md                 # This file
+├── budget/                   # Budget tracking and invoices
+│   ├── dgx_invoice.pdf      # [PLACEHOLDER] DGX server invoice
+│   ├── receipts/            # [PLACEHOLDER] Expense receipts
+│   └── budget_tracking.md   # Budget expenditure tracking
+├── evidence_pack/            # Grant closeout evidence pack
+│   ├── technical_deliverable.md  # Core technical deliverable documentation
+│   ├── demo_evidence.md           # Demo video and screenshots
+│   ├── test_results.md            # Test coverage and results
+│   └── limitations.md              # Known limitations and future work
+├── grant_closeout/          # Grant closeout documentation
+│   ├── final_report.md      # Final grant report (15 sections)
+│   ├── executive_summary.md # Executive summary
+│   └── compliance_statement.md # Compliance assessment
+├── meeting_notes/           # Meeting notes and collaboration records
+│   └── .gitkeep
+└── tech_audit/             # Technical audit and architecture documentation
+    ├── scope_statement.md   # One-page scope statement
+    ├── architecture_reset.md # Architecture simplification documentation
+    └── deprecation_notices.md # Deprecated components notice
 ```
 
-## Grant Closeout Checklist
+## Purpose
 
-- [x] Evidence folder structure created
-- [ ] All services documented with health status
-- [ ] Demo videos recorded and uploaded
-- [ ] Screenshots captured and labeled
-- [ ] Architecture diagrams created
-- [ ] API integrations documented
-- [ ] Test results compiled
-- [ ] Invoices and receipts collected
-- [ ] Final report drafted
-- [ ] Phase 1 summary completed
+This evidence folder supports the **8-Week Delivery Plan** by providing:
+
+1. **Budget Transparency**: All invoices and receipts in one place
+2. **Evidence Pack**: Complete grant closeout package
+3. **Architecture Documentation**: Clear scope and simplified architecture
+4. **Meeting Records**: Collaboration and decision trail
+
+## Status
+
+- ✅ Folder structure created
+- ⏳ Awaiting budget documents (DGX invoice, receipts)
+- ⏳ Awaiting demo video capture
+- ⏳ Awaiting final grant report completion
+
+## Next Steps
+
+1. Place DGX server invoice in `budget/dgx_invoice.pdf`
+2. Add receipts to `budget/receipts/`
+3. Update `budget/budget_tracking.md` with actual expenditures
+4. Complete evidence pack documentation
+5. Finalize grant closeout report
+
+## Notes
+
+- **Scope Reset**: Project has been simplified from distributed microservices to monolithic demonstrator
+- **Architecture**: Single Python script (`chimera_core.py`) demonstrates core adaptive AI functionality
+- **K8s/Docker Deprecated**: Kubernetes and Docker microservice requirements removed from scope
+- **Focus**: Local-first, single-node demonstration for grant closeout
 
 ---
 
-*This evidence pack serves as documented proof of Project Chimera's technical achievements and delivered capabilities.*
+**Project Chimera - 8-Week Delivery Plan**
+**Phase 1: Complete ✅ | Phase 2: Simplified for Closeout**
