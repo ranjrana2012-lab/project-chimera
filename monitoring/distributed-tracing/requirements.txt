@@ -1,0 +1,25 @@
+# OpenTelemetry Distributed Tracing Dependencies
+# Project Chimera Phase 2 - Observability
+
+# Core OpenTelemetry API and SDK
+opentelemetry-api==1.27.0
+opentelemetry-sdk==1.27.0
+
+# Trace exporters
+opentelemetry-exporter-jaeger-thrift==1.21.0
+opentelemetry-exporter-otlp-proto-grpc==1.27.0
+
+# Automatic instrumentation
+opentelemetry-instrumentation-fastapi==0.48b0
+opentelemetry-instrumentation-requests==0.48b0
+opentelemetry-instrumentation-httpx==0.48b0
+
+# Resource and semantic conventions
+opentelemetry-semantic-conventions==0.48b0
+
+# Metrics (optional for Phase 2)
+opentelemetry-sdk-metrics==0.48b0
+
+# Utilities
+opentelemetry-util-http==0.48b0
+opentelemetry-propagator-b3==1.0.0

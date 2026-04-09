@@ -22,6 +22,14 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Distributed tracing (optional)
+try:
+    from monitoring.distributed_tracing.tracer import get_dmx_tracer
+    TRACING_AVAILABLE = True
+except ImportError:
+    TRACING_AVAILABLE = False
+    logger.warning("Distributed tracing not available")
+
 
 class DMXState(Enum):
     """DMX system states."""
@@ -108,6 +116,9 @@ class DMXController:
         self._emergency_stop_callback = None
         self._last_update_time = None
 
+        # Initialize distributed tracing
+        self._tracer = get_dmx_tracer() if TRACING_AVAILABLE else None
+
         logger.info(f"DMX Controller initialized: Universe {self.universe}, {self.refresh_rate}Hz")
 
     def add_fixture(self, fixture: Fixture) -> None:
@@ -159,6 +170,18 @@ class DMXController:
             fixture_id: Fixture ID
             channels: Dictionary of channel: value pairs
         """
+        if self._tracer:
+            ctx = self._tracer.trace_operation("set_fixture_channels")
+            ctx.__enter__()
+            try:
+                self._set_fixture_channels_impl(fixture_id, channels)
+            finally:
+                ctx.__exit__(None, None, None)
+        else:
+            self._set_fixture_channels_impl(fixture_id, channels)
+
+    def _set_fixture_channels_impl(self, fixture_id: str, channels: Dict[int, int]) -> None:
+        """Internal implementation of set_fixture_channels."""
         self._check_emergency_stop()
 
         if fixture_id not in self.fixtures:
@@ -169,6 +192,15 @@ class DMXController:
             fixture.set_channel(channel, value)
 
         self._last_update_time = datetime.now()
+
+        # Add tracing attributes
+        if self._tracer:
+            self._tracer.add_span_attributes({
+                "fixture_id": fixture_id,
+                "channel_count": len(channels),
+                "universe": self.universe
+            })
+
         logger.info(f"Fixture {fixture_id} {len(channels)} channels set")
 
     def create_scene(self, name: str, fixture_values: Dict[str, Dict[int, int]],
@@ -196,6 +228,18 @@ class DMXController:
         Args:
             scene_name: Name of scene to activate
         """
+        if self._tracer:
+            ctx = self._tracer.trace_operation("activate_scene")
+            ctx.__enter__()
+            try:
+                self._activate_scene_impl(scene_name)
+            finally:
+                ctx.__exit__(None, None, None)
+        else:
+            self._activate_scene_impl(scene_name)
+
+    def _activate_scene_impl(self, scene_name: str) -> None:
+        """Internal implementation of activate_scene."""
         self._check_emergency_stop()
 
         if scene_name not in self.scenes:
@@ -209,6 +253,15 @@ class DMXController:
 
         self.current_scene = scene_name
         self._last_update_time = datetime.now()
+
+        # Add tracing attributes
+        if self._tracer:
+            self._tracer.add_span_attributes({
+                "scene_name": scene_name,
+                "fixture_count": len(scene.fixtures),
+                "transition_time_ms": scene.transition_time_ms
+            })
+
         logger.info(f"Scene activated: {scene_name}")
 
     def get_fixture_state(self, fixture_id: str) -> Dict[int, int]:
@@ -245,16 +298,38 @@ class DMXController:
 
         This is a safety-critical function that must work instantly.
         """
+        if self._tracer:
+            ctx = self._tracer.trace_operation("emergency_stop")
+            ctx.__enter__()
+            try:
+                self._emergency_stop_impl()
+            finally:
+                ctx.__exit__(None, None, None)
+        else:
+            self._emergency_stop_impl()
+
+    def _emergency_stop_impl(self) -> None:
+        """Internal implementation of emergency_stop."""
         logger.warning("EMERGENCY STOP ACTIVATED")
         self.state = DMXState.EMERGENCY_STOP
 
         # Set all channels to 0 (off)
+        fixture_count = 0
         for fixture in self.fixtures.values():
             for channel in fixture.channels.values():
                 channel.value = 0
+            fixture_count += 1
 
         self.current_scene = None
         self._last_update_time = datetime.now()
+
+        # Add tracing event
+        if self._tracer:
+            self._tracer.add_span_event("emergency_stop_activated", {
+                "fixture_count": fixture_count,
+                "universe": self.universe,
+                "previous_scene": self.current_scene
+            })
 
         # Call emergency stop callback if registered
         if self._emergency_stop_callback:

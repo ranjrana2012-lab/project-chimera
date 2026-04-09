@@ -22,6 +22,14 @@ from enum import Enum
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Distributed tracing (optional)
+try:
+    from monitoring.distributed_tracing.tracer import get_bsl_tracer
+    TRACING_AVAILABLE = True
+except ImportError:
+    TRACING_AVAILABLE = False
+    logger.warning("Distributed tracing not available")
+
 
 class BSLState(Enum):
     """BSL avatar states."""
@@ -80,6 +88,7 @@ class BSLTranslator:
             gesture_library: Dictionary of word -> BSLGesture mappings
         """
         self.gesture_library = gesture_library
+        self._tracer = get_bsl_tracer() if TRACING_AVAILABLE else None
         logger.info(f"BSL Translator initialized with {len(gesture_library)} gestures")
 
     def translate(self, text: str) -> SignSequence:
@@ -92,10 +101,26 @@ class BSLTranslator:
         Returns:
             SignSequence representing the BSL translation
         """
+        if self._tracer:
+            ctx = self._tracer.trace_operation("translate")
+            ctx.__enter__()
+            try:
+                result = self._translate_impl(text)
+                return result
+            finally:
+                ctx.__exit__(None, None, None)
+        else:
+            return self._translate_impl(text)
+
+    def _translate_impl(self, text: str) -> SignSequence:
+        """Internal implementation of translate."""
         words = text.split()
         gestures = []
         timing_ms = []
         non_manual_features = []
+
+        library_hits = 0
+        fingerspelled = 0
 
         for word in words:
             # Look up gesture in library
@@ -103,6 +128,7 @@ class BSLTranslator:
                 gesture = self.gesture_library[word.lower()]
                 gestures.append(gesture)
                 timing_ms.append(1000)  # Default 1 second per sign
+                library_hits += 1
 
                 # Add non-manual features
                 if word.endswith("?"):
@@ -123,11 +149,22 @@ class BSLTranslator:
                 gesture = self._create_fingerspelling_gesture(word)
                 gestures.append(gesture)
                 timing_ms.append(500)  # Fingerspelling is faster
+                fingerspelled += 1
                 non_manual_features.append({
                     "facial_expression": "neutral",
                     "eyebrows": "relaxed",
                     "body_lean": "none"
                 })
+
+        # Add tracing attributes
+        if self._tracer:
+            self._tracer.add_span_attributes({
+                "text_length": len(text),
+                "word_count": len(words),
+                "library_hits": library_hits,
+                "fingerspelled": fingerspelled,
+                "library_hit_rate": library_hits / len(words) if words else 0
+            })
 
         return SignSequence(
             gestures=gestures,
@@ -180,12 +217,32 @@ class BSLAvatarRenderer:
         Args:
             sign_sequence: Sign sequence to render
         """
+        if self._tracer:
+            ctx = self._tracer.trace_operation("render_sign_sequence")
+            ctx.__enter__()
+            try:
+                await self._render_sign_sequence_impl(sign_sequence)
+            finally:
+                ctx.__exit__(None, None, None)
+        else:
+            await self._render_sign_sequence_impl(sign_sequence)
+
+    async def _render_sign_sequence_impl(self, sign_sequence: SignSequence) -> None:
+        """Internal implementation of render_sign_sequence."""
         logger.info(f"Rendering sign sequence with {len(sign_sequence.gestures)} gestures")
 
         for i, gesture in enumerate(sign_sequence.gestures):
             # Simulate rendering each gesture
             await self._render_gesture(gesture, sign_sequence.timing_ms[i])
             await self._apply_non_manual_features(sign_sequence.non_manual_features[i])
+
+        # Add tracing attributes
+        if self._tracer:
+            total_duration = sum(sign_sequence.timing_ms)
+            self._tracer.add_span_attributes({
+                "gesture_count": len(sign_sequence.gestures),
+                "total_duration_ms": total_duration
+            })
 
         logger.info("Sign sequence rendering complete")
 
@@ -231,6 +288,7 @@ class BSLAvatarService:
         self.renderer = BSLAvatarRenderer()
 
         self._current_sign_sequence: Optional[SignSequence] = None
+        self._tracer = get_bsl_tracer() if TRACING_AVAILABLE else None
 
         logger.info("BSL Avatar Service initialized")
 
@@ -241,13 +299,37 @@ class BSLAvatarService:
         Args:
             text: English text to translate and render
         """
+        if self._tracer:
+            ctx = self._tracer.trace_operation("translate_and_render")
+            ctx.__enter__()
+            try:
+                await self._translate_and_render_impl(text)
+            finally:
+                ctx.__exit__(None, None, None)
+        else:
+            await self._translate_and_render_impl(text)
+
+    async def _translate_and_render_impl(self, text: str) -> None:
+        """Internal implementation of translate_and_render."""
         logger.info(f"Translating and rendering: '{text}'")
+
+        start_time = datetime.now()
 
         # Translate text to sign sequence
         sign_sequence = self.translator.translate(text)
 
         # Render sign sequence
         await self.renderer.render_sign_sequence(sign_sequence)
+
+        render_time_ms = int((datetime.now() - start_time).total_seconds() * 1000)
+
+        # Add tracing attributes
+        if self._tracer:
+            self._tracer.add_span_attributes({
+                "text": text,
+                "render_time_ms": render_time_ms,
+                "gesture_count": len(sign_sequence.gestures)
+            })
 
     def get_status(self) -> Dict:
         """

@@ -22,6 +22,14 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Distributed tracing (optional)
+try:
+    from monitoring.distributed_tracing.tracer import get_audio_tracer
+    TRACING_AVAILABLE = True
+except ImportError:
+    TRACING_AVAILABLE = False
+    logger.warning("Distributed tracing not available")
+
 
 class AudioState(Enum):
     """Audio system states."""
@@ -136,6 +144,9 @@ class AudioController:
         self._emergency_mute_callback = None
         self._last_update_time = None
 
+        # Initialize distributed tracing
+        self._tracer = get_audio_tracer() if TRACING_AVAILABLE else None
+
         # Initialize default outputs
         self._init_default_outputs()
 
@@ -191,6 +202,18 @@ class AudioController:
             track_id: ID of track to play
             fade_in_ms: Fade in time in milliseconds
         """
+        if self._tracer:
+            ctx = self._tracer.trace_operation("play_track")
+            ctx.__enter__()
+            try:
+                self._play_track_impl(track_id, fade_in_ms)
+            finally:
+                ctx.__exit__(None, None, None)
+        else:
+            self._play_track_impl(track_id, fade_in_ms)
+
+    def _play_track_impl(self, track_id: str, fade_in_ms: int) -> None:
+        """Internal implementation of play_track."""
         self._check_emergency_mute()
 
         if track_id not in self.tracks:
@@ -200,11 +223,19 @@ class AudioController:
 
         if fade_in_ms > 0:
             logger.debug(f"Track {track_id} fading in over {fade_in_ms}ms")
-            # In real implementation, would handle fade in
 
         track.play()
         self.state = AudioState.PLAYING
         self._last_update_time = datetime.now()
+
+        # Add tracing attributes
+        if self._tracer:
+            self._tracer.add_span_attributes({
+                "track_id": track_id,
+                "track_name": track.name,
+                "fade_in_ms": fade_in_ms,
+                "volume_db": track.volume_db
+            })
 
     def stop_track(self, track_id: str, fade_out_ms: int = 1000) -> None:
         """
@@ -334,15 +365,34 @@ class AudioController:
 
         This is a safety-critical function that must work instantly.
         """
+        if self._tracer:
+            ctx = self._tracer.trace_operation("emergency_mute")
+            ctx.__enter__()
+            try:
+                self._emergency_mute_impl()
+            finally:
+                ctx.__exit__(None, None, None)
+        else:
+            self._emergency_mute_impl()
+
+    def _emergency_mute_impl(self) -> None:
+        """Internal implementation of emergency_mute."""
         logger.warning("EMERGENCY MUTE ACTIVATED")
         self.state = AudioState.EMERGENCY_MUTE
 
         # Mute all tracks instantly
+        track_count = len(self.tracks)
         for track in self.tracks.values():
             track.is_muted = True
-            # In real implementation, would also cut audio output
 
         self._last_update_time = datetime.now()
+
+        # Add tracing event
+        if self._tracer:
+            self._tracer.add_span_event("emergency_mute_activated", {
+                "track_count": track_count,
+                "sample_rate": self.sample_rate
+            })
 
         # Call emergency mute callback if registered
         if self._emergency_mute_callback:
