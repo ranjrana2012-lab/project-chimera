@@ -1,0 +1,146 @@
+# Project Chimera Phase 2 - Docker Compose Configuration
+#
+# This Docker Compose file orchestrates the Phase 2 hardware integration services
+# for local development and testing.
+#
+# Usage:
+#   docker-compose -f docker-compose.phase2.yml up -d
+#   docker-compose -f docker-compose.phase2.yml down
+#
+# Environment:
+#   - Create .env file with required environment variables
+#   - See .env.example for template
+
+version: '3.8'
+
+services:
+  # DMX Controller Service
+  dmx-controller:
+    build:
+      context: ./dmx-controller
+      dockerfile: Dockerfile
+    container_name: chimera-dmx-controller
+    ports:
+      - "8001:8001"  # API port
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - DMX_UNIVERSE=1
+      - DMX_REFRESH_RATE=44
+    volumes:
+      - ./dmx-controller:/app
+      - /dev/bus/usb:/dev/bus/usb  # DMX USB interface
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"  # DMX interface
+    restart: unless-stopped
+    networks:
+      - chimera-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Audio Controller Service
+  audio-controller:
+    build:
+      context: ./audio-controller
+      dockerfile: Dockerfile
+    container_name: chimera-audio-controller
+    ports:
+      - "8002:8002"  # API port
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - AUDIO_SAMPLE_RATE=48000
+      - AUDIO_BIT_DEPTH=24
+    volumes:
+      - ./audio-controller:/app
+      - ./assets/audio:/assets/audio:ro  # Audio files
+    devices:
+      - "/dev/snd:/dev/snd"  # Audio devices
+    restart: unless-stopped
+    networks:
+      - chimera-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # BSL Avatar Service
+  bsl-avatar-service:
+    build:
+      context: ./bsl-avatar-service
+      dockerfile: Dockerfile
+    container_name: chimera-bsl-avatar
+    ports:
+      - "8003:8003"  # API port
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - GESTURE_LIBRARY_PATH=/app/data/gestures.json
+    volumes:
+      - ./bsl-avatar-service:/app
+      - ./bsl-avatar-service/data:/app/data  # Gesture library
+    restart: unless-stopped
+    networks:
+      - chimera-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Monitoring Service (optional)
+  monitoring:
+    image: prom/prometheus:latest
+    container_name: chimera-monitoring
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - chimera-network
+
+  # Grafana Dashboard (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: chimera-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    restart: unless-stopped
+    networks:
+      - chimera-network
+    depends_on:
+      - monitoring
+
+networks:
+  chimera-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  prometheus-data:
+  grafana-data:
