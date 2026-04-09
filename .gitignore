@@ -89,3 +89,4 @@ services/music-generation/models_cache/
 # Test environments
 final_test_env/
 models/
+internal/
