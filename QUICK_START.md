@@ -1,23 +1,35 @@
 # Project Chimera - Quick Start Guide
 
-**Last Updated**: 2026-03-30
-**Status**: Production Ready ✅
-**E2E Tests**: 149/149 passing (100%)
+**Last Updated**: 2026-04-09
+**Status**: Phase 1 Complete - Proof-of-Concept ✅
+
+**Important Note**: Project Chimera Phase 1 has been strategically pivoted to a **Local-First AI Framework Proof-of-Concept**. See `docs/STRATEGIC_PIVOT_MANDATE.md` for details.
 
 ---
 
 ## 🚀 What is Project Chimera?
 
-Project Chimera is an **AI-powered live theatre platform** that creates real-time, interactive performances by combining:
+Project Chimera Phase 1 is an **AI-powered adaptive framework proof-of-concept** demonstrating:
 
-- **Sentiment Analysis** - Audience reaction tracking
-- **BSL Avatar** - Sign language translation avatar
-- **Captioning** - Real-time subtitle generation
-- **Lighting/Sound Control** - Dynamic atmosphere adjustment
-- **Music Generation** - AI-composed soundscapes
-- **Orchestrator** - Coordinates all services in real-time
+- **Sentiment Analysis** - ML-based emotion detection (DistilBERT)
+- **Adaptive Dialogue Generation** - Context-aware response routing
+- **Monolithic Demonstrator** - Single Python script proving core logic
+- **Accessibility Features** - Basic caption formatting (Phase 1)
+- **Microservices Architecture** - Full distributed system (operational)
 
-**Architecture**: 13 microservices using FastAPI, WebSocket communication, and ML models.
+**What Works Now**:
+- ✅ chimera_core.py: Monolithic demonstrator with adaptive routing
+- ✅ Sentiment analysis: DistilBERT ML model (99.9% accuracy)
+- ✅ Dialogue generation: GLM-4.7 API or Ollama fallback
+- ✅ Comparison mode: Side-by-side adaptive vs non-adaptive
+- ✅ Caption mode: Basic accessibility formatting
+
+**Moved to future_concepts/** (Phase 2):
+- ⚠️ BSL Avatar (requires 3D rendering and gesture library)
+- ⚠️ Live Captioning (requires venue and display infrastructure)
+- ⚠️ Hardware Integration (DMX lighting, audio systems)
+
+**Architecture**: 8 core microservices (operational) + monolithic demonstrator (new)
 
 ---
 
@@ -80,6 +92,96 @@ wscat -c ws://localhost:8000/ws/show
 ```bash
 docker compose logs -f sentiment-agent
 ```
+
+---
+
+## 🎯 Monolithic Demonstrator (NEW - Phase 1 Deliverable)
+
+The **chimera_core.py** script is a single, self-contained Python script that demonstrates the core adaptive routing logic without requiring Docker or microservices.
+
+### Quick Start (No Docker Required)
+
+```bash
+cd services/operator-console
+
+# Run with single input
+python3 chimera_core.py "I'm so excited about this project!"
+
+# Run comparison mode (adaptive vs non-adaptive)
+python3 chimera_core.py compare "I'm frustrated with how things are going"
+
+# Run caption mode (accessibility formatting)
+python3 chimera_core.py caption "Can you tell me more about the system?"
+
+# Run demo mode (all three sentiment types)
+python3 chimera_core.py demo
+
+# Run interactive mode
+python3 chimera_core.py
+# Then try: compare <text>, caption <text>, demo, or quit
+```
+
+### What the Demonstrator Shows
+
+1. **Sentiment Analysis**: DistilBERT ML model detects emotion
+2. **Adaptive Routing**: System adjusts response based on sentiment
+   - Positive → Enthusiastic, momentum-building response
+   - Negative → Empathetic, supportive response
+   - Neutral → Professional, informative response
+3. **Comparison Mode**: Side-by-side adaptive vs non-adaptive
+4. **Caption Mode**: High-contrast text formatting for accessibility
+
+### Evidence Output
+
+The script generates JSON output showing:
+- Sentiment classification (positive/negative/neutral)
+- Confidence scores and emotion vectors
+- Adaptive routing strategy selected
+- Generated dialogue with metadata
+- Full processing trace
+
+This is the **primary deliverable** for Phase 1 grant closeout.
+
+---
+
+## ♿ Accessibility Features (Phase 1)
+
+### Caption Formatting
+
+The chimera_core.py script includes basic caption formatting for accessibility:
+
+```bash
+# Generate formatted caption
+python3 chimera_core.py caption "Your text here"
+```
+
+**Features**:
+- High-contrast visual formatting (60-character width)
+- Sentiment-based visual indicators (😊 positive, 😟 negative, 💬 neutral)
+- Plain text caption output
+- SRT subtitle format generation
+
+**Example Output**:
+```
+████████████████████████████████████████████████████████████
+█                         POSITIVE                         █
+█                                                        █
+█  That's wonderful to hear! Your positive energy is contagious.  █
+█        Let's build on this momentum together!        █
+█                                                        █
+████████████████████████████████████████████████████████████
+```
+
+### Limitations
+
+**Moved to Phase 2** (see `docs/LIMITATIONS_AND_FUTURE_ROADMAP.md`):
+- ❌ Real-time caption display (requires venue infrastructure)
+- ❌ BSL 3D avatar (requires gesture library + 3D rendering)
+- ❌ Live performance integration (requires venue + hardware)
+
+**Why**: These features require 3-6 months development time and specialist resources not available in Phase 1.
+
+---
 
 ### 3. Run E2E Tests
 

@@ -624,6 +624,169 @@ class AdaptiveRoutingEngine:
 
 
 # ============================================================================
+# Caption Formatting Module (Accessibility)
+# ============================================================================
+
+class CaptionFormatter:
+    """
+    Format AI dialogue output as accessible captions.
+
+    This module provides high-contrast, readable caption formatting
+    for accessibility purposes, meeting basic captioning standards.
+    """
+
+    @staticmethod
+    def format_as_caption(
+        text: str,
+        sentiment: str = "neutral",
+        max_line_length: int = 40
+    ) -> str:
+        """
+        Format dialogue text as an accessible caption.
+
+        Args:
+            text: Dialogue text to format
+            sentiment: Sentiment label for emoji indicator
+            max_line_length: Maximum characters per line
+
+        Returns:
+            Formatted caption string with visual indicators
+        """
+        # Select sentiment emoji for visual accessibility
+        emoji_map = {
+            "positive": "😊",
+            "negative": "😟",
+            "neutral": "💬"
+        }
+        emoji = emoji_map.get(sentiment, "💬")
+
+        # Split text into readable lines
+        words = text.split()
+        lines = []
+        current_line = []
+
+        for word in words:
+            current_line.append(word)
+            line_length = sum(len(w) + 1 for w in current_line) - 1
+
+            if line_length >= max_line_length:
+                lines.append(" ".join(current_line))
+                current_line = []
+
+        if current_line:
+            lines.append(" ".join(current_line))
+
+        # Format as caption with visual border
+        caption_lines = [
+            f"  {emoji}  ",
+            "-" * (max_line_length + 4),
+        ]
+
+        for line in lines:
+            # Center line within max width
+            padding = max(0, max_line_length - len(line))
+            caption_lines.append(f"  {line}{' ' * padding}  ")
+
+        caption_lines.append("-" * (max_line_length + 4))
+
+        return "\n".join(caption_lines)
+
+    @staticmethod
+    def format_srt_timestamp(seconds: float) -> str:
+        """
+        Format seconds as SRT timestamp.
+
+        Args:
+            seconds: Time in seconds
+
+        Returns:
+            SRT format timestamp (HH:MM:SS,mmm)
+        """
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        millis = int((seconds % 1) * 1000)
+        return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
+
+    @staticmethod
+    def generate_srt_entry(
+        index: int,
+        start_time: float,
+        end_time: float,
+        text: str,
+        sentiment: str = "neutral"
+    ) -> str:
+        """
+        Generate an SRT subtitle entry.
+
+        Args:
+            index: Subtitle index number
+            start_time: Start time in seconds
+            end_time: End time in seconds
+            text: Subtitle text
+            sentiment: Sentiment label
+
+        Returns:
+            SRT formatted subtitle entry
+        """
+        return f"""{index}
+{CaptionFormatter.format_srt_timestamp(start_time)} --> {CaptionFormatter.format_srt_timestamp(end_time)}
+{text}
+"""
+
+    @staticmethod
+    def print_caption_box(
+        text: str,
+        sentiment: str = "neutral",
+        width: int = 60
+    ):
+        """
+        Print a formatted caption box to terminal.
+
+        Args:
+            text: Caption text to display
+            sentiment: Sentiment label for styling
+            width: Width of caption box
+        """
+        # Define sentiment-based styling
+        styles = {
+            "positive": {"char": "█", "label": "POSITIVE"},
+            "negative": {"char": "░", "label": "NEGATIVE"},
+            "neutral": {"char": "─", "label": "NEUTRAL"}
+        }
+
+        style = styles.get(sentiment, styles["neutral"])
+
+        # Create border
+        border = style["char"] * width
+
+        # Split text into lines
+        words = text.split()
+        lines = []
+        current = []
+
+        for word in words:
+            current.append(word)
+            if len(" ".join(current)) > width - 8:
+                lines.append(" ".join(current))
+                current = []
+
+        if current:
+            lines.append(" ".join(current))
+
+        # Print caption box
+        print(f"\n{border}")
+        print(f"{style['char']} {style['label']:^{width-4}} {style['char']}")
+        print(f"{style['char']}{' ' * (width-4)}{style['char']}")
+
+        for line in lines:
+            print(f"{style['char']}  {line:^{width-10}}  {style['char']}")
+
+        print(f"{style['char']}{' ' * (width-4)}{style['char']}")
+        print(f"{border}\n")
+
+
+# ============================================================================
 # Main Interface
 # ============================================================================
 
@@ -634,10 +797,11 @@ async def interactive_mode(engine: AdaptiveRoutingEngine):
     print(" Project Chimera Phase 1: Local-First AI Framework")
     print("=" * 60)
     print("\nCommands:")
-    print("  <text>       - Analyze text with adaptive routing")
-    print("  demo         - Run demo inputs")
+    print("  <text>         - Analyze text with adaptive routing")
+    print("  demo           - Run demo inputs")
     print("  compare <text> - Show adaptive vs non-adaptive comparison")
-    print("  quit         - Exit")
+    print("  caption <text> - Show formatted caption (accessibility)")
+    print("  quit           - Exit")
     print("-" * 60)
 
     while True:
@@ -676,6 +840,15 @@ async def interactive_mode(engine: AdaptiveRoutingEngine):
                     print("Usage: compare <text to analyze>")
                 continue
 
+            # Check for caption command
+            if user_input.lower().startswith("caption "):
+                caption_text = user_input[7:].strip()
+                if caption_text:
+                    await caption_mode(engine, caption_text)
+                else:
+                    print("Usage: caption <text to caption>")
+                continue
+
             # Process user input normally
             state = await engine.process(user_input)
 
@@ -688,6 +861,61 @@ async def interactive_mode(engine: AdaptiveRoutingEngine):
             break
         except Exception as e:
             logger.error(f"Error processing input: {e}")
+
+
+async def caption_mode(engine: AdaptiveRoutingEngine, input_text: str):
+    """
+    Run caption mode showing formatted accessibility output.
+
+    This demonstrates basic caption formatting for accessibility purposes.
+    """
+    print("\n" + "=" * 60)
+    print(" CAPTION MODE - Accessibility Output")
+    print("=" * 60)
+    print(f"Input: {input_text}")
+    print("-" * 60)
+
+    # Process input normally
+    state = await engine.process(input_text)
+
+    # Show formatted caption
+    print("\n[FORMATTED CAPTION]")
+    CaptionFormatter.print_caption_box(
+        state.dialogue.dialogue,
+        state.sentiment.sentiment
+    )
+
+    # Show plain text version
+    print("\n[PLAIN TEXT CAPTION]")
+    formatted_caption = CaptionFormatter.format_as_caption(
+        state.dialogue.dialogue,
+        state.sentiment.sentiment
+    )
+    print(formatted_caption)
+
+    # Show SRT format example
+    print("\n[SRT FORMAT EXAMPLE]")
+    srt_entry = CaptionFormatter.generate_srt_entry(
+        index=1,
+        start_time=0.0,
+        end_time=5.0,
+        text=state.dialogue.dialogue,
+        sentiment=state.sentiment.sentiment
+    )
+    print(srt_entry)
+
+    print("=" * 60)
+    print("\nCaption formatting demonstrates basic accessibility support.")
+    print("Full BSL avatar and advanced captioning deferred to Phase 2.")
+    print("=" * 60 + "\n")
+
+    return {
+        "input": input_text,
+        "caption_text": state.dialogue.dialogue,
+        "sentiment": state.sentiment.sentiment,
+        "formatted_caption": formatted_caption,
+        "srt_example": srt_entry
+    }
 
 
 async def single_mode(engine: AdaptiveRoutingEngine, input_text: str):
@@ -815,6 +1043,12 @@ async def main():
             # Comparison mode
             input_text = " ".join(sys.argv[2:])
             result = await comparison_mode(engine, input_text)
+            print("\n[COMPLETE]")
+            print(json.dumps(result, indent=2))
+        elif cmd == "caption" and len(sys.argv) > 2:
+            # Caption mode
+            input_text = " ".join(sys.argv[2:])
+            result = await caption_mode(engine, input_text)
             print("\n[COMPLETE]")
             print(json.dumps(result, indent=2))
         elif cmd == "demo":
