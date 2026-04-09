@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Chimera Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .card-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .status-item {
+            background: #0f0f1a;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 3px solid #666;
+        }
+
+        .status-item.healthy {
+            border-left-color: #00ff88;
+        }
+
+        .status-item.unhealthy {
+            border-left-color: #ff4444;
+        }
+
+        .status-item.unknown {
+            border-left-color: #ffaa00;
+        }
+
+        .status-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .status-value {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .test-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+
+        .test-item {
+            background: #0f0f1a;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .test-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        .test-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .queue-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .queue-item {
+            background: #0f0f1a;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .commits-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .commit-item {
+            background: #0f0f1a;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+        }
+
+        .commit-hash {
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        .commit-message {
+            color: #e0e0e0;
+            margin-left: 10px;
+        }
+
+        .summary-bar {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px 20px;
+            font-size: 0.95rem;
+            color: #00d4ff;
+        }
+
+        .last-update {
+            text-align: right;
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 20px;
+        }
+
+        .learnings-text {
+            background: #0f0f1a;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #aaa;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .test-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Project Chimera Dashboard</h1>
+            <div class="subtitle">AI-Powered Adaptive Theatre Framework</div>
+        </header>
+
+        <div class="summary-bar" id="dailySummary">Loading...</div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">Service Health</div>
+                <div class="status-grid" id="serviceGrid">
+                    <div class="status-item">Loading services...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Test Summary</div>
+                <div class="test-summary" id="testSummary">
+                    <div class="test-item">
+                        <div class="test-value">-</div>
+                        <div class="test-label">Total</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-value">-</div>
+                        <div class="test-label">Passed</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-value">-</div>
+                        <div class="test-label">Failed</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-value">-</div>
+                        <div class="test-label">Skipped</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">Ralph Loop Queue</div>
+                <div class="queue-list" id="queueList">
+                    <div class="queue-item">Loading queue...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Recent Commits</div>
+                <div class="commits-list" id="commitsList">
+                    <div class="commit-item">Loading commits...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Recent Learnings</div>
+            <div class="learnings-text" id="learningsText">Loading learnings...</div>
+        </div>
+
+        <div class="last-update" id="lastUpdate">Last update: -</div>
+    </div>
+
+    <script>
+        // SECURE Helper functions - using textContent instead of innerHTML
+        function setText(element, text) {
+            element.textContent = text;
+        }
+
+        function createElementWithContent(tag, className, text) {
+            const element = document.createElement(tag);
+            if (className) element.className = className;
+            if (text !== null && text !== undefined) element.textContent = text;
+            return element;
+        }
+
+        function clearElement(element) {
+            while (element.firstChild) {
+                element.removeChild(element.firstChild);
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+
+                // Update daily summary
+                const summaryEl = document.getElementById('dailySummary');
+                setText(summaryEl, data.daily_summary);
+
+                // Update service grid
+                const serviceGrid = document.getElementById('serviceGrid');
+                clearElement(serviceGrid);
+                for (const [name, info] of Object.entries(data.services)) {
+                    const statusItem = createElementWithContent('div', 'status-item ' + info.status, null);
+                    const nameEl = createElementWithContent('div', 'status-name', name);
+                    const valueEl = createElementWithContent('div', 'status-value', info.status + ' - ' + info.url);
+                    statusItem.appendChild(nameEl);
+                    statusItem.appendChild(valueEl);
+                    serviceGrid.appendChild(statusItem);
+                }
+
+                // Update test summary
+                const testSummary = document.getElementById('testSummary');
+                clearElement(testSummary);
+                const tests = data.test_summary;
+                const testLabels = ['Total', 'Passed', 'Failed', 'Skipped'];
+                const testKeys = ['total', 'passed', 'failed', 'skipped'];
+                testKeys.forEach((key, index) => {
+                    const testItem = createElementWithContent('div', 'test-item', null);
+                    const valueEl = createElementWithContent('div', 'test-value', String(tests[key] || 0));
+                    const labelEl = createElementWithContent('div', 'test-label', testLabels[index]);
+                    testItem.appendChild(valueEl);
+                    testItem.appendChild(labelEl);
+                    testSummary.appendChild(testItem);
+                });
+
+                // Update queue list
+                const queueList = document.getElementById('queueList');
+                clearElement(queueList);
+                const queueData = data.ralph_loop && data.ralph_loop.queue ? data.ralph_loop.queue : [];
+                if (queueData.length > 0) {
+                    queueData.forEach(item => {
+                        const queueItem = createElementWithContent('div', 'queue-item', item);
+                        queueList.appendChild(queueItem);
+                    });
+                } else {
+                    const emptyItem = createElementWithContent('div', 'queue-item', 'Queue is empty');
+                    queueList.appendChild(emptyItem);
+                }
+
+                // Update commits list
+                const commitsList = document.getElementById('commitsList');
+                clearElement(commitsList);
+                data.git_commits.forEach(commit => {
+                    const commitItem = createElementWithContent('div', 'commit-item', null);
+                    const hashEl = createElementWithContent('span', 'commit-hash', commit.hash);
+                    const messageEl = createElementWithContent('span', 'commit-message', commit.message);
+                    commitItem.appendChild(hashEl);
+                    commitItem.appendChild(messageEl);
+                    commitsList.appendChild(commitItem);
+                });
+
+                // Update learnings
+                const learningsText = document.getElementById('learningsText');
+                if (data.ralph_loop && data.ralph_loop.learnings) {
+                    setText(learningsText, data.ralph_loop.learnings);
+                } else {
+                    setText(learningsText, 'No learnings available');
+                }
+
+                // Update last update time
+                const lastUpdate = document.getElementById('lastUpdate');
+                const updateDate = new Date(data.timestamp);
+                setText(lastUpdate, 'Last update: ' + updateDate.toLocaleString());
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                const summaryEl = document.getElementById('dailySummary');
+                setText(summaryEl, 'Error loading dashboard data');
+            }
+        }
+
+        // Initial load
+        loadDashboard();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>
