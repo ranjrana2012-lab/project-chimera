@@ -1,0 +1,190 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: director-agent-config
+  namespace: project-chimera
+data:
+  LOG_LEVEL: "INFO"
+  PORT: "8013"
+  REQUIRE_HUMAN_APPROVAL: "true"
+  EMERGENCY_STOP_ENABLED: "true"
+  MAX_SCENE_DURATION_MS: "600000"
+  OPENCLAW_URL: "http://openclaw-orchestrator:8000"
+  SCENESPEAK_AGENT_URL: "http://scenespeak-agent:8001"
+  CAPTIONING_AGENT_URL: "http://captioning-agent:8002"
+  BSL_AGENT_URL: "http://bsl-agent:8003"
+  SENTIMENT_AGENT_URL: "http://sentiment-agent:8004"
+  LIGHTING_AGENT_URL: "http://lighting-sound-music:8005"
+  OTLP_ENDPOINT: "http://jaeger:4317"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: director-agent
+  namespace: project-chimera
+  labels:
+    app: director-agent
+    service: director-agent
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8013
+    targetPort: 8013
+    protocol: TCP
+    name: http
+  selector:
+    app: director-agent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: director-agent
+  namespace: project-chimera
+  labels:
+    app: director-agent
+    service: director-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: director-agent
+  template:
+    metadata:
+      labels:
+        app: director-agent
+        service: director-agent
+    spec:
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+      dnsPolicy: ClusterFirst
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: director-agent
+        image: director-agent:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8013
+          protocol: TCP
+        env:
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: LOG_LEVEL
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: PORT
+        - name: REQUIRE_HUMAN_APPROVAL
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: REQUIRE_HUMAN_APPROVAL
+        - name: EMERGENCY_STOP_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: EMERGENCY_STOP_ENABLED
+        - name: MAX_SCENE_DURATION_MS
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: MAX_SCENE_DURATION_MS
+        - name: OPENCLAW_URL
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: OPENCLAW_URL
+        - name: SCENESPEAK_AGENT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: SCENESPEAK_AGENT_URL
+        - name: CAPTIONING_AGENT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: CAPTIONING_AGENT_URL
+        - name: BSL_AGENT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: BSL_AGENT_URL
+        - name: SENTIMENT_AGENT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: SENTIMENT_AGENT_URL
+        - name: LIGHTING_AGENT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: LIGHTING_AGENT_URL
+        - name: OTLP_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: director-agent-config
+              key: OTLP_ENDPOINT
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8013
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8013
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: director-agent-hpa
+  namespace: project-chimera
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: director-agent
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

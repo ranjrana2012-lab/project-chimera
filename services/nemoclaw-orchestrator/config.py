@@ -8,28 +8,28 @@ class Settings(BaseSettings):
     port: int = 8000
     debug: bool = False
 
-    # DGX Configuration
-    nemotron_model: str = "nemotron-8b"
+    # DGX Configuration (Ollama fallback)
+    ollama_model: str = "llama3:instruct"  # Local Ollama model for fallback
     dgx_gpu_id: int = 0
-    dgx_endpoint: str = "http://localhost:8000"  # Nemotron endpoint
+    dgx_endpoint: str = "http://localhost:11434"  # Ollama endpoint
 
     # Privacy Router
     local_ratio: float = 0.95  # 95% local, 5% cloud
     cloud_fallback_enabled: bool = True
 
     # Z.AI Configuration (GLM-4.7 First Strategy)
-    # Primary: GLM-4.7 for everything (4000 prompts/5hrs generous quota)
-    # Fallback: GLM-4.7-FlashX for simple/repetitive tasks only
-    # Final: Local LLM when Z.AI credits exhausted
+    # Primary: GLM-4.7 for everything (main inference model)
+    # Fallback: GLM-5-Turbo for simple/repetitive tasks only
+    # Final: Local Ollama when Z.AI credits exhausted
     zai_api_key: str = ""
-    zai_primary_model: str = "glm-4.7"
-    zai_programming_model: str = "glm-4.7"
-    zai_fast_model: str = "glm-4.7-flashx"
-    zai_cache_ttl: int = 3600
-    zai_thinking_enabled: bool = False
+    zai_primary_model: str = "glm-4.7"          # GLM-4.7 - Primary inference model
+    zai_programming_model: str = "glm-4.7"      # GLM-4.7 - Programming tasks
+    zai_fast_model: str = "glm-5-turbo"         # GLM-5-Turbo - Fast tasks
+    zai_cache_ttl: int = 3600                  # 1 hour cache
+    zai_thinking_enabled: bool = False         # Thinking disabled for GLM-4.7
 
-    # Nemotron Configuration (local fallback, after Z.AI)
-    nemotron_enabled: bool = True
+    # Nemotron Configuration (DISABLED - using GLM-4.7 API instead)
+    nemotron_enabled: bool = False             # Disabled - GLM-4.7 is primary
     nemotron_endpoint: str = "http://localhost:8012"
     nemotron_model: str = "nemotron-3-super-120b-a12b-nvfp4"
     nemotron_timeout: int = 120

@@ -1,0 +1,37 @@
+# Captioning Agent Requirements
+# Project Chimera - AI-powered live theatre platform
+
+# FastAPI and ASGI server
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+websockets>=12.0
+
+# Pydantic for data validation
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# OpenTelemetry for observability
+opentelemetry-api>=1.21.0
+opentelemetry-sdk>=1.21.0
+opentelemetry-instrumentation-fastapi>=0.42b0
+opentelemetry-exporter-otlp>=1.21.0
+
+# Prometheus for metrics
+prometheus-client>=0.19.0
+
+# Whisper for speech-to-text
+openai-whisper>=20231117
+# Note: whisper requires ffmpeg
+
+# Audio processing
+numpy>=1.24.0
+librosa>=0.10.0
+soundfile>=0.12.0
+
+# Utilities
+python-dotenv>=1.0.0
+structlog>=2.4.0
+python-multipart>=0.0.6
+
+# Security & Middleware
+slowapi>=0.1.9

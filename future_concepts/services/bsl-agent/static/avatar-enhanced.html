@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSL Avatar Viewer - Enhanced Edition | Project Chimera</title>
+    <link rel="stylesheet" href="/static/css/avatar.css">
+    <style>
+        /* Enhanced Features Styles */
+        .enhanced-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .recording-controls {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            border-radius: 8px;
+            padding: 1rem;
+            color: white;
+        }
+
+        .recording-controls.recording {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .recording-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .recording-indicator.active {
+            animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .fullscreen-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .fullscreen-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .preset-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+        }
+
+        .timeline-editor {
+            background: #1a1a2e;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .timeline-track {
+            position: relative;
+            height: 60px;
+            background: #16213e;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            top: 5px;
+            width: 4px;
+            height: 50px;
+            background: #4CAF50;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timeline-marker:hover {
+            width: 6px;
+            background: #66BB6A;
+        }
+
+        .timeline-marker.selected {
+            background: #FFC107;
+            width: 6px;
+        }
+
+        .timeline-marker-label {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .timeline-scrubber {
+            position: absolute;
+            top: 0;
+            width: 2px;
+            height: 60px;
+            background: #FF5722;
+            cursor: col-resize;
+            z-index: 10;
+        }
+
+        .timeline-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .step-btn {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .step-btn:hover {
+            background: #4a5568;
+        }
+
+        .marker-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #0f3460;
+            border-radius: 4px;
+            padding: 0.5rem;
+        }
+
+        .marker-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #16213e;
+            border-radius: 4px;
+            margin-bottom: 0.25rem;
+        }
+
+        .marker-item-time {
+            color: #4CAF50;
+            font-family: monospace;
+        }
+
+        .marker-item-actions button {
+            background: #e74c3c;
+            border: none;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .marker-item-actions button:hover {
+            background: #c0392b;
+        }
+
+        .camera-controls {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            padding: 1rem;
+            color: white;
+        }
+
+        .camera-preset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .camera-preset-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .camera-preset-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #canvasContainer.fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999;
+            background: #000;
+        }
+
+        #canvasContainer.fullscreen canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .recording-timer {
+            font-family: monospace;
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+        }
+
+        .format-select {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="avatar-container">
+        <header class="avatar-header">
+            <h1>BSL Avatar Viewer - Enhanced Edition</h1>
+            <div class="status-indicator" id="statusIndicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Loading...</span>
+            </div>
+        </header>
+
+        <main class="avatar-main">
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="avatarCanvas"></canvas>
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="spinner"></div>
+                    <p>Loading Avatar...</p>
+                </div>
+            </div>
+
+            <aside class="controls-panel">
+                <!-- Original Controls -->
+                <div class="control-section">
+                    <h3>Animation Controls</h3>
+                    <div class="button-group">
+                        <button id="playBtn" class="btn btn-primary" disabled>
+                            <svg width="16" height="16" viewBox="0 0 16 16">
+                                <path d="M4 4l8 4-8 4V4z"/>
+                            </svg>
+                            Play
+                        </button>
+                        <button id="pauseBtn" class="btn btn-secondary" disabled>
+                            <svg width="16" height="16" viewBox="0 0 16 16">
+                                <path d="M4 4h3v8H4V4zm5 0h3v8H9V4z"/>
+                            </svg>
+                            Pause
+                        </button>
+                        <button id="stopBtn" class="btn btn-secondary" disabled>
+                            <svg width="16" height="16" viewBox="0 0 16 16">
+                                <path d="M4 4h8v8H4V4z"/>
+                            </svg>
+                            Stop
+                        </button>
+                        <button id="stepBackBtn" class="btn btn-secondary" disabled>
+                            <svg width="16" height="16" viewBox="0 0 16 16">
+                                <path d="M10 4l-6 4 6 4V4zm-8 0H0v8h2V4z"/>
+                            </svg>
+                        </button>
+                        <button id="stepForwardBtn" class="btn btn-secondary" disabled>
+                            <svg width="16" height="16" viewBox="0 0 16 16">
+                                <path d="M6 4l6 4-6 4V4zm8 0h-2v8h2V4z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Playback Speed</h3>
+                    <div class="speed-control">
+                        <button class="speed-btn" data-speed="0.25">0.25x</button>
+                        <button class="speed-btn" data-speed="0.5">0.5x</button>
+                        <button class="speed-btn active" data-speed="1.0">1x</button>
+                        <button class="speed-btn" data-speed="1.5">1.5x</button>
+                        <button class="speed-btn" data-speed="2.0">2x</button>
+                    </div>
+                </div>
+
+                <!-- Recording Controls -->
+                <div class="control-section">
+                    <h3>Recording</h3>
+                    <div class="recording-controls" id="recordingPanel">
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <span class="recording-indicator" id="recordingIndicator"></span>
+                            <span id="recordingStatus">Ready to record</span>
+                        </div>
+                        <div class="button-group" style="margin-top: 0.5rem;">
+                            <button id="startRecordBtn" class="btn btn-danger">
+                                <svg width="16" height="16" viewBox="0 0 16 16">
+                                    <circle cx="8" cy="8" r="6" fill="currentColor"/>
+                                </svg>
+                                Record
+                            </button>
+                            <button id="stopRecordBtn" class="btn btn-secondary" disabled>
+                                <svg width="16" height="16" viewBox="0 0 16 16">
+                                    <rect x="4" y="4" width="8" height="8" fill="currentColor"/>
+                                </svg>
+                                Stop
+                            </button>
+                            <button id="captureFrameBtn" class="btn btn-secondary">
+                                <svg width="16" height="16" viewBox="0 0 16 16">
+                                    <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6zm-1-9h2v4h-2V5zm0 5h2v2H7v-2z"/>
+                                </svg>
+                                Frame
+                            </button>
+                        </div>
+                        <select class="format-select" id="recordingFormat">
+                            <option value="webm">WebM (Video)</option>
+                            <option value="gif">GIF (Animated)</option>
+                        </select>
+                        <div class="recording-timer" id="recordingTimer">00:00</div>
+                    </div>
+                </div>
+
+                <!-- Full-Screen Control -->
+                <div class="control-section">
+                    <h3>View Options</h3>
+                    <button id="fullscreenBtn" class="fullscreen-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px;">
+                            <path d="M1 1h5v2H3v3H1V1zm7 0h5v5h-2V3h-3V1zM1 15h5v-2H3v-3H1v5zm11 0v-2h2v-3h2v5h-5z" fill="currentColor"/>
+                        </svg>
+                        Full Screen
+                    </button>
+                </div>
+
+                <!-- Preset Animations -->
+                <div class="control-section">
+                    <h3>Quick Presets</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" data-preset="greeting">👋 Hello</button>
+                        <button class="preset-btn" data-preset="goodbye">👋 Goodbye</button>
+                        <button class="preset-btn" data-preset="thank-you">🙏 Thank You</button>
+                        <button class="preset-btn" data-preset="yes">✅ Yes</button>
+                        <button class="preset-btn" data-preset="no">❌ No</button>
+                        <button class="preset-btn" data-preset="happy">😊 Happy</button>
+                        <button class="preset-btn" data-preset="sad">😢 Sad</button>
+                        <button class="preset-btn" data-preset="surprised">😮 Surprised</button>
+                    </div>
+                </div>
+
+                <!-- Camera Controls -->
+                <div class="control-section">
+                    <h3>Camera</h3>
+                    <div class="camera-controls">
+                        <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">Click & drag to rotate, scroll to zoom</p>
+                        <div class="camera-preset-grid">
+                            <button class="camera-preset-btn" data-view="front">Front</button>
+                            <button class="camera-preset-btn" data-view="side">Side</button>
+                            <button class="camera-preset-btn" data-view="top">Top</button>
+                            <button class="camera-preset-btn" data-view="iso">Isometric</button>
+                            <button class="camera-preset-btn" data-view="closeup">Close-up</button>
+                            <button class="camera-preset-btn" data-view="wide">Wide</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Editor -->
+                <div class="control-section">
+                    <h3>Timeline Editor</h3>
+                    <div class="timeline-editor">
+                        <div class="timeline-track" id="timelineTrack">
+                            <div class="timeline-scrubber" id="timelineScrubber" style="left: 0%;"></div>
+                            <!-- Markers will be added dynamically -->
+                        </div>
+                        <div class="timeline-controls">
+                            <button class="step-btn" id="addMarkerBtn">+ Marker</button>
+                            <button class="step-btn" id="clearMarkersBtn">Clear All</button>
+                            <button class="step-btn" id="prevMarkerBtn">← Prev</button>
+                            <button class="step-btn" id="nextMarkerBtn">Next →</button>
+                        </div>
+                        <div class="marker-list" id="markerList">
+                            <p style="text-align: center; color: #888; padding: 1rem;">No markers yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Facial Expressions</h3>
+                    <div class="expression-grid">
+                        <button class="expression-btn" data-expression="neutral">Neutral</button>
+                        <button class="expression-btn" data-expression="happy">Happy</button>
+                        <button class="expression-btn" data-expression="sad">Sad</button>
+                        <button class="expression-btn" data-expression="surprised">Surprised</button>
+                        <button class="expression-btn" data-expression="angry">Angry</button>
+                        <button class="expression-btn" data-expression="questioning">Questioning</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Hand Shapes</h3>
+                    <div class="handshape-grid">
+                        <button class="handshape-btn" data-hand="right" data-shape="fist">Fist</button>
+                        <button class="handshape-btn" data-hand="right" data-shape="open">Open</button>
+                        <button class="handshape-btn" data-hand="right" data-shape="point">Point</button>
+                        <button class="handshape-btn" data-hand="right" data-shape="peace">Peace</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Debug Info</h3>
+                    <div class="debug-info" id="debugInfo">
+                        <div class="debug-row">
+                            <span class="debug-label">FPS:</span>
+                            <span class="debug-value" id="fpsDisplay">0</span>
+                        </div>
+                        <div class="debug-row">
+                            <span class="debug-label">Time:</span>
+                            <span class="debug-value" id="currentTimeDisplay">0:00</span>
+                        </div>
+                        <div class="debug-row">
+                            <span class="debug-label">Duration:</span>
+                            <span class="debug-value" id="durationDisplay">0:00</span>
+                        </div>
+                        <div class="debug-row">
+                            <span class="debug-label">Markers:</span>
+                            <span class="debug-value" id="markerCount">0</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <footer class="avatar-footer">
+            <p>BSL Avatar Viewer - Enhanced Edition | Project Chimera | Powered by Three.js</p>
+        </footer>
+    </div>
+
+    <!-- Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GLTFLoader from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <!-- Application Scripts -->
+    <script src="/static/js/avatar.js"></script>
+    <script src="/static/js/avatar-enhanced.js"></script>
+    <script src="/static/js/nmm-loader.js"></script>
+    <script src="/static/js/animation-controller.js"></script>
+
+    <!-- Enhanced Features Script -->
+    <script>
+        // Initialize enhanced avatar viewer
+        let avatarViewer;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                avatarViewer = new BSLAvatarEnhanced('avatarCanvas', {
+                    modelPath: '/static/models/avatar.glb',
+                    enableCameraControls: true
+                });
+
+                await avatarViewer.loadAvatar();
+
+                // Setup event listeners
+                setupRecordingControls();
+                setupFullScreenControl();
+                setupPresetButtons();
+                setupTimelineEditor();
+                setupCameraControls();
+                setupStepControls();
+
+                // Listen for playback changes
+                avatarViewer.canvas.addEventListener('avatar:play', updateTimeline);
+                avatarViewer.canvas.addEventListener('avatar:seek', updateTimeline);
+
+                // Update debug info periodically
+                setInterval(updateDebugInfo, 100);
+
+            } catch (error) {
+                console.error('Failed to initialize avatar viewer:', error);
+            }
+        });
+
+        // Recording Controls
+        function setupRecordingControls() {
+            const startBtn = document.getElementById('startRecordBtn');
+            const stopBtn = document.getElementById('stopRecordBtn');
+            const captureBtn = document.getElementById('captureFrameBtn');
+            const formatSelect = document.getElementById('recordingFormat');
+            const panel = document.getElementById('recordingPanel');
+            const indicator = document.getElementById('recordingIndicator');
+            const status = document.getElementById('recordingStatus');
+            const timer = document.getElementById('recordingTimer');
+
+            let timerInterval;
+
+            startBtn.addEventListener('click', async () => {
+                const format = formatSelect.value === 'gif' ? 'gif' : 'webm';
+                await avatarViewer.startRecording(format);
+
+                panel.classList.add('recording');
+                indicator.classList.add('active');
+                status.textContent = 'Recording...';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+
+                // Start timer
+                timerInterval = setInterval(() => {
+                    const duration = avatarViewer.getRecordingDuration();
+                    const mins = Math.floor(duration / 60).toString().padStart(2, '0');
+                    const secs = Math.floor(duration % 60).toString().padStart(2, '0');
+                    timer.textContent = `${mins}:${secs}`;
+                }, 100);
+            });
+
+            stopBtn.addEventListener('click', () => {
+                avatarViewer.stopRecording();
+
+                panel.classList.remove('recording');
+                indicator.classList.remove('active');
+                status.textContent = 'Recording saved';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+
+                clearInterval(timerInterval);
+            });
+
+            captureBtn.addEventListener('click', () => {
+                const format = formatSelect.value === 'gif' ? 'gif' : 'png';
+                avatarViewer.captureFrame(format);
+            });
+        }
+
+        // Full-Screen Control
+        function setupFullScreenControl() {
+            const btn = document.getElementById('fullscreenBtn');
+
+            btn.addEventListener('click', () => {
+                avatarViewer.toggleFullScreen();
+            });
+
+            // Listen for full-screen changes
+            document.addEventListener('fullscreenchange', updateFullScreenButton);
+
+            function updateFullScreenButton() {
+                if (avatarViewer.isInFullScreen()) {
+                    btn.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px;">
+                            <path d="M5 3h3v2H5V3zm6 4h2v3h-2V7zm-6 4h3v2H5v-2zm6-8h2v3h-2V3z" fill="currentColor"/>
+                        </svg>
+                        Exit Full Screen
+                    `;
+                } else {
+                    btn.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px;">
+                            <path d="M1 1h5v2H3v3H1V1zm7 0h5v5h-2V3h-3V1zM1 15h5v-2H3v-3H1v5zm11 0v-2h2v-3h2v5h-5z" fill="currentColor"/>
+                        </svg>
+                        Full Screen
+                    `;
+                }
+            }
+        }
+
+        // Preset Buttons
+        function setupPresetButtons() {
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const preset = btn.dataset.preset;
+                    avatarViewer.playPreset(preset);
+                });
+            });
+        }
+
+        // Timeline Editor
+        function setupTimelineEditor() {
+            const track = document.getElementById('timelineTrack');
+            const scrubber = document.getElementById('timelineScrubber');
+            const addBtn = document.getElementById('addMarkerBtn');
+            const clearBtn = document.getElementById('clearMarkersBtn');
+            const prevBtn = document.getElementById('prevMarkerBtn');
+            const nextBtn = document.getElementById('nextMarkerBtn');
+
+            // Scrubbing
+            let isScrubbing = false;
+
+            track.addEventListener('mousedown', (e) => {
+                if (e.target === track || e.target === scrubber) {
+                    isScrubbing = true;
+                    updateScrubberFromEvent(e);
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isScrubbing) {
+                    updateScrubberFromEvent(e);
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isScrubbing = false;
+            });
+
+            function updateScrubberFromEvent(e) {
+                const rect = track.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                const time = percent * (avatarViewer.getTotalDuration() || 10);
+                avatarViewer.seek(time);
+                updateScrubberPosition(percent);
+            }
+
+            function updateScrubberPosition(percent) {
+                scrubber.style.left = `${percent * 100}%`;
+            }
+
+            // Add marker
+            addBtn.addEventListener('click', () => {
+                const currentTime = avatarViewer.getCurrentTime();
+                const label = prompt('Enter marker label:', `Marker ${document.querySelectorAll('.timeline-marker').length + 1}`);
+                if (label) {
+                    const color = ['#4CAF50', '#2196F3', '#FF9800', '#E91E63'][document.querySelectorAll('.timeline-marker').length % 4];
+                    avatarViewer.addTimelineMarker(currentTime, label, color);
+                    renderMarkers();
+                }
+            });
+
+            // Clear markers
+            clearBtn.addEventListener('click', () => {
+                if (confirm('Clear all timeline markers?')) {
+                    avatarViewer.clearTimelineMarkers();
+                    renderMarkers();
+                }
+            });
+
+            // Navigate markers
+            prevBtn.addEventListener('click', () => {
+                const markers = avatarViewer.getTimelineMarkers();
+                const currentTime = avatarViewer.getCurrentTime();
+                const prevMarker = [...markers].reverse().find(m => m.time < currentTime);
+
+                if (prevMarker) {
+                    avatarViewer.jumpToMarker(prevMarker.id);
+                } else if (markers.length > 0) {
+                    avatarViewer.jumpToMarker(markers[markers.length - 1].id);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                const markers = avatarViewer.getTimelineMarkers();
+                const currentTime = avatarViewer.getCurrentTime();
+                const nextMarker = markers.find(m => m.time > currentTime);
+
+                if (nextMarker) {
+                    avatarViewer.jumpToMarker(nextMarker.id);
+                } else if (markers.length > 0) {
+                    avatarViewer.jumpToMarker(markers[0].id);
+                }
+            });
+
+            // Listen for timeline changes
+            avatarViewer.canvas.addEventListener('avatar:timeline:marker-added', renderMarkers);
+            avatarViewer.canvas.addEventListener('avatar:timeline:marker-removed', renderMarkers);
+            avatarViewer.canvas.addEventListener('avatar:timeline:markers-cleared', renderMarkers);
+
+            // Render markers
+            function renderMarkers() {
+                // Remove existing markers
+                track.querySelectorAll('.timeline-marker').forEach(m => m.remove());
+
+                // Add markers
+                const markers = avatarViewer.getTimelineMarkers();
+                const duration = avatarViewer.getTotalDuration() || 10;
+
+                markers.forEach(marker => {
+                    const el = document.createElement('div');
+                    el.className = 'timeline-marker';
+                    if (avatarViewer.selectedMarker === marker.id) {
+                        el.classList.add('selected');
+                    }
+                    el.style.left = `${(marker.time / duration) * 100}%`;
+                    el.style.background = marker.color;
+
+                    const label = document.createElement('div');
+                    label.className = 'timeline-marker-label';
+                    label.textContent = marker.label;
+                    el.appendChild(label);
+
+                    el.addEventListener('click', () => {
+                        avatarViewer.jumpToMarker(marker.id);
+                        renderMarkers();
+                    });
+
+                    track.appendChild(el);
+                });
+
+                // Update marker list
+                const markerList = document.getElementById('markerList');
+                if (markers.length === 0) {
+                    markerList.innerHTML = '<p style="text-align: center; color: #888; padding: 1rem;">No markers yet</p>';
+                } else {
+                    markerList.innerHTML = markers.map(marker => `
+                        <div class="marker-item">
+                            <div>
+                                <div>${marker.label}</div>
+                                <div class="marker-item-time">${marker.time.toFixed(2)}s</div>
+                            </div>
+                            <div class="marker-item-actions">
+                                <button onclick="avatarViewer.jumpToMarker('${marker.id}')">Go</button>
+                                <button onclick="deleteMarker('${marker.id}')">×</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Update marker count
+                document.getElementById('markerCount').textContent = markers.length;
+            }
+
+            // Make deleteMarker globally accessible
+            window.deleteMarker = (id) => {
+                avatarViewer.removeTimelineMarker(id);
+            };
+
+            // Initial render
+            renderMarkers();
+        }
+
+        // Camera Controls
+        function setupCameraControls() {
+            document.querySelectorAll('.camera-preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const view = btn.dataset.view;
+                    moveCameraToPreset(view);
+                });
+            });
+        }
+
+        function moveCameraToPreset(view) {
+            const presets = {
+                front: { position: { x: 0, y: 1.6, z: 3 }, lookAt: { x: 0, y: 1.2, z: 0 } },
+                side: { position: { x: 3, y: 1.6, z: 0 }, lookAt: { x: 0, y: 1.2, z: 0 } },
+                top: { position: { x: 0, y: 4, z: 0.1 }, lookAt: { x: 0, y: 0, z: 0 } },
+                iso: { position: { x: 2, y: 2, z: 2 }, lookAt: { x: 0, y: 1.2, z: 0 } },
+                closeup: { position: { x: 0, y: 1.5, z: 1.5 }, lookAt: { x: 0, y: 1.5, z: 0 } },
+                wide: { position: { x: 0, y: 2, z: 5 }, lookAt: { x: 0, y: 1.2, z: 0 } }
+            };
+
+            const preset = presets[view];
+            if (preset && avatarViewer.cameraControls) {
+                // Animate camera to preset position (simple implementation)
+                avatarViewer.camera.position.set(
+                    preset.position.x,
+                    preset.position.y,
+                    preset.position.z
+                );
+                avatarViewer.camera.lookAt(
+                    preset.lookAt.x,
+                    preset.lookAt.y,
+                    preset.lookAt.z
+                );
+            }
+        }
+
+        // Step Controls
+        function setupStepControls() {
+            document.getElementById('stepBackBtn').addEventListener('click', () => {
+                avatarViewer.stepBackward();
+            });
+
+            document.getElementById('stepForwardBtn').addEventListener('click', () => {
+                avatarViewer.stepForward();
+            });
+        }
+
+        // Update Timeline
+        function updateTimeline() {
+            const currentTime = avatarViewer.getCurrentTime();
+            const duration = avatarViewer.getTotalDuration() || 10;
+            const percent = (currentTime / duration) * 100;
+
+            document.getElementById('timelineScrubber').style.left = `${percent}%`;
+        }
+
+        // Update Debug Info
+        function updateDebugInfo() {
+            document.getElementById('fpsDisplay').textContent = avatarViewer.getFPS();
+
+            const currentTime = avatarViewer.getCurrentTime();
+            const mins = Math.floor(currentTime / 60).toString().padStart(1, '0');
+            const secs = Math.floor(currentTime % 60).toString().padStart(2, '0');
+            document.getElementById('currentTimeDisplay').textContent = `${mins}:${secs}`;
+
+            const duration = avatarViewer.getTotalDuration() || 0;
+            const durMins = Math.floor(duration / 60).toString().padStart(1, '0');
+            const durSecs = Math.floor(duration % 60).toString().padStart(2, '0');
+            document.getElementById('durationDisplay').textContent = `${durMins}:${durSecs}`;
+        }
+    </script>
+</body>
+</html>

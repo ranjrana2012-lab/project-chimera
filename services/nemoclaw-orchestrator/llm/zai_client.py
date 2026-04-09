@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 class ZAIModel(str, Enum):
     """Z.AI model options"""
-    PRIMARY = "glm-5-turbo"      # OpenClaw-optimized, tool invocation
-    PROGRAMMING = "glm-4.7"      # Enhanced programming, reasoning
-    FAST = "glm-4.7-flashx"      # Simple, repetitive tasks
+    PRIMARY = "glm-4.7"          # GLM-4.7 - Primary inference model
+    PROGRAMMING = "glm-4.7"      # GLM-4.7 - Programming tasks (same as primary)
+    FAST = "glm-5-turbo"         # GLM-5-Turbo - Fast model for simple tasks
 
 
 class ZAIClient:
