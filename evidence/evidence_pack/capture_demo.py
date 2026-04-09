@@ -263,7 +263,7 @@ def main():
 
     # Verify chimera_core.py exists
     chimera_path = Path("services/operator-console/chimera_core.py")
-    if not chimra_path.exists():
+    if not chimera_path.exists():
         print(f"❌ Error: {chimera_path} not found")
         print("   Please run from Project Chimera root directory")
         sys.exit(1)
