@@ -292,42 +292,47 @@ class DialogueGenerator:
     async def generate(
         self,
         prompt: str,
-        sentiment: SentimentResult
+        sentiment: SentimentResult,
+        adaptation_enabled: bool = True
     ) -> DialogueResult:
         """
-        Generate dialogue with adaptive context based on sentiment.
+        Generate dialogue with optional adaptive context based on sentiment.
 
         Args:
             prompt: Base prompt for generation
             sentiment: Sentiment analysis result for adaptation
+            adaptation_enabled: Whether to use adaptive prompts (default: True)
 
         Returns:
             DialogueResult with generated text and metadata
         """
         start_time = time.time()
 
-        # Build adaptive prompt
-        adaptive_prompt = self._build_adaptive_prompt(prompt, sentiment)
+        # Build prompt (adaptive or standard)
+        if adaptation_enabled:
+            final_prompt = self._build_adaptive_prompt(prompt, sentiment)
+        else:
+            final_prompt = f"User input: {prompt}\n\nResponse:"
 
         # Try local LLM first if preferred
         if self.config.prefer_local:
-            result = await self._try_local_llm(adaptive_prompt, sentiment, start_time)
+            result = await self._try_local_llm(final_prompt, sentiment, adaptation_enabled, start_time)
             if result:
                 return result
 
         # Try GLM API if key available
         if self.config.glm_api_key:
-            result = await self._try_glm_api(adaptive_prompt, sentiment, start_time)
+            result = await self._try_glm_api(final_prompt, sentiment, adaptation_enabled, start_time)
             if result:
                 return result
 
         # Fallback to local LLM
-        result = await self._try_local_llm(adaptive_prompt, sentiment, start_time)
+        result = await self._try_local_llm(final_prompt, sentiment, adaptation_enabled, start_time)
         if result:
             return result
 
         # Final fallback to mock response
-        return self._mock_response(prompt, sentiment, start_time)
+        return self._mock_response(prompt, sentiment, adaptation_enabled, start_time)
 
     def _build_adaptive_prompt(self, prompt: str, sentiment: SentimentResult) -> str:
         """
@@ -363,6 +368,7 @@ class DialogueGenerator:
         self,
         prompt: str,
         sentiment: SentimentResult,
+        adaptation_enabled: bool,
         start_time: float
     ) -> Optional[DialogueResult]:
         """Try to generate dialogue using local LLM (Ollama)."""
@@ -386,13 +392,15 @@ class DialogueGenerator:
                     data = response.json()
                     latency_ms = int((time.time() - start_time) * 1000)
 
+                    adaptive_context = {"sentiment": sentiment.sentiment} if adaptation_enabled else None
+
                     return DialogueResult(
                         dialogue=data.get("response", "").strip(),
                         tokens_used=data.get("prompt_eval_count", 0) + data.get("eval_count", 0),
                         model=self.config.local_llm_model,
                         source="local",
                         latency_ms=latency_ms,
-                        adaptive_context={"sentiment": sentiment.sentiment}
+                        adaptive_context=adaptive_context
                     )
                 else:
                     logger.warning(f"Local LLM returned status {response.status_code}")
@@ -406,6 +414,7 @@ class DialogueGenerator:
         self,
         prompt: str,
         sentiment: SentimentResult,
+        adaptation_enabled: bool,
         start_time: float
     ) -> Optional[DialogueResult]:
         """Try to generate dialogue using GLM 4.7 API."""
@@ -437,13 +446,15 @@ class DialogueGenerator:
 
                 latency_ms = int((time.time() - start_time) * 1000)
 
+                adaptive_context = {"sentiment": sentiment.sentiment} if adaptation_enabled else None
+
                 return DialogueResult(
                     dialogue=data["choices"][0]["message"]["content"].strip(),
                     tokens_used=data["usage"]["total_tokens"],
                     model="glm-4",
                     source="api",
                     latency_ms=latency_ms,
-                    adaptive_context={"sentiment": sentiment.sentiment}
+                    adaptive_context=adaptive_context
                 )
 
         except Exception as e:
@@ -454,25 +465,33 @@ class DialogueGenerator:
         self,
         prompt: str,
         sentiment: SentimentResult,
+        adaptation_enabled: bool,
         start_time: float
     ) -> DialogueResult:
         """Generate a mock response when no LLM is available."""
         latency_ms = int((time.time() - start_time) * 1000)
 
-        if sentiment.sentiment == "positive":
-            response = (
-                "That's wonderful to hear! Your positive energy is contagious. "
-                "Let's build on this momentum together!"
-            )
-        elif sentiment.sentiment == "negative":
-            response = (
-                "I understand things may be difficult right now. "
-                "Let's work through this together - you're not alone."
-            )
+        if adaptation_enabled:
+            # Adaptive responses based on sentiment
+            if sentiment.sentiment == "positive":
+                response = (
+                    "That's wonderful to hear! Your positive energy is contagious. "
+                    "Let's build on this momentum together!"
+                )
+            elif sentiment.sentiment == "negative":
+                response = (
+                    "I understand things may be difficult right now. "
+                    "Let's work through this together - you're not alone."
+                )
+            else:
+                response = (
+                    "Thank you for your input. Let me help you with that."
+                )
         else:
-            response = (
-                "Thank you for your input. Let me help you with that."
-            )
+            # Standard non-adaptive response
+            response = "Thank you for your input. I have received your message."
+
+        adaptive_context = {"sentiment": sentiment.sentiment} if adaptation_enabled else None
 
         return DialogueResult(
             dialogue=response,
@@ -480,7 +499,7 @@ class DialogueGenerator:
             model="mock",
             source="fallback",
             latency_ms=latency_ms,
-            adaptive_context={"sentiment": sentiment.sentiment}
+            adaptive_context=adaptive_context
         )
 
 
@@ -536,7 +555,7 @@ class AdaptiveRoutingEngine:
 
         # Step 2: Adaptive Dialogue Generation
         logger.info("[STEP 2] Adaptive Dialogue Generation...")
-        dialogue = await self.dialogue_generator.generate(input_text, sentiment)
+        dialogue = await self.dialogue_generator.generate(input_text, sentiment, self.config.adaptation_enabled)
         logger.info(f"  → Source: {dialogue.source.upper()}")
         logger.info(f"  → Model: {dialogue.model}")
         logger.info(f"  → Tokens: {dialogue.tokens_used}")
@@ -614,7 +633,11 @@ async def interactive_mode(engine: AdaptiveRoutingEngine):
     print(" CHIMERA CORE - Monolithic Demonstrator")
     print(" Project Chimera Phase 1: Local-First AI Framework")
     print("=" * 60)
-    print("\nEnter text to analyze (or 'quit' to exit, 'demo' for examples)")
+    print("\nCommands:")
+    print("  <text>       - Analyze text with adaptive routing")
+    print("  demo         - Run demo inputs")
+    print("  compare <text> - Show adaptive vs non-adaptive comparison")
+    print("  quit         - Exit")
     print("-" * 60)
 
     while True:
@@ -642,7 +665,18 @@ async def interactive_mode(engine: AdaptiveRoutingEngine):
                     time.sleep(1)
                 continue
 
-            # Process user input
+            # Check for compare command
+            if user_input.lower().startswith("compare "):
+                compare_text = user_input[8:].strip()
+                if compare_text:
+                    result = await comparison_mode(engine, compare_text)
+                    print(f"\n[COMPARISON COMPLETE]")
+                    print(json.dumps(result, indent=2))
+                else:
+                    print("Usage: compare <text to analyze>")
+                continue
+
+            # Process user input normally
             state = await engine.process(user_input)
 
             # Show adaptive state
@@ -660,6 +694,96 @@ async def single_mode(engine: AdaptiveRoutingEngine, input_text: str):
     """Run in single-input mode."""
     state = await engine.process(input_text)
     return state
+
+
+async def comparison_mode(engine: AdaptiveRoutingEngine, input_text: str):
+    """
+    Run comparison mode showing adaptive vs non-adaptive responses.
+
+    This demonstrates the core innovation: how the system adapts its response
+    based on detected emotional state.
+    """
+    print("\n" + "=" * 80)
+    print(" COMPARISON MODE: Adaptive vs Non-Adaptive")
+    print("=" * 80)
+    print(f"Input: {input_text}")
+    print("-" * 80)
+
+    # First, run WITH adaptation enabled
+    print("\n[WITH ADAPTATION]")
+    print("-" * 40)
+    adaptive_config = ChimeraConfig(
+        sentiment_model_path=config.sentiment_model_path,
+        sentiment_device=config.sentiment_device,
+        glm_api_key=config.glm_api_key,
+        glm_api_base=config.glm_api_base,
+        local_llm_url=config.local_llm_url,
+        local_llm_model=config.local_llm_model,
+        prefer_local=config.prefer_local,
+        adaptation_enabled=True  # ADAPTATION ON
+    )
+    adaptive_engine = AdaptiveRoutingEngine(adaptive_config)
+    adaptive_state = await adaptive_engine.process(input_text)
+
+    # Then, run WITHOUT adaptation
+    print("\n[WITHOUT ADAPTATION]")
+    print("-" * 40)
+    non_adaptive_config = ChimeraConfig(
+        sentiment_model_path=config.sentiment_model_path,
+        sentiment_device=config.sentiment_device,
+        glm_api_key=config.glm_api_key,
+        glm_api_base=config.glm_api_base,
+        local_llm_url=config.local_llm_url,
+        local_llm_model=config.local_llm_model,
+        prefer_local=config.prefer_local,
+        adaptation_enabled=False  # ADAPTATION OFF
+    )
+    non_adaptive_engine = AdaptiveRoutingEngine(non_adaptive_config)
+    non_adaptive_state = await non_adaptive_engine.process(input_text)
+
+    # Show comparison summary
+    print("\n" + "=" * 80)
+    print(" COMPARISON SUMMARY")
+    print("=" * 80)
+
+    sentiment_label = adaptive_state.sentiment.sentiment.upper()
+    print(f"\nDetected Sentiment: {sentiment_label}")
+    print(f"  Score: {adaptive_state.sentiment.score:+.3f}")
+    print(f"  Confidence: {adaptive_state.sentiment.confidence:.3f}")
+
+    print(f"\nAdaptive Response:")
+    print(f"  Strategy: {adaptive_state.adaptation['routing_strategy']}")
+    print(f"  Context: {adaptive_state.adaptation['context_mode']}")
+    print(f"  Tone: {adaptive_state.adaptation['tone_adjustment']}")
+    print(f"  Output: \"{adaptive_state.dialogue.dialogue}\"")
+
+    print(f"\nNon-Adaptive Response:")
+    print(f"  Strategy: {non_adaptive_state.adaptation['routing_strategy'] if non_adaptive_state.adaptation else 'none'}")
+    print(f"  Context: {non_adaptive_state.adaptation['context_mode'] if non_adaptive_state.adaptation else 'none'}")
+    print(f"  Tone: {non_adaptive_state.adaptation['tone_adjustment'] if non_adaptive_state.adaptation else 'neutral'}")
+    print(f"  Output: \"{non_adaptive_state.dialogue.dialogue}\"")
+
+    print("\n" + "=" * 80)
+    print(" KEY DIFFERENCE")
+    print("=" * 80)
+    print(f"The adaptive system detects {sentiment_label} sentiment and adjusts its")
+    print(f"response strategy to '{adaptive_state.adaptation['routing_strategy']}'")
+    print(f"with a '{adaptive_state.adaptation['tone_adjustment']}' tone.")
+    print()
+    print("The non-adaptive system uses the same standard response regardless of")
+    print("emotional state, demonstrating the value of adaptive routing.")
+    print("=" * 80 + "\n")
+
+    return {
+        "adaptive": adaptive_state.to_dict(),
+        "non_adaptive": non_adaptive_state.to_dict(),
+        "comparison": {
+            "sentiment_detected": sentiment_label,
+            "adaptive_strategy": adaptive_state.adaptation['routing_strategy'],
+            "non_adaptive_strategy": non_adaptive_state.adaptation['routing_strategy'] if non_adaptive_state.adaptation else 'none',
+            "key_difference": f"Adaptive system adjusts to {sentiment_label} emotion, non-adaptive uses standard response"
+        }
+    }
 
 
 def print_banner():
@@ -685,11 +809,30 @@ async def main():
 
     # Check for command line arguments
     if len(sys.argv) > 1:
-        # Single input mode
-        input_text = " ".join(sys.argv[1:])
-        state = await single_mode(engine, input_text)
-        print("\n[COMPLETE]")
-        print(json.dumps(state.to_dict(), indent=2))
+        cmd = sys.argv[1].lower()
+
+        if cmd == "compare" and len(sys.argv) > 2:
+            # Comparison mode
+            input_text = " ".join(sys.argv[2:])
+            result = await comparison_mode(engine, input_text)
+            print("\n[COMPLETE]")
+            print(json.dumps(result, indent=2))
+        elif cmd == "demo":
+            # Demo mode
+            demo_inputs = [
+                "I'm so excited about this project! It's going to be amazing!",
+                "I'm really frustrated with how things are going.",
+                "Can you tell me more about the system?"
+            ]
+            for demo_input in demo_inputs:
+                state = await engine.process(demo_input)
+                time.sleep(1)
+        else:
+            # Single input mode
+            input_text = " ".join(sys.argv[1:])
+            state = await single_mode(engine, input_text)
+            print("\n[COMPLETE]")
+            print(json.dumps(state.to_dict(), indent=2))
     else:
         # Interactive mode
         await interactive_mode(engine)

@@ -1,0 +1,129 @@
+
+============================================================
+ CHIMERA CORE v1.0.0
+ Monolithic Demonstrator - Project Chimera Phase 1
+============================================================
+ Started: 2026-04-09 13:03:38
+ Adaptation: ENABLED
+ Prefer Local LLM: False
+ GLM API: NOT CONFIGURED
+ Local LLM URL: http://localhost:11434
+============================================================
+
+
+================================================================================
+ COMPARISON MODE: Adaptive vs Non-Adaptive
+================================================================================
+Input: I'm really frustrated and disappointed with how things are going.
+--------------------------------------------------------------------------------
+
+[WITH ADAPTATION]
+----------------------------------------
+
+[WITHOUT ADAPTATION]
+----------------------------------------
+
+================================================================================
+ COMPARISON SUMMARY
+================================================================================
+
+Detected Sentiment: NEGATIVE
+  Score: -1.000
+  Confidence: 1.000
+
+Adaptive Response:
+  Strategy: supportive_care
+  Context: empathetic
+  Tone: reassuring
+  Output: "I understand things may be difficult right now. Let's work through this together - you're not alone."
+
+Non-Adaptive Response:
+  Strategy: none
+  Context: none
+  Tone: neutral
+  Output: "Thank you for your input. I have received your message."
+
+================================================================================
+ KEY DIFFERENCE
+================================================================================
+The adaptive system detects NEGATIVE sentiment and adjusts its
+response strategy to 'supportive_care'
+with a 'reassuring' tone.
+
+The non-adaptive system uses the same standard response regardless of
+emotional state, demonstrating the value of adaptive routing.
+================================================================================
+
+
+[COMPLETE]
+{
+  "adaptive": {
+    "timestamp": "2026-04-09T13:03:38.190457",
+    "input": "I'm really frustrated and disappointed with how things are going.",
+    "sentiment": {
+      "label": "negative",
+      "score": -0.999692440032959,
+      "confidence": 0.999692440032959,
+      "emotions": {
+        "joy": 0.0,
+        "surprise": 0.0,
+        "neutral": 3.075599670410156e-05,
+        "sadness": 0.8999077320098876,
+        "anger": 0.6999077320098877,
+        "fear": 0.29993848800659184
+      },
+      "model": "distilbert-sentiment",
+      "latency_ms": 2774
+    },
+    "dialogue": {
+      "text": "I understand things may be difficult right now. Let's work through this together - you're not alone.",
+      "tokens_used": 0,
+      "model": "mock",
+      "source": "fallback",
+      "latency_ms": 145,
+      "adaptive_context": {
+        "sentiment": "negative"
+      }
+    },
+    "adaptation": {
+      "routing_strategy": "supportive_care",
+      "context_mode": "empathetic",
+      "tone_adjustment": "reassuring",
+      "next_action": "provide_support"
+    }
+  },
+  "non_adaptive": {
+    "timestamp": "2026-04-09T13:03:41.110976",
+    "input": "I'm really frustrated and disappointed with how things are going.",
+    "sentiment": {
+      "label": "negative",
+      "score": -0.999692440032959,
+      "confidence": 0.999692440032959,
+      "emotions": {
+        "joy": 0.0,
+        "surprise": 0.0,
+        "neutral": 3.075599670410156e-05,
+        "sadness": 0.8999077320098876,
+        "anger": 0.6999077320098877,
+        "fear": 0.29993848800659184
+      },
+      "model": "distilbert-sentiment",
+      "latency_ms": 785
+    },
+    "dialogue": {
+      "text": "Thank you for your input. I have received your message.",
+      "tokens_used": 0,
+      "model": "mock",
+      "source": "fallback",
+      "latency_ms": 28,
+      "adaptive_context": null
+    },
+    "adaptation": null
+  },
+  "comparison": {
+    "sentiment_detected": "NEGATIVE",
+    "adaptive_strategy": "supportive_care",
+    "non_adaptive_strategy": "none",
+    "key_difference": "Adaptive system adjusts to NEGATIVE emotion, non-adaptive uses standard response"
+  }
+}
