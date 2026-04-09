@@ -24,8 +24,10 @@ import time
 import json
 import asyncio
 import logging
+import csv
+import argparse
 from datetime import datetime
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
@@ -1028,12 +1030,121 @@ def print_banner():
     print("=" * 60 + "\n")
 
 
+async def export_results(results: List[Dict[str, Any]], format: str = "json", output_file: Optional[str] = None):
+    """
+    Export processing results to file.
+
+    Args:
+        results: List of AdaptiveState dictionaries
+        format: Export format (json, csv, srt)
+        output_file: Output file path (default: auto-generated)
+
+    Returns:
+        Path to exported file
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    if output_file is None:
+        output_file = f"chimera_export_{timestamp}.{format}"
+
+    output_path = Path(output_file)
+
+    if format == "json":
+        with open(output_path, 'w') as f:
+            json.dump(results, f, indent=2)
+        logger.info(f"Exported {len(results)} results to {output_path}")
+
+    elif format == "csv":
+        with open(output_path, 'w', newline='') as f:
+            if results:
+                writer = csv.DictWriter(f, fieldnames=results[0].keys())
+                writer.writeheader()
+                writer.writerows(results)
+        logger.info(f"Exported {len(results)} results to {output_path}")
+
+    elif format == "srt":
+        with open(output_path, 'w') as f:
+            for i, result in enumerate(results, 1):
+                # Extract dialogue from result
+                dialogue = result.get("dialogue", {})
+                text = dialogue.get("text", "")
+                sentiment = result.get("sentiment", {})
+                sentiment_label = sentiment.get("sentiment", "neutral")
+
+                # Generate SRT entry
+                start_time = (i - 1) * 5.0  # 5 seconds per subtitle
+                end_time = i * 5.0
+                srt_entry = CaptionFormatter.generate_srt_entry(
+                    i, start_time, end_time, text, sentiment_label
+                )
+                f.write(srt_entry)
+                f.write("\n")
+        logger.info(f"Exported {len(results)} subtitles to {output_path}")
+
+    return output_path
+
+
+async def batch_process(engine: AdaptiveRoutingEngine, inputs: List[str], export_format: Optional[str] = None):
+    """
+    Process multiple inputs in batch.
+
+    Args:
+        engine: AdaptiveRoutingEngine instance
+        inputs: List of input texts
+        export_format: Optional export format (json, csv, srt)
+
+    Returns:
+        List of AdaptiveState results
+    """
+    results = []
+
+    logger.info(f"Processing {len(inputs)} inputs in batch...")
+
+    for i, input_text in enumerate(inputs, 1):
+        logger.info(f"Processing {i}/{len(inputs)}: {input_text[:50]}...")
+        state = await engine.process(input_text)
+        results.append(state.to_dict())
+
+    logger.info(f"Batch processing complete: {len(results)} results")
+
+    # Export if format specified
+    if export_format:
+        export_path = await export_results(results, export_format)
+        logger.info(f"Results exported to: {export_path}")
+
+    return results
+
+
 async def main():
     """Main entry point."""
     print_banner()
 
     # Initialize engine
     engine = AdaptiveRoutingEngine(config)
+
+    # Check for export flag
+    export_format = None
+    if "--export" in sys.argv:
+        export_idx = sys.argv.index("--export")
+        if export_idx + 1 < len(sys.argv):
+            export_format = sys.argv[export_idx + 1].lower()
+            if export_format not in ["json", "csv", "srt"]:
+                logger.error(f"Invalid export format: {export_format}. Use json, csv, or srt.")
+                export_format = None
+
+    # Check for batch mode
+    if "--batch" in sys.argv:
+        batch_idx = sys.argv.index("--batch")
+        if batch_idx + 1 < len(sys.argv):
+            batch_file = sys.argv[batch_idx + 1]
+            try:
+                with open(batch_file, 'r') as f:
+                    batch_inputs = [line.strip() for line in f if line.strip()]
+                await batch_process(engine, batch_inputs, export_format)
+                return
+            except FileNotFoundError:
+                logger.error(f"Batch file not found: {batch_file}")
+                return
 
     # Check for command line arguments
     if len(sys.argv) > 1:
@@ -1058,15 +1169,25 @@ async def main():
                 "I'm really frustrated with how things are going.",
                 "Can you tell me more about the system?"
             ]
+            results = []
             for demo_input in demo_inputs:
                 state = await engine.process(demo_input)
+                results.append(state.to_dict())
                 time.sleep(1)
+
+            # Auto-export demo results
+            if export_format:
+                await export_results(results, export_format)
         else:
             # Single input mode
             input_text = " ".join(sys.argv[1:])
             state = await single_mode(engine, input_text)
             print("\n[COMPLETE]")
             print(json.dumps(state.to_dict(), indent=2))
+
+            # Export single result if format specified
+            if export_format:
+                await export_results([state.to_dict()], export_format)
     else:
         # Interactive mode
         await interactive_mode(engine)
