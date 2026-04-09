@@ -1,43 +1,80 @@
-# Ralph Loop Task Queue
+# Ralph Loop Overnight Task Queue - Week 1 Complete, Starting Weeks 2-8
 # Format: [priority] [service] task_description
-# Priorities: high, medium, low
+# Priorities: critical, high, medium, low
+# Last Updated: 2026-04-09 21:45 UTC
 
-[high] [baseline] Run baseline tests across all 6 active services
-[high] [baseline] Record baseline coverage metrics to baseline_metrics.json
-[high] [baseline] Count and record baseline assertion count
-[high] [baseline] Check for and record deprecation warnings
+# CRITICAL: Fix failing tests (pytest_exit_code must be 0)
+[critical] [test-fix] Fix alertmanager deployment.yaml multi-document YAML error
+[critical] [test-fix] Fix test_deployment_valid_yaml in tests/test_alertmanager_config.py
+[critical] [test-fix] Fix test_deployment_structure in tests/test_alertmanager_config.py
+[critical] [test-fix] Fix test_deployment_container_config in tests/test_alertmanager_config.py
+[critical] [test-fix] Fix test_deployment_volumes in tests/test_alertmanager_config.py
 
-[medium] [nemo-claw] Add unit tests for LLM orchestration logic
-[medium] [nemo-claw] Add type hints to public API functions
-[medium] [nemo-claw] Improve error handling in prompt generation
-[medium] [nemo-claw] Add docstrings to core modules
+# HIGH: Fix deprecation warnings (deprecation_hygiene must be 0)
+[high] [deprecation] Update websockets.client.connect to websockets.client.async_client_connect
+[high] [deprecation] Remove websockets.legacy imports from tests/integration/conftest.py
+[high] [deprecation] Update websockets usage to modern async API
 
+# HIGH: Improve coverage (coverage_stability must be >80%)
+[high] [coverage] Add unit tests for services/shared/models/errors.py
+[high] [coverage] Add unit tests for services/shared/models/health.py
+[high] [coverage] Add integration tests for health-aggregator service
+[high] [coverage] Add integration tests for dashboard service
+[high] [coverage] Add unit tests for services/shared/middleware.py
+[high] [coverage] Add unit tests for services/shared/rate_limit.py
+[high] [coverage] Add unit tests for services/shared/tracing.py
+
+# WEEK 2: Echo Agent (simplest - tests entire pipeline)
+[medium] [echo-agent] Create services/echo-agent/ directory structure
+[medium] [echo-agent] Implement echo-agent FastAPI service (port 8014)
+[medium] [echo-agent] Add /health, /readiness, /echo endpoints
+[medium] [echo-agent] Write unit tests for echo agent
+[medium] [echo-agent] Write integration tests for echo agent
+[medium] [echo-agent] Add echo-agent to docker-compose.yml
+[medium] [echo-agent] Update student-assignments.md with echo-agent
+
+# WEEK 2: Nemoclaw Orchestrator improvements
+[medium] [nemoclaw] Add unit tests for LLM orchestration logic
+[medium] [nemoclaw] Add type hints to public API functions
+[medium] [nemoclaw] Improve error handling in prompt generation
+[medium] [nemoclaw] Add docstrings to core modules
+
+# WEEK 2: SceneSpeak Agent improvements
 [medium] [scenespeak] Add unit tests for scene dialogue generation
 [medium] [scenespeak] Add type hints to script processing functions
 [medium] [scenespeak] Improve error handling for invalid input
 [medium] [scenespeak] Add docstrings to dialogue modules
 
+# WEEK 3: Translation Agent
+[medium] [translation-agent] Create services/translation-agent/ directory
+[medium] [translation-agent] Implement translation service (port 8015)
+[medium] [translation-agent] Add language detection endpoint
+[medium] [translation-agent] Integrate with translation API/model
+[medium] [translation-agent] Write unit tests for translation
+[medium] [translation-agent] Add to docker-compose.yml
+
+# Sentiment Agent improvements
 [medium] [sentiment] Add unit tests for sentiment analysis engine
 [medium] [sentiment] Add type hints to analysis functions
-[medium] [sentiment] Fix deprecation warnings in ML dependencies
+[medium] [sentiment] Fix ML model loading edge cases
 [medium] [sentiment] Add docstrings to sentiment modules
 
+# Safety Filter improvements
 [medium] [safety] Add unit tests for content moderation
 [medium] [safety] Add type hints to safety check functions
 [medium] [safety] Improve error handling for blocked content
 [medium] [safety] Add docstrings to safety modules
 
-[medium] [captioning] Add unit tests for image captioning
-[medium] [captioning] Add type hints to caption generation
-[medium] [captioning] Improve error handling for invalid images
-[medium] [captioning] Add docstrings to captioning modules
-
+# Audio Controller improvements
 [medium] [audio] Add unit tests for audio processing
 [medium] [audio] Add type hints to TTS functions
 [medium] [audio] Improve error handling for audio formats
 [medium] [audio] Add docstrings to audio modules
 
+# LOW: Code quality improvements
 [low] [all] Replace all `# type: ignore` comments with proper type hints
 [low] [all] Extract magic values to named constants
 [low] [all] Add input validation to all API endpoints
 [low] [all] Improve error messages for better debugging
+[low] [all] Add logging to all critical paths
+[low] [all] Add API documentation to all endpoints
