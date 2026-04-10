@@ -90,3 +90,4 @@ services/music-generation/models_cache/
 final_test_env/
 models/
 internal/
+.claude/internal/

@@ -112,7 +112,7 @@
 | 7 | Specialized Agents | 📋 Planned | - |
 | 8 | Integration & Testing | 📋 Planned | - |
 
-**Overall Progress**: 62.5% (5 of 8 weeks complete)
+**Overall Progress**: Phase 1 Complete, Phase 2 enhancements in progress
 
 ---
 
@@ -277,8 +277,7 @@ open http://localhost:16686
 - [README.md](../README.md) - Project overview and quick start
 - [DEVELOPMENT.md](DEVELOPMENT.md) - Development workflow
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment guide
-- [8_WEEK_PLAN_APRIL_JUNE_2026.md](../8_WEEK_PLAN_APRIL_JUNE_2026.md) - Development roadmap
-- [EIGHT_WEEK_PLAN_STATUS.md](../EIGHT_WEEK_PLAN_STATUS.md) - Progress tracking
+- [Services Status](../SERVICES_STATUS.md) - Full service inventory and status
 
 ### Technical Documentation
 - [Architecture Overview](architecture/overview.md) - System architecture
@@ -288,7 +287,6 @@ open http://localhost:16686
 
 ### Progress Reports
 - [.claude/overnight-report.md](../.claude/overnight-report.md) - Ralph Loop progress (29 iterations)
-- [EIGHT_WEEK_PLAN_STATUS.md](../EIGHT_WEEK_PLAN_STATUS.md) - Week-by-week progress
 
 ---
 
@@ -311,7 +309,7 @@ For documentation corrections or improvements, please:
 
 ### Documentation Refresh
 - ✅ Updated README.md with current service status
-- ✅ Updated 8-week plan checkboxes (Weeks 1-5 complete)
+- ✅ Updated project status and service documentation
 - ✅ Updated DEVELOPMENT.md with current test stats
 - ✅ Updated DEPLOYMENT.md with Docker Compose instructions
 - ✅ Created TECHNICAL_REVIEWER_GUIDE.md (this file)
@@ -330,6 +328,6 @@ For documentation corrections or improvements, please:
 
 ---
 
-**Next Review Date**: Upon Week 6 completion (Nemoclaw Orchestrator enhancements)
+**Next Review Date**: Upon completion of Phase 2 enhancements
 **Maintainer**: Project Chimera Team
 **License**: MIT - see [LICENSE](../LICENSE) for details

@@ -1,7 +1,7 @@
 # Services Status
 
 **Last Updated**: April 10, 2026
-**Total Services**: 11 deployed, 3 planned
+**Total Services**: 11 deployed
 **Health Status**: All services operational
 
 ---
@@ -144,32 +144,29 @@
 
 ---
 
-## Planned Services
+## Future Services (Phase 2)
 
-### Week 7: Specialized Agents
+### Planned Enhancements
 
-#### 12. Caption Agent (Planned)
+#### Caption Agent
 | Attribute | Planned Value |
 |-----------|---------------|
-| **Week** | 7 |
 | **Port** | TBD |
 | **Status** | 📋 Planned |
 | **Description** | Formats output as accessible captions |
 | **Features** | SRT subtitle generation, high-contrast formatting |
 
-#### 13. Context Agent (Planned)
+#### Context Agent
 | Attribute | Planned Value |
 |-----------|---------------|
-| **Week** | 7 |
 | **Port** | TBD |
 | **Status** | 📋 Planned |
 | **Description** | Maintains conversation state and context |
 | **Features** | State management, Redis persistence |
 
-#### 14. Analytics Agent (Planned)
+#### Analytics Agent
 | Attribute | Planned Value |
 |-----------|---------------|
-| **Week** | 7 |
 | **Port** | TBD |
 | **Status** | 📋 Planned |
 | **Description** | Tracks usage, performance, generates reports |
@@ -324,4 +321,4 @@ docker-compose ps
 ---
 
 **Last Updated**: April 10, 2026
-**Next Update**: Week 6 completion (Nemoclaw Orchestrator enhancements)
+**Next Update**: As new services are deployed
