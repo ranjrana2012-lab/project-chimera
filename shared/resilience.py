@@ -193,7 +193,7 @@ def retry_on_condition(
     return decorator
 
 
-async def async_retry_on_exception(
+def async_retry_on_exception(
     *exception_types: type[Exception],
     config: RetryConfig | None = None,
 ) -> Callable[[Callable[P, Any]], Callable[P, Any]]:
