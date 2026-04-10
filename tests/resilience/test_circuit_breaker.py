@@ -98,7 +98,7 @@ class TestCircuitBreaker:
         assert "Circuit breaker is open" in str(exc_info.value)
 
     def test_half_open_state_after_timeout(self):
-        """Test circuit transitions to half-open after recovery timeout."""
+        """Test circuit transitions to half-open after recovery timeout, but reopens on failure."""
         config = CircuitBreakerConfig(
             failure_threshold=2,
             recovery_timeout=0.1,  # Short timeout for testing
@@ -118,11 +118,12 @@ class TestCircuitBreaker:
         # Wait for recovery timeout
         time.sleep(config.recovery_timeout + 0.05)
 
-        # Next call should transition to half-open
+        # Next call should be attempted (transition to half-open), but then fail and reopen
         with pytest.raises(ConnectionError):
             breaker.call(failing_func)
 
-        assert breaker.state == CircuitState.HALF_OPEN
+        # State reopens after half-open failure
+        assert breaker.state == CircuitState.OPEN
 
     def test_circuit_closes_after_successful_calls(self):
         """Test circuit closes after successful calls in half-open state."""
@@ -266,16 +267,13 @@ class TestCircuitBreakerRegistry:
     def test_reset_breaker(self):
         """Test resetting a specific breaker."""
         registry = CircuitBreakerRegistry()
-        breaker = registry.get_breaker("test_service")
-
-        # Open the circuit
-        config = CircuitBreakerConfig(failure_threshold=2)
-        breaker._config = config
+        breaker = registry.get_breaker("test_service", CircuitBreakerConfig(failure_threshold=2))
 
         def failing_func():
             raise ConnectionError("Connection failed")
 
-        for _ in range(config.failure_threshold):
+        # Open the circuit
+        for _ in range(2):
             try:
                 breaker.call(failing_func)
             except:
