@@ -220,7 +220,14 @@
 **Result**: 23 new tests passing (100% pass rate)
 **Total**: 314 tests passing, 75% shared module coverage
 
-### Iteration 26: Extend Circuit Breaker & Degradation Tests ✅
+### Iteration 27: Fix Test Collection Errors ✅
+**Fixed**:
+- Added `__init__.py` to nemoclaw-orchestrator directory
+- Fixed test_nemoclaw_config.py imports (hyphenated directory workaround)
+- Updated Settings model_config to use `extra="ignore"` for env vars
+- Patched environment variables in test_settings_agent_urls
+**Result**: 9 nemoclaw config tests now passing (was blocked by import errors)
+**Commits**: 7c9c492
 **Extended**: tests/test_circuit_breaker.py (11 → 35 tests) and tests/test_degradation.py (15 → 38 tests)
 **Added tests for circuit_breaker**:
 - Half-open state transitions and recovery timeout
