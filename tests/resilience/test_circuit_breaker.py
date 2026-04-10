@@ -421,16 +421,21 @@ class TestCircuitBreakerIntegration:
         time.sleep(config.recovery_timeout + 0.1)
 
         # Phase 4: Half-open state allows test call
+        # Reset call_count to 0 so the first call in half-open still fails
+        call_count = 0
         with pytest.raises(ConnectionError):
             breaker.call(unreliable_function)
 
-        assert breaker.state == CircuitState.HALF_OPEN
+        # After failure in half-open, circuit reopens
+        # After failure in half-open, circuit reopens
+        assert breaker.state == CircuitState.OPEN
 
-        # Wait for recovery timeout again
+        # Wait for recovery timeout again to test closing the circuit
         time.sleep(config.recovery_timeout + 0.1)
 
         # Phase 5: Successful calls close the circuit
-        call_count = 3  # Reset to allow success
+        # Reset call_count so the service is now "working"
+        call_count = 4
         for _ in range(config.success_threshold):
             result = breaker.call(unreliable_function)
             assert result == "success"
