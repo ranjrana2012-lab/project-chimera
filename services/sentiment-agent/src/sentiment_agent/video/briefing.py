@@ -2,7 +2,7 @@
 
 import logging
 from typing import Dict, Any, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import httpx
 import asyncio
 
@@ -51,13 +51,13 @@ class SentimentBriefingGenerator:
         summary = await self._generate_summary(sentiment_data, key_insights)
 
         return {
-            "briefing_id": str(datetime.utcnow().timestamp()),
+            "briefing_id": str(datetime.now(timezone.utc).timestamp()),
             "topic": topic,
             "video_url": video_url,
             "summary": summary,
             "sentiment_data": sentiment_data,
             "trend_analysis": trend_analysis,
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat()
         }
 
     async def _get_sentiment_data(
