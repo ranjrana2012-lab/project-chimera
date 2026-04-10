@@ -9,7 +9,7 @@ import threading
 import logging
 from enum import Enum
 from typing import Optional, Dict, Any, Callable, List
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from pathlib import Path
 import json
@@ -198,7 +198,7 @@ class SceneManager:
 
         # State-specific data
         self._state_data: Dict[str, Any] = {
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "activated_at": None,
             "paused_at": None,
             "error": None,
@@ -323,7 +323,7 @@ class SceneManager:
             transition = StateTransition(
                 from_state=from_state,
                 to_state=target_state,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 trigger=trigger,
                 metadata=metadata or {}
             )
@@ -338,9 +338,9 @@ class SceneManager:
 
             # Update state data
             if target_state == SceneState.ACTIVE:
-                self._state_data["activated_at"] = datetime.utcnow()
+                self._state_data["activated_at"] = datetime.now(timezone.utc)
             elif target_state == SceneState.PAUSED:
-                self._state_data["paused_at"] = datetime.utcnow()
+                self._state_data["paused_at"] = datetime.now(timezone.utc)
 
             # Call transition callbacks
             for callback in self._transition_callbacks:
@@ -474,7 +474,7 @@ class SceneManager:
             "code": error_code,
             "message": error_message,
             "recoverable": recoverable,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         self._transition_to(

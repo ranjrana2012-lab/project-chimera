@@ -6,7 +6,7 @@ Handles recovery of scenes after orchestrator restart or crash.
 
 import logging
 from typing import List, Dict, Any, Optional, Callable
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .scene_manager import (
     SceneManager,
@@ -48,7 +48,7 @@ class RecoveryResult:
         self.success = success
         self.state = state
         self.error = error
-        self.recovered_at = datetime.utcnow()
+        self.recovered_at = datetime.now(timezone.utc)
 
     def __repr__(self) -> str:
         if self.success:
@@ -296,7 +296,7 @@ class SceneRecoveryManager:
 
             try:
                 updated_at = datetime.fromisoformat(updated_at_str)
-                age_hours = (datetime.utcnow() - updated_at).total_seconds() / 3600
+                age_hours = (datetime.now(timezone.utc) - updated_at).total_seconds() / 3600
 
                 if age_hours > max_age_hours:
                     if self._scene_store.delete_scene(scene_id):

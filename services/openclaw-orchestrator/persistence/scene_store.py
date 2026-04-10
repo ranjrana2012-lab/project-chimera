@@ -10,7 +10,7 @@ Provides Redis-based persistence for scene state, enabling:
 import json
 import logging
 from typing import Optional, Dict, Any, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dataclasses import asdict
 
 try:
@@ -131,7 +131,7 @@ class SceneStore:
                 "state": state.value,
                 "config": manager.config.config,
                 "state_data": serializable_state_data,
-                "updated_at": datetime.utcnow().isoformat()
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }
 
             # Save to Redis
