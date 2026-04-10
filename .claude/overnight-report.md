@@ -2,7 +2,7 @@
 
 **Session**: April 9-10, 2026 (Overnight autonomous development)
 **Target**: Complete Weeks 2-8 of 8-week development plan
-**Iterations Completed**: 10/100
+**Iterations Completed**: 11/100
 **GitHub Status**: ✅ All changes pushed (main branch)
 
 ---
@@ -94,6 +94,15 @@
 **Coverage**: shared/models at 100%, shared module coverage improved from 56% to 61%
 **Total Passing**: 195 -> 106 tests (resilience only) + 26 tests (shared models)
 
+### Iteration 11: Add Async Retry Tests ✅
+**Fixed**:
+- async_retry_on_exception: should not be async def (decorator factory bug)
+**Added**:
+- tests/resilience/test_async_retry.py (8 tests for async retry)
+**Tests**: async success, async retry on exception, max attempts, different exceptions, default config, multiple exception types, delay verification, different strategies
+**Result**: 88 resilience tests passing (80 + 8 new)
+**Coverage**: async_retry_on_exception now covered
+
 ---
 
 ## Quality Gates Status
@@ -127,6 +136,8 @@
 | 12 | fix: correct resilience test expectations | 903b39e |
 | 13 | fix: correct resilience integration test expectations | 89e219c |
 | 14 | test: add shared models tests and fix resilience integration tests | 6018c18 |
+| 15 | docs: update overnight report - iteration 10 complete | 282694d |
+| 16 | test: add async retry tests and fix async_retry_on_exception | e9937e3 |
 
 ---
 
