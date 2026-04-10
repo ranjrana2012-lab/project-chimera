@@ -927,52 +927,45 @@ services:
         reservations:
           cpus: ${ECHO_CPU_RESERVATION:-0.1}
           memory: ${ECHO_MEMORY_RESERVATION:-32M}
+
+  # Translation Agent - Multi-language translation service
+  translation-agent:
     build:
       context: .
-      dockerfile: services/dashboard/Dockerfile
+      dockerfile: services/translation-agent/Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
-    image: chimera/dashboard:${SERVICE_VERSION:-1.0.0}
-    container_name: chimera-dashboard
+    image: chimera/translation-agent:${SERVICE_VERSION:-1.0.0}
+    container_name: chimera-translation-agent
     ports:
-      - "${DASHBOARD_PORT:-8013}:8013"
+      - "${TRANSLATION_AGENT_PORT:-8006}:8006"
     environment:
-      - SERVICE_NAME=dashboard
+      - SERVICE_NAME=translation-agent
       - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
-      - PORT=${DASHBOARD_PORT:-8013}
+      - PORT=${TRANSLATION_AGENT_PORT:-8006}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - HEALTH_AGGREGATOR_URL=${HEALTH_AGGREGATOR_URL:-http://health-aggregator:8012}
-      - PROJECT_ROOT=${PROJECT_ROOT:-/home/ranj/Project_Chimera}
-    volumes:
-      - chimera-dashboard-cache:/app/cache
-      # Mount Ralph Loop files for dashboard display
-      - ./.claude/autonomous-refactor/queue.txt:/ralph_loop/queue.txt:ro
-      - ./.claude/ralph-loop-progress.md:/ralph_loop/progress.md:ro
-      - ./.claude/student-assignments.md:/ralph_loop/assignments.md:ro
-      # Mount git history for commit display
-      - ./.git:/app/.git:ro
-    depends_on:
-      health-aggregator:
-        condition: service_healthy
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+      - TRANSLATION_AGENT_USE_MOCK=${TRANSLATION_AGENT_USE_MOCK:-true}
+      - TRANSLATION_AGENT_CACHE_TTL=${TRANSLATION_AGENT_CACHE_TTL:-3600}
+      - TRANSLATION_AGENT_BSL_SERVICE_URL=${TRANSLATION_AGENT_BSL_SERVICE_URL:-http://localhost:8005}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8013/health"]
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8006/health').raise_for_status()"]
       interval: ${HEALTH_CHECK_INTERVAL:-30s}
       timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
       retries: ${HEALTH_CHECK_RETRIES:-3}
       start_period: ${HEALTH_CHECK_START_PERIOD:-30s}
     networks:
       - chimera-backend
-      - chimera-frontend
     restart: ${RESTART_POLICY:-unless-stopped}
     deploy:
       resources:
         limits:
-          cpus: ${DASHBOARD_CPU_LIMIT:-0.5}
-          memory: ${DASHBOARD_MEMORY_LIMIT:-256M}
+          cpus: ${TRANSLATION_CPU_LIMIT:-1.0}
+          memory: ${TRANSLATION_MEMORY_LIMIT:-512M}
         reservations:
-          cpus: ${DASHBOARD_CPU_RESERVATION:-0.1}
-          memory: ${DASHBOARD_MEMORY_RESERVATION:-64M}
+          cpus: ${TRANSLATION_CPU_RESERVATION:-0.25}
+          memory: ${TRANSLATION_MEMORY_RESERVATION:-128M}
 
   # Opinion Pipeline Agent (BettaFish/MiroFish Integration)
   opinion-pipeline-agent:
@@ -1084,6 +1077,8 @@ volumes:
     name: chimera-health-cache
   chimera-dashboard-cache:
     name: chimera-dashboard-cache
+  chimera-translation-cache:
+    name: chimera-translation-cache
 
   # Model cache volumes
   # chimera-whisper-models:  # MOVED TO FUTURE_CONCEPTS
