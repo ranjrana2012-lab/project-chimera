@@ -33,11 +33,11 @@ This sets up a complete development environment with all services running locall
 
 ### Required Software
 
-- **Python:** 3.10 or later
+- **Python:** 3.12 or later (tested with 3.12+)
 - **Git:** 2.30+
 - **Docker:** 24.0+
-- **kubectl:** 1.25+
-- **Make:** (any version)
+- **Docker Compose:** 2.20+
+- **pytest:** 7.0+ (for testing)
 
 ### Recommended Tools
 
@@ -175,23 +175,26 @@ Then create a pull request on GitHub.
 
 ```
 project-chimera/
-├── services/                    # Microservices
-│   ├── openclaw-orchestrator/   # Central orchestrator
-│   │   ├── src/
-│   │   │   ├── models/          # Pydantic models
-│   │   │   ├── core/            # Core logic
-│   │   │   ├── routes/          # API endpoints
-│   │   │   └── main.py          # Entry point
-│   │   ├── tests/               # Service tests
-│   │   └── Dockerfile
-│   ├── SceneSpeak Agent/        # Dialogue generation
-│   └── [other services]/
-├── skills/                      # OpenClaw skills
-├── infrastructure/              # Kubernetes manifests
-├── configs/                     # Configuration files
-├── scripts/                     # Utility scripts
-├── tests/                       # Integration tests
-└── docs/                        # Documentation
+├── services/                       # Microservices
+│   ├── nemoclaw-orchestrator/      # Core orchestrator (port 8000)
+│   ├── scenespeak-agent/           # Scene description (port 8001)
+│   ├── sentiment-agent/            # BETTAfish/MIROFISH models (port 8004)
+│   ├── safety-filter/              # Content moderation (port 8006)
+│   ├── operator-console/           # Human oversight (port 8007)
+│   ├── music-generation/           # Audio generation (port 8011)
+│   ├── health-aggregator/          # Service polling (port 8012)
+│   ├── dashboard/                  # Health monitoring UI (port 8013)
+│   ├── echo-agent/                 # I/O relay (port 8014) ✅ NEW
+│   ├── translation-agent/          # Translation (port 8006) ✅ NEW
+│   ├── shared/                     # Shared modules (resilience, tracing, etc.)
+│   └── orchestration/              # Orchestration patterns
+├── tests/                          # Test suite (594 tests passing)
+│   ├── unit/                       # Unit tests
+│   ├── integration/                # Integration tests
+│   └── resilience/                 # Resilience pattern tests
+├── docs/                           # Documentation
+├── docker-compose.yml              # Full stack deployment
+└── scripts/                        # Utility scripts
 ```
 
 ### Service Structure
@@ -246,20 +249,31 @@ tests/
 
 ```bash
 # All tests
-make test
+pytest tests/
 
 # Unit tests only
-make test-unit
+pytest tests/unit/
 
-# Specific test
-pytest tests/unit/services/test_scenespeak_agent.py::TestLLMEngine -v
+# Integration tests
+pytest tests/integration/
 
 # With coverage
 pytest --cov=services --cov-report=html
 
-# Watch mode (auto-rerun on changes)
-ptw tests/
+# Current test status (April 10, 2026)
+# 594 tests passing ✅
+# 0 tests failing ✅
+# 81% code coverage ✅
+# 83 tests skipped (require running services)
 ```
+
+### Test Coverage Targets
+
+| Module | Target | Current | Status |
+|--------|--------|---------|--------|
+| Shared modules | 80% | 81% | ✅ Exceeded |
+| Services | 75% | TBD | In Progress |
+| Overall | 80% | 81% | ✅ Target Met |
 
 ### Writing Tests
 
@@ -517,6 +531,32 @@ request_duration = Histogram(
     'Request duration'
 )
 ```
+
+### ML Model Integration
+
+**Sentiment Agent** uses BETTAfish and MIROFISH models:
+
+```python
+# services/sentiment-agent/src/sentiment_agent/core.py
+
+from transformers import pipeline
+
+# BETTAfish model for sentiment classification
+sentiment_pipeline = pipeline(
+    "sentiment-analysis",
+    model="bettafish/sentiment-classifier",
+    device="cuda" if torch.cuda.is_available() else "cpu"
+)
+
+# MIROFISH model for emotion detection
+emotion_pipeline = pipeline(
+    "text-classification",
+    model="mirofish/emotion-detector",
+    return_all_scores=True
+)
+```
+
+For ML model setup, see `services/sentiment-agent/README.md`.
 
 ## IDE Setup
 

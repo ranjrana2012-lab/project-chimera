@@ -53,12 +53,104 @@ This guide covers deploying Project Chimera in various environments, from local 
 
 | Scenario | Description | Use Case |
 |----------|-------------|----------|
-| Local Development | k3s on localhost | Development, testing |
-| Single-Node Production | k3s on dedicated server | Small venue deployment |
-| Multi-Node Production | k3s cluster | Large venue, high availability |
-| Cloud Deployment | Managed k3s | University cloud deployment |
+| Docker Compose | Local containers | Development, testing (simplest) |
+| k3s Local | Lightweight Kubernetes | Development with orchestration |
+| k3s Single-Node | k3s on dedicated server | Small venue deployment |
+| k3s Multi-Node | k3s cluster | Large venue, high availability |
+| Cloud Deployment | Managed Kubernetes | University cloud production |
 
-## Local Deployment
+## Docker Compose Deployment (Recommended for Development)
+
+### Quick Start
+
+```bash
+# Clone repository
+git clone https://github.com/ranjrana2012-lab/project-chimera.git
+cd project-chimera
+
+# Start all services
+docker-compose up -d
+
+# Check service status
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+```
+
+### Service Port Mappings
+
+| Service | Port | Health Endpoint |
+|---------|------|-----------------|
+| nemoclaw-orchestrator | 8000 | http://localhost:8000/health |
+| scenespeak-agent | 8001 | http://localhost:8001/health |
+| sentiment-agent | 8004 | http://localhost:8004/health |
+| safety-filter | 8006 | http://localhost:8006/health |
+| operator-console | 8007 | http://localhost:8007/health |
+| dashboard | 8013 | http://localhost:8013/health |
+| health-aggregator | 8012 | http://localhost:8012/health |
+| echo-agent | 8014 | http://localhost:8014/health |
+| translation-agent | 8006 | http://localhost:8006/health |
+| Prometheus | 9090 | http://localhost:9090 |
+| Grafana | 3000 | http://localhost:3000 |
+| Jaeger | 16686 | http://localhost:16686 |
+
+### Verify Deployment
+
+```bash
+# Check all services are healthy
+curl http://localhost:8000/health
+curl http://localhost:8013/health
+
+# Run tests
+pytest tests/
+
+# Check service connectivity
+docker-compose exec nemoclaw-orchestrator curl http://scenespeak-agent:8001/health
+```
+
+### Infrastructure Services
+
+Docker Compose automatically starts:
+- **Redis** (port 6379) - Caching and state management
+- **Kafka** (port 9092) - Event streaming
+- **Zookeeper** (port 2181) - Kafka coordination
+- **Milvus** (port 19530) - Vector database
+- **etcd** (port 2379) - Service discovery
+- **Minio** (port 9000) - S3-compatible storage
+- **Prometheus** (port 9090) - Metrics collection
+- **Jaeger** (port 16686) - Distributed tracing
+- **Grafana** (port 3000) - Monitoring dashboard
+- **Netdata** (port 19999) - System monitoring
+
+### Environment Configuration
+
+Create `.env` file from `.env.example`:
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+Key configuration:
+```bash
+# Sentiment Agent - BETTAfish/MIROFISH models
+SENTIMENT_MODEL_TYPE=bettafish
+SENTIMENT_MODEL_PATH=/models/bettafish
+EMOTION_MODEL_TYPE=mirofish
+EMOTION_MODEL_PATH=/models/mirofish
+
+# GPU support (optional)
+GPU_ENABLED=true
+CUDA_VISIBLE_DEVICES=0
+```
+
+---
+
+## Local Deployment (k3s)
 
 ### Automated Bootstrap (Recommended)
 
