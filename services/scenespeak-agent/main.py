@@ -1,5 +1,4 @@
-"""
-SceneSpeak Agent - Main Application
+"""SceneSpeak Agent - Main Application
 
 Provides dialogue generation services with GLM 4.7 API integration,
 local LLM fallback, business metrics, and distributed tracing.
@@ -10,28 +9,53 @@ import logging
 from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
-from opentelemetry import trace
 from fastapi.responses import Response
 from pydantic import BaseModel
 
 import sys
 import os
 
-# Add shared module to path for security middleware
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../shared'))
+# Get the directory containing this file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(os.path.dirname(current_dir))
 
-from config import get_settings
-from glm_client import GLMClient
-from local_llm import LocalLLMClient
-from models import GenerateRequest, DialogueResponse, HealthResponse
-from tracing import setup_telemetry, instrument_fastapi, add_dialogue_span_attributes, record_error
-from metrics import record_generation
+# Add service directory to path FIRST for local modules
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+# Add shared module path (after local so local takes precedence)
+shared_path = os.path.join(project_root, "shared")
+if shared_path not in sys.path:
+    sys.path.append(shared_path)
+
+# Import local modules directly
+import config
+import glm_client
+import local_llm
+import models
+import metrics
+import tracing
+
+get_settings = config.get_settings
+GLMClient = glm_client.GLMClient
+LocalLLMClient = local_llm.LocalLLMClient
+GenerateRequest = models.GenerateRequest
+DialogueResponse = models.DialogueResponse
+HealthResponse = models.HealthResponse
+record_generation = metrics.record_generation
+
+# Setup tracing - use local module (setup_telemetry)
+setup_tracing = tracing.setup_telemetry
+instrument_fastapi = tracing.instrument_fastapi
+add_dialogue_span_attributes = tracing.add_dialogue_span_attributes
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # Initialize components
-tracer = setup_telemetry("scenespeak-agent")
+tracer = setup_tracing(
+    service_name="scenespeak-agent"
+)
 glm_client = GLMClient()
 local_llm_client: Optional[LocalLLMClient] = None
 
@@ -88,16 +112,18 @@ instrument_fastapi(app)
 # ============================================================================
 # Security Middleware (Environment-based CORS, Security Headers, Rate Limiting)
 # ============================================================================
-from shared.middleware import (
-    SecurityHeadersMiddleware,
-    configure_cors,
-    setup_rate_limit_error_handler,
-)
-
-# Apply security configurations
-configure_cors(app)
-app.add_middleware(SecurityHeadersMiddleware)
-setup_rate_limit_error_handler(app)
+try:
+    from shared.middleware import (
+        SecurityHeadersMiddleware,
+        configure_cors,
+        setup_rate_limit_error_handler,
+    )
+    # Apply security configurations
+    configure_cors(app)
+    app.add_middleware(SecurityHeadersMiddleware)
+    setup_rate_limit_error_handler(app)
+except ImportError:
+    logger.warning("Shared middleware not available")
 
 
 # Legacy Request/Response Models (for backward compatibility)
