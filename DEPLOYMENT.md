@@ -1,353 +1,466 @@
 # Deployment Guide
 
-**Version:** 0.4.0
-**Last Updated:** March 2026
+**Version:** 1.0.0 (MVP)
+**Last Updated:** April 11, 2026
 
 ---
 
 ## Overview
 
-This guide covers deploying Project Chimera to various environments, from local development with k3s to production Kubernetes clusters.
+This guide covers deploying Project Chimera MVP using Docker Compose. The MVP architecture simplifies deployment by using synchronous orchestration with local infrastructure, removing dependencies on Kafka, Milvus, and Kubernetes.
 
 ---
 
 ## Table of Contents
 
-1. [Prerequisites](#prerequisites)
+1. [Quick Start](#quick-start)
 2. [Deployment Options](#deployment-options)
-3. [Local Deployment (k3s)](#local-deployment-k3s)
+3. [MVP Deployment (Docker Compose)](#mvp-deployment-docker-compose)
 4. [Production Deployment](#production-deployment)
 5. [Configuration](#configuration)
-6. [Monitoring & Observability](#monitoring--observability)
+6. [Monitoring & Health Checks](#monitoring--health-checks)
 7. [Troubleshooting](#troubleshooting)
-8. [Rollback Procedures](#rollback-procedures)
+8. [Scaling & Performance](#scaling--performance)
 
 ---
 
-## Prerequisites
+## Quick Start
 
-### System Requirements
+### 5-Minute Deployment
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| OS | Linux (Ubuntu 22.04) | Ubuntu 22.04 LTS |
-| CPU | 4 cores | 8+ cores |
-| RAM | 8 GB | 16+ GB |
-| Disk | 50 GB | 100+ GB SSD |
-| GPU | - | NVIDIA GPU (for AI features) |
+```bash
+# Clone repository
+git clone https://github.com/ranjrana2012-lab/project-chimera.git
+cd project-chimera
 
-### Software Requirements
+# Start MVP services
+docker-compose -f docker-compose.mvp.yml up -d
 
-- **Kubernetes:** 1.25+ (k3s for local, standard k8s for production)
-- **kubectl:** Matching cluster version
-- **Helm:** 3.0+ (for production deployments)
-- **Python:** 3.10+
-- **Docker:** 20.10+
+# Verify deployment
+curl http://localhost:8000/health
+curl http://localhost:8007/health
+```
 
-### External Dependencies
-
-- **PostgreSQL:** 16+ (can be deployed via Helm)
-- **Redis:** 7+ (can be deployed via Helm)
-- **Milvus:** 2.3+ (vector database)
+That's it! Project Chimera MVP is now running.
 
 ---
 
 ## Deployment Options
 
-### 1. Local Development (k3s)
+### 1. MVP Development (Recommended for Testing)
 
 **Best for:** Development, testing, demos
 
 **Pros:**
-- Lightweight, single-node Kubernetes
-- Quick setup (< 15 minutes)
-- Minimal resource requirements
+- Single command deployment
+- Minimal resource requirements (8GB RAM)
+- No external dependencies
+- Fast startup (<5 minutes)
 
 **Cons:**
-- Not production-ready
-- Single point of failure
+- Single node deployment
+- Limited scalability
+- Development-grade infrastructure
 
-### 2. Production Kubernetes
+### 2. Production Deployment (Docker Compose)
 
-**Best for:** Production staging, production
+**Best for:** Small productions, single-venue deployments
 
 **Pros:**
-- High availability
-- Scalability
-- Production-ready
+- Production-ready configuration
+- External Redis support
+- Monitoring integration
+- Easy maintenance
 
 **Cons:**
-- More complex setup
-- Requires infrastructure
+- Limited horizontal scaling
+- Manual failover required
+
+### 3. Kubernetes Deployment (Future)
+
+**Best for:** Large-scale, multi-venue deployments
+
+**Note:** Kubernetes deployment is planned for Phase 2. Currently, use Docker Compose.
 
 ---
 
-## Local Deployment (k3s)
+## MVP Deployment (Docker Compose)
 
-### Automated Bootstrap
+### Architecture
 
-The fastest way to get started:
+The MVP uses `docker-compose.mvp.yml` which includes:
 
-```bash
-# Clone the repository
-git clone https://github.com/project-chimera/project-chimera.git
-cd project-chimera
-
-# Run the bootstrap script
-make bootstrap
+```
+Services:
+├── openclaw-orchestrator (8000)    # Core orchestration
+├── scenespeak-agent (8001)          # Dialogue generation
+├── sentiment-agent (8004)           # Sentiment analysis
+├── safety-filter (8005)             # Content moderation
+├── translation-agent (8006)         # Translation
+├── operator-console (8007)          # Control UI
+├── hardware-bridge (8008)           # DMX simulation
+└── redis (6379)                     # State management
 ```
 
-**This automatically:**
-1. Installs k3s
-2. Sets up local container registry
-3. Builds all service Docker images
-4. Deploys infrastructure (Redis, Kafka, Milvus)
-5. Deploys monitoring (Prometheus, Grafana, Jaeger, AlertManager)
-6. Deploys all AI agents
+### Step 1: Prerequisites
 
-### Manual Bootstrap Steps
+**System Requirements:**
 
-If you prefer manual setup:
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| OS | Linux/macOS/Windows | Ubuntu 22.04 LTS |
+| CPU | 4 cores | 8+ cores |
+| RAM | 8 GB | 16+ GB |
+| Disk | 20 GB | 50+ GB SSD |
 
-#### 1. Install k3s
+**Software Requirements:**
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- Git
 
-```bash
-curl -sfL https://get.k3s.io | sh -
-```
+### Step 2: Environment Configuration
 
-#### 2. Verify k3s Installation
-
-```bash
-kubectl get nodes
-# Expected: Single node named "chimera-control-plane" Ready
-```
-
-#### 3. Deploy Infrastructure
+Create `.env` file:
 
 ```bash
-kubectl apply -f platform/deployment/redis/
-kubectl apply -f platform/deployment/kafka/
-kubectl apply -f platform/deployment/milvus/
+# Copy example configuration
+cp .env.example .env
+
+# Edit configuration
+nano .env
 ```
 
-#### 4. Deploy Monitoring Stack
+**Minimum Configuration:**
 
 ```bash
-kubectl apply -f platform/monitoring/config/prometheus/
-kubectl apply -f platform/monitoring/config/grafana/
-kubectl apply -f platform/monitoring/config/alertmanager/
+# Service Configuration
+ENVIRONMENT=production
+LOG_LEVEL=INFO
+
+# Redis Configuration
+REDIS_URL=redis://redis:6379
+
+# Optional: LLM Configuration
+# GLM_API_KEY=your_api_key_here
+# GLM_API_BASE=https://open.bigmodel.cn/api/paas/v4/
 ```
 
-#### 5. Build and Deploy Services
+### Step 3: Deploy Services
 
 ```bash
-# Build all service images
-make build
+# Start all services
+docker-compose -f docker-compose.mvp.yml up -d
 
-# Deploy all services
-kubectl apply -f platform/deployment/services/
+# Check service status
+docker-compose -f docker-compose.mvp.yml ps
+
+# View logs
+docker-compose -f docker-compose.mvp.yml logs -f
 ```
 
-#### 6. Verify Deployment
+### Step 4: Verify Deployment
 
 ```bash
-# Check all pods are running
-kubectl get pods -n live
+# Health check script
+for port in 8000 8001 8004 8005 8006 8007 8008; do
+  echo "Checking port $port..."
+  curl -s http://localhost:$port/health | jq '.status' 2>/dev/null || echo "Service not ready"
+done
 
-# Expected output: All pods in Running state
+# Expected output: "ok" for all services
 ```
+
+### Service Access
+
+Once deployed, services are available at:
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Operator Console | http://localhost:8007 | Main UI |
+| OpenClaw Orchestrator | http://localhost:8000 | Core API |
+| SceneSpeak Agent | http://localhost:8001 | Dialogue API |
+| Sentiment Agent | http://localhost:8004 | Sentiment API |
+| Safety Filter | http://localhost:8005 | Moderation API |
+| Translation Agent | http://localhost:8006 | Translation API |
+| Hardware Bridge | http://localhost:8008 | DMX simulation |
 
 ---
 
 ## Production Deployment
 
-### Using Helm Charts
+### Production Docker Compose
 
-Project Chimera includes Helm charts for production deployment:
-
-#### 1. Add Chart Dependencies
+For production deployment, use `docker-compose.prod.yml`:
 
 ```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
+# Deploy with production configuration
+docker-compose -f docker-compose.mvp.yml -f docker-compose.prod.yml up -d
 ```
 
-#### 2. Create Namespace
+### Production Configuration
 
-```bash
-kubectl create namespace chimera-prod
-```
-
-#### 3. Install Infrastructure
-
-```bash
-# PostgreSQL
-helm install chimera-postgres bitnami/postgresql \
-  --namespace chimera-prod \
-  --set auth.password=your-password \
-  --set primary.persistence.size=50Gi
-
-# Redis
-helm install chimera-redis bitnami/redis \
-  --namespace chimera-prod \
-  --set auth.enabled=true \
-  --set master.persistence.size=20Gi
-
-# Kafka
-helm install chimera-kafka bitnami/kafka \
-  --namespace chimera-prod \
-  --set replicas=3 \
-  --set persistence.size=100Gi
-```
-
-#### 4. Deploy Monitoring Stack
-
-```bash
-# Prometheus
-helm install chimera-prometheus prometheus-community/kube-prometheus-stack \
-  --namespace chimera-prod \
-  --values platform/deployment/helm/prometheus-values.yaml
-
-# Grafana dashboards
-kubectl apply -f platform/monitoring/config/grafana-dashboards/
-```
-
-#### 5. Deploy Project Chimera Services
-
-```bash
-helm install chimera platform/deployment/helm/project-chimera \
-  --namespace chimera-prod \
-  --values platform/deployment/helm/production-values.yaml
-```
-
-### Production Values Example
+Create `docker-compose.prod.yml`:
 
 ```yaml
-# platform/deployment/helm/production-values.yaml
+version: '3.8'
 
-replicaCount:
-  openclaw: 3
-  scenespeak: 3
-  captioning: 2
-  bsl: 2
-  sentiment: 2
-  lighting: 1
-  safety: 3
-  console: 2
+# Production overrides for MVP
+services:
+  # Use external Redis
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - chimera-redis-prod:/data
+    restart: always
 
-resources:
-  limits:
-    cpu: 2000m
-    memory: 4Gi
-  requests:
-    cpu: 500m
-    memory: 1Gi
+  # Add resource limits
+  openclaw-orchestrator:
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    restart: always
 
-autoscaling:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 70
-  targetMemoryUtilizationPercentage: 80
+  scenespeak-agent:
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    restart: always
 
-# SLO-based quality gate
-qualityGate:
-  enabled: true
-  sloThreshold: 0.95
-  errorBudgetThreshold: 0.10
+  # Add health checks
+  sentiment-agent:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: always
 
-# Observability
-telemetry:
-  enabled: true
-  sampling: 0.10
-  exporter: otlp
-  endpoint: http://jaeger-collector:4317
+volumes:
+  chimera-redis-prod:
+    driver: local
+```
+
+### Environment Variables for Production
+
+Create `.env.production`:
+
+```bash
+# Production Environment
+ENVIRONMENT=production
+LOG_LEVEL=INFO
+
+# Security
+REDIS_PASSWORD=your_secure_redis_password
+
+# LLM Configuration (Required for production)
+GLM_API_KEY=your_production_api_key
+GLM_API_BASE=https://open.bigmodel.cn/api/paas/v4/
+
+# Local LLM Fallback
+LOCAL_LLM_ENABLED=true
+LOCAL_LLM_URL=http://host.docker.internal:8012
+LOCAL_LLM_MODEL=nemotron-3-super-120b-a12b-nvfp4
+
+# Service URLs (Internal Docker Network)
+SCENESPEAK_AGENT_URL=http://scenespeak-agent:8001
+SENTIMENT_AGENT_URL=http://sentiment-agent:8004
+SAFETY_FILTER_URL=http://safety-filter:8005
+TRANSLATION_AGENT_URL=http://translation-agent:8006
+
+# Timeouts
+LLM_TIMEOUT=120
+SERVICE_TIMEOUT=30
+```
+
+### Production Deployment Steps
+
+```bash
+# 1. Set environment
+export COMPOSE_FILE=docker-compose.mvp.yml:docker-compose.prod.yml
+export ENV_FILE=.env.production
+
+# 2. Deploy infrastructure
+docker-compose -f docker-compose.mvp.yml -f docker-compose.prod.yml up -d redis
+
+# 3. Wait for Redis to be ready
+sleep 10
+
+# 4. Deploy services
+docker-compose -f docker-compose.mvp.yml -f docker-compose.prod.yml up -d
+
+# 5. Verify deployment
+docker-compose ps
+./scripts/health-check-all.sh
+
+# 6. Enable service monitoring
+docker-compose -f docker-compose.mvp.yml -f docker-compose.prod.yml logs -f
+```
+
+### External Services
+
+For production, consider using external services:
+
+**External Redis:**
+
+```yaml
+# In docker-compose.prod.yml
+services:
+  openclaw-orchestrator:
+    environment:
+      - REDIS_URL=redis://your-external-redis:6379
+```
+
+**Load Balancer:**
+
+```nginx
+# nginx.conf
+upstream chimera {
+    server localhost:8000;
+    server localhost:8001 backup;
+}
+
+server {
+    listen 80;
+    location / {
+        proxy_pass http://chimera;
+    }
+}
 ```
 
 ---
 
 ## Configuration
 
-### Environment Variables
+### Service Configuration
 
-Key environment variables for production:
+All services use consistent configuration:
 
 ```yaml
-# Database
-DATABASE_URL: postgresql://user:pass@postgres-service:5432/chimera
-REDIS_URL: redis://redis-service:6379
-
-# Monitoring
-PROMETHEUS_URL: http://prometheus:9090
-JAEGER_ENDPOINT: http://jaeger-collector:4317
-
-# SLO Configuration
-SLO_WINDOW_DAYS: 30
-ERROR_BUDGET_THRESHOLD: 0.10
-
-# Feature Flags
-ENABLE_TELEMETRY: "true"
-ENABLE_TRACING: "true"
-SAMPLING_RATE: "0.10"
+environment:
+  - SERVICE_NAME=openclaw-orchestrator
+  - PORT=8000
+  - ENVIRONMENT=production
+  - LOG_LEVEL=INFO
 ```
 
-### Secrets Management
+### Network Configuration
 
-Use Kubernetes secrets for sensitive data:
+Services communicate via Docker networks:
 
-```bash
-# Create secret for database credentials
-kubectl create secret generic chimera-db-secret \
-  --from-literal=username=chimera \
-  --from-literal=password=secure-password \
-  --namespace chimera-prod
+```yaml
+networks:
+  chimera-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+  chimera-frontend:
+    driver: bridge
+```
 
-# Create secret for API keys
-kubectl create secret generic chimera-api-keys \
-  --from-literal=openai-api-key=sk-... \
-  --namespace chimera-prod
+### Volume Management
+
+Persistent data volumes:
+
+```yaml
+volumes:
+  chimera-redis-data:
+    driver: local
+  sentiment-models:
+    driver: local
 ```
 
 ---
 
-## Monitoring & Observability
+## Monitoring & Health Checks
 
-### Access Monitoring Tools
+### Health Endpoints
 
-| Tool | URL | Credentials |
-|------|-----|-------------|
-| Grafana | `http://<ingress>/grafana` | admin/admin (change on first login) |
-| Prometheus | `http://<ingress>/prometheus` | Basic auth |
-| AlertManager | `http://<ingress>/alertmanager` | Basic auth |
-| Jaeger | `http://<ingress>/jaeger` | - |
+All services expose `/health` endpoints:
 
-### Key Metrics to Monitor
+```bash
+# Check individual service
+curl http://localhost:8000/health
 
-**Service Health:**
-- `up{job="chimera-services"}` - Service availability
-- `rate(http_requests_total{status=~"5.."}[5m])` - Error rate
+# Expected response:
+{
+  "status": "ok",
+  "service": "openclaw-orchestrator",
+  "version": "1.0.0",
+  "dependencies": {
+    "redis": "ok",
+    "scenespeak-agent": "ok"
+  }
+}
+```
 
-**Business Metrics:**
-- `scenespeak_lines_generated_total` - Dialogue lines
-- `sentiment_audience_avg` - Audience sentiment
-- `captioning_latency_seconds` - Caption timing
-- `bsl_active_sessions` - BSL avatar sessions
+### Health Check Script
 
-**SLO Metrics:**
-- `slo:*_success_rate:30d` - SLO compliance
-- `slo:error_budget_remaining:30d` - Error budget
-- `slo:error_burn_rate` - Burn rate
+Create `scripts/health-check-all.sh`:
 
-### Alerting
+```bash
+#!/bin/bash
+services=(8000 8001 8004 8005 8006 8007 8008)
+all_healthy=true
 
-Alerts are configured in `platform/monitoring/config/alert-rules-critical.yaml`:
+for port in "${services[@]}"; do
+  status=$(curl -s http://localhost:$port/health | jq -r '.status' 2>/dev/null)
+  if [ "$status" == "ok" ]; then
+    echo "✅ Port $port: Healthy"
+  else
+    echo "❌ Port $port: Unhealthy"
+    all_healthy=false
+  fi
+done
 
-- **Critical alerts** fire immediately and route to on-call
-- **Warning alerts** aggregate and send daily digests
-- **SLO alerts** trigger on burn rate thresholds
+if [ "$all_healthy" = true ]; then
+  echo "All services healthy!"
+  exit 0
+else
+  echo "Some services are unhealthy!"
+  exit 1
+fi
+```
 
-See [Alerting Runbook](docs/runbooks/alerts.md) for alert response procedures.
+### Monitoring Setup
+
+**Basic Monitoring:**
+
+```bash
+# Watch service logs
+docker-compose -f docker-compose.mvp.yml logs -f
+
+# Check resource usage
+docker stats
+
+# Check service status
+docker-compose -f docker-compose.mvp.yml ps
+```
+
+**Advanced Monitoring (Optional):**
+
+```bash
+# Deploy monitoring stack
+docker-compose -f monitoring/docker-compose.monitoring.yml up -d
+
+# Access Grafana
+open http://localhost:3000
+
+# Access Prometheus
+open http://localhost:9090
+```
 
 ---
 
@@ -355,129 +468,237 @@ See [Alerting Runbook](docs/runbooks/alerts.md) for alert response procedures.
 
 ### Common Issues
 
-#### Pods Not Starting
+#### Services Not Starting
 
+**Problem:** Services fail to start
+
+**Solution:**
 ```bash
-# Check pod status
-kubectl get pods -n live
-
-# Describe pod for events
-kubectl describe pod <pod-name> -n live
-
 # Check logs
-kubectl logs <pod-name> -n live --follow
+docker-compose -f docker-compose.mvp.yml logs [service-name]
+
+# Rebuild containers
+docker-compose -f docker-compose.mvp.yml build --no-cache
+docker-compose -f docker-compose.mvp.yml up -d
+
+# Check for port conflicts
+netstat -tulpn | grep LISTEN
 ```
 
-#### Service Not Reachable
+#### Out of Memory
 
+**Problem:** Services crash due to memory issues
+
+**Solution:**
 ```bash
-# Check service endpoints
-kubectl get endpoints -n live
+# Check Docker memory
+docker system df
 
-# Test service connectivity
-kubectl run -it --rm debug --image=busybox --restart=Never -- wget -O- http://service-name:port/health
+# Increase Docker memory limit (Docker Desktop settings)
+# Recommended: 8GB minimum, 16GB for production
+
+# Clean up unused resources
+docker system prune -a
 ```
 
-#### High Memory/CPU Usage
+#### Connection Refused
 
+**Problem:** Services can't connect to each other
+
+**Solution:**
 ```bash
-# Check resource usage
-kubectl top pods -n live
+# Check network
+docker network ls
+docker network inspect chimera-backend
 
-# Check node resources
-kubectl top nodes
+# Verify service names
+docker-compose -f docker-compose.mvp.yml ps
+
+# Test connectivity
+docker-compose -f docker-compose.mvp.yml exec openclaw-orchestrator \
+  curl http://scenespeak-agent:8001/health
+```
+
+#### LLM API Errors
+
+**Problem:** SceneSpeak agent fails to generate dialogue
+
+**Solution:**
+```bash
+# Verify API key
+docker-compose -f docker-compose.mvp.yml exec scenespeak-agent env | grep GLM
+
+# Test API key
+curl https://open.bigmodel.cn/api/paas/v4/models \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Use mock mode for testing
+# Set TRANSLATION_AGENT_USE_MOCK=true in .env
 ```
 
 ### Debug Commands
 
 ```bash
-# Port forward to local service
-kubectl port-forward svc/scenespeak-agent 8001:8001 -n live
+# View service logs
+docker-compose -f docker-compose.mvp.yml logs -f [service-name]
 
 # Exec into container
-kubectl exec -it <pod-name> -n live -- /bin/bash
+docker-compose -f docker-compose.mvp.yml exec [service-name] /bin/bash
 
-# Check events
-kubectl get events -n live --sort-by='.lastTimestamp'
+# Check service status
+docker-compose -f docker-compose.mvp.yml ps
+
+# Restart specific service
+docker-compose -f docker-compose.mvp.yml restart [service-name]
+
+# Rebuild specific service
+docker-compose -f docker-compose.mvp.yml build [service-name]
+docker-compose -f docker-compose.mvp.yml up -d [service-name]
 ```
 
-### Health Check All Services
+### Recovery Procedures
 
+**Full Restart:**
 ```bash
-# Core services
-for port in 8000 8001 8002 8003 8004 8005 8006 8007; do
-  curl -s http://localhost:$port/health/live && echo " : Port $port OK"
-done
+# Stop all services
+docker-compose -f docker-compose.mvp.yml down
 
-# Platform services
-for port in 8010 8011 8012 8013; do
-  curl -s http://localhost:$port/health/live && echo " : Port $port OK"
-done
+# Remove volumes (WARNING: Deletes data)
+docker-compose -f docker-compose.mvp.yml down -v
+
+# Restart
+docker-compose -f docker-compose.mvp.yml up -d
+```
+
+**Service Recovery:**
+```bash
+# Restart specific service
+docker-compose -f docker-compose.mvp.yml restart [service-name]
+
+# Rebuild and restart
+docker-compose -f docker-compose.mvp.yml up -d --build [service-name]
 ```
 
 ---
 
-## Rollback Procedures
+## Scaling & Performance
 
-### Rollback Helm Release
+### Horizontal Scaling
 
+**Scale services:**
 ```bash
-# List releases
-helm list -n chimera-prod
+# Scale specific service
+docker-compose -f docker-compose.mvp.yml up -d --scale scenespeak-agent=3
 
-# Check revision history
-helm history chimera -n chimera-prod
-
-# Rollback to previous revision
-helm rollback chimera -n chimera-prod
-
-# Rollback to specific revision
-helm rollback chimera <revision> -n chimera-prod
+# Scale multiple services
+docker-compose -f docker-compose.mvp.yml up -d \
+  --scale scenespeak-agent=3 \
+  --scale sentiment-agent=2
 ```
 
-### Rollback Kubernetes Deployment
+**Load Balancing:**
 
-```bash
-# Check rollout history
-kubectl rollout history deployment/scenespeak-agent -n live
+Add load balancer in `docker-compose.prod.yml`:
 
-# Rollback to previous revision
-kubectl rollout undo deployment/scenespeak-agent -n live
-
-# Rollback to specific revision
-kubectl rollout undo deployment/scenespeak-agent -n live --to-revision=2
+```yaml
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - openclaw-orchestrator
 ```
 
-### Emergency Rollback
+### Performance Tuning
 
-If a deployment causes critical issues:
+**Resource Limits:**
 
-1. **Immediately scale to zero:**
-   ```bash
-   kubectl scale deployment/<deployment> --replicas=0 -n live
-   ```
+```yaml
+services:
+  scenespeak-agent:
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+```
 
-2. **Restore from backup:**
-   ```bash
-   kubectl apply -f backup/<previous-version>/deployment.yaml
-   ```
+**Performance Optimization:**
 
-3. **Verify health:**
-   ```bash
-   kubectl get pods -n live
-   ./scripts/health-check-all.sh
-   ```
+1. **Enable model caching** for sentiment agent
+2. **Use local LLM fallback** for faster response
+3. **Adjust timeouts** based on network latency
+4. **Monitor resource usage** with `docker stats`
+
+### Backup & Recovery
+
+**Backup Data:**
+
+```bash
+# Backup Redis data
+docker-compose -f docker-compose.mvp.yml exec redis \
+  redis-cli SAVE
+
+# Copy Redis backup
+docker cp chimera-redis:/data/dump.rdb backup/redis-$(date +%Y%m%d).rdb
+```
+
+**Restore Data:**
+
+```bash
+# Copy backup to container
+docker cp backup/redis-20260411.rdb chimera-redis:/data/dump.rdb
+
+# Restart Redis
+docker-compose -f docker-compose.mvp.yml restart redis
+```
+
+---
+
+## Security Considerations
+
+### Production Security
+
+1. **Use strong passwords** for Redis
+2. **Enable HTTPS/TLS** for external access
+3. **Implement rate limiting** on API endpoints
+4. **Secure API keys** with environment variables
+5. **Network isolation** through Docker networks
+6. **Regular security updates**
+
+### Firewall Configuration
+
+```bash
+# Allow only necessary ports
+ufw allow 80/tcp    # HTTP
+ufw allow 443/tcp   # HTTPS
+ufw allow 22/tcp    # SSH
+ufw enable
+```
 
 ---
 
 ## Additional Resources
 
-- [Quick Start Guide](docs/getting-started/quick-start.md) - Development environment setup
-- [Monitoring Runbook](docs/runbooks/monitoring.md) - Monitoring procedures
-- [Incident Response](docs/runbooks/incident-response.md) - Handling incidents
-- [Architecture Documentation](docs/architecture/) - System design
-- [Observability Guide](docs/observability.md) - Production observability
+- [MVP Overview](MVP_OVERVIEW.md) - Architecture details
+- [Getting Started](GETTING_STARTED.md) - Quick start guide
+- [Testing Guide](TESTING.md) - Testing procedures
+- [API Documentation](docs/api/README.md) - Complete API reference
 
 ---
 
-**Need help?** Check out our [FAQ](docs/getting-started/faq.md) or [Office Hours](docs/getting-started/office-hours.md).
+**Need help?**
+- GitHub Issues: https://github.com/ranjrana2012-lab/project-chimera/issues
+- Documentation: [docs/](docs/)
+- Community: Discussion forums (coming soon)
+
+---
+
+**Deployment Guide v1.0.0** - MVP Release
+**Last Updated:** April 11, 2026
