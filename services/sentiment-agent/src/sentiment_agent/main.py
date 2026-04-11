@@ -666,6 +666,22 @@ async def get_enriched_sentiment(
     return result
 
 
+@app.get("/model/info")
+async def get_model_info():
+    """
+    Get model information.
+
+    Returns details about the ML model used for sentiment analysis.
+    """
+    return {
+        "model_name": analyzer.model.MODEL_NAME if hasattr(analyzer.model, 'MODEL_NAME') else "distilbert-base-uncased-finetuned-sst-2-english",
+        "model_type": "distilbert",
+        "loaded": analyzer.model_available,
+        "version": "1.0.0",
+        "device": analyzer.model.device if hasattr(analyzer.model, 'device') else "cpu"
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
 
