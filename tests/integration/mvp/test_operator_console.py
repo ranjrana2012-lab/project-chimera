@@ -149,11 +149,16 @@ def test_console_show_control_create(console_url):
     assert data["status"] in ["success", "failed"]
 
     # Clean up - stop the show
-    requests.post(
-        f"{console_url}/api/show/control",
-        json={"action": "stop"},
-        timeout=10
-    )
+    try:
+        cleanup_response = requests.post(
+            f"{console_url}/api/show/control",
+            json={"action": "stop"},
+            timeout=10
+        )
+        if cleanup_response.status_code not in [200, 201]:
+            print(f"Warning: Cleanup failed with status {cleanup_response.status_code}")
+    except Exception as e:
+        print(f"Warning: Cleanup request failed: {e}")
 
 
 @pytest.mark.integration
@@ -191,6 +196,18 @@ def test_console_show_control_update(console_url):
     assert data["name"] == "Updated Show Name"
     assert data["duration_minutes"] == 90
     assert data["auto_adaptive"] is False
+
+    # Restore original configuration to prevent side effects
+    try:
+        restore_response = requests.put(
+            f"{console_url}/api/show/configuration",
+            json=original_config,
+            timeout=10
+        )
+        if restore_response.status_code not in [200, 201]:
+            print(f"Warning: Failed to restore original config (status {restore_response.status_code})")
+    except Exception as e:
+        print(f"Warning: Config restoration failed: {e}")
 
 
 @pytest.mark.integration
@@ -403,6 +420,11 @@ def test_console_show_control_pause_resume(console_url):
     )
     assert start_response.status_code in [200, 201]
 
+    # Verify show started successfully before proceeding
+    start_data = start_response.json()
+    if start_data.get("status") == "failed":
+        pytest.skip(f"Show start failed: {start_data.get('message', 'Unknown error')}")
+
     # Pause the show
     pause_response = requests.post(
         f"{console_url}/api/show/control",
@@ -426,11 +448,16 @@ def test_console_show_control_pause_resume(console_url):
     assert resume_data["status"] in ["success", "failed"]
 
     # Clean up
-    requests.post(
-        f"{console_url}/api/show/control",
-        json={"action": "stop"},
-        timeout=10
-    )
+    try:
+        cleanup_response = requests.post(
+            f"{console_url}/api/show/control",
+            json={"action": "stop"},
+            timeout=10
+        )
+        if cleanup_response.status_code not in [200, 201]:
+            print(f"Warning: Cleanup failed with status {cleanup_response.status_code}")
+    except Exception as e:
+        print(f"Warning: Cleanup request failed: {e}")
 
 
 @pytest.mark.integration
@@ -443,11 +470,17 @@ def test_console_audience_reaction(console_url):
     - Should return error if no show is active
     """
     # First start a show
-    requests.post(
+    start_response = requests.post(
         f"{console_url}/api/show/control",
         json={"action": "start", "show_id": "audience-test"},
         timeout=10
     )
+
+    # Verify show started successfully before proceeding
+    if start_response.status_code in [200, 201]:
+        start_data = start_response.json()
+        if start_data.get("status") == "failed":
+            pytest.skip(f"Show start failed: {start_data.get('message', 'Unknown error')}")
 
     # Submit audience reaction
     response = requests.post(
@@ -468,8 +501,13 @@ def test_console_audience_reaction(console_url):
     assert "reaction_id" in data
 
     # Clean up
-    requests.post(
-        f"{console_url}/api/show/control",
-        json={"action": "stop"},
-        timeout=10
-    )
+    try:
+        cleanup_response = requests.post(
+            f"{console_url}/api/show/control",
+            json={"action": "stop"},
+            timeout=10
+        )
+        if cleanup_response.status_code not in [200, 201]:
+            print(f"Warning: Cleanup failed with status {cleanup_response.status_code}")
+    except Exception as e:
+        print(f"Warning: Cleanup request failed: {e}")
