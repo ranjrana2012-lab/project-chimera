@@ -34,7 +34,7 @@ SERVICE_PORTS = {
     "bsl": 8003,
     "sentiment": 8004,
     "lighting": 8005,
-    "safety": 8006,
+    "safety": 8005,  # FIXED: Matches docker-compose.yml
     "console": 8007,
 }
 

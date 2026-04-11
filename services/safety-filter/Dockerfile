@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy shared requirements first
-COPY services/shared/requirements.txt .
-RUN pip install --no-cache-dir services/shared/requirements.txt
+COPY services/shared/requirements.txt ./shared_requirements.txt
+RUN pip install --no-cache-dir -r shared_requirements.txt
 
 # Copy requirements first for better caching
 COPY services/safety-filter/requirements.txt .
@@ -35,11 +35,11 @@ RUN useradd -m -u 1000 appuser && \
 USER appuser
 
 # Expose port
-EXPOSE 8006
+EXPOSE 8005
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8006/health/live')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8005/health/live')"
 
 # Run the application
 CMD ["python", "main.py"]

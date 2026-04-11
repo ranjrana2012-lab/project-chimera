@@ -1,0 +1,206 @@
+version: '3.8'
+
+# Project Chimera - MVP Rescue Slice
+# ================================
+# Simplified Docker Compose for core functionality testing.
+# Removes Kafka, Milvus, K8s dependencies - uses local Docker only.
+#
+# Architecture:
+#   OpenClaw Orchestrator (synchronous wire format)
+#   → Sentiment Analysis (DistilBERT, no BettaFish)
+#   → Safety Filter (content moderation)
+#   → SceneSpeak (LLM dialogue via host:8012)
+#   → Operator Console (UI)
+#   → Redis (state/cache)
+
+services:
+  # ============================================
+  # CORE ORCHESTRATION
+  # ============================================
+  openclaw-orchestrator:
+    build:
+      context: .
+      dockerfile: services/openclaw-orchestrator/Dockerfile
+    container_name: chimera-openclaw-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      - SERVICE_NAME=openclaw-orchestrator
+      - PORT=8000
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      # Agent URLs (internal Docker network)
+      - SCENESPEAK_AGENT_URL=http://scenespeak-agent:8001
+      - SENTIMENT_AGENT_URL=http://sentiment-agent:8004
+      - SAFETY_FILTER_URL=http://safety-filter:8005
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - chimera-backend
+    restart: unless-stopped
+
+  # ============================================
+  # AGENT SERVICES
+  # ============================================
+  scenespeak-agent:
+    build:
+      context: .
+      dockerfile: services/scenespeak-agent/Dockerfile
+    container_name: chimera-scenespeak-agent
+    ports:
+      - "8001:8001"
+    environment:
+      - SERVICE_NAME=scenespeak-agent
+      - PORT=8001
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      # Z.ai GLM 4.7 API (Primary LLM)
+      - GLM_API_KEY=${GLM_API_KEY}
+      - GLM_API_BASE=https://open.bigmodel.cn/api/paas/v4/
+      # Fallback to LOCAL Nemotron LLM on host machine
+      - LOCAL_LLM_ENABLED=true
+      - LOCAL_LLM_URL=http://host.docker.internal:8012
+      - LOCAL_LLM_MODEL=nemotron-3-super-120b-a12b-nvfp4
+      - LOCAL_LLM_TYPE=openai
+      - GLM_API_FALLBACK=true
+      - LLM_TIMEOUT=120
+    networks:
+      - chimera-backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  sentiment-agent:
+    build:
+      context: .
+      dockerfile: services/sentiment-agent/Dockerfile
+    container_name: chimera-sentiment-agent
+    ports:
+      - "8004:8004"
+    environment:
+      - SERVICE_NAME=sentiment-agent
+      - PORT=8004
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      # Use lightweight DistilBERT (NOT BettaFish/MIROFISH)
+      - USE_ML_MODEL=true
+      - SENTIMENT_MODEL_TYPE=distilbert
+      - DEVICE=cpu
+      - MODEL_CACHE_DIR=/app/models
+    volumes:
+      - sentiment-models:/app/models
+    networks:
+      - chimera-backend
+    restart: unless-stopped
+
+  safety-filter:
+    build:
+      context: .
+      dockerfile: services/safety-filter/Dockerfile
+    container_name: chimera-safety-filter
+    ports:
+      - "8005:8005"  # FIXED: Was 8006, now 8005 to avoid collision
+    environment:
+      - SERVICE_NAME=safety-filter
+      - PORT=8005
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - SAFETY_FILTER_POLICY=family
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - chimera-backend
+    restart: unless-stopped
+
+  translation-agent:
+    build:
+      context: .
+      dockerfile: services/translation-agent/Dockerfile
+    container_name: chimera-translation-agent
+    ports:
+      - "8006:8006"  # Keeps original port
+    environment:
+      - SERVICE_NAME=translation-agent
+      - PORT=8006
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - TRANSLATION_AGENT_USE_MOCK=true
+    networks:
+      - chimera-backend
+    restart: unless-stopped
+
+  # ============================================
+  # USER INTERFACES
+  # ============================================
+  operator-console:
+    build:
+      context: .
+      dockerfile: services/operator-console/Dockerfile
+    container_name: chimera-operator-console
+    ports:
+      - "8007:8007"
+    environment:
+      - SERVICE_NAME=operator-console
+      - PORT=8007
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - ORCHESTRATOR_URL=http://openclaw-orchestrator:8000
+    depends_on:
+      - openclaw-orchestrator
+    networks:
+      - chimera-backend
+      - chimera-frontend
+    restart: unless-stopped
+
+  # ============================================
+  # INFRASTRUCTURE
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: chimera-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - chimera-redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - chimera-backend
+    restart: unless-stopped
+
+  # ============================================
+  # MOCK HARDWARE BRIDGE
+  # ============================================
+  # Simulates DMX lighting output based on sentiment
+  hardware-bridge:
+    build:
+      context: .
+      dockerfile: services/echo-agent/Dockerfile
+    container_name: chimera-hardware-bridge
+    ports:
+      - "8008:8008"
+    environment:
+      - SERVICE_NAME=hardware-bridge
+      - PORT=8008
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - ECHO_MODE=dmx-sentiment
+    networks:
+      - chimera-backend
+    restart: unless-stopped
+
+networks:
+  chimera-backend:
+    driver: bridge
+  chimera-frontend:
+    driver: bridge
+
+volumes:
+  chimera-redis-data:
+  sentiment-models:

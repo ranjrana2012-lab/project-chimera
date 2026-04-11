@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy shared requirements first
-COPY services/shared/requirements.txt .
-RUN pip install --no-cache-dir services/shared/requirements.txt
+COPY services/shared/requirements.txt ./shared_requirements.txt
+RUN pip install --no-cache-dir -r shared_requirements.txt
 
 # Copy requirements first for better caching
 COPY services/sentiment-agent/requirements.txt .

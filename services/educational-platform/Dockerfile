@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy shared requirements first
 COPY services/shared/requirements.txt .
-RUN pip install --no-cache-dir services/shared/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy requirements first for better caching
 COPY services/educational-platform/requirements.txt .

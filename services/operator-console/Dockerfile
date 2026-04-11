@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy shared requirements first
-COPY services/shared/requirements.txt .
-RUN pip install --no-cache-dir services/shared/requirements.txt
+COPY services/shared/requirements.txt ./shared_requirements.txt
+RUN pip install --no-cache-dir -r shared_requirements.txt
 
 COPY services/operator-console/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

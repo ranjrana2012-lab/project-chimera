@@ -18,7 +18,7 @@ WORKDIR /app
 
 # Copy shared requirements first
 COPY services/shared/requirements.txt .
-RUN pip install --no-cache-dir services/shared/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Python dependencies
 COPY requirements.txt .

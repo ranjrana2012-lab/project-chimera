@@ -4,10 +4,14 @@ Simplest agent that echoes back input text.
 Tests the entire pipeline with minimal processing.
 """
 
+import logging
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Dict, Any, Literal, Optional
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 # Request/Response Models
@@ -39,6 +43,43 @@ class ReadinessResponse(BaseModel):
     """Readiness check response."""
     status: str
     checks: Dict[str, bool]
+
+
+class DMXOutputRequest(BaseModel):
+    """Request model for DMX hardware output."""
+    sentiment: Literal["positive", "negative", "neutral"] = Field(
+        default="neutral",
+        description="Sentiment value for DMX lighting control"
+    )
+    score: float = Field(
+        default=0.0,
+        ge=-1.0,
+        le=1.0,
+        description="Sentiment score between -1.0 and 1.0"
+    )
+    channels: Optional[Dict[str, int]] = Field(
+        default=None,
+        description="Optional custom DMX channel override values"
+    )
+
+    @field_validator('sentiment')
+    @classmethod
+    def validate_sentiment(cls, v: str) -> str:
+        """Validate that sentiment is one of the allowed values."""
+        if v not in ["positive", "negative", "neutral"]:
+            raise ValueError(
+                f"Invalid sentiment '{v}'. Must be one of: positive, negative, neutral"
+            )
+        return v
+
+
+class DMXOutputResponse(BaseModel):
+    """Response model for DMX hardware output."""
+    status: str
+    mode: str
+    channels: Dict[str, int]
+    timestamp: str
+    hardware: str
 
 
 # FastAPI App
@@ -135,8 +176,8 @@ async def echo_get(text: str, delay_ms: int = 0) -> EchoResponse:
     )
 
 
-@app.post("/dmx/output", tags=["hardware"])
-async def dmx_output(request: dict) -> dict:
+@app.post("/dmx/output", response_model=DMXOutputResponse, tags=["hardware"])
+async def dmx_output(request: DMXOutputRequest) -> DMXOutputResponse:
     """
     Mock DMX hardware output based on sentiment.
 
@@ -144,38 +185,49 @@ async def dmx_output(request: dict) -> dict:
     In production, this would interface with actual DMX controllers.
 
     Args:
-        request: {
-            "sentiment": "positive|negative|neutral",
-            "score": 0.95,
-            "channels": {...}  # Optional override
-        }
+        request: DMX output request with sentiment, score, and optional channel overrides
 
     Returns:
         DMX channel values and confirmation
+
+    Raises:
+        HTTPException: If sentiment validation fails
     """
-    sentiment = request.get("sentiment", "neutral")
-    score = request.get("score", 0.0)
-    custom_channels = request.get("channels")
+    try:
+        # Calculate DMX values
+        dmx_channels = _calculate_dmx_channels(request.sentiment, request.score)
 
-    # Calculate DMX values
-    dmx_channels = _calculate_dmx_channels(sentiment, score)
+        # Apply custom channel override if provided
+        if request.channels:
+            dmx_channels.update(request.channels)
 
-    # Apply custom channel override if provided
-    if custom_channels:
-        dmx_channels.update(custom_channels)
+        # Log DMX output using proper logging
+        logger.info(
+            "DMX output command",
+            extra={
+                "sentiment": request.sentiment,
+                "score": request.score,
+                "channels": dmx_channels,
+                "mode": "dmx_sentiment"
+            }
+        )
 
-    # In production, this would send actual DMX commands
-    # For MVP, we just log the values
-    print(f"[DMX OUTPUT] Sentiment: {sentiment} | Score: {score}")
-    print(f"[DMX OUTPUT] Channels: {dmx_channels}")
+        return DMXOutputResponse(
+            status="sent",
+            mode="dmx_sentiment",
+            channels=dmx_channels,
+            timestamp=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            hardware="simulated"
+        )
 
-    return {
-        "status": "sent",
-        "mode": "dmx_sentiment",
-        "channels": dmx_channels,
-        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "hardware": "simulated"
-    }
+    except ValueError as e:
+        # Handle Pydantic validation errors
+        logger.error(f"DMX output validation error: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        # Handle unexpected errors
+        logger.error(f"DMX output error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 def _calculate_dmx_channels(sentiment: str, score: float) -> dict:
@@ -238,6 +290,6 @@ if __name__ == "__main__":
     mode = os.environ.get("ECHO_MODE", "echo")
 
     if mode == "dmx-sentiment":
-        print(f"[DMX HARDWARE BRIDGE] Starting on port {port}")
+        logger.info(f"DMX Hardware Bridge starting on port {port}")
 
     uvicorn.run(app, host="0.0.0.0", port=port)

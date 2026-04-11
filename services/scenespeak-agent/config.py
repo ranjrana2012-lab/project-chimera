@@ -26,9 +26,11 @@ class Settings(BaseSettings):
     # Local LLM
     local_model_path: Optional[str] = None  # Deprecated - use local_llm settings below
     local_llm_enabled: bool = True
-    local_llm_url: str = "http://localhost:11434"  # Ollama default
-    local_llm_model: str = "llama3.2"  # ARM64 compatible model
+    local_llm_url: str = "http://host.docker.internal:8012"  # Nemotron on host
+    local_llm_model: str = "nemotron-3-super-120b-a12b-nvfp4"  # DGX model
+    local_llm_type: str = "openai"  # "ollama" or "openai" compatible
     glm_api_fallback: bool = True  # Use GLM API if local fails
+    llm_timeout: int = 120  # Timeout for large model inference
 
     # OpenTelemetry
     otlp_endpoint: str = "http://localhost:4317"

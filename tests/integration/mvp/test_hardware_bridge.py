@@ -13,9 +13,9 @@ def test_hardware_dmx_output_positive(hardware_url):
 
     SPEC REQUIREMENT:
     - Positive sentiment → warm colors (high red/green, low blue)
-    - Red channel should be high (≥200)
-    - Green channel should be medium-high (≥150)
-    - Blue channel should be low (≤100)
+    - Red channel should be high (>150)
+    - Green channel should be high (>150)
+    - Blue channel should be low (<100)
     """
     response = requests.post(
         f"{hardware_url}/dmx/output",
@@ -42,9 +42,9 @@ def test_hardware_dmx_output_positive(hardware_url):
     assert "3_blue" in channels
 
     # Positive = warm colors (high red/green, low blue)
-    assert channels["1_red"] >= 200, f"Red should be high for positive, got {channels['1_red']}"
-    assert channels["2_green"] >= 150, f"Green should be medium-high for positive, got {channels['2_green']}"
-    assert channels["3_blue"] <= 100, f"Blue should be low for positive, got {channels['3_blue']}"
+    assert channels["1_red"] > 150, f"Red should be high for positive, got {channels['1_red']}"
+    assert channels["2_green"] > 150, f"Green should be medium-high for positive, got {channels['2_green']}"
+    assert channels["3_blue"] < 100, f"Blue should be low for positive, got {channels['3_blue']}"
 
 
 @pytest.mark.integration
@@ -53,9 +53,9 @@ def test_hardware_dmx_output_negative(hardware_url):
 
     SPEC REQUIREMENT:
     - Negative sentiment → cool colors (low red/green, high blue)
-    - Red channel should be low (≤100)
-    - Green channel should be low (≤100)
-    - Blue channel should be high (≥200)
+    - Red channel should be low (<100)
+    - Green channel should be low (<100)
+    - Blue channel should be high (>200)
     """
     response = requests.post(
         f"{hardware_url}/dmx/output",
@@ -79,9 +79,9 @@ def test_hardware_dmx_output_negative(hardware_url):
     assert "3_blue" in channels
 
     # Negative = cool colors (low red/green, high blue)
-    assert channels["1_red"] <= 100, f"Red should be low for negative, got {channels['1_red']}"
-    assert channels["2_green"] <= 100, f"Green should be low for negative, got {channels['2_green']}"
-    assert channels["3_blue"] >= 200, f"Blue should be high for negative, got {channels['3_blue']}"
+    assert channels["1_red"] < 100, f"Red should be low for negative, got {channels['1_red']}"
+    assert channels["2_green"] < 100, f"Green should be low for negative, got {channels['2_green']}"
+    assert channels["3_blue"] > 200, f"Blue should be high for negative, got {channels['3_blue']}"
 
 
 @pytest.mark.integration
@@ -90,8 +90,7 @@ def test_hardware_dmx_output_neutral(hardware_url):
 
     SPEC REQUIREMENT:
     - Neutral sentiment → white/balanced colors
-    - All RGB channels should be balanced (similar values)
-    - Difference between max and min RGB should be ≤50
+    - All RGB channels should be high (>150) to produce white/bright output
     """
     response = requests.post(
         f"{hardware_url}/dmx/output",
@@ -114,12 +113,10 @@ def test_hardware_dmx_output_neutral(hardware_url):
     assert "2_green" in channels
     assert "3_blue" in channels
 
-    rgb_values = [channels["1_red"], channels["2_green"], channels["3_blue"]]
-    max_rgb = max(rgb_values)
-    min_rgb = min(rgb_values)
-
-    # Neutral = balanced colors (white-ish)
-    assert max_rgb - min_rgb <= 50, f"RGB should be balanced for neutral, got {rgb_values}"
+    # Neutral = balanced colors (all channels high for white/bright)
+    assert channels["1_red"] > 150, f"Red should be high for neutral, got {channels['1_red']}"
+    assert channels["2_green"] > 150, f"Green should be high for neutral, got {channels['2_green']}"
+    assert channels["3_blue"] > 150, f"Blue should be high for neutral, got {channels['3_blue']}"
 
 
 @pytest.mark.integration

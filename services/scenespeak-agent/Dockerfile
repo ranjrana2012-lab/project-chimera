@@ -22,8 +22,8 @@ COPY services/scenespeak-agent/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy shared security modules
-COPY services/shared/requirements.txt .
-RUN pip install --no-cache-dir -r services/shared/requirements.txt
+COPY services/shared/requirements.txt ./shared_requirements.txt
+RUN pip install --no-cache-dir -r shared_requirements.txt
 COPY services/shared/ /app/shared/
 
 # Copy application code

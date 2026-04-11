@@ -53,7 +53,7 @@ class TestSettings:
         'CAPTIONING_AGENT_URL': 'http://localhost:8002',
         'BSL_AGENT_URL': 'http://localhost:8003',
         'SENTIMENT_AGENT_URL': 'http://localhost:8004',
-        'SAFETY_FILTER_URL': 'http://localhost:8006',
+        'SAFETY_FILTER_URL': 'http://localhost:8005',  # FIXED: Matches docker-compose.yml
     })
     def test_settings_agent_urls(self):
         """Test Settings agent URLs."""
@@ -62,7 +62,7 @@ class TestSettings:
         assert settings.captioning_agent_url == "http://localhost:8002"
         assert settings.bsl_agent_url == "http://localhost:8003"
         assert settings.sentiment_agent_url == "http://localhost:8004"
-        assert settings.safety_filter_url == "http://localhost:8006"
+        assert settings.safety_filter_url == "http://localhost:8005"  # FIXED: Matches docker-compose.yml
 
     def test_settings_model_config(self):
         """Test Settings model config."""

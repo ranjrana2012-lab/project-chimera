@@ -18,10 +18,10 @@ def service_ports() -> Dict[str, int]:
         "orchestrator": 8000,
         "scenespeak": 8001,
         "sentiment": 8004,
-        "safety": 8006,
-        "translation": 8009,
+        "safety": 8005,  # FIXED: Was 8006, now matches docker-compose.yml
+        "translation": 8006,  # FIXED: Was 8009, now matches docker-compose.yml
         "console": 8007,
-        "hardware": 8014,  # echo-agent runs on 8014
+        "hardware": 8008,  # FIXED: Was 8014, now matches docker-compose.yml
         "redis": 6379,
     }
 
