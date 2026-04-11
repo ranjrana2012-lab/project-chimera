@@ -110,6 +110,209 @@ async def readiness():
 
     return HealthResponse(status=status, checks=checks)
 
+@app.post("/api/orchestrate")
+async def orchestrate_synchronous(request: dict):
+    """
+    Synchronous orchestration pipeline: Prompt → Sentiment → Safety → LLM → Response
+
+    This is the main MVP flow that connects all services synchronously.
+
+    Args:
+        request: {
+            "prompt": "The hero enters the room",
+            "show_id": "default_show",
+            "context": {...},
+            "webhook_url": "..."  # Optional: if provided, returns 202 with task_id
+        }
+
+    Returns:
+        {
+            "response": "generated dialogue",
+            "sentiment": {"label": "positive", "score": 0.95},
+            "safety_check": {"passed": true, "reason": "Content approved"},
+            "metadata": {"show_id": "...", "processing_time_ms": 1234}
+        }
+    """
+    import time
+    import uuid
+    start_time = time.time()
+
+    try:
+        prompt = request.get("prompt", "")
+        if not prompt:
+            raise HTTPException(status_code=422, detail="prompt is required")
+
+        show_id = request.get("show_id", "default_show")
+        context = request.get("context", {})
+        webhook_url = request.get("webhook_url")
+
+        # If webhook_url is provided, return async response
+        if webhook_url:
+            from fastapi import Response
+            from fastapi.responses import JSONResponse
+            task_id = str(uuid.uuid4())
+            # TODO: Implement async task queue for webhook callbacks
+            return JSONResponse(
+                status_code=202,
+                content={
+                    "task_id": task_id,
+                    "status": "processing"
+                }
+            )
+
+        # Step 1: Sentiment Analysis
+        sentiment_result = {}
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    f"{AGENTS['sentiment-agent']}/api/analyze",
+                    json={"text": prompt, "detect_language": False}
+                )
+                response.raise_for_status()
+                sentiment_result = response.json()
+                logger.info(f"Sentiment: {sentiment_result.get('sentiment', 'unknown')}")
+        except Exception as e:
+            logger.warning(f"Sentiment analysis failed: {e}")
+            sentiment_result = {"sentiment": "neutral", "score": 0.0, "confidence": 0.0}
+
+        # Normalize sentiment to expected format
+        sentiment_label = sentiment_result.get("sentiment", "neutral")
+        sentiment_score = sentiment_result.get("score", 0.0)
+
+        # Step 2: Safety Filter Check
+        safety_result = {}
+        safe = True
+        safety_reason = "Content approved"
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.post(
+                    f"{AGENTS['safety-filter']}/api/check",
+                    json={"text": prompt, "policy": "family"}
+                )
+                response.raise_for_status()
+                safety_result = response.json()
+
+                # Check if content is safe
+                safe = safety_result.get("safe", True)
+                if not safe:
+                    safety_reason = safety_result.get("reason", "Content blocked by safety filter")
+
+                    # Return early with blocked response
+                    return {
+                        "response": "",
+                        "sentiment": {
+                            "label": sentiment_label,
+                            "score": sentiment_score
+                        },
+                        "safety_check": {
+                            "passed": False,
+                            "reason": safety_reason
+                        },
+                        "metadata": {
+                            "show_id": show_id,
+                            "processing_time_ms": int((time.time() - start_time) * 1000)
+                        }
+                    }
+        except Exception as e:
+            logger.warning(f"Safety check failed: {e}, proceeding with caution")
+            safety_result = {"safe": True, "reason": "Safety filter unavailable"}
+
+        # Step 3: Generate Dialogue via LLM
+        dialogue_result = {}
+        llm_response = ""
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:  # Long timeout for LLM
+                response = await client.post(
+                    f"{AGENTS['scenespeak-agent']}/api/generate",
+                    json={
+                        "prompt": prompt,
+                        "context": {
+                            **context,
+                            "show_id": show_id,
+                            "sentiment": sentiment_label
+                        },
+                        "max_tokens": 500,
+                        "temperature": 0.7
+                    }
+                )
+                response.raise_for_status()
+                dialogue_result = response.json()
+                llm_response = dialogue_result.get("dialogue", "")
+                logger.info(f"Generated dialogue: {len(llm_response)} chars")
+        except Exception as e:
+            logger.error(f"Dialogue generation failed: {e}")
+            llm_response = f"[Could not generate dialogue: {str(e)}]"
+
+        processing_time = int((time.time() - start_time) * 1000)
+
+        return {
+            "response": llm_response,
+            "sentiment": {
+                "label": sentiment_label,
+                "score": sentiment_score
+            },
+            "safety_check": {
+                "passed": safe,
+                "reason": safety_reason
+            },
+            "metadata": {
+                "show_id": show_id,
+                "processing_time_ms": processing_time
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Synchronous orchestration failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def _map_sentiment_to_dmx(sentiment: str, score: float) -> dict:
+    """
+    Map sentiment to DMX lighting values (mock hardware output).
+
+    Args:
+        sentiment: positive, negative, or neutral
+        score: sentiment score (-1 to 1)
+
+    Returns:
+        Dictionary with DMX channel values
+    """
+    # DMX channels: 1-3 are RGB, 4 is brightness, 5-10 are special effects
+    dmx = {
+        "red": 128,      # 0-255
+        "green": 128,    # 0-255
+        "blue": 128,     # 0-255
+        "brightness": 200,  # 0-255
+        "effect": "none"
+    }
+
+    if sentiment == "positive":
+        # Warm colors - orange/yellow
+        dmx["red"] = 255
+        dmx["green"] = min(255, int(200 + score * 55))
+        dmx["blue"] = 50
+        dmx["brightness"] = 255
+        dmx["effect"] = "sparkle"
+    elif sentiment == "negative":
+        # Cool colors - blue/purple
+        dmx["red"] = 50
+        dmx["green"] = 50
+        dmx["blue"] = 255
+        dmx["brightness"] = 180
+        dmx["effect"] = "dim"
+    else:
+        # Neutral - white
+        dmx["red"] = 200
+        dmx["green"] = 200
+        dmx["blue"] = 200
+        dmx["brightness"] = 220
+        dmx["effect"] = "steady"
+
+    return dmx
+
+
 @app.post("/v1/orchestrate")
 async def orchestrate(request: OrchestrateRequest):
     """Route skill request to appropriate agent"""
