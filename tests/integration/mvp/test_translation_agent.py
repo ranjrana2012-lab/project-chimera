@@ -1,6 +1,17 @@
 """Integration tests for Translation Agent.
 
 Tests the mock-based translation service for MVP.
+
+NOTE: API Endpoint Discrepancy
+==============================
+These tests use the `/translate` endpoint (as implemented in the service).
+Some legacy documentation (e.g., TROUBLESHOOTING_GUIDE.md, PHASE2_API_EXAMPLES.md)
+references `/api/translate`, which was the planned endpoint but NOT the
+implemented endpoint. The actual service (see services/translation-agent/src/
+translation_agent/main.py) implements `/translate` directly.
+
+Future work: Either update documentation to match implementation, OR add
+an `/api/` prefix route to align with the documented API structure.
 """
 
 import pytest
@@ -36,12 +47,15 @@ def test_translation_mock(translation_url):
     assert 0.0 <= data["confidence"] <= 1.0
 
 
-def test_translation_language_detection(translation_url):
-    """Test automatic language detection.
+def test_translation_explicit_source_language(translation_url):
+    """Test explicit source language parameter (MVP limitation).
 
-    Verify that the service accepts explicit source_language parameter.
-    In MVP, language detection is not implemented - source language
-    must be provided explicitly.
+    NOTE: This test does NOT verify automatic language detection.
+    In the MVP implementation, auto-detection is NOT supported - the
+    source_language must be explicitly provided by the client.
+
+    Future enhancement: Add true auto-detection feature that accepts
+    source_language="auto" and detects the input language automatically.
     """
     response = requests.post(
         f"{translation_url}/translate",
