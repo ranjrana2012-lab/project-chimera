@@ -32,13 +32,16 @@ if shared_path not in sys.path:
 import config
 import glm_client
 import local_llm
+import openai_llm  # New OpenAI-compatible client
 import models
 import metrics
 import tracing
 
 get_settings = config.get_settings
 GLMClient = glm_client.GLMClient
+GLMDialogueResponse = glm_client.DialogueResponse  # Dataclass from glm_client
 LocalLLMClient = local_llm.LocalLLMClient
+OpenAILLMClient = openai_llm.OpenAILLMClient  # New client
 GenerateRequest = models.GenerateRequest
 DialogueResponse = models.DialogueResponse
 HealthResponse = models.HealthResponse
@@ -58,35 +61,57 @@ tracer = setup_tracing(
 )
 glm_client = GLMClient()
 local_llm_client: Optional[LocalLLMClient] = None
+openai_llm_client: Optional[OpenAILLMClient] = None  # New client
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup/shutdown events"""
-    global local_llm_client
+    global local_llm_client, openai_llm_client
 
     logger.info("SceneSpeak Agent starting up")
     logger.info(f"GLM API configured: {bool(settings.glm_api_key)}")
     logger.info(f"Local LLM enabled: {settings.local_llm_enabled}")
+    logger.info(f"Local LLM type: {settings.local_llm_type}")
 
     # Initialize local LLM if enabled
     if settings.local_llm_enabled:
         try:
-            local_llm_client = LocalLLMClient(
-                base_url=settings.local_llm_url,
-                model=settings.local_llm_model
-            )
-            connected = await local_llm_client.connect()
-            if connected:
-                logger.info(
-                    f"Local LLM connected: {settings.local_llm_url} "
-                    f"with model {settings.local_llm_model}"
+            # Use OpenAI-compatible client (Nemotron) if configured
+            if getattr(settings, 'local_llm_type', 'ollama') == 'openai':
+                openai_llm_client = OpenAILLMClient(
+                    base_url=settings.local_llm_url,
+                    model=settings.local_llm_model,
+                    timeout=getattr(settings, 'llm_timeout', 120)
                 )
+                connected = await openai_llm_client.connect()
+                if connected:
+                    logger.info(
+                        f"OpenAI-compatible LLM connected: {settings.local_llm_url} "
+                        f"with model {settings.local_llm_model}"
+                    )
+                else:
+                    logger.warning(
+                        f"OpenAI-compatible LLM unavailable at {settings.local_llm_url}, "
+                        "will use GLM API or fallback"
+                    )
             else:
-                logger.warning(
-                    f"Local LLM unavailable at {settings.local_llm_url}, "
-                    "will use GLM API or fallback"
+                # Use Ollama client
+                local_llm_client = LocalLLMClient(
+                    base_url=settings.local_llm_url,
+                    model=settings.local_llm_model
                 )
+                connected = await local_llm_client.connect()
+                if connected:
+                    logger.info(
+                        f"Ollama LLM connected: {settings.local_llm_url} "
+                        f"with model {settings.local_llm_model}"
+                    )
+                else:
+                    logger.warning(
+                        f"Ollama LLM unavailable at {settings.local_llm_url}, "
+                        "will use GLM API or fallback"
+                    )
         except Exception as e:
             logger.warning(f"Failed to initialize local LLM: {e}")
 
@@ -95,6 +120,8 @@ async def lifespan(app: FastAPI):
     # Cleanup
     if local_llm_client:
         await local_llm_client.disconnect()
+    if openai_llm_client:
+        await openai_llm_client.disconnect()
     logger.info("SceneSpeak Agent shutting down")
 
 
@@ -137,17 +164,20 @@ class GenerateResponse(BaseModel):
 @app.get("/health")
 async def health_check():
     """Health check endpoint with model_info for E2E tests."""
-    local_available = local_llm_client and await local_llm_client.is_available()
+    local_available = (local_llm_client and await local_llm_client.is_available()) or \
+                      (openai_llm_client and await openai_llm_client.is_available())
     return {
         "status": "healthy",
         "service": "scenespeak-agent",
         "model_available": bool(settings.glm_api_key or local_available),
         "local_llm_available": local_available,
+        "openai_llm_available": bool(openai_llm_client and await openai_llm_client.is_available()) if openai_llm_client else False,
         "glm_api_available": bool(settings.glm_api_key),
         "model_info": {
-            "name": "glm-4.7",
+            "name": settings.local_llm_model if local_available else "glm-4.7",
             "loaded": bool(settings.glm_api_key or local_available),
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "type": getattr(settings, 'local_llm_type', 'ollama')
         }
     }
 
@@ -161,13 +191,15 @@ async def liveness():
 @app.get("/health/ready")
 async def readiness():
     """Readiness probe for Kubernetes."""
-    local_available = local_llm_client and await local_llm_client.is_available()
+    local_available = (local_llm_client and await local_llm_client.is_available()) or \
+                      (openai_llm_client and await openai_llm_client.is_available())
     model_available = bool(settings.glm_api_key or local_available)
     return {
         "status": "ready",
         "service": "scenespeak-agent",
         "model_available": model_available,
         "local_llm_available": local_available,
+        "openai_llm_available": bool(openai_llm_client and await openai_llm_client.is_available()) if openai_llm_client else False,
         "glm_api_available": bool(settings.glm_api_key)
     }
 
@@ -207,6 +239,7 @@ async def generate_dialogue_api(request: dict):
     Generate dialogue using /api/generate endpoint (E2E test compatible).
 
     Simplified API for dialogue generation that matches E2E test expectations.
+    Supports GLM 4.7 API, Nemotron (OpenAI-compatible), and Ollama fallback.
 
     Args:
         request: Generation request with prompt and optional parameters
@@ -218,40 +251,94 @@ async def generate_dialogue_api(request: dict):
         POST /api/generate
         {
             "prompt": "The hero enters the room",
-            "context": { "scene": "act1_scene1" }
+            "context": { "scene": "act1_scene1" },
+            "use_fallback": true  # Force local LLM
         }
     """
     start_time = time.time()
 
+    # Validate prompt parameter FIRST (before any processing)
+    if "prompt" not in request:
+        raise HTTPException(status_code=422, detail="prompt is required")
+
+    prompt = request.get("prompt", "")
+    if not prompt or not prompt.strip():
+        raise HTTPException(status_code=422, detail="prompt cannot be empty")
+
+    # Extract parameters from request
+    context = request.get("context", {})
+    style = request.get("style")  # Optional style parameter
+    max_tokens = request.get("max_tokens", 500)
+    temperature = request.get("temperature", 0.7)
+    use_fallback = request.get("use_fallback", False)  # Force local LLM
+    timeout = request.get("timeout", 120)  # Optional timeout override
+
     try:
-        # Validate prompt parameter FIRST (before any processing)
-        if "prompt" not in request:
-            raise HTTPException(status_code=422, detail="prompt is required")
+        # Determine which client to use
+        response = None
+        fallback_used = False
 
-        prompt = request.get("prompt", "")
-        if not prompt or not prompt.strip():
-            raise HTTPException(status_code=422, detail="prompt cannot be empty")
+        # If use_fallback is True, try local LLM first (Nemotron or Ollama)
+        if use_fallback:
+            # Try OpenAI-compatible client (Nemotron) first
+            if openai_llm_client and await openai_llm_client.is_available():
+                try:
+                    openai_response = await openai_llm_client.generate(
+                        prompt=prompt,
+                        max_tokens=max_tokens,
+                        temperature=temperature
+                    )
+                    # Convert to DialogueResponse format
+                    from local_llm import LocalLLMResponse
+                    llm_resp = LocalLLMResponse(
+                        text=openai_response.text,
+                        tokens_used=openai_response.tokens_used,
+                        model=openai_response.model,
+                        duration_ms=openai_response.duration_ms
+                    )
+                    response = GLMDialogueResponse(
+                        text=llm_resp.text,
+                        tokens_used=llm_resp.tokens_used,
+                        model=llm_resp.model,
+                        source="nemotron",
+                        duration_ms=llm_resp.duration_ms
+                    )
+                    fallback_used = True
+                    logger.info(f"Using Nemotron (fallback) for generation")
+                except Exception as e:
+                    logger.warning(f"Nemotron generation failed: {e}")
 
-        # Extract parameters from request
-        context = request.get("context", {})
-        style = request.get("style")  # Optional style parameter
-        max_tokens = request.get("max_tokens", 500)
-        temperature = request.get("temperature", 0.7)
+            # Try Ollama if Nemotron unavailable or failed
+            if response is None and local_llm_client and await local_llm_client.is_available():
+                try:
+                    local_response = await local_llm_client.generate(
+                        prompt=prompt,
+                        max_tokens=max_tokens,
+                        temperature=temperature
+                    )
+                    response = GLMDialogueResponse(
+                        text=local_response.text,
+                        tokens_used=local_response.tokens_used,
+                        model=local_response.model,
+                        source="local",
+                        duration_ms=local_response.duration_ms
+                    )
+                    fallback_used = True
+                    logger.info(f"Using Ollama (fallback) for generation")
+                except Exception as e:
+                    logger.warning(f"Ollama generation failed: {e}")
 
-        # Build GenerateRequest
-        gen_request = GenerateRequest(
-            prompt=prompt,
-            context=context,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-
-        # Generate dialogue
-        response = await glm_client.generate(
-            prompt=prompt,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
+        # Use GLM client (with built-in fallback) if not using forced fallback
+        # or if forced fallback failed
+        if response is None:
+            response = await glm_client.generate(
+                prompt=prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                prefer_local=use_fallback
+            )
+            # Check if fallback was actually used
+            fallback_used = response.source in ["local", "local-fallback", "nemotron"]
 
         # Calculate metrics
         duration_ms = (time.time() - start_time) * 1000
@@ -263,7 +350,8 @@ async def generate_dialogue_api(request: dict):
             "tokens_used": response.tokens_used,
             "adapter": response.source,
             "generation_time": duration_ms / 1000,
-            "timestamp": __import__('datetime').datetime.now().isoformat()
+            "timestamp": __import__('datetime').datetime.now().isoformat(),
+            "fallback_used": fallback_used
         }
 
         # Add context to metadata if provided
@@ -285,11 +373,20 @@ async def generate_dialogue_api(request: dict):
             cache_hit=False
         )
 
+        # Return response in both legacy and new formats for compatibility
         return {
             "dialogue": response.text,
-            "metadata": metadata
+            "text": response.text,  # New format
+            "metadata": metadata,
+            # Direct fields for new format
+            "model": metadata["model"],
+            "tokens_used": metadata["tokens_used"],
+            "fallback_used": fallback_used
         }
 
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is (including 422 validation errors)
+        raise
     except Exception as e:
         logger.error(f"API generation failed: {e}")
         duration_ms = (time.time() - start_time) * 1000
