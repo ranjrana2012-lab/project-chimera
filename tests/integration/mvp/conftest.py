@@ -18,7 +18,7 @@ def service_ports() -> Dict[str, int]:
         "orchestrator": 8000,
         "scenespeak": 8001,
         "sentiment": 8004,
-        "safety": 8005,
+        "safety": 8006,
         "translation": 8006,
         "console": 8007,
         "hardware": 8008,
