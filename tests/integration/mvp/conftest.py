@@ -21,7 +21,7 @@ def service_ports() -> Dict[str, int]:
         "safety": 8006,
         "translation": 8009,
         "console": 8007,
-        "hardware": 8008,
+        "hardware": 8014,  # echo-agent runs on 8014
         "redis": 6379,
     }
 
