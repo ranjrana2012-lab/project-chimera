@@ -19,7 +19,7 @@ def service_ports() -> Dict[str, int]:
         "scenespeak": 8001,
         "sentiment": 8004,
         "safety": 8006,
-        "translation": 8006,
+        "translation": 8009,
         "console": 8007,
         "hardware": 8008,
         "redis": 6379,

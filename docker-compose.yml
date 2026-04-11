@@ -938,11 +938,11 @@ services:
     image: chimera/translation-agent:${SERVICE_VERSION:-1.0.0}
     container_name: chimera-translation-agent
     ports:
-      - "${TRANSLATION_AGENT_PORT:-8006}:8006"
+      - "${TRANSLATION_AGENT_PORT:-8009}:8006"
     environment:
       - SERVICE_NAME=translation-agent
       - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
-      - PORT=${TRANSLATION_AGENT_PORT:-8006}
+      - PORT=8006
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
