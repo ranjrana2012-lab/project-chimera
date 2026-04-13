@@ -62,7 +62,16 @@ podman build *
 
 1. STOP immediately
 2. Explain exactly WHY you think a build is necessary
-3. Ask user for permission to proceed
+3. Ask user for permission to proceed with this format:
+   ```
+   🔔 DOCKER BUILD REQUEST
+   Service: <service-name>
+   Build Context: <path>
+   Estimated Size: <check with du -sh>
+   .dockerignore: <yes/no>
+   Reason: <why build is needed>
+   Permission to proceed? (yes/no)
+   ```
 4. Only build the SPECIFIC service needed (not entire stack)
 
 #### ✅ Pre-Flight Checklist (REQUIRED before any Docker operation)
@@ -120,10 +129,34 @@ After any Docker build operation:
 
 ## Success Criteria
 
-- All non-skipped tests passing
-- No Docker bloat (verify with `docker system df`)
-- Documentation matches current state
-- Git history is clean and descriptive
+- All non-skipped tests passing (22 LLM-dependent tests are expected to skip)
+- No Docker bloat (verify with `docker system df` - RECLAIMABLE should be < 1GB)
+- Documentation matches current state (check README.md and docs/GETTING_STARTED.md)
+- Git history is clean and descriptive (no WIP commits, clear messages)
+
+---
+
+## Error Recovery
+
+If things go wrong:
+
+**Docker bloat detected after operation:**
+1. Stop: `docker compose down`
+2. Check: `docker system df`
+3. Clean: `docker builder prune -a -f && docker image prune -f`
+4. Verify: `docker system df` (confirm RECLAIMABLE decreased)
+
+**Tests fail after changes:**
+1. Review test output for specific failure
+2. Check if failure is related to your changes
+3. Fix the issue or revert if unsure
+4. Run tests again before committing
+
+**Git status shows conflicts:**
+1. Don't commit with conflicts
+2. Resolve conflicts systematically
+3. Test after resolution
+4. Commit with clear message about what was resolved
 
 ---
 
