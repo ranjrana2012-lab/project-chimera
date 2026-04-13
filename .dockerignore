@@ -1,0 +1,57 @@
+# Model weights (runtime-only, accessed via host.docker.internal)
+models/
+
+# Python development
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Git
+.git/
+.gitignore
+
+# CI/CD (not needed in images)
+.github/
+.gitlab-ci.yml
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Testing
+tests/
+htmlcov/
+.pytest_cache/
+.coverage
+final_test_env/
+
+# Experimental/unused
+future_concepts/
+integrations/
+platform/
+
+# IDE
+.vscode/
+.cursor/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Docker (don't include docker files in builds)
+docker-compose*.yml
+!docker-compose.mvp.yml
+Dockerfile
+*/Dockerfile
+.dockerignore
