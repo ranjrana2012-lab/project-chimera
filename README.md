@@ -343,3 +343,15 @@ If you use Project Chimera in your research or production, please cite:
 *Creating the future of interactive live theatre*
 
 [![Built with love](https://img.shields.io/badge/built%20with-love-red)](https://github.com/ranjrana2012-lab/project-chimera)
+
+---
+
+## Ralph Loop (Autonomous Development)
+
+Project Chimera uses an autonomous AI agent ("Ralph Loop") for iterative development.
+
+**Master Prompt:** `.claude/RALPH_LOOP_MASTER_PROMPT.md`
+
+**Docker Safety:** The Ralph Loop has strict constraints on Docker operations to prevent disk bloat. See `docs/superpowers/DOCKER_SAFETY_REFERENCE.md` for details.
+
+**Progress Tracking:** See `.claude/ralph-loop-progress.md` for iteration history.
