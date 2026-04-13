@@ -75,9 +75,47 @@ else
 fi
 echo ""
 
+# Check 4: Root .dockerignore file
+echo "📋 Check 4: Root .dockerignore File"
+echo "-----------------------------------"
+
+check_dockerignore() {
+    local dockerignore_path=".dockerignore"
+
+    if [ ! -f "$dockerignore_path" ]; then
+        echo "⚠️  WARNING: Root .dockerignore not found!"
+        echo "   Build context will include ALL files (~84GB)"
+        echo "   Run: touch .dockerignore (and populate it)"
+        return 1
+    fi
+
+    # Verify key exclusions are present
+    local required_exclusions=("models/" ".git/" "venv/")
+    local missing=0
+
+    for exclusion in "${required_exclusions[@]}"; do
+        if ! grep -q "^$exclusion" "$dockerignore_path"; then
+            echo "⚠️  WARNING: .dockerignore missing '$exclusion' exclusion"
+            missing=1
+        fi
+    done
+
+    if [ $missing -eq 0 ]; then
+        echo "✓ Root .dockerignore exists with key exclusions"
+        return 0
+    else
+        return 1
+    fi
+}
+
+check_dockerignore
+DOCKERIGNORE_STATUS=$?
+
+echo ""
+
 # Summary
 echo "=========================="
-if [ $MISSING -eq 0 ] && [ $CONFLICTS -eq 0 ]; then
+if [ $MISSING -eq 0 ] && [ $CONFLICTS -eq 0 ] && [ $DOCKERIGNORE_STATUS -eq 0 ]; then
     echo "✅ Pre-flight check PASSED"
     echo ""
     echo "Ready to proceed with Docker operations."
