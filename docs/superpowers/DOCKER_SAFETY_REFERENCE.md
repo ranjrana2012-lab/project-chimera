@@ -15,8 +15,12 @@ ls services/*/Dockerfile | xargs -I {} sh -c 'echo "=== {} ===" && cat $(dirname
 # 2. Check current disk usage
 docker system df
 
-# 3. Check for port conflicts
-netstat -tuln | grep -E ':(8000|8001|8002|8004|8006|8007|8008|6379)'
+# 3. Check for port conflicts (with fallback)
+if command -v ss >/dev/null 2>&1; then
+    ss -tuln | grep -E ':(8000|8001|8002|8004|8006|8007|8008|6379)'
+else
+    netstat -tuln | grep -E ':(8000|8001|8002|8004|8006|8007|8008|6379)' 2>/dev/null || lsof -iTCP -sTCP:LISTEN | grep -E ':(8000|8001|8002|8004|8006|8007|8008|6379)'
+fi
 
 # 4. Verify only specific service targeted
 # (manual check - confirm you're not building entire stack)
@@ -57,6 +61,7 @@ docker volume prune -f
 docker builder prune -a -f
 
 # Nuclear: clean everything (use with caution)
+# ⚠️  WARNING: This will remove ALL stopped containers and volumes - ensure data is backed up!
 docker system prune -a --volumes -f
 ```
 
@@ -91,6 +96,36 @@ services/
 ├── operator-console/       (port 8007)
 ├── hardware-bridge/        (port 8008)
 └── redis/                  (port 6379)
+```
+
+**Note:** Some services (like `translation-agent`) may not be running in all deployments.
+
+---
+
+## .dockerignore Examples
+
+Prevent bloat by excluding unnecessary files from build context:
+
+**Example for Python services:**
+```
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.git/
+.pytest_cache/
+.coverage
+```
+
+**Example for Node.js services:**
+```
+node_modules/
+npm-debug.log
+.env
+.git/
+dist/
 ```
 
 ---
