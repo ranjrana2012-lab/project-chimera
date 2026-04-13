@@ -35,19 +35,44 @@ echo "-------------------------------------"
 docker system df
 echo ""
 
-# Check 3: Port conflicts
+# Check 3: Port conflicts (with portable fallback)
 echo "🔌 Check 3: Port Conflicts"
 echo "--------------------------"
 PORTS=(8000 8001 8002 8004 8006 8007 8008 6379)
 CONFLICTS=0
-for port in "${PORTS[@]}"; do
-    if netstat -tuln 2>/dev/null | grep -q ":$port "; then
-        echo "⚠️  Port $port is IN USE"
-        CONFLICTS=1
-    else
-        echo "✅ Port $port is free"
-    fi
-done
+
+# Try multiple commands for portability
+if command -v ss >/dev/null 2>&1; then
+    # Use ss (modern Linux)
+    for port in "${PORTS[@]}"; do
+        if ss -tuln 2>/dev/null | grep -q ":$port "; then
+            echo "⚠️  Port $port is IN USE"
+            CONFLICTS=1
+        else
+            echo "✅ Port $port is free"
+        fi
+    done
+elif command -v lsof >/dev/null 2>&1; then
+    # Fallback to lsof (macOS/Linux)
+    for port in "${PORTS[@]}"; do
+        if lsof -iTCP -sTCP:LISTEN -n -P 2>/dev/null | grep -q ":$port "; then
+            echo "⚠️  Port $port is IN USE"
+            CONFLICTS=1
+        else
+            echo "✅ Port $port is free"
+        fi
+    done
+else
+    # Last resort: netstat (deprecated but widely available)
+    for port in "${PORTS[@]}"; do
+        if netstat -tuln 2>/dev/null | grep -q ":$port "; then
+            echo "⚠️  Port $port is IN USE"
+            CONFLICTS=1
+        else
+            echo "✅ Port $port is free"
+        fi
+    done
+fi
 echo ""
 
 # Summary
