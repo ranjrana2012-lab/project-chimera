@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
+# Add Python path for shared module imports
+ENV PYTHONPATH=/app:$PYTHONPATH
+
 # Copy shared requirements first
 COPY services/shared/requirements.txt ./shared_requirements.txt
 RUN pip install --no-cache-dir -r shared_requirements.txt

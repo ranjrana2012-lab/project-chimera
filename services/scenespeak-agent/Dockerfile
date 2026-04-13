@@ -17,6 +17,9 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
+# Add Python path for shared module imports
+ENV PYTHONPATH=/app:$PYTHONPATH
+
 # Install dependencies
 COPY services/scenespeak-agent/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
