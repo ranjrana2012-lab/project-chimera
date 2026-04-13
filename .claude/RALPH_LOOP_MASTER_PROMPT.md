@@ -95,6 +95,15 @@ After any Docker build operation:
 
 **Quick reference:** See `docs/superpowers/DOCKER_SAFETY_REFERENCE.md`
 
+**Helper Scripts:**
+```bash
+# Pre-flight check (run before Docker operations)
+./scripts/docker-preflight-check.sh
+
+# Post-build check (run after Docker builds)
+./scripts/docker-postbuild-check.sh
+```
+
 ---
 
 ## Work Style Guidelines
