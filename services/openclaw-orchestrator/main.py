@@ -7,22 +7,19 @@ import json
 import os
 import sys
 
-# Add parent directory to path for shared imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../shared'))
+# Import shared security middleware
+from shared.middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    limiter,
+    setup_rate_limit_error_handler,
+)
 
 from config import get_settings
 from tracing import setup_telemetry, instrument_fastapi
 from metrics import init_service_info, record_request
 from models import OrchestrateRequest, OrchestrateResponse, HealthResponse
 from show_manager import show_manager, ShowState
-
-# Import shared security middleware
-from middleware import (
-    SecurityHeadersMiddleware,
-    configure_cors,
-    limiter,
-    setup_rate_limit_error_handler,
-)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

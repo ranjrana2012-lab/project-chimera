@@ -12,7 +12,10 @@ from typing import Optional
 
 class Settings(BaseSettings):
     """Application settings with environment variable support"""
-    model_config = ConfigDict(env_file=".env")
+    model_config = ConfigDict(
+        env_prefix="SCENESPEAK_",
+        extra="ignore"
+    )
 
     # Service
     service_name: str = "scenespeak-agent"

@@ -51,20 +51,20 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - SERVICE_NAME=scenespeak-agent
-      - PORT=8001
-      - ENVIRONMENT=development
-      - LOG_LEVEL=INFO
+      - SCENESPEAK_SERVICE_NAME=scenespeak-agent
+      - SCENESPEAK_PORT=8001
+      - SCENESPEAK_ENVIRONMENT=development
+      - SCENESPEAK_LOG_LEVEL=INFO
       # Z.ai GLM 4.7 API (Primary LLM)
-      - GLM_API_KEY=${GLM_API_KEY}
-      - GLM_API_BASE=https://open.bigmodel.cn/api/paas/v4/
+      - SCENESPEAK_GLM_API_KEY=${GLM_API_KEY}
+      - SCENESPEAK_GLM_API_BASE=https://open.bigmodel.cn/api/paas/v4/
       # Fallback to LOCAL Nemotron LLM on host machine
-      - LOCAL_LLM_ENABLED=true
-      - LOCAL_LLM_URL=http://host.docker.internal:8012
-      - LOCAL_LLM_MODEL=nemotron-3-super-120b-a12b-nvfp4
-      - LOCAL_LLM_TYPE=openai
-      - GLM_API_FALLBACK=true
-      - LLM_TIMEOUT=120
+      - SCENESPEAK_LOCAL_LLM_ENABLED=true
+      - SCENESPEAK_LOCAL_LLM_URL=http://host.docker.internal:8012
+      - SCENESPEAK_LOCAL_LLM_MODEL=nemotron-3-super-120b-a12b-nvfp4
+      - SCENESPEAK_LOCAL_LLM_TYPE=openai
+      - SCENESPEAK_GLM_API_FALLBACK=true
+      - SCENESPEAK_LLM_TIMEOUT=120
     networks:
       - chimera-backend
     extra_hosts:
