@@ -722,3 +722,30 @@ venv/
 **Tests:** All passing
 
 ---
+
+## Iteration 33: Docker Cleanup and Service Fixes (2026-04-14)
+
+**Status:** ✅ COMPLETE
+**Objective:** Fix bloated images, restart loops, and clean Docker cache
+**Started:** 2026-04-14
+**Completed:** 2026-04-14
+
+### Issues Resolved
+1. **scenespeak-agent restart loop** - Rebuilt with env_prefix configuration
+2. **openclaw-orchestrator bloat** - Rebuilt from 184GB to 12.8GB (93% reduction)
+3. **Docker cache cleanup** - Reclaimed 659.8GB disk space
+
+### Results
+- All 7 services healthy
+- Shared code imports working via PYTHONPATH
+- Docker system sustainable (0B build cache, 30.7GB images)
+- Build time: <5 seconds (was minutes)
+
+### Files Changed
+- services/scenespeak-agent/ (rebuild only)
+- services/openclaw-orchestrator/ (rebuild only)
+- Docker images rebuilt with .dockerignore
+
+### Commit
+- cd687fa: fix: rebuild scenespeak-agent with env_prefix configuration
+
