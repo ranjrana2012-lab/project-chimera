@@ -91,3 +91,4 @@ final_test_env/
 models/
 internal/
 .claude/internal/
+@ Prompts/
