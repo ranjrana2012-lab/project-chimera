@@ -34,6 +34,10 @@ COPY services/shared/ /app/shared/
 # Set Python path
 ENV PYTHONPATH=/app/src:/app
 
+# Set HuggingFace cache directories
+ENV HF_HUB_CACHE=/app/models_cache
+ENV TRANSFORMERS_CACHE=/app/models_cache
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
