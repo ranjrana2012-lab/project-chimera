@@ -355,3 +355,21 @@ Project Chimera uses an autonomous AI agent ("Ralph Loop") for iterative develop
 **Docker Safety:** The Ralph Loop has strict constraints on Docker operations to prevent disk bloat. See `docs/superpowers/DOCKER_SAFETY_REFERENCE.md` for details.
 
 **Progress Tracking:** See `.claude/ralph-loop-progress.md` for iteration history.
+
+### Recent Iterations
+
+**Iteration 32 (April 13, 2026): Docker Build Context Optimization**
+- **Achievement:** Reduced Docker build context from 84GB to 13MB (99.99% reduction)
+- **Implementation:** Root `.dockerignore` file with comprehensive exclusions
+- **Impact:** Build times reduced from minutes to seconds, sustainable Docker workflow
+- **Validation:** All services verified healthy with shared code imports working
+
+**Iteration 31 (April 13, 2026): Docker Safety Guard Implementation**
+- **Three-Layer Protection:** Hard Gate, Pre-flight Checklist, Post-Operation Cleanup
+- **Helper Scripts:** Automated validation and cleanup utilities
+- **Documentation:** Comprehensive safety procedures and emergency protocols
+
+**Iteration 30 (April 11, 2026): MVP Validation**
+- **Integration Tests:** 77 tests across 8 services
+- **Documentation Refresh:** MVP_OVERVIEW.md, GETTING_STARTED.md, TESTING.md
+- **Status:** All core services production-ready
