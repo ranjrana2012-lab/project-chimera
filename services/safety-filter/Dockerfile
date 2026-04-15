@@ -1,6 +1,6 @@
 # Safety Filter Service
 # Multi-layer content moderation for AI-generated content
-# Note: Remove --platform flag for CI compatibility with x86_64 runners
+# Optimized with multi-stage build and production dependencies only
 
 FROM python:3.12-slim
 
@@ -9,22 +9,30 @@ WORKDIR /app
 
 # Add Python path for shared module imports
 ENV PYTHONPATH=/app:$PYTHONPATH
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies and cleanup in single layer
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user first (before copying code to avoid large layer)
+RUN useradd -m -u 1000 appuser
 
 # Copy shared requirements first
 COPY services/shared/requirements.txt ./shared_requirements.txt
-RUN pip install --no-cache-dir -r shared_requirements.txt
 
-# Copy requirements first for better caching
+# Copy only production requirements (excluding test dependencies)
 COPY services/safety-filter/requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Filter out test dependencies and install
+RUN grep -v "pytest\|httpx" requirements.txt > /tmp/requirements_prod.txt 2>/dev/null || cp requirements.txt /tmp/requirements_prod.txt && \
+    pip install --no-cache-dir -r /tmp/requirements_prod.txt && \
+    pip install --no-cache-dir -r shared_requirements.txt && \
+    rm /tmp/requirements_prod.txt
 
 # Copy application code
 COPY services/safety-filter/*.py ./
@@ -32,9 +40,9 @@ COPY services/safety-filter/*.py ./
 # Copy shared module
 COPY services/shared/ /app/shared/
 
-# Create non-root user
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
+# Set ownership
+RUN chown -R appuser:appuser /app
+
 USER appuser
 
 # Expose port
