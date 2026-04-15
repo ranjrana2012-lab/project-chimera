@@ -13,7 +13,7 @@ def test_all_services_healthy_via_docker():
     show the '(healthy)' status in their output.
     """
     result = subprocess.run(
-        ["docker", "compose", "ps"],
+        ["docker", "compose", "-f", "docker-compose.mvp.yml", "ps"],
         capture_output=True,
         text=True
     )
@@ -23,10 +23,13 @@ def test_all_services_healthy_via_docker():
     output = result.stdout
     unhealthy_services = []
 
-    # Service names we expect to see (based on active docker-compose.yml)
+    # Service names we expect to see (based on active docker-compose.mvp.yml)
     expected_services = [
         "openclaw-orchestrator",
         "scenespeak-agent",
+        "sentiment-agent",
+        "safety-filter",
+        "operator-console",
         "translation-agent",
         "redis",
         "hardware-bridge"

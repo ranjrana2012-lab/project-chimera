@@ -18,11 +18,11 @@ COPY services/translation-agent/src/ ./src/
 ENV PYTHONPATH="/app/src:$PYTHONPATH"
 
 # Expose port
-EXPOSE 8006
+EXPOSE 8002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8006/health').raise_for_status()"
+    CMD python -c "import httpx; httpx.get('http://localhost:8002/health').raise_for_status()"
 
 # Run the application
 CMD ["python", "-m", "translation_agent.main"]

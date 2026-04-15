@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # Service
     service_name: str = "safety-filter"
-    port: int = 8005
+    port: int = 8006
     log_level: str = "INFO"
     environment: str = "development"
 

@@ -32,7 +32,7 @@ services:
       # Agent URLs (internal Docker network)
       - SCENESPEAK_AGENT_URL=http://scenespeak-agent:8001
       - SENTIMENT_AGENT_URL=http://sentiment-agent:8004
-      - SAFETY_FILTER_URL=http://safety-filter:8005
+      - SAFETY_FILTER_URL=http://safety-filter:8006
       - REDIS_URL=redis://redis:6379
     depends_on:
       - redis
@@ -87,9 +87,9 @@ services:
       - USE_ML_MODEL=true
       - SENTIMENT_MODEL_TYPE=distilbert
       - DEVICE=cpu
-      - MODEL_CACHE_DIR=/app/models
+      - MODEL_CACHE_DIR=/app/models_cache
     volumes:
-      - sentiment-models:/app/models
+      - sentiment-models:/app/models_cache
     networks:
       - chimera-backend
     restart: unless-stopped
@@ -100,10 +100,10 @@ services:
       dockerfile: services/safety-filter/Dockerfile
     container_name: chimera-safety-filter
     ports:
-      - "8005:8005"  # FIXED: Was 8006, now 8005 to avoid collision
+      - "8006:8006"
     environment:
       - SERVICE_NAME=safety-filter
-      - PORT=8005
+      - PORT=8006
       - ENVIRONMENT=development
       - LOG_LEVEL=INFO
       - SAFETY_FILTER_POLICY=family
@@ -120,10 +120,10 @@ services:
       dockerfile: services/translation-agent/Dockerfile
     container_name: chimera-translation-agent
     ports:
-      - "8006:8006"  # Keeps original port
+      - "8002:8002"  # Moved from 8006 to avoid collision with safety-filter
     environment:
       - SERVICE_NAME=translation-agent
-      - PORT=8006
+      - TRANSLATION_AGENT_PORT=8002
       - ENVIRONMENT=development
       - LOG_LEVEL=INFO
       - TRANSLATION_AGENT_USE_MOCK=true

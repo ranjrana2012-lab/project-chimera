@@ -46,11 +46,11 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Expose port
-EXPOSE 8005
+EXPOSE 8006
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8005/health/live')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8006/health/live')"
 
 # Run the application
 CMD ["python", "main.py"]
