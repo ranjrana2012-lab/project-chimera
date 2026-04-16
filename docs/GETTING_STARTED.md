@@ -26,9 +26,9 @@ docker-compose -f docker-compose.mvp.yml ps
 # Check all services are healthy
 curl http://localhost:8000/health  # OpenClaw Orchestrator
 curl http://localhost:8001/health  # SceneSpeak Agent
+curl http://localhost:8002/health  # Translation Agent
 curl http://localhost:8004/health  # Sentiment Agent
-curl http://localhost:8005/health  # Safety Filter
-curl http://localhost:8006/health  # Translation Agent
+curl http://localhost:8006/health  # Safety Filter
 curl http://localhost:8007/health  # Operator Console
 curl http://localhost:8008/health  # Hardware Bridge
 ```
@@ -124,8 +124,8 @@ LLM_MODEL=glm-4.7
 LLM_FALLBACK=nemotron
 ORCHESTRATOR_PORT=8000
 SENTIMENT_PORT=8004
-SAFETY_PORT=8005
-TRANSLATION_PORT=8006
+SAFETY_PORT=8006
+TRANSLATION_PORT=8002
 CONSOLE_PORT=8007
 HARDWARE_PORT=8008
 ```
@@ -296,9 +296,9 @@ Expected output:
 ```
 ✓ OpenClaw Orchestrator (8000): healthy
 ✓ SceneSpeak Agent (8001): healthy
+✓ Translation Agent (8002): healthy
 ✓ Sentiment Agent (8004): healthy
-✓ Safety Filter (8005): healthy
-✓ Translation Agent (8006): healthy
+✓ Safety Filter (8006): healthy
 ✓ Operator Console (8007): healthy
 ✓ Hardware Bridge (8008): healthy
 ✓ Redis (6379): healthy

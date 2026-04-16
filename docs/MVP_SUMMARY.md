@@ -172,4 +172,22 @@ curl -X POST http://localhost:8000/api/orchestrate \
 
 ---
 
+## Iteration 34 Update (April 15, 2026)
+
+**Port Reversion:** Safety Filter reverted from 8005 back to 8006 (spec compliance).
+**Related:** Translation Agent moved from 8006 to 8002 to resolve port collision.
+
+**Current Port Assignments:**
+| Service | Port | Purpose |
+|---------|------|---------|
+| safety-filter | 8006 | Content moderation (reverted from 8005) |
+| translation-agent | 8002 | Mock translation (moved from 8006) |
+
+**See:** [Iteration 34 Release Notes](release-notes/iteration-34-service-health-fixes.md)
+**Reference:** [Service Ports Reference](superpowers/SERVICE_PORTS_REFERENCE.md)
+
+**Note:** The port assignments in the main body of this document reflect the April 11, 2026 MVP rescue state. For current port assignments, see the Service Ports Reference.
+
+---
+
 *Rescue Slice Complete - Ready for deployment and testing*

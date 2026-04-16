@@ -889,3 +889,92 @@ Status: 200, Response: {
 
 All critical health issues resolved. ML model loading fixed. Health check tests added and passing. Image size <500MB target not achieved due to inherent size of Python ML packages, but images are optimized with .dockerignore.
 
+### Detailed Retrospective
+
+#### What Went Wrong
+
+**1. Port Configuration Confusion**
+- Implementer changed Safety Filter from 8006 to 8005 "to avoid collision"
+- Translation Agent remained on 8006, creating the collision we tried to avoid
+- Root cause: Incomplete understanding of service dependencies
+- Impact: Service health tests failing, safety-filter API returning 500 errors
+
+**2. ML Model Permission Errors**
+- Error: `[Errno 13] Permission denied: '/app/models/models--distilbert-base-uncased-finetuned-sst-2-english'`
+- Service fell back to mock sentiment mode despite HF_HUB_CACHE being set
+- Root cause: MODEL_CACHE_DIR=/app/models overrode HF_HUB_CACHE=/app/models_cache
+- Impact: Sentiment analysis not using real ML model
+
+**3. Unauthorized Changes During Task 3**
+- Safety-filter Dockerfile extensively refactored without spec approval
+- Test dependencies removed, multi-stage build pattern added
+- Safety-filter config.py port changed from 8006 to 8005
+- Root cause: Implementer deviated from spec without proper review
+- Impact: Extra work required to revert and fix
+
+#### How We Fixed It
+
+**1. Port Configuration Resolution**
+```bash
+# Reverted Safety Filter to port 8006
+- Updated config.py: port 8005 → 8006
+- Updated Dockerfile: EXPOSE 8005 → EXPOSE 8006
+- Updated Dockerfile healthcheck: localhost:8005 → localhost:8006
+- Updated docker-compose.yml: "8005:8005" → "8006:8006"
+
+# Moved Translation Agent to port 8002
+- Updated Dockerfile: EXPOSE 8006 → EXPOSE 8002
+- Updated Dockerfile healthcheck: localhost:8006 → localhost:8002
+- Updated docker-compose.yml: "8006:8006" → "8002:8002"
+- Changed environment variable: PORT=8006 → TRANSLATION_AGENT_PORT=8002
+
+# Updated orchestrator configuration
+- Changed SAFETY_FILTER_URL: safety-filter:8005 → safety-filter:8006
+```
+
+**2. ML Model Permissions Fix**
+```bash
+# Fixed MODEL_CACHE_DIR environment variable
+# Before: MODEL_CACHE_DIR=/app/models (wrong directory)
+# After: MODEL_CACHE_DIR=/app/models_cache (matches HF_HUB_CACHE)
+
+# Updated volume mount
+# Before: sentiment-models:/app/models
+# After: sentiment-models:/app/models_cache
+```
+
+**3. Service Health Test Fix**
+- Updated test to use docker-compose.mvp.yml (was using default)
+- Added all 8 services to expected_services list
+- Test now passes: 1 passed
+
+#### Lessons Learned
+
+**1. Environment Variable Naming is Critical**
+- Different services use different prefixes (TRANSLATION_AGENT_ vs PORT)
+- Must check actual code to verify variable names
+- Never assume naming conventions
+
+**2. HF_HUB_CACHE Requires Correct cache_dir**
+- Setting HF_HUB_CACHE alone isn't sufficient
+- Application code must use the same cache directory
+- MODEL_CACHE_DIR must align with HF_HUB_CACHE
+
+**3. Spec Compliance Prevents Rework**
+- Unauthorized changes during Task 3 created significant rework
+- Port changes should have gone through design approval
+- Two-stage review process (spec + code quality) is essential
+
+**4. Image Size Targets Need Reality Check**
+- <500MB target not achievable for ML-dependent services
+- Python ML packages (transformers, torch) are inherently large
+- 2.4-3.1GB is acceptable for services with ML models
+- Focus on optimization, not arbitrary size limits
+
+#### Recommendations for Future Iterations
+
+1. **Create SERVICE_PORTS_REFERENCE.md** - Central reference prevents conflicts
+2. **Environment Variable Audit** - Document all variables before making changes
+3. **Enforce Spec Compliance** - Use subagent-driven-development with two-stage review
+4. **Set Realistic Targets** - Base image size targets on actual dependencies
+

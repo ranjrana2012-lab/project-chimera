@@ -40,7 +40,7 @@ Project Chimera MVP delivers an **8-service microservices architecture** for AI-
     │        │        │        │        │        │        │
     ▼        ▼        ▼        ▼        ▼        ▼        ▼
 SceneSpeak  Safety  Sentiment  Trans  Hardware  Health   Redis
-(8001)      (8005)   (8004)    (8006)  (8008)    (8012)   (6379)
+(8001)      (8006)   (8004)    (8002)  (8008)    (8012)   (6379)
  LLM        Filter  Analysis   Lang    DMX      Monitor  State
 ```
 
@@ -151,7 +151,7 @@ GET  /models                  # Model information
 
 ---
 
-### 4. Safety Filter (Port 8005)
+### 4. Safety Filter (Port 8006)
 
 **Purpose:** Content moderation and safety
 
@@ -187,7 +187,7 @@ GET  /health                  # Health check
 
 ---
 
-### 5. Translation Agent (Port 8006)
+### 5. Translation Agent (Port 8002)
 
 **Purpose:** Multi-language support
 
@@ -316,11 +316,11 @@ services:
 
   safety-filter:
     build: ./services/safety-filter
-    ports: ["8005:8005"]
+    ports: ["8006:8006"]
 
   translation-agent:
     build: ./services/translation-agent
-    ports: ["8006:8006"]
+    ports: ["8002:8002"]
 
   operator-console:
     build: ./services/operator-console
@@ -424,8 +424,8 @@ LLM_FALLBACK=nemotron
 # Service Configuration
 ORCHESTRATOR_PORT=8000
 SENTIMENT_PORT=8004
-SAFETY_PORT=8005
-TRANSLATION_PORT=8006
+SAFETY_PORT=8006
+TRANSLATION_PORT=8002
 CONSOLE_PORT=8007
 HARDWARE_PORT=8008
 

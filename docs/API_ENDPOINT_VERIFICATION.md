@@ -54,52 +54,7 @@ This document verifies the actual API endpoints against the documented endpoints
 
 ---
 
-### 3. Captioning Agent (Port 8002)
-
-**Actual Endpoints:**
-- `POST /api/v1/transcribe` - Transcribe audio
-- `POST /api/v1/detect-language` - Detect language
-- `WebSocket /api/v1/stream` - Real-time transcription
-- `POST /api/v1/invoke` - Skill invocation
-- `GET /health/live` - Liveness probe
-- `GET /metrics` - Prometheus metrics
-
-**Documented Endpoints:**
-- `POST /api/v1/captioning/transcribe` ❌ MISMATCH (extra `/captioning`)
-- `POST /api/v1/captioning/detect-language` ❌ MISMATCH
-- `WebSocket /api/v1/captioning/stream` ❌ MISMATCH
-
-**Correction:** The router is included with `prefix="/api/v1"`, and the routes are defined without the `/captioning` segment.
-
-**Files:**
-- `services/Captioning Agent/src/routes/captioning.py` - Routes: `/transcribe`, `/detect-language`, `/stream`
-- `services/Captioning Agent/src/main.py` - Line 91: `app.include_router(captioning_router, prefix="/api/v1")`
-
----
-
-### 4. BSL-Text2Gloss Agent (Port 8003)
-
-**Actual Endpoints:**
-- `POST /api/v1/translate` - Translate text to BSL gloss
-- `POST /api/v1/translate/batch` - Batch translation
-- `POST /api/v1/invoke` - Skill invocation
-- `GET /api/v1/formats` - List available formats
-- `GET /health/live` - Liveness probe
-- `GET /metrics` - Prometheus metrics
-
-**Documented Endpoints:**
-- `POST /api/v1/gloss/translate` ❌ MISMATCH (extra `/gloss`)
-- `POST /api/v1/batch` ❌ MISMATCH (should be `/translate/batch`)
-
-**Correction:** The router is included with `prefix="/api/v1"`, and the routes are `/translate`, not `/gloss/translate`.
-
-**Files:**
-- `services/bsl-text2gloss-agent/src/routes/gloss.py` - Routes: `/translate`, `/translate/batch`
-- `services/bsl-text2gloss-agent/src/main.py` - Line 42: `app.include_router(gloss_router, prefix="/api/v1")`
-
----
-
-### 5. Sentiment Agent (Port 8004)
+### 3. Sentiment Agent (Port 8004)
 
 **Actual Endpoints:**
 - `POST /api/v1/analyze` - Analyze sentiment of single text
@@ -124,34 +79,7 @@ This document verifies the actual API endpoints against the documented endpoints
 
 ---
 
-### 6. Lighting Control (Port 8005)
-
-**Actual Endpoints:**
-- `POST /v1/lighting/set` - Set lighting values
-- `POST /v1/lighting/fixture/{fixture_id}` - Set fixture values
-- `GET /v1/lighting/state` - Get current state
-- `POST /v1/lighting/blackout` - Blackout all lighting
-- `POST /v1/lighting/channel/{channel}` - Set single channel
-- `POST /v1/osc/send` - Send OSC message
-- `GET /v1/cues/*` - Cue management endpoints
-- `GET /v1/presets/*` - Preset management endpoints
-- `GET /health/live` - Liveness probe
-- `GET /metrics` - Prometheus metrics
-
-**Documented Endpoints:**
-- `POST /api/v1/lighting/scene` ❌ MISMATCH (actual: `/v1/lighting/set`)
-- `POST /api/v1/lighting/blackout` ❌ MISMATCH (missing `/api`)
-- `GET /api/v1/lighting/status` ❌ MISMATCH (actual: `/v1/lighting/state`)
-
-**Correction:** Routes use `/v1/lighting/*` pattern without `/api` prefix.
-
-**Files:**
-- `services/lighting-control/src/routes/lighting.py` - Routes defined with `/v1/lighting/*` prefix
-- `services/lighting-control/src/main.py` - Lines 61-63: Routers included without prefix (routes have `/v1` embedded)
-
----
-
-### 7. Safety Filter (Port 8006)
+### 6. Safety Filter (Port 8006)
 
 **Actual Endpoints:**
 - `POST /api/v1/check` - Check content for safety
@@ -172,6 +100,27 @@ This document verifies the actual API endpoints against the documented endpoints
 **Files:**
 - `services/safety-filter/src/routes/safety.py` - Routes: `/check`, `/check/batch`, `/filter`
 - `services/safety-filter/src/main.py` - Line 109: `app.include_router(safety_router, prefix="/api/v1")`
+
+---
+
+### 7. Translation Agent (Port 8002)
+
+**Actual Endpoints:**
+- `POST /api/v1/translate` - Translate text
+- `GET /api/v1/languages` - Get supported languages
+- `POST /api/v1/invoke` - Skill invocation
+- `GET /health/live` - Liveness probe
+- `GET /metrics` - Prometheus metrics
+
+**Documented Endpoints:**
+- `POST /api/v1/translation/translate` ❌ MISMATCH (extra `/translation`)
+- `GET /api/v1/translation/languages` ❌ MISMATCH
+
+**Correction:** The router is included with `prefix="/api/v1"`, and routes are `/translate`, not `/translation/translate`.
+
+**Files:**
+- `services/translation-agent/src/routes/translation.py` - Routes: `/translate`, `/languages`
+- `services/translation-agent/src/main.py` - Line 67: `app.include_router(translation_router, prefix="/api/v1")`
 
 ---
 
@@ -199,11 +148,9 @@ This document verifies the actual API endpoints against the documented endpoints
 |---------|------|---------------|
 | OpenClaw | 8000 | `POST /v1/orchestrate`, `GET /skills` |
 | SceneSpeak | 8001 | `POST /v1/generate` |
-| Captioning | 8002 | `POST /api/v1/transcribe`, `WS /api/v1/stream` |
-| BSL | 8003 | `POST /api/v1/translate`, `POST /api/v1/translate/batch` |
 | Sentiment | 8004 | `POST /api/v1/analyze`, `POST /api/v1/analyze-batch`, `GET /api/v1/trend` |
-| Lighting | 8005 | `POST /v1/lighting/set`, `GET /v1/lighting/state` |
 | Safety | 8006 | `POST /api/v1/check`, `POST /api/v1/filter` |
+| Translation | 8002 | `POST /api/v1/translate`, `GET /api/v1/languages` |
 | Console | 8007 | `GET /`, `WS /ws/events`, `POST /v1/approve` |
 
 ---
@@ -220,8 +167,8 @@ This document verifies the actual API endpoints against the documented endpoints
 ## Standardization Recommendation
 
 **Current State:**
-- OpenClaw, SceneSpeak, Lighting, Console: Use `/v1/` (or no `/api` prefix)
-- Captioning, BSL, Sentiment, Safety: Use `/api/v1/`
+- OpenClaw, SceneSpeak, Console: Use `/v1/` (or no `/api` prefix)
+- Sentiment, Safety, Translation: Use `/api/v1/`
 
 **Recommendation:** Standardize all services to use `/api/v1/` prefix for consistency. This is a more conventional API pattern.
 

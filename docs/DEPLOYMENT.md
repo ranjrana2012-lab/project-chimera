@@ -93,7 +93,7 @@ docker-compose down
 | dashboard | 8013 | http://localhost:8013/health |
 | health-aggregator | 8012 | http://localhost:8012/health |
 | echo-agent | 8014 | http://localhost:8014/health |
-| translation-agent | 8006 | http://localhost:8006/health |
+| translation-agent | 8002 | http://localhost:8002/health |
 | Prometheus | 9090 | http://localhost:9090 |
 | Grafana | 3000 | http://localhost:3000 |
 | Jaeger | 16686 | http://localhost:16686 |

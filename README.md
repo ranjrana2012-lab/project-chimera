@@ -6,8 +6,10 @@
 ![Status](https://img.shields.io/badge/status-production--ready-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.10+-blue)
-![Tests](https://img.shields.io/badge/tests-1502%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-50%20passing%2C%209%20investigating-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-81%25-brightgreen)
+
+*Last Updated: April 15, 2026*
 
 ## Project Status
 
@@ -16,8 +18,8 @@
 | OpenClaw Orchestrator (8000) | ✅ Working | Synchronous orchestration |
 | SceneSpeak Agent (8001) | ✅ Working | LLM dialogue generation |
 | Sentiment Agent (8004) | ✅ Working | DistilBERT sentiment analysis |
-| Safety Filter (8005) | ✅ Working | Content moderation |
-| Translation Agent (8006) | ✅ Working | 15 languages (mock in MVP) |
+| Safety Filter (8006) | ✅ Working | Content moderation |
+| Translation Agent (8002) | ✅ Working | 15 languages (mock in MVP) |
 | Operator Console (8007) | ✅ Working | Show control UI |
 | Hardware Bridge (8008) | ✅ Working | DMX simulation |
 | Redis (6379) | ✅ Working | State management |
@@ -53,7 +55,7 @@ Project Chimera is an open-source, student-run Dynamic Performance Hub that uses
     │        │        │        │        │        │        │
     ▼        ▼        ▼        ▼        ▼        ▼        ▼
 SceneSpeak  Safety  Sentiment  Trans  Hardware  Dashboard  Health
-(8001)      (8005)   (8004)    (8006)  (8008)    (8013)     (8012)
+(8001)      (8006)   (8004)    (8002)  (8008)    (8013)     (8012)
 ```
 
 **Core Services (8 total):**
@@ -173,8 +175,8 @@ pytest tests/e2e/ -v
 | OpenClaw Orchestrator | 8000 | Core coordination | `GET /health` |
 | SceneSpeak Agent | 8001 | Dialogue generation | `GET /health` |
 | Sentiment Agent | 8004 | Sentiment analysis | `GET /health` |
-| Safety Filter | 8005 | Content moderation | `GET /health` |
-| Translation Agent | 8006 | Translation | `GET /health` |
+| Safety Filter | 8006 | Content moderation | `GET /health` |
+| Translation Agent | 8002 | Translation | `GET /health` |
 | Operator Console | 8007 | Control UI | `GET /health` |
 | Hardware Bridge | 8008 | DMX simulation | `GET /health` |
 | Health Aggregator | 8012 | Health monitoring | `GET /health` |
@@ -208,7 +210,7 @@ curl -X POST http://localhost:8004/api/analyze \
 
 ```bash
 # Check all services
-for port in 8000 8001 8004 8005 8006 8007 8008; do
+for port in 8000 8001 8002 8004 8006 8007 8008; do
   curl -s http://localhost:$port/health | jq '.status'
 done
 ```
