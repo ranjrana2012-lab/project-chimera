@@ -1,0 +1,231 @@
+{
+  "dashboard": {
+    "title": "Project Chimera Performance - Iteration 35",
+    "tags": ["chimera", "performance", "mvp"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Response Time (p95)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service=\"orchestrator\"}[5m])) by (le)) or histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service=\"orchestrator\"}[5m])) without (le) > 0)",
+            "legendFormat": "p95"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Seconds",
+            "min": 0,
+            "max": 10
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [5],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"]
+              },
+              "reducer": {
+                "params": [],
+                "type": "avg"
+              },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "Response Time Alert",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "id": 2,
+        "title": "Requests Per Second",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{service=~\"chimera.*\"}[1m])) by (service)",
+            "legendFormat": "{{service}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec",
+            "min": 0
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Cache Hit Rate",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "sum(rate(cache_hits_total[5m])) / (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m]))",
+            "legendFormat": "Hit Rate"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          },
+          "orientation": "auto",
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "decimals": 1,
+            "min": 0,
+            "max": 100
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Connection Pool Utilization",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 6, "y": 8},
+        "targets": [
+          {
+            "expr": "connection_pool_active_connections / connection_pool_max_connections * 100",
+            "legendFormat": "{{pool}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Utilization %",
+            "min": 0,
+            "max": 100,
+            "unit": "percent"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Service Health Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 12},
+        "targets": [
+          {
+            "expr": "up{job=\"chimera\"}",
+            "legendFormat": "Services Up"
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          },
+          "orientation": "auto",
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 5
+                },
+                {
+                  "color": "yellow",
+                  "value": 7
+                },
+                {
+                  "color": "green",
+                  "value": 8
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "ML Model Load Time",
+        "type": "gauge",
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 12},
+        "targets": [
+          {
+            "expr": "model_load_time_seconds{service=\"sentiment-agent\"}",
+            "legendFormat": "Load Time"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "min": 0,
+            "max": 120,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 30
+                },
+                {
+                  "color": "yellow",
+                  "value": 60
+                },
+                {
+                  "color": "red",
+                  "value": 90
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))",
+            "legendFormat": "Error Rate"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Error Rate",
+            "min": 0,
+            "max": 0.1,
+            "unit": "percentunit"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

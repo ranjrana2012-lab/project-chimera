@@ -1,0 +1,50 @@
+[Unit]
+Description=Project Chimera MVP - AI-powered Live Theatre Platform
+Documentation=https://github.com/ranjrana2012-lab/project-chimera
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=forking
+User=chimera
+Group=chimera
+WorkingDirectory=/opt/project-chimera
+
+# Pre-start: Verify Docker is running and pull latest images
+ExecStartPre=/usr/bin/docker pull -q redis:7-alpine
+ExecStartPre=-/usr/bin/test -f /opt/project-chimera/docker-compose.mvp.yml
+
+# Start: Use deploy-production script for controlled startup
+ExecStart=/opt/project-chimera/scripts/deploy-production.sh
+
+# Stop: Use stop-production script for graceful shutdown
+ExecStop=/opt/project-chimera/scripts/stop-production.sh
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/project-chimera
+
+# Resource limits
+MemoryMax=4G
+CPUQuota=200%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=project-chimera
+
+# Timeout for startup (allow time for ML model loading)
+TimeoutStartSec=600
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target
