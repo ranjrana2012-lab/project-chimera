@@ -23,3 +23,7 @@ python-dotenv>=1.0.0
 
 # Logging
 structlog>=2.4.0
+
+# Performance Optimization (Iteration 35)
+httpx>=0.25.0
+redis>=5.0.0

@@ -150,14 +150,26 @@ ws_manager = SentimentConnectionManager()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager for startup/shutdown events"""
+    """
+    Lifespan context manager with ML model pre-loading (Iteration 35).
+
+    Pre-loads DistilBERT model during startup to eliminate 30-60s cold start
+    on first request. Health check blocks until model is loaded.
+    """
     logger.info("Sentiment Agent starting up")
     logger.info(f"ML model enabled: {settings.use_ml_model}")
     logger.info(f"Tracing enabled: {settings.enable_tracing}")
 
-    # Model will be loaded lazily on first request (not at startup)
-    # This allows service to start immediately even with slow network
-    logger.info("Service ready - model will load on first request (lazy loading)")
+    # Preload ML model during startup (Iteration 35)
+    if settings.use_ml_model:
+        logger.info("Preloading DistilBERT model - this may take 30-60 seconds...")
+        model_loaded = await analyzer.preload_model()
+        if model_loaded:
+            logger.info("ML model preloaded successfully - service is ready")
+        else:
+            logger.warning("ML model preload failed, will use mock results")
+    else:
+        logger.info("ML model disabled, using mock results")
 
     yield
     logger.info("Sentiment Agent shutting down")
@@ -193,7 +205,18 @@ async def liveness():
 
 @app.get("/health/ready", response_model=ReadinessResponse)
 async def readiness():
-    """Readiness probe for Kubernetes with model availability check."""
+    """
+    Readiness probe that blocks until model is loaded (Iteration 35).
+
+    Returns "not_ready" if ML model is enabled but not yet loaded.
+    This prevents traffic from reaching the service before it's ready.
+    """
+    if settings.use_ml_model and not analyzer.model_available:
+        return ReadinessResponse(
+            status="not_ready",
+            service="sentiment-agent",
+            model_available=False
+        )
     return ReadinessResponse(
         status="ready",
         service="sentiment-agent",
@@ -203,11 +226,17 @@ async def readiness():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint with detailed status including model_info for E2E tests."""
+    """
+    Health check with model loading status (Iteration 35).
+
+    Returns model_loaded: true only after model pre-loading completes.
+    E2E tests use this to verify service readiness.
+    """
     return {
         "status": "healthy",
         "service": "sentiment-agent",
         "model_available": analyzer.model_available,
+        "model_loaded": analyzer.model_available,  # For E2E test compatibility
         "model_info": {
             "name": "distilbert-sentiment",
             "loaded": analyzer.model_available,

@@ -6,6 +6,8 @@ import httpx
 import json
 import os
 import sys
+import asyncio
+import time
 
 # Import shared security middleware
 from shared.middleware import (
@@ -14,6 +16,9 @@ from shared.middleware import (
     limiter,
     setup_rate_limit_error_handler,
 )
+# Import shared performance utilities (Iteration 35)
+from shared.connection_pool import ConnectionPoolManager, get_global_pool, close_global_pool
+from shared.cache import RequestCache, get_global_cache, close_global_cache
 
 from config import get_settings
 from tracing import setup_telemetry, instrument_fastapi
@@ -50,10 +55,24 @@ SKILL_ENDPOINTS = {
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager"""
+    """Lifespan context manager with connection pool and cache initialization"""
     logger.info("OpenClaw Orchestrator starting up")
+
+    # Initialize global connection pool for performance (Iteration 35)
+    pool = get_global_pool()
+    logger.info("Connection pool initialized")
+
+    # Initialize global cache for performance (Iteration 35)
+    cache = get_global_cache()
+    logger.info("Request cache initialized")
+
     yield
+
+    # Cleanup on shutdown
     logger.info("OpenClaw Orchestrator shutting down")
+    await close_global_pool()
+    await close_global_cache()
+    logger.info("Connection pool and cache closed")
 
 app = FastAPI(
     title="OpenClaw Orchestrator",
@@ -90,17 +109,40 @@ async def liveness():
 
 @app.get("/health/ready")
 async def readiness():
-    """Check if all agents are ready"""
+    """Check if all agents are ready using connection pooling (Iteration 35)"""
     checks = {}
 
-    async with httpx.AsyncClient(timeout=5.0) as client:
-        for agent_name, agent_url in AGENTS.items():
+    # Use global connection pool for health checks
+    pool = get_global_pool()
+
+    async def check_agent(agent_name: str, agent_url: str):
+        """Check a single agent's health."""
+        try:
+            session = await pool.get_session(agent_url)
+            response = await session.get("/health/live", timeout=5.0)
+            is_healthy = response.status_code == 200
+            await pool.release_session(agent_url)
+            return agent_name, is_healthy
+        except Exception as e:
+            logger.warning(f"Agent {agent_name} not ready: {e}")
             try:
-                response = await client.get(f"{agent_url}/health/live")
-                checks[agent_name] = response.status_code == 200
-            except Exception as e:
-                logger.warning(f"Agent {agent_name} not ready: {e}")
-                checks[agent_name] = False
+                await pool.release_session(agent_url)
+            except:
+                pass
+            return agent_name, False
+
+    # Check all agents in parallel
+    tasks = [
+        check_agent(name, url)
+        for name, url in AGENTS.items()
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for result in results:
+        if isinstance(result, Exception):
+            continue
+        agent_name, is_healthy = result
+        checks[agent_name] = is_healthy
 
     all_ready = all(checks.values())
     status = "ready" if all_ready else "not_ready"
@@ -110,9 +152,10 @@ async def readiness():
 @app.post("/api/orchestrate")
 async def orchestrate_synchronous(request: dict):
     """
-    Synchronous orchestration pipeline: Prompt → Sentiment → Safety → LLM → Response
+    Parallel orchestration pipeline for improved performance (Iteration 35).
 
-    This is the main MVP flow that connects all services synchronously.
+    Optimization: Sentiment and Safety checks run in parallel using asyncio.gather().
+    Connection pooling eliminates TCP handshake overhead.
 
     Args:
         request: {
@@ -130,7 +173,6 @@ async def orchestrate_synchronous(request: dict):
             "metadata": {"show_id": "...", "processing_time_ms": 1234}
         }
     """
-    import time
     import uuid
     start_time = time.time()
 
@@ -157,92 +199,129 @@ async def orchestrate_synchronous(request: dict):
                 }
             )
 
-        # Step 1: Sentiment Analysis
-        sentiment_result = {}
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(
-                    f"{AGENTS['sentiment-agent']}/api/analyze",
+        # Get global connection pool (Iteration 35)
+        pool = get_global_pool()
+        cache = get_global_cache()
+
+        # Check cache first (Iteration 35)
+        cache_key = cache.cache_key("orchestrator", prompt, show_id)
+        cached_result = await cache.get(cache_key)
+        if cached_result:
+            logger.info(f"Cache hit for orchestration request")
+            cached_result["metadata"]["from_cache"] = True
+            return cached_result
+
+        # Parallel execution: Sentiment + Safety (Iteration 35)
+        async def analyze_sentiment():
+            """Call sentiment agent with connection pooling."""
+            try:
+                session = await pool.get_session(AGENTS['sentiment-agent'])
+                response = await session.post(
+                    "/api/analyze",
                     json={"text": prompt, "detect_language": False}
                 )
                 response.raise_for_status()
-                sentiment_result = response.json()
-                logger.info(f"Sentiment: {sentiment_result.get('sentiment', 'unknown')}")
-        except Exception as e:
-            logger.warning(f"Sentiment analysis failed: {e}")
+                result = response.json()
+                logger.info(f"Sentiment: {result.get('sentiment', 'unknown')}")
+                await pool.release_session(AGENTS['sentiment-agent'])
+                return result
+            except Exception as e:
+                logger.warning(f"Sentiment analysis failed: {e}")
+                await pool.release_session(AGENTS['sentiment-agent'])
+                return {"sentiment": "neutral", "score": 0.0, "confidence": 0.0}
+
+        async def check_safety():
+            """Call safety filter with connection pooling."""
+            try:
+                session = await pool.get_session(AGENTS['safety-filter'])
+                response = await session.post(
+                    "/api/check",
+                    json={"text": prompt, "policy": "family"}
+                )
+                response.raise_for_status()
+                result = response.json()
+                await pool.release_session(AGENTS['safety-filter'])
+                return result
+            except Exception as e:
+                logger.warning(f"Safety check failed: {e}")
+                await pool.release_session(AGENTS['safety-filter'])
+                return {"safe": True, "reason": "Safety filter unavailable"}
+
+        # Run sentiment and safety in parallel
+        sentiment_result, safety_result = await asyncio.gather(
+            analyze_sentiment(),
+            check_safety(),
+            return_exceptions=True
+        )
+
+        # Handle exceptions from parallel tasks
+        if isinstance(sentiment_result, Exception):
+            logger.error(f"Sentiment task failed: {sentiment_result}")
             sentiment_result = {"sentiment": "neutral", "score": 0.0, "confidence": 0.0}
+        if isinstance(safety_result, Exception):
+            logger.error(f"Safety task failed: {safety_result}")
+            safety_result = {"safe": True, "reason": "Safety filter unavailable"}
 
         # Normalize sentiment to expected format
         sentiment_label = sentiment_result.get("sentiment", "neutral")
         sentiment_score = sentiment_result.get("score", 0.0)
 
-        # Step 2: Safety Filter Check
-        safety_result = {}
-        safe = True
-        safety_reason = "Content approved"
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.post(
-                    f"{AGENTS['safety-filter']}/api/check",
-                    json={"text": prompt, "policy": "family"}
-                )
-                response.raise_for_status()
-                safety_result = response.json()
+        # Check if content is safe
+        safe = safety_result.get("safe", True)
+        safety_reason = safety_result.get("reason", "Content approved")
 
-                # Check if content is safe
-                safe = safety_result.get("safe", True)
-                if not safe:
-                    safety_reason = safety_result.get("reason", "Content blocked by safety filter")
+        if not safe:
+            # Return early with blocked response
+            return {
+                "response": "",
+                "sentiment": {
+                    "label": sentiment_label,
+                    "score": sentiment_score
+                },
+                "safety_check": {
+                    "passed": False,
+                    "reason": safety_reason
+                },
+                "metadata": {
+                    "show_id": show_id,
+                    "processing_time_ms": int((time.time() - start_time) * 1000)
+                }
+            }
 
-                    # Return early with blocked response
-                    return {
-                        "response": "",
-                        "sentiment": {
-                            "label": sentiment_label,
-                            "score": sentiment_score
-                        },
-                        "safety_check": {
-                            "passed": False,
-                            "reason": safety_reason
-                        },
-                        "metadata": {
-                            "show_id": show_id,
-                            "processing_time_ms": int((time.time() - start_time) * 1000)
-                        }
-                    }
-        except Exception as e:
-            logger.warning(f"Safety check failed: {e}, proceeding with caution")
-            safety_result = {"safe": True, "reason": "Safety filter unavailable"}
-
-        # Step 3: Generate Dialogue via LLM
-        dialogue_result = {}
+        # Generate Dialogue via LLM (runs after safety check passes)
         llm_response = ""
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:  # Long timeout for LLM
-                response = await client.post(
-                    f"{AGENTS['scenespeak-agent']}/api/generate",
-                    json={
-                        "prompt": prompt,
-                        "context": {
-                            **context,
-                            "show_id": show_id,
-                            "sentiment": sentiment_label
-                        },
-                        "max_tokens": 500,
-                        "temperature": 0.7
-                    }
-                )
-                response.raise_for_status()
-                dialogue_result = response.json()
-                llm_response = dialogue_result.get("dialogue", "")
-                logger.info(f"Generated dialogue: {len(llm_response)} chars")
+            session = await pool.get_session(AGENTS['scenespeak-agent'])
+            response = await session.post(
+                "/api/generate",
+                json={
+                    "prompt": prompt,
+                    "context": {
+                        **context,
+                        "show_id": show_id,
+                        "sentiment": sentiment_label
+                    },
+                    "max_tokens": 500,
+                    "temperature": 0.7
+                },
+                timeout=120.0  # Long timeout for LLM
+            )
+            response.raise_for_status()
+            dialogue_result = response.json()
+            llm_response = dialogue_result.get("dialogue", "")
+            logger.info(f"Generated dialogue: {len(llm_response)} chars")
+            await pool.release_session(AGENTS['scenespeak-agent'])
         except Exception as e:
             logger.error(f"Dialogue generation failed: {e}")
+            try:
+                await pool.release_session(AGENTS['scenespeak-agent'])
+            except:
+                pass
             llm_response = f"[Could not generate dialogue: {str(e)}]"
 
         processing_time = int((time.time() - start_time) * 1000)
 
-        return {
+        result = {
             "response": llm_response,
             "sentiment": {
                 "label": sentiment_label,
@@ -257,6 +336,11 @@ async def orchestrate_synchronous(request: dict):
                 "processing_time_ms": processing_time
             }
         }
+
+        # Cache the result (Iteration 35) - shorter TTL for orchestrator
+        await cache.set(cache_key, result, ttl=60)
+
+        return result
 
     except HTTPException:
         raise
@@ -734,17 +818,24 @@ def get_agent_for_skill(skill: str) -> str:
     return skill_to_agent[skill]
 
 async def call_agent(agent_url: str, skill: str, input_data: dict) -> dict:
-    """Call agent endpoint
+    """Call agent endpoint using connection pooling (Iteration 35).
 
     Special handling for autonomous-agent which uses /execute endpoint
     """
     # Use skill endpoint mapping for correct API paths
     endpoint = SKILL_ENDPOINTS.get(skill, f"/v1/{skill}")
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(
-            f"{agent_url}{endpoint}",
-            json=input_data
+    # Use global connection pool
+    pool = get_global_pool()
+    session = await pool.get_session(agent_url)
+
+    try:
+        response = await session.post(
+            endpoint,
+            json=input_data,
+            timeout=30.0
         )
         response.raise_for_status()
         return response.json()
+    finally:
+        await pool.release_session(agent_url)

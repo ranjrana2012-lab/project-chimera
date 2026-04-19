@@ -23,6 +23,8 @@ class SentimentAnalyzer:
     Sentiment analyzer using DistilBERT ML model.
 
     ML-only approach - all rule-based logic has been removed.
+
+    Iteration 35: Added preload_model() for startup pre-loading.
     """
 
     def __init__(self, use_ml_model: bool = True):
@@ -46,6 +48,34 @@ class SentimentAnalyzer:
         self.model_available = False
 
         logger.info("SentimentAnalyzer initialized with ML model")
+
+    async def preload_model(self) -> bool:
+        """
+        Preload ML model during service startup (Iteration 35).
+
+        Loads the model synchronously and performs a warmup inference
+        to ensure the model is ready for first request.
+
+        Returns:
+            True if model loaded successfully, False otherwise
+        """
+        logger.info("Preloading DistilBERT model...")
+        try:
+            # Load the model (this is synchronous and can take 30-60s)
+            self.model.load()
+            self.model_available = True
+
+            # Warmup with sample input to ensure model is ready
+            warmup_result = self.model.analyze("Sample input for warmup")
+            logger.info(f"Model warmup complete: {warmup_result['sentiment']}")
+
+            logger.info("ML model preloaded successfully")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to preload ML model: {e}")
+            self.model_available = False
+            return False
 
     def analyze(self, text: str) -> Dict:
         """

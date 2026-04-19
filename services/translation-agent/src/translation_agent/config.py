@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Translation Agent configuration.
+    """Translation Agent configuration (Iteration 35: Real API support).
 
     Environment variables:
         TRANSLATION_AGENT_NAME: Service name (default: translation-agent)
@@ -13,6 +13,8 @@ class Settings(BaseSettings):
         TRANSLATION_AGENT_USE_MOCK: Use mock translation (default: True for development)
         TRANSLATION_AGENT_CACHE_TTL: Translation cache TTL in seconds (default: 3600)
         TRANSLATION_AGENT_BSL_SERVICE_URL: BSL avatar service URL
+        GOOGLE_TRANSLATE_API_KEY: Google Cloud Translation API key (Iteration 35)
+        GOOGLE_TRANSLATE_PROJECT_ID: Google Cloud project ID (Iteration 35)
     """
 
     model_config = SettingsConfigDict(
@@ -33,6 +35,11 @@ class Settings(BaseSettings):
     # Translation settings
     use_mock: bool = True
     cache_ttl: int = 3600
+
+    # Google Translate API (Iteration 35)
+    google_translate_api_key: str = ""
+    google_translate_project_id: str = ""
+    google_api_url: str = "https://translation.googleapis.com/language/translate/v2"
 
     # BSL Service integration
     bsl_service_url: str = "http://localhost:8005"
@@ -55,6 +62,11 @@ class Settings(BaseSettings):
         "hi",  # Hindi
         "bsl",  # British Sign Language
     ]
+
+    @property
+    def has_google_api_key(self) -> bool:
+        """Check if Google Translate API key is configured."""
+        return bool(self.google_translate_api_key)
 
 
 # Global settings instance

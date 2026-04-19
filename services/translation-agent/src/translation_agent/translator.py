@@ -1,7 +1,11 @@
-"""Translation engine with caching and BSL integration."""
+"""Translation engine with caching and BSL integration.
+
+Iteration 35: Added Google Translate API support for real translations.
+"""
 
 import asyncio
 import hashlib
+import json
 import logging
 import time
 from typing import Any
@@ -58,6 +62,94 @@ class TranslationCache:
     def clear(self) -> None:
         """Clear all cached translations."""
         self._cache.clear()
+
+
+class GoogleTranslator:
+    """Google Cloud Translation API integration (Iteration 35).
+
+    Provides real translations using Google Cloud Translation API v2.
+    Falls back to mock if API key is not configured or on errors.
+    """
+
+    def __init__(self, api_key: str, project_id: str, api_url: str):
+        """Initialize Google translator.
+
+        Args:
+            api_key: Google Cloud API key
+            project_id: Google Cloud project ID
+            api_url: Google Translate API endpoint
+        """
+        self.api_key = api_key
+        self.project_id = project_id
+        self.api_url = api_url
+        self._client = httpx.AsyncClient(timeout=30.0)
+
+    async def translate(self, request: TranslationRequest) -> TranslationResponse:
+        """Translate text using Google Cloud Translation API.
+
+        Args:
+            request: Translation request with text and language codes
+
+        Returns:
+            TranslationResponse with translated text
+
+        Falls back to mock translation on API errors.
+        """
+        try:
+            # Prepare API request
+            params = {
+                "key": self.api_key,
+                "q": request.text,
+                "source": request.source_language,
+                "target": request.target_language,
+                "format": "text"
+            }
+
+            # Call Google Translate API
+            response = await self._client.get(
+                self.api_url,
+                params=params
+            )
+            response.raise_for_status()
+
+            # Parse response
+            data = response.json()
+            translations = data.get("data", {}).get("translations", [])
+            if not translations:
+                logger.error("No translations in API response")
+                return await MockTranslator.translate(request)
+
+            translated_text = translations[0].get("translatedText", request.text)
+            detected_source = translations[0].get("detectedSourceLanguage", request.source_language)
+
+            logger.info(
+                f"Google Translate: {request.source_language} -> {request.target_language}"
+            )
+
+            return TranslationResponse(
+                translated_text=translated_text,
+                source_language=detected_source,
+                target_language=request.target_language,
+                status=TranslationStatus.COMPLETED,
+                confidence=0.98,  # Google Translate has high accuracy
+            )
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 403:
+                logger.warning("Google Translate API quota exceeded or invalid key")
+            else:
+                logger.warning(f"Google Translate API error: {e.response.status_code}")
+            # Fallback to mock
+            return await MockTranslator.translate(request)
+
+        except Exception as e:
+            logger.warning(f"Google Translate failed: {e}")
+            # Fallback to mock
+            return await MockTranslator.translate(request)
+
+    async def close(self) -> None:
+        """Close HTTP client."""
+        await self._client.aclose()
 
 
 class MockTranslator:
@@ -155,13 +247,27 @@ class BSLTranslator:
 
 
 class TranslationEngine:
-    """Main translation engine with caching."""
+    """
+    Main translation engine with caching (Iteration 35).
+
+    Routes to Google Translate API when configured, otherwise uses mock.
+    """
 
     def __init__(self, settings: Any | None = None):
         """Initialize translation engine."""
         self._settings = settings or get_settings()
         self._cache = TranslationCache(ttl=self._settings.cache_ttl)
         self._bsl_translator = BSLTranslator(self._settings.bsl_service_url)
+
+        # Initialize Google translator if API key is configured (Iteration 35)
+        self._google_translator = None
+        if self._settings.has_google_api_key:
+            self._google_translator = GoogleTranslator(
+                api_key=self._settings.google_translate_api_key,
+                project_id=self._settings.google_translate_project_id,
+                api_url=self._settings.google_api_url
+            )
+            logger.info("Google Translate API configured")
 
     async def translate(self, request: TranslationRequest) -> TranslationResponse:
         """Translate text with caching."""
@@ -174,10 +280,11 @@ class TranslationEngine:
         # Route to appropriate translator
         if request.target_language == "bsl":
             response = await self._bsl_translator.translate(request)
-        elif self._settings.use_mock:
-            response = await MockTranslator.translate(request)
+        elif self._google_translator and not self._settings.use_mock:
+            # Use real Google Translate API (Iteration 35)
+            response = await self._google_translator.translate(request)
         else:
-            # TODO: Integrate real translation API (e.g., LibreTranslate, Google Translate)
+            # Use mock translation
             response = await MockTranslator.translate(request)
 
         # Cache successful translations
@@ -195,6 +302,7 @@ class TranslationEngine:
         status = {
             "cache_size": len(self._cache._cache),
             "mock_mode": self._settings.use_mock,
+            "google_api_configured": self._settings.has_google_api_key,
             "bsl_service": "unknown",
         }
 
@@ -211,3 +319,5 @@ class TranslationEngine:
     async def close(self) -> None:
         """Close resources."""
         await self._bsl_translator.close()
+        if self._google_translator:
+            await self._google_translator.close()
