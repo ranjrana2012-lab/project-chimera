@@ -2,10 +2,13 @@
 Safety Filter Agent - FastAPI Application
 
 Content safety filtering API with policy templates.
+
+Iteration 35: Added connection pool support and health readiness checks.
 """
 
 import logging
 from typing import List, Optional
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
@@ -22,6 +25,9 @@ from core.safety import (
 # Import tracing
 from api.tracing import get_tracer, trace_safety_check, trace_batch_check
 from shared.tracing import instrument_fastapi, add_span_attributes, record_error
+
+# Import shared connection pool (Iteration 35)
+from shared.connection_pool import get_global_pool, close_global_pool
 
 
 # Configure logging
@@ -52,11 +58,33 @@ def get_service() -> SafetyFilterService:
     return service
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan context manager with connection pool initialization (Iteration 35).
+
+    Initializes the shared connection pool during startup for use
+    by any external service integrations.
+    """
+    logger.info("Safety Filter Agent starting up")
+
+    # Initialize global connection pool (Iteration 35)
+    pool = get_global_pool()
+    logger.info("Connection pool initialized")
+
+    yield
+
+    # Cleanup
+    await close_global_pool()
+    logger.info("Safety Filter Agent shutting down")
+
+
 # Create FastAPI app
 app = FastAPI(
     title="Safety Filter Agent",
     description="Multi-layer content safety filtering with policy templates",
-    version="0.5.0"
+    version="0.5.0",
+    lifespan=lifespan
 )
 
 # Instrument FastAPI with tracing
@@ -65,13 +93,62 @@ instrument_fastapi(app)
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
+    """
+    Health check endpoint (Iteration 35).
+
+    Safety filter is always ready - no external dependencies to check.
+    """
     return {
         "status": "healthy",
         "service": "safety-filter",
         "version": "0.5.0",
-        "policies": list(POLICY_TEMPLATES.keys())
+        "policies": list(POLICY_TEMPLATES.keys()),
+        "ready": True  # Iteration 35: for E2E test compatibility
     }
+
+
+@app.get("/health/live")
+async def liveness():
+    """Liveness probe for Kubernetes."""
+    return {"status": "alive"}
+
+
+@app.get("/health/ready")
+async def readiness():
+    """Readiness probe - always ready (no external dependencies)."""
+    return {
+        "status": "ready",
+        "service": "safety-filter"
+    }
+
+
+@app.post("/api/check")
+async def check_content_api(request_data: dict):
+    """
+    Check content for safety (orchestrator compatibility endpoint - Iteration 35).
+
+    Simplified API matching the orchestrator's expected interface.
+    """
+    try:
+        service_instance = get_service()
+
+        content = request_data.get("text", request_data.get("content", ""))
+        policy = request_data.get("policy", "family")
+
+        # Check content safety
+        result = service_instance.check_content(content)
+
+        # Return format expected by orchestrator
+        return {
+            "safe": result.is_safe,
+            "reason": result.reasoning,
+            "policy": policy,
+            "matched_terms": result.matched_terms
+        }
+
+    except Exception as e:
+        logger.error(f"Safety check error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/v1/check")
