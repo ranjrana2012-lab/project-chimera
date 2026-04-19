@@ -23,6 +23,15 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
+import sys
+services_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+if services_dir not in sys.path:
+    sys.path.append(services_dir)
+try:
+    from shared.kafka_bus import KafkaEventBus
+except ImportError:
+    KafkaEventBus = None
+
 from sentiment_agent.config import get_settings
 from sentiment_agent.models import (
     AnalyzeRequest,
@@ -46,6 +55,7 @@ settings = get_settings()
 # Initialize components
 tracer = get_tracer()
 analyzer = SentimentAnalyzer(use_ml_model=settings.use_ml_model)
+kafka_bus = None
 
 # Orchestrator webhook URL
 ORCHESTRATOR_WEBHOOK = "http://openclaw-orchestrator:8000/api/sentiment/webhook"
@@ -151,15 +161,51 @@ ws_manager = SentimentConnectionManager()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup/shutdown events"""
+    global kafka_bus
     logger.info("Sentiment Agent starting up")
     logger.info(f"ML model enabled: {settings.use_ml_model}")
     logger.info(f"Tracing enabled: {settings.enable_tracing}")
+
+    bootstrap_servers = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    if KafkaEventBus:
+        kafka_bus = KafkaEventBus(bootstrap_servers, "sentiment-agent")
+        try:
+            await kafka_bus.start()
+            
+            async def handle_sentiment_request(msg: dict):
+                text = msg.get("text", "")
+                task_id = msg.get("task_id", "")
+                if text and task_id:
+                    result = analyzer.analyze(text)
+                    score = result["score"]
+                    if result["sentiment"] == "negative":
+                        score = -1.0 + (score / 0.4)
+                        if score >= 0: score = -0.1
+                    elif result["sentiment"] == "positive":
+                        score = (score - 0.6) / 0.4
+                        if score <= 0: score = 0.1
+                    else:
+                        score = (score - 0.5) * 0.4
+
+                    await kafka_bus.publish("chimera.sentiment.completed", {
+                        "task_id": task_id,
+                        "sentiment": result["sentiment"],
+                        "score": score,
+                        "confidence": result["confidence"],
+                        "emotions": result["emotions"]
+                    })
+                    
+            await kafka_bus.subscribe("chimera.sentiment.request", handle_sentiment_request)
+        except Exception as e:
+            logger.error(f"Failed to start Kafka bus: {e}")
 
     # Model will be loaded lazily on first request (not at startup)
     # This allows service to start immediately even with slow network
     logger.info("Service ready - model will load on first request (lazy loading)")
 
     yield
+    if kafka_bus:
+        await kafka_bus.stop()
     logger.info("Sentiment Agent shutting down")
 
 
