@@ -11,16 +11,16 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Service configuration: PORT:SERVICE_NAME
+# Updated to match docker-compose.mvp.yml (8 MVP services)
 SERVICES=(
-  "8000:orchestrator"
-  "8001:scenespeak"
-  "8002:captioning"
-  "8003:bsl"
-  "8004:sentiment"
-  "8005:lighting"
-  "8006:safety"
-  "8007:console"
-  "8011:music"
+  "8000:openclaw-orchestrator"
+  "8001:scenespeak-agent"
+  "8002:translation-agent"
+  "8004:sentiment-agent"
+  "8006:safety-filter"
+  "8007:operator-console"
+  "8008:hardware-bridge"
+  "6379:redis"
 )
 
 # Configuration
@@ -31,6 +31,15 @@ INTERVAL=2   # seconds
 check_service() {
   local port=$1
   local name=$2
+
+  if [ "$name" = "redis" ]; then
+    # Redis uses docker exec for health check
+    if docker exec chimera-redis redis-cli ping > /dev/null 2>&1; then
+      return 0
+    else
+      return 1
+    fi
+  fi
 
   if curl -sf "http://localhost:${port}/health/ready" > /dev/null 2>&1; then
     return 0

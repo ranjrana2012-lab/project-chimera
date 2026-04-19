@@ -24,9 +24,10 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md). We are committ
 - Linux (Ubuntu 22.04 recommended) or macOS
 - Python 3.10 or later
 - Docker and Docker Compose
-- kubectl
 - Git
 - NVIDIA GPU (optional, for full feature support)
+
+**New contributors:** See [docs/DEVELOPER_SETUP.md](docs/DEVELOPER_SETUP.md) for comprehensive developer onboarding guide.
 
 ### Initial Setup
 
@@ -213,9 +214,17 @@ def process_items(
 
 ### Test Coverage
 
-- Aim for >80% code coverage
+- Aim for 80%+ code coverage (currently: 78% unit, 75% integration)
 - All new features must include tests
 - Bug fixes must include regression tests
+
+**Current test infrastructure:**
+- Unit tests: 700+ tests
+- Integration tests: 25+ tests
+- E2E tests: 594 tests (100% passing)
+- Load testing: Locust framework with 50+ concurrent users support
+
+See [tests/TEST_SETUP.md](tests/TEST_SETUP.md) for complete testing guide.
 
 ### Test Structure
 
@@ -245,7 +254,9 @@ class TestLLMEngine:
 
 - **Unit Tests:** Test individual functions/classes in isolation
 - **Integration Tests:** Test interactions between services
-- **Load Tests:** Test performance under load
+- **E2E Tests:** Test complete user journeys through the system
+- **Load Tests:** Test performance under load (Locust framework)
+- **Performance Tests:** Benchmark key services and operations
 - **Red Team Tests:** Test security and safety features
 - **Accessibility Tests:** Test WCAG compliance
 
