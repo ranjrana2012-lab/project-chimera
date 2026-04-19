@@ -145,18 +145,18 @@ python scripts/send-welcome-emails.py --data data/students.csv
 
 ## 📋 Role Assignments (To be filled during demo)
 
-| ID | Name | Preferred | Email | Role | Component | Mentor |
+| ID | Student Information (Removed for Privacy) | Role | Component | Mentor |
 |----|------|-----------|-------|------|-----------|--------|
-| 1 | Mahdi Hussain | Mahdi | mahdi.hussain@mail.bcu.ac.uk | Tech Lead | OpenClaw (8000) | TBD |
-| 2 | Kumba Kuyateh | Kumba | kumba.kuyateh@mail.bcu.ac.uk | AI-ML Lead | SceneSpeak (8001) | TBD |
-| 3 | Zina Samha | Zina | zina.samha@mail.bcu.ac.uk | AI-ML Lead | Captioning (8002) | TBD |
-| 4 | Arashdip Singh | Arashdip | arashdip.singh@mail.bcu.ac.uk | AI-ML Lead | BSL Translation (8003) | TBD |
-| 5 | Onaopemiposi Adeyeye | Debby | onaopemiposi.adeyeye@mail.bcu.ac.uk | AI-ML Lead | Sentiment (8004) | TBD |
-| 6 | Mohammad Ahmadzai | Mohammad | mohammad.ahmadzai@mail.bcu.ac.uk | Infra Lead | Lighting Control (8005) | TBD |
-| 7 | Jennifer Ansah | Jennifer | jennifer.ansah@mail.bcu.ac.uk | QA Lead | Safety Filter (8006) | TBD |
-| 8 | Fatmazahra Kawan | Fatma | fatmazahra.kawan@mail.bcu.ac.uk | Frontend Lead | Operator Console (8007) | TBD |
-| 9 | Wasiq Ali | Wasiq | wasiq.ali@mail.bcu.ac.uk | Infrastructure | Infrastructure | TBD |
-| 10 | Anzil Mohammed Nahas | Anzil | anzil.nahas@mail.bcu.ac.uk | QA | QA & Testing | TBD |
+| 1 | [Student 1] | Tech Lead | OpenClaw (8000) | TBD |
+| 2 | [Student 2] | AI-ML Lead | SceneSpeak (8001) | TBD |
+| 3 | [Student 3] | AI-ML Lead | Captioning (8002) | TBD |
+| 4 | [Student 4] | AI-ML Lead | BSL Translation (8003) | TBD |
+| 5 | [Student 5] | AI-ML Lead | Sentiment (8004) | TBD |
+| 6 | [Student 6] | Infra Lead | Lighting Control (8005) | TBD |
+| 7 | [Student 7] | QA Lead | Safety Filter (8006) | TBD |
+| 8 | [Student 8] | Frontend Lead | Operator Console (8007) | TBD |
+| 9 | [Student 9] | Infrastructure | Infrastructure | TBD |
+| 10 | [Student 10] | QA | QA & Testing | TBD |
 
 ---
 

@@ -90,15 +90,15 @@
 **Issues Closed**:
 - Issue #1: Environment Setup
 - Issue #2: Your First Pull Request
-- Issue #3: Mahdi - OpenClaw Setup
-- Issue #4: Kumba - SceneSpeak Setup
-- Issue #5: Zina - Captioning Setup
-- Issue #6: Arashdip - BSL Setup
-- Issue #8: Mohammad - Lighting Setup
-- Issue #9: Jennifer - Safety Setup
-- Issue #10: Fatma - Console Setup
-- Issue #11: Wasiq - Infrastructure Setup
-- Issue #12: Anzil - QA Setup
+- Issue #3: OpenClaw Setup
+- Issue #4: SceneSpeak Setup
+- Issue #5: Captioning Setup
+- Issue #6: BSL Setup
+- Issue #8: Lighting Setup
+- Issue #9: Safety Setup
+- Issue #10: Console Setup
+- Issue #11: Infrastructure Setup
+- Issue #12: QA Setup
 
 **Closing Method**:
 - Professional comments citing strategic pivot

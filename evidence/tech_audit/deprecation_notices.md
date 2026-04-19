@@ -35,9 +35,9 @@ This document lists all components, features, and requirements that have been **
 ### 3. Sprint 0 Onboarding (❌ DEPRECATED)
 
 **Affected Issues**:
-- Issue #6: Arashdip for BSL Setup
-- Issue #8: Mohammad for Lighting Setup  
-- Issue #10: Fatma for Console Setup
+- Issue #6: BSL Setup
+- Issue #8: Lighting Setup
+- Issue #10: Console Setup
 - Other student assignment issues
 
 **Status**: **CLOSED** - Simplified to solo development

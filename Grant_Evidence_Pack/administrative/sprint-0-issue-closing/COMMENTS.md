@@ -49,13 +49,13 @@ Thank you for your understanding.
 ### Issue #2: Your First Pull Request
 **Additional Comment**: We encourage you to review the codebase and consider contributing to Phase 2. The CONTRIBUTING.md file remains available for guidance.
 
-### Issue #6: Sprint 0: Arashdip - BSL Setup
+### Issue #6: Sprint 0: BSL Setup
 **Additional Comment**: The BSL agent has been moved to `future_concepts/services/bsl-agent/` as a dictionary-based prototype. Phase 2 will expand this with proper ML integration.
 
-### Issue #8: Sprint 0: Mohammad - Lighting Setup
+### Issue #8: Sprint 0: Lighting Setup
 **Additional Comment**: The lighting-sound-music service has been moved to `future_concepts/services/lighting-sound-music/` with HTTP API intact. Hardware integration is deferred to Phase 2.
 
-### Issue #10: Sprint 0: Fatma - Console Setup
+### Issue #10: Sprint 0: Console Setup
 **Additional Comment**: The operator-console service remains operational as part of the core demonstrator. We welcome your contributions to Phase 2 enhancements.
 
 ---

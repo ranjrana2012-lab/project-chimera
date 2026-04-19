@@ -15,20 +15,20 @@ Onboard 11 student developers to contribute to Project Chimera microservices.
 
 ### Student Assignments
 
-| Issue | Student | Component | Status |
-|-------|---------|-----------|--------|
-| #1 | All | Environment Setup | Closed (No participation) |
-| #2 | All | First Pull Request | Closed (No participation) |
-| #3 | Mahdi | OpenClaw Setup | Closed (No participation) |
-| #4 | Kumba | SceneSpeak Setup | Closed (No participation) |
-| #5 | Zina | Captioning Setup | Closed (No participation) |
-| #6 | Arashdip | BSL Setup | Closed (No participation) |
-| #7 | Debby | Sentiment Setup | Closed (No participation) |
-| #8 | Mohammad | Lighting Setup | Closed (No participation) |
-| #9 | Jennifer | Safety Setup | Closed (No participation) |
-| #10 | Fatma | Console Setup | Closed (No participation) |
-| #11 | Wasiq | Infrastructure Setup | Closed (No participation) |
-| #12 | Anzil | QA Setup | Closed (No participation) |
+| Issue | Component | Status |
+|-------|-----------|--------|
+| #1 | Environment Setup | Closed (No participation) |
+| #2 | First Pull Request | Closed (No participation) |
+| #3 | OpenClaw Setup | Closed (No participation) |
+| #4 | SceneSpeak Setup | Closed (No participation) |
+| #5 | Captioning Setup | Closed (No participation) |
+| #6 | BSL Setup | Closed (No participation) |
+| #7 | Sentiment Setup | Closed (No participation) |
+| #8 | Lighting Setup | Closed (No participation) |
+| #9 | Safety Setup | Closed (No participation) |
+| #10 | Console Setup | Closed (No participation) |
+| #11 | Infrastructure Setup | Closed (No participation) |
+| #12 | QA Setup | Closed (No participation) |
 
 ### Results
 - **Issues Opened**: 12
@@ -57,10 +57,7 @@ Pull Requests: 0
 ```
 
 ### Student Assignments
-- Arashdip (BSL): 0 commits, 0 PRs
-- Mohammad (Lighting): 0 commits, 0 PRs
-- Fatma (Console): 0 commits, 0 PRs
-- [8 additional students]: 0 commits, 0 PRs
+- Assigned students (11): 0 commits, 0 PRs across all roles
 
 ---
 

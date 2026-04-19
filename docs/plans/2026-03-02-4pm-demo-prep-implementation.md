@@ -19,16 +19,16 @@
 
 ```csv
 id,name,preferred_name,email
-1,Mahdi Hussain,Mahdi,mahdi.hussain@mail.bcu.ac.uk
-2,Kumba Kuyateh,Kumba,kumba.kuyateh@mail.bcu.ac.uk
-3,Zina Samha,Zina,zina.samha@mail.bcu.ac.uk
-4,Arashdip Singh,Arashdip,arashdip.singh@mail.bcu.ac.uk
-5,Onaopemiposi Adeyeye,Debby,onaopemiposi.adeyeye@mail.bcu.ac.uk
-6,Mohammad Ahmadzai,Mohammad,mohammad.ahmadzai@mail.bcu.ac.uk
-7,Jennifer Ansah,Jennifer,jennifer.ansah@mail.bcu.ac.uk
-8,Fatmazahra Kawan,Fatma,fatmazahra.kawan@mail.bcu.ac.uk
-9,Wasiq Ali,Wasiq,wasiq.ali@mail.bcu.ac.uk
-10,Anzil Mohammed Nahas,Anzil,anzil.nahas@mail.bcu.ac.uk
+1,[Student 1],[Preferred],[email]
+2,[Student 2],[Preferred],[email]
+3,[Student 3],[Preferred],[email]
+4,[Student 4],[Preferred],[email]
+5,[Student 5],[Preferred],[email]
+6,[Student 6],[Preferred],[email]
+7,[Student 7],[Preferred],[email]
+8,[Student 8],[Preferred],[email]
+9,[Student 9],[Preferred],[email]
+10,[Student 10],[Preferred],[email]
 ```
 
 **Step 2: Commit**

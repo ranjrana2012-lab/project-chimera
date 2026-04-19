@@ -195,10 +195,7 @@ Issues Closed (by students): 0
 Pull Requests: 0
 
 Student Assignments:
-- Arashdip (BSL Setup): 0 commits, 0 PRs
-- Mohammad (Lighting Setup): 0 commits, 0 PRs
-- Fatma (Console Setup): 0 commits, 0 PRs
-- [8 additional students]: 0 commits, 0 PRs
+- Assigned students (11): 0 commits, 0 PRs across all roles
 ```
 
 **Why Failed**:

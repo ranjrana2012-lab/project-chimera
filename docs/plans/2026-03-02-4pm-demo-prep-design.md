@@ -142,18 +142,18 @@ Project_Chimera/
 
 ## Student Data
 
-| # | Name | Preferred | Email |
+| # | Student Information (Removed for Privacy) |
 |---|------|-----------|-------|
-| 1 | Mahdi Hussain | Mahdi | mahdi.hussain@mail.bcu.ac.uk |
-| 2 | Kumba Kuyateh | Kumba | kumba.kuyateh@mail.bcu.ac.uk |
-| 3 | Zina Samha | Zina | zina.samha@mail.bcu.ac.uk |
-| 4 | Arashdip Singh | Arashdip | arashdip.singh@mail.bcu.ac.uk |
-| 5 | Onaopemiposi Adeyeye | Debby | onaopemiposi.adeyeye@mail.bcu.ac.uk |
-| 6 | Mohammad Ahmadzai | Mohammad | mohammad.ahmadzai@mail.bcu.ac.uk |
-| 7 | Jennifer Ansah | Jennifer | jennifer.ansah@mail.bcu.ac.uk |
-| 8 | Fatmazahra Kawan | Fatma | fatmazahra.kawan@mail.bcu.ac.uk |
-| 9 | Wasiq Ali | Wasiq | wasiq.ali@mail.bcu.ac.uk |
-| 10 | Anzil Mohammed Nahas | Anzil | anzil.nahas@mail.bcu.ac.uk |
+| 1 | [Student 1] | [Preferred] | [Email] |
+| 2 | [Student 2] | [Preferred] | [Email] |
+| 3 | [Student 3] | [Preferred] | [Email] |
+| 4 | [Student 4] | [Preferred] | [Email] |
+| 5 | [Student 5] | [Preferred] | [Email] |
+| 6 | [Student 6] | [Preferred] | [Email] |
+| 7 | [Student 7] | [Preferred] | [Email] |
+| 8 | [Student 8] | [Preferred] | [Email] |
+| 9 | [Student 9] | [Preferred] | [Email] |
+| 10 | [Student 10] | [Preferred] | [Email] |
 
 ---
 
