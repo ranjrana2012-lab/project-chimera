@@ -92,3 +92,16 @@ models/
 internal/
 .claude/internal/
 @ Prompts/
+
+# Grant documentation (local only, not for public GitHub)
+Grant_Evidence_Pack/
+GRANT_EXTENSION_PROPOSAL.md
+FINAL_GRANT_SUBMISSION_STATUS.md
+docs/FINAL_GRANT_REPORT_PHASE_1.md
+docs/EXECUTIVE_SUMMARY.md
+docs/STRATEGIC_PIVOT_MANDATE.md
+docs/NARRATIVE_OF_ADAPTATION.md
+docs/FINAL_GRANT_REPORT_PHASE_1.md
+docs/ADAPTIVE_ROUTING_BEHAVIOR.md
+docs/LIMITATIONS_AND_FUTURE_ROADMAP.md
+evidence/
