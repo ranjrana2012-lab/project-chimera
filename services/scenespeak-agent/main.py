@@ -163,19 +163,26 @@ class GenerateResponse(BaseModel):
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint with model_info for E2E tests."""
+    """
+    Health check endpoint with model_info for E2E tests (Iteration 35).
+
+    model_loaded: true indicates local LLM or GLM API is ready.
+    """
     local_available = (local_llm_client and await local_llm_client.is_available()) or \
                       (openai_llm_client and await openai_llm_client.is_available())
+    model_loaded = bool(settings.glm_api_key or local_available)
+
     return {
         "status": "healthy",
         "service": "scenespeak-agent",
-        "model_available": bool(settings.glm_api_key or local_available),
+        "model_available": model_loaded,
+        "model_loaded": model_loaded,  # Iteration 35: for E2E test compatibility
         "local_llm_available": local_available,
         "openai_llm_available": bool(openai_llm_client and await openai_llm_client.is_available()) if openai_llm_client else False,
         "glm_api_available": bool(settings.glm_api_key),
         "model_info": {
             "name": settings.local_llm_model if local_available else "glm-4.7",
-            "loaded": bool(settings.glm_api_key or local_available),
+            "loaded": model_loaded,
             "version": "1.0.0",
             "type": getattr(settings, 'local_llm_type', 'ollama')
         }
@@ -218,15 +225,21 @@ async def local_llm_health():
 
 @app.get("/health/model_info")
 async def health_with_model_info():
-    """Health check with model information for E2E tests."""
+    """
+    Health check with model information for E2E tests (Iteration 35).
+
+    model_loaded: true indicates GLM API or local LLM is configured.
+    """
     local_available = local_llm_client and await local_llm_client.is_available()
+    model_loaded = bool(settings.glm_api_key or local_available)
 
     return {
         "status": "healthy",
         "service": "scenespeak-agent",
+        "model_loaded": model_loaded,  # Iteration 35: for E2E test compatibility
         "model_info": {
             "name": "glm-4.7",
-            "loaded": bool(settings.glm_api_key or local_available),
+            "loaded": model_loaded,
             "version": "1.0.0",
             "local_llm_available": local_available
         }
