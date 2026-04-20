@@ -95,7 +95,7 @@ services:
     container_name: chimera-milvus
     ports:
       - "${MILVUS_PORT:-19530}:19530"
-      - "${MILVUS_METRICS_PORT:-9091}:9091"
+      - "${MILVUS_METRICS_PORT:-9093}:9091"
     environment:
       - ETCD_ENDPOINTS=etcd:2379
       - MINIO_ADDRESS=minio:9000
@@ -178,7 +178,7 @@ services:
     image: prom/prometheus:latest
     container_name: chimera-prometheus
     ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
+      - "${PROMETHEUS_PORT:-9094}:9090"
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - chimera-prometheus-data:/prometheus
@@ -730,70 +730,71 @@ services:
           cpus: ${CONSOLE_CPU_RESERVATION:-0.25}
           memory: ${CONSOLE_MEMORY_RESERVATION:-128M}
 
-  music-generation:
-    build:
-      context: .
-      dockerfile: services/music-generation/Dockerfile
-      args:
-        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
-    image: chimera/music-generation:${SERVICE_VERSION:-1.0.0}
-    container_name: chimera-music-generation
-    ports:
-      - "${MUSIC_GENERATION_PORT:-8011}:8011"
-    environment:
-      - SERVICE_NAME=music-generation
-      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
-      - PORT=${MUSIC_GENERATION_PORT:-8011}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
-      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
-      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - MUSICGEN_MODEL_PATH=${MUSICGEN_MODEL_PATH:-/models/musicgen}
-      - ACESTEP_MODEL_PATH=${ACESTEP_MODEL_PATH:-/models/acestep}
-      - HUGGINGFACE_CACHE_DIR=${HUGGINGFACE_CACHE_DIR:-/models/cache}
-      - DEFAULT_MODEL=${MUSIC_DEFAULT_MODEL:-musicgen}
-      - MAX_VRAM_MB=${MUSIC_MAX_VRAM_MB:-8192}
-      - MODEL_OFFLOAD=${MUSIC_MODEL_OFFLOAD:-true}
-      - DEFAULT_DURATION=${MUSIC_DEFAULT_DURATION:-5.0}
-      - MAX_DURATION=${MUSIC_MAX_DURATION:-30.0}
-      - SAMPLE_RATE=${MUSIC_SAMPLE_RATE:-44100}
-      - DEVICE=${MUSIC_DEVICE:-cuda}
-      - TORCH_THREADS=${MUSIC_TORCH_THREADS:-4}
-    volumes:
-      - chimera-music-cache:/app/cache
-      - chimera-music-models:/models/musicgen
-      - chimera-huggingface-cache:/models/cache
-    depends_on:
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8011/health/live"]
-      interval: ${HEALTH_CHECK_INTERVAL:-30s}
-      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
-      retries: ${HEALTH_CHECK_RETRIES:-3}
-      start_period: ${HEALTH_CHECK_START_PERIOD:-120s}
-    networks:
-      - chimera-backend
-    restart: ${RESTART_POLICY:-unless-stopped}
-    deploy:
-      resources:
-        limits:
-          cpus: ${MUSIC_CPU_LIMIT:-2.0}
-          memory: ${MUSIC_MEMORY_LIMIT:-2G}
-        reservations:
-          cpus: ${MUSIC_CPU_RESERVATION:-0.5}
-          memory: ${MUSIC_MEMORY_RESERVATION:-512M}
+  # music-generation - DISABLED: No service directory exists
+  # music-generation:
+  #   build:
+  #     context: .
+  #     dockerfile: services/music-generation/Dockerfile
+  #     args:
+  #       - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+  #   image: chimera/music-generation:${SERVICE_VERSION:-1.0.0}
+  #   container_name: chimera-music-generation
+  #   ports:
+  #     - "${MUSIC_GENERATION_PORT:-8011}:8011"
+  #   environment:
+  #     - SERVICE_NAME=music-generation
+  #     - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+  #     - PORT=${MUSIC_GENERATION_PORT:-8011}
+  #     - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+  #     - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+  #     - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+  #     - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+  #     - ENVIRONMENT=${ENVIRONMENT:-development}
+  #     - LOG_LEVEL=${LOG_LEVEL:-INFO}
+  #     - MUSICGEN_MODEL_PATH=${MUSICGEN_MODEL_PATH:-/models/musicgen}
+  #     - ACESTEP_MODEL_PATH=${ACESTEP_MODEL_PATH:-/models/acestep}
+  #     - HUGGINGFACE_CACHE_DIR=${HUGGINGFACE_CACHE_DIR:-/models/cache}
+  #     - DEFAULT_MODEL=${MUSIC_DEFAULT_MODEL:-musicgen}
+  #     - MAX_VRAM_MB=${MUSIC_MAX_VRAM_MB:-8192}
+  #     - MODEL_OFFLOAD=${MUSIC_MODEL_OFFLOAD:-true}
+  #     - DEFAULT_DURATION=${MUSIC_DEFAULT_DURATION:-5.0}
+  #     - MAX_DURATION=${MUSIC_MAX_DURATION:-30.0}
+  #     - SAMPLE_RATE=${MUSIC_SAMPLE_RATE:-44100}
+  #     - DEVICE=${MUSIC_DEVICE:-cuda}
+  #     - TORCH_THREADS=${MUSIC_TORCH_THREADS:-4}
+  #   volumes:
+  #     - chimera-music-cache:/app/cache
+  #     - chimera-music-models:/models/musicgen
+  #     - chimera-huggingface-cache:/models/cache
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #     kafka:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8011/health/live"]
+  #     interval: ${HEALTH_CHECK_INTERVAL:-30s}
+  #     timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+  #     retries: ${HEALTH_CHECK_RETRIES:-3}
+  #     start_period: ${HEALTH_CHECK_START_PERIOD:-120s}
+  #   networks:
+  #     - chimera-backend
+  #   restart: ${RESTART_POLICY:-unless-stopped}
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: ${MUSIC_CPU_LIMIT:-2.0}
+  #         memory: ${MUSIC_MEMORY_LIMIT:-2G}
+  #       reservations:
+  #         cpus: ${MUSIC_CPU_RESERVATION:-0.5}
+  #         memory: ${MUSIC_MEMORY_RESERVATION:-512M}
 
   # Ralph Loop Infrastructure Services
   # Health Aggregator - Polls all services for health status
   health-aggregator:
     build:
-      context: .
-      dockerfile: services/health-aggregator/Dockerfile
+      context: ./services/health-aggregator
+      dockerfile: Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/health-aggregator:${SERVICE_VERSION:-1.0.0}
@@ -808,6 +809,16 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - POLL_INTERVAL=${HEALTH_POLL_INTERVAL:-30}
       - TIMEOUT=${HEALTH_TIMEOUT:-5}
+      # Active Services
+      - OPENCLAW_ORCHESTRATOR_URL=http://openclaw-orchestrator:8000
+      - SCENESPEAK_AGENT_URL=http://scenespeak-agent:8001
+      - TRANSLATION_AGENT_URL=http://translation-agent:8002
+      - SENTIMENT_AGENT_URL=http://sentiment-agent:8004
+      - SAFETY_FILTER_URL=http://safety-filter:8006
+      - OPERATOR_CONSOLE_URL=http://operator-console:8007
+      # Frozen Services (optional - not currently running)
+      - HARDWARE_BRIDGE_URL=http://hardware-bridge:8008
+      - ECHO_AGENT_URL=http://echo-agent:8014
     volumes:
       - chimera-health-cache:/app/cache
       # Mount Ralph Loop queue for dashboard access
@@ -847,8 +858,8 @@ services:
   # Dashboard - Health monitoring UI for Ralph Loop
   dashboard:
     build:
-      context: .
-      dockerfile: services/dashboard/Dockerfile
+      context: ./services/dashboard
+      dockerfile: Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/dashboard:${SERVICE_VERSION:-1.0.0}
@@ -896,8 +907,8 @@ services:
   # Echo Agent - Simplest agent that echoes back input
   echo-agent:
     build:
-      context: .
-      dockerfile: services/echo-agent/Dockerfile
+      context: ./services/echo-agent
+      dockerfile: Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/echo-agent:${SERVICE_VERSION:-1.0.0}
@@ -931,8 +942,8 @@ services:
   # Translation Agent - Multi-language translation service
   translation-agent:
     build:
-      context: .
-      dockerfile: services/translation-agent/Dockerfile
+      context: ./services/translation-agent
+      dockerfile: Dockerfile
       args:
         - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
     image: chimera/translation-agent:${SERVICE_VERSION:-1.0.0}
@@ -967,49 +978,49 @@ services:
           cpus: ${TRANSLATION_CPU_RESERVATION:-0.25}
           memory: ${TRANSLATION_MEMORY_RESERVATION:-128M}
 
-  # Opinion Pipeline Agent (BettaFish/MiroFish Integration)
-  opinion-pipeline-agent:
-    build:
-      context: .
-      dockerfile: services/opinion-pipeline-agent/Dockerfile
-    image: chimera/opinion-pipeline:${SERVICE_VERSION:-1.0.0}
-    container_name: chimera-opinion-pipeline
-    ports:
-      - "${OPINION_PIPELINE_PORT:-8020}:8020"
-    environment:
-      - SERVICE_NAME=opinion-pipeline-agent
-      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
-      - PORT=${OPINION_PIPELINE_PORT:-8020}
-      - BETTAFISH_REPORT_PATH=${BETTAFISH_REPORT_PATH:-./integrations/bettafish/reports}
-      - BETTAFISH_API_URL=${BETTAFISH_API_URL:-http://127.0.0.1:5000}
-      - MIROFISH_API_URL=${MIROFISH_API_URL:-http://127.0.0.1:5001}
-      - CHIMERA_SENTIMENT_API=${CHIMERA_SENTIMENT_API:-http://sentiment-agent:8004}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
-    volumes:
-      - ./integrations/bettafish/reports:/app/reports:ro
-    depends_on:
-      sentiment-agent:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8020/health/live"]
-      interval: ${HEALTH_CHECK_INTERVAL:-30s}
-      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
-      retries: ${HEALTH_CHECK_RETRIES:-3}
-      start_period: ${HEALTH_CHECK_START_PERIOD:-30s}
-    networks:
-      - chimera-backend
-      - opinion-pipeline
-    restart: ${RESTART_POLICY:-unless-stopped}
-    deploy:
-      resources:
-        limits:
-          cpus: ${OPINION_PIPELINE_CPU_LIMIT:-1.0}
-          memory: ${OPINION_PIPELINE_MEMORY_LIMIT:-512M}
-        reservations:
-          cpus: ${OPINION_PIPELINE_CPU_RESERVATION:-0.25}
-          memory: ${OPINION_PIPELINE_MEMORY_RESERVATION:-256M}
+  # Opinion Pipeline Agent (BettaFish/MiroFish Integration) - DISABLED: No service directory exists
+  # opinion-pipeline-agent:
+  #   build:
+  #     context: .
+  #     dockerfile: services/opinion-pipeline-agent/Dockerfile
+  #   image: chimera/opinion-pipeline:${SERVICE_VERSION:-1.0.0}
+  #   container_name: chimera-opinion-pipeline
+  #   ports:
+  #     - "${OPINION_PIPELINE_PORT:-8020}:8020"
+  #   environment:
+  #     - SERVICE_NAME=opinion-pipeline-agent
+  #     - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+  #     - PORT=${OPINION_PIPELINE_PORT:-8020}
+  #     - BETTAFISH_REPORT_PATH=${BETTAFISH_REPORT_PATH:-./integrations/bettafish/reports}
+  #     - BETTAFISH_API_URL=${BETTAFISH_API_URL:-http://127.0.0.1:5000}
+  #     - MIROFISH_API_URL=${MIROFISH_API_URL:-http://127.0.0.1:5001}
+  #     - CHIMERA_SENTIMENT_API=${CHIMERA_SENTIMENT_API:-http://sentiment-agent:8004}
+  #     - ENVIRONMENT=${ENVIRONMENT:-development}
+  #     - LOG_LEVEL=${LOG_LEVEL:-INFO}
+  #     - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+  #   volumes:
+  #     - ./integrations/bettafish/reports:/app/reports:ro
+  #   depends_on:
+  #     sentiment-agent:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8020/health/live"]
+  #     interval: ${HEALTH_CHECK_INTERVAL:-30s}
+  #     timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+  #     retries: ${HEALTH_CHECK_RETRIES:-3}
+  #     start_period: ${HEALTH_CHECK_START_PERIOD:-30s}
+  #   networks:
+  #     - chimera-backend
+  #     - opinion-pipeline
+  #   restart: ${RESTART_POLICY:-unless-stopped}
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: ${OPINION_PIPELINE_CPU_LIMIT:-1.0}
+  #         memory: ${OPINION_PIPELINE_MEMORY_LIMIT:-512M}
+  #       reservations:
+  #         cpus: ${OPINION_PIPELINE_CPU_RESERVATION:-0.25}
+  #         memory: ${OPINION_PIPELINE_MEMORY_RESERVATION:-256M}
 
 networks:
   chimera-backend:

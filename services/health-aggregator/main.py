@@ -13,21 +13,18 @@ from pydantic import BaseModel
 
 # Service Configuration
 ACTIVE_SERVICES: Dict[str, str] = {
-    "nemo-claw-orchestrator": os.getenv(
-        "NEMO_CLAW_ORCHESTRATOR_URL", "http://localhost:8001"
+    "openclaw-orchestrator": os.getenv(
+        "OPENCLAW_ORCHESTRATOR_URL", "http://openclaw-orchestrator:8000"
     ),
-    "scenespeak-agent": os.getenv("SCENESPEAK_AGENT_URL", "http://localhost:8002"),
-    "sentiment-agent": os.getenv("SENTIMENT_AGENT_URL", "http://localhost:8003"),
-    "safety-filter": os.getenv("SAFETY_FILTER_URL", "http://localhost:8004"),
-    "captioning-agent": os.getenv("CAPTIONING_AGENT_URL", "http://localhost:8005"),
-    "audio-controller": os.getenv("AUDIO_CONTROLLER_URL", "http://localhost:8006"),
+    "scenespeak-agent": os.getenv("SCENESPEAK_AGENT_URL", "http://scenespeak-agent:8001"),
+    "sentiment-agent": os.getenv("SENTIMENT_AGENT_URL", "http://sentiment-agent:8004"),
+    "safety-filter": os.getenv("SAFETY_FILTER_URL", "http://safety-filter:8006"),
+    "operator-console": os.getenv("OPERATOR_CONSOLE_URL", "http://operator-console:8007"),
 }
 
 FROZEN_SERVICES: Dict[str, str] = {
-    "openclaw-orchestrator": os.getenv(
-        "OPENCLAW_ORCHESTRATOR_URL", "http://localhost:8010"
-    ),
-    "bsl-agent": os.getenv("BSL_AGENT_URL", "http://localhost:8011"),
+    "hardware-bridge": os.getenv("HARDWARE_BRIDGE_URL", "http://hardware-bridge:8008"),
+    "echo-agent": os.getenv("ECHO_AGENT_URL", "http://echo-agent:8014"),
 }
 
 # Pydantic Models

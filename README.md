@@ -3,433 +3,239 @@
 > An AI-powered live theatre platform creating performances that adapt in real-time to audience input.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![Status](https://img.shields.io/badge/status-production--ready-brightgreen)
+![Status](https://img.shields.io/badge/status-operational-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Python](https://img.shields.io/badge/python-3.10+-blue)
-![Tests](https://img.shields.io/badge/tests-1319%20passing-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-78%25%20unit%2C%2075%25%20integration-brightgreen)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![Docker](https://img.shields.io/badge/docker-compose--blue)
 
-*Last Updated: April 19, 2026*
+*Last Updated: April 20, 2026*
 
-## Project Status
+## 🚀 Quick Start
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| OpenClaw Orchestrator (8000) | ✅ Working | Synchronous orchestration |
-| SceneSpeak Agent (8001) | ✅ Working | LLM dialogue generation |
-| Sentiment Agent (8004) | ✅ Working | DistilBERT sentiment analysis |
-| Safety Filter (8006) | ✅ Working | Content moderation |
-| Translation Agent (8002) | ✅ Working | 15 languages (mock in MVP) |
-| Operator Console (8007) | ✅ Working | Show control UI |
-| Hardware Bridge (8008) | ✅ Working | DMX simulation |
-| Redis (6379) | ✅ Working | State management |
-| **E2E Tests** | ✅ **Complete** | **594/594 passing (100%)** |
-| **Unit Test Coverage** | ✅ **78%** | **Target: 80%+** |
-| **Integration Coverage** | ✅ **75%** | **All service health checks passing** |
-| **Load Testing** | ✅ **Enabled** | **Locust framework configured** |
+```bash
+# Clone repository
+git clone https://github.com/ranjrana2012-lab/project-chimera.git
+cd Project_Chimera
 
-**Overall Status: ✅ PRODUCTION READY**
+# Start all services
+docker compose up -d
 
-## What is Project Chimera?
+# Verify services are healthy
+curl http://localhost:8000/health  # OpenClaw Orchestrator
+curl http://localhost:8012/health  # Health Aggregator
 
-Project Chimera is an open-source, student-run Dynamic Performance Hub that uses AI to generate live theatre experiences. The system combines multiple AI agents with stage automation to create responsive, audience-driven performances for universities and theatre companies worldwide.
+# Access the Dashboard
+open http://localhost:8013
+```
 
-### What Makes Project Chimera Unique?
+## 📊 Current Cluster Status
 
-- **Real-Time Adaptation** - Performances change based on audience sentiment and input
-- **Multi-Agent AI** - Specialized agents for dialogue, captioning, translation, and more
-- **Safety First** - Multi-layer content moderation with human oversight
-- **Accessible** - Built-in captioning and translation support
-- **Open Source** - Free for universities and educational institutions
+| Service | Port | Status | Description |
+|---------|------|--------|-------------|
+| **OpenClaw Orchestrator** | 8000 | ✅ Healthy | Core coordination and routing |
+| **SceneSpeak Agent** | 8001 | ✅ Healthy | LLM dialogue generation |
+| **Translation Agent** | 8009 | ✅ Healthy | Multi-language support |
+| **Sentiment Agent** | 8004 | ✅ Healthy | DistilBERT sentiment analysis |
+| **Safety Filter** | 8006 | ✅ Healthy | Content moderation |
+| **Operator Console** | 8007 | ✅ Healthy | Show control UI |
+| **Echo Agent** | 8014 | ⚠️ Unhealthy | Simple echo service |
+| **Health Aggregator** | 8012 | ✅ Healthy | Unified health monitoring |
+| **Dashboard** | 8013 | ✅ Healthy | Web UI for monitoring |
 
-## MVP Architecture
+### Infrastructure Services
+
+| Service | Port | Status | Purpose |
+|---------|------|--------|---------|
+| Redis | 6379 | ✅ Healthy | State management |
+| Kafka | 9092 | ✅ Healthy | Event streaming |
+| Milvus | 19530 | ✅ Healthy | Vector database |
+| etcd | 2379-2380 | ✅ Running | Configuration storage |
+| Prometheus | 9094 | ✅ Healthy | Metrics collection |
+| Grafana | 3000 | ✅ Healthy | Visualization |
+| Jaeger | 16686 | ✅ Healthy | Distributed tracing |
+| Netdata | 19999 | ✅ Healthy | System monitoring |
+
+**Overall Status: ✅ OPERATIONAL**
+
+## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Operator Console                         │
-│                  (Human Oversight - Port 8007)               │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────────┐
-│              OpenClaw Orchestrator (Port 8000)              │
-│         (Synchronous Agent Coordination)                    │
-└───┬────────┬────────┬────────┬────────┬────────┬────────┐
-    │        │        │        │        │        │        │
-    ▼        ▼        ▼        ▼        ▼        ▼        ▼
-SceneSpeak  Safety  Sentiment  Trans  Hardware  Dashboard  Health
-(8001)      (8006)   (8004)    (8002)  (8008)    (8013)     (8012)
+│                     Dashboard (8013)                          │
+│              Health Monitoring & Control UI                    │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                 Health Aggregator (8012)                     │
+│              Polls all services, unified status               │
+└───┬───────────┬───────────┬───────────┬────────────────────┘
+    │           │           │           │
+    ▼           ▼           ▼           ▼
+┌────────┐  ┌─────────┐  ┌──────────┐  ┌───────────┐
+│Orchestr│  │SceneSpeak│  │Sentiment │  │Safety     │
+│ator    │  │          │  │          │  │Filter     │
+│(8000)  │  │  (8001)  │  │  (8004)  │  │  (8006)   │
+└────────┘  └─────────┘  └──────────┘  └───────────┘
+    │           │           │           │
+    ▼           ▼           ▼           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     Shared Infrastructure                    │
+│  Redis (6379) │ Kafka (9092) │ Milvus (19530)              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Core Services (8 total):**
-1. **OpenClaw Orchestrator** - Core coordination and routing
-2. **SceneSpeak Agent** - Dialogue generation with LLM
-3. **Sentiment Agent** - Real-time sentiment analysis
-4. **Safety Filter** - Content moderation
-5. **Translation Agent** - Multi-language support
-6. **Operator Console** - Human oversight interface
-7. **Hardware Bridge** - Stage automation simulation
-8. **Infrastructure** - Redis, monitoring, health aggregation
+## 📁 Project Structure
 
-## Quick Start
-
-Get Project Chimera running in under 5 minutes:
-
-```bash
-# Clone repository
-git clone https://github.com/ranjrana2012-lab/project-chimera.git
-cd project-chimera
-
-# Start all services
-docker-compose -f docker-compose.mvp.yml up -d
-
-# Verify services
-curl http://localhost:8000/health  # OpenClaw Orchestrator
-curl http://localhost:8007/health  # Operator Console
-
-# Access the UI
-open http://localhost:8007
+```
+Project_Chimera/
+├── services/
+│   ├── openclaw-orchestrator/   # Core coordination service
+│   ├── scenespeak-agent/        # LLM dialogue generation
+│   ├── sentiment-agent/         # Sentiment analysis
+│   ├── safety-filter/           # Content moderation
+│   ├── translation-agent/       # Multi-language support
+│   ├── echo-agent/              # Simple echo service
+│   ├── operator-console/        # Human oversight UI
+│   ├── dashboard/               # Health monitoring UI
+│   ├── health-aggregator/       # Unified health monitoring
+│   └── shared/                  # Shared utilities and middleware
+├── docker-compose.yml           # Full stack orchestration
+├── docs/                        # Documentation
+│   ├── E2E-TEST-REPORT-2026-04-20.md
+│   └── ...
+└── README.md
 ```
 
-**That's it!** Project Chimera is now running.
+## 🔧 Service Endpoints
 
-For detailed setup instructions, see [GETTING_STARTED.md](GETTING_STARTED.md).
+### OpenClaw Orchestrator (Port 8000)
+- `GET /health` - Service health check
+- `GET /health/live` - Liveness probe
+- `GET /health/ready` - Readiness probe (checks all agents)
+- `POST /api/orchestrate` - Main orchestration endpoint
 
-## Documentation
+### SceneSpeak Agent (Port 8001)
+- `GET /health` - Service health and model status
+- `POST /api/generate` - Generate dialogue
 
-### Getting Started
-- **[GETTING_STARTED.md](GETTING_STARTED.md)** - 5-minute setup guide
-- **[MVP_OVERVIEW.md](MVP_OVERVIEW.md)** - Complete MVP architecture and features
-- **[DEVELOPER_SETUP.md](DEVELOPER_SETUP.md)** - Comprehensive developer onboarding
-- **[docs/STUDENT_SETUP.md](docs/STUDENT_SETUP.md)** - Student-focused setup instructions
-- **[docs/STUDENT_PREREQUISITES.md](docs/STUDENT_PREREQUISITES.md)** - Prerequisites for students
-- **[docs/STUDENT_TROUBLESHOOTING.md](docs/STUDENT_TROUBLESHOOTING.md)** - Student troubleshooting guide
+### Sentiment Agent (Port 8004)
+- `GET /health` - Service health and model status
+- `POST /api/analyze` - Analyze sentiment of text
 
-### Configuration & Deployment
-- **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)** - Complete configuration guide (API keys, ML models, environment)
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guide for production
-- **[docs/OPERATIONAL_READINESS.md](docs/OPERATIONAL_READINESS.md)** - Operations guide with monitoring and alerting
-- **[docs/RUNBOOK.md](docs/RUNBOOK.md)** - Operations runbook with common issues and solutions
-- **[docs/POST_REBOOT_VALIDATION.md](docs/POST_REBOOT_VALIDATION.md)** - Post-reboot validation checklist
+### Safety Filter (Port 8006)
+- `GET /health` - Service health and moderation status
+- `POST /api/moderate` - Moderate content (⚠️ known tracing issue)
 
-### API & Features
-- **[docs/API.md](docs/API.md)** - Complete API reference for all services
-- **[docs/WEBSOCKET.md](docs/WEBSOCKET.md)** - WebSocket implementation guide (planned feature)
-- **[docs/COMPLETE_SOLUTION_SUMMARY.md](docs/COMPLETE_SOLUTION_SUMMARY.md)** - Complete solution summary of all improvements
+### Translation Agent (Port 8009)
+- `GET /health` - Service health and engine status
+- `POST /translate` - Translate text (mock mode)
 
-### Testing
-- **[TESTING.md](TESTING.md)** - Testing documentation
-- **[tests/TEST_SETUP.md](tests/TEST_SETUP.md)** - Complete testing guide
-- **[tests/TEST_STATUS.md](tests/TEST_STATUS.md)** - Current test status dashboard
-- **[tests/e2e/README.md](tests/e2e/README.md)** - E2E testing guide
-- **[tests/load/README.md](tests/load/README.md)** - Load testing guide
-- **[tests/performance/README.md](tests/performance/README.md)** - Performance testing guide
+### Health Aggregator (Port 8012)
+- `GET /health` - Unified health status for all services
 
-## Key Features
+### Dashboard (Port 8013)
+- `GET /` - Web UI
+- `GET /health` - Service health
+- `GET /api/dashboard` - Dashboard data API
 
-### 🎭 Real-Time Performance Generation
-- AI-generated dialogue and scenes
-- Adaptive storytelling based on audience input
-- Multiple performance styles and genres
+## 🧪 Testing
 
-### 🎯 Audience Interaction
-- Real-time sentiment analysis
-- Audience feedback integration
-- Dynamic performance adjustments
-
-### 🛡️ Safety & Moderation
-- Multi-layer content filtering
-- Human oversight through Operator Console
-- Configurable safety policies
-
-### 🌍 Accessibility
-- Multi-language translation support (15 languages)
-- Captioning capabilities
-- British Sign Language (BSL) support (planned)
-
-### 🔧 Developer Friendly
-- Well-documented APIs with complete reference
-- Comprehensive test coverage (78% unit, 75% integration)
-- Docker-based deployment with health checks
-- Extensible architecture
-- Load testing framework (Locust)
-- Performance benchmarking tools
-- Complete developer onboarding guide
-
-### 🔍 Operations Ready
-- Automatic restart persistence
-- Comprehensive monitoring setup
-- Health check aggregation (all 8 services)
-- Log rotation and cleanup procedures
-- Alerting configuration (email, Slack, systemd)
-- Complete operations runbook
-- Post-reboot validation procedures
-
-## Technology Stack
-
-### Core Technologies
-- **Python 3.10+** - Primary language
-- **FastAPI** - High-performance API framework
-- **Docker** - Containerization
-- **Redis** - State management and caching
-
-### AI/ML
-- **GLM-4.7** (Z.ai) - Primary LLM for dialogue
-- **Nemotron 3 Super 120B** - Local LLM fallback
-- **DistilBERT** - Lightweight sentiment analysis
-- **PyTorch** - ML framework
-
-### Infrastructure
-- **Docker Compose** - Service orchestration
-- **Redis** - Caching and state
-- **Prometheus/Grafana** - Monitoring (optional)
-- **Health Scripts** - Stack verification and validation
-- **Load Testing** - Locust framework for performance testing
-
-## Testing
-
-Project Chimera maintains comprehensive test coverage:
+### Run E2E Tests
 
 ```bash
-# Run all tests
-pytest tests/ -v
-
-# Run with coverage
-pytest tests/ --cov=services --cov-report=html
-
-# Run E2E tests
-pytest tests/e2e/ -v
-
-# Run integration tests
-pytest tests/integration/mvp/ -v
-
-# Run load tests
-locust -f tests/load/locustfile.py --headless --users 50 --host http://localhost:8000
+# From project root
+docker compose exec openclaw-orchestrator pytest
+docker compose exec sentiment-agent pytest
+docker compose exec safety-filter pytest
 ```
 
-**Test Statistics:**
-- **Unit Tests**: 700+ tests
-- **Integration Tests**: 25+ tests
-- **E2E Tests**: 594 tests (100% passing)
-- **Unit Test Coverage**: 78%
-- **Integration Coverage**: 75%
-- **Test Duration**: ~15 minutes for full suite
-- **Load Testing**: Locust framework with 50+ concurrent users support
-
-## Service Endpoints
-
-| Service | Port | Purpose | Health Check |
-|---------|------|---------|--------------|
-| OpenClaw Orchestrator | 8000 | Core coordination | `GET /health` |
-| SceneSpeak Agent | 8001 | Dialogue generation | `GET /health` |
-| Sentiment Agent | 8004 | Sentiment analysis | `GET /health` |
-| Safety Filter | 8006 | Content moderation | `GET /health` |
-| Translation Agent | 8002 | Translation | `GET /health` |
-| Operator Console | 8007 | Control UI | `GET /health` |
-| Hardware Bridge | 8008 | DMX simulation | `GET /health` |
-| Health Aggregator | 8012 | Health monitoring | `GET /health` |
-| Dashboard | 8013 | Monitoring UI | `GET /` |
-| Redis | 6379 | State management | `redis-cli ping` |
-
-## Usage Examples
-
-### Generate Dialogue
+### Manual API Testing
 
 ```bash
-curl -X POST http://localhost:8001/api/generate \
+# Test orchestration
+curl -X POST http://localhost:8000/api/orchestrate \
   -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "A hero enters the scene",
-    "max_tokens": 50
-  }'
-```
+  -d '{"prompt":"The hero enters","show_id":"test"}'
 
-### Analyze Sentiment
-
-```bash
+# Test sentiment analysis
 curl -X POST http://localhost:8004/api/analyze \
   -H "Content-Type: application/json" \
-  -d '{
-    "text": "The audience loved the performance!"
-  }'
-```
+  -d '{"text":"I am very happy today!"}'
 
-### Check System Health
-
-```bash
 # Check all services
-for port in 8000 8001 8002 8004 8006 8007 8008; do
-  curl -s http://localhost:$port/health | jq '.status'
-done
+curl http://localhost:8012/health | jq .
 ```
 
-## Development
+## 📈 Monitoring
+
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Prometheus**: http://localhost:9094
+- **Jaeger UI**: http://localhost:16686
+- **Netdata**: http://localhost:19999
+- **Health Dashboard**: http://localhost:8013
+
+## 🛠️ Development
 
 ### Prerequisites
-- Python 3.10+
-- Docker & Docker Compose
-- 8GB RAM minimum (16GB recommended)
 
-### Setup Development Environment
+- Docker & Docker Compose
+- Python 3.12+
+- Make (optional)
+
+### Build & Run
 
 ```bash
-# Clone repository
-git clone https://github.com/ranjrana2012-lab/project-chimera.git
-cd project-chimera
+# Build all services
+docker compose build
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
+# Start all services
+docker compose up -d
 
-# Install dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+# View logs
+docker compose logs -f
 
-# Start services
-docker-compose -f docker-compose.mvp.yml up -d
-
-# Run tests
-pytest tests/ -v
+# Stop all services
+docker compose down
 ```
 
-### Project Structure
+### Individual Service Management
 
-```
-project-chimera/
-├── services/                  # AI agent services
-│   ├── openclaw-orchestrator/ # Core orchestration
-│   ├── scenespeak-agent/      # Dialogue generation
-│   ├── sentiment-agent/       # Sentiment analysis
-│   ├── safety-filter/         # Content moderation
-│   ├── translation-agent/     # Translation service
-│   └── operator-console/      # Control UI
-├── tests/                     # Test suites
-│   ├── unit/                 # Unit tests
-│   ├── integration/          # Integration tests
-│   └── e2e/                  # E2E tests
-├── docs/                      # Documentation
-├── docker-compose.mvp.yml     # MVP deployment
-└── requirements.txt           # Python dependencies
+```bash
+# Restart specific service
+docker compose restart openclaw-orchestrator
+
+# View service logs
+docker compose logs -f scenespeak-agent
+
+# Scale a service
+docker compose up -d --scale sentiment-agent=3
 ```
 
-## Contributing
+## 📝 Documentation
 
-We welcome contributions from the community! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+- [Getting Started Guide](GETTING_STARTED.md)
+- [Architecture Documentation](docs/ARCHITECTURE.md)
+- [API Documentation](docs/API.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [E2E Test Report](docs/E2E-TEST-REPORT-2026-04-20.md)
 
-### Contribution Areas
-- **Core Services**: Improve agent capabilities
-- **Testing**: Add test coverage (target: 80% unit, 80% integration)
-- **Documentation**: Improve guides and API docs
-- **WebSocket**: Implement real-time updates (architecture designed)
-- **Bug Fixes**: Help squash bugs
-- **Features**: Suggest new features
+## 🤝 Contributing
 
-## Performance
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-### Response Times
-- **Dialogue Generation**: 2-10 seconds (LLM-dependent)
-- **Sentiment Analysis**: <500ms
-- **Safety Filtering**: <200ms
-- **End-to-End Flow**: <15 seconds
+## 📄 License
 
-### Resource Requirements
-- **Minimum**: 4 CPU cores, 8GB RAM
-- **Recommended**: 8 CPU cores, 16GB RAM
-- **Storage**: 20GB (includes model cache)
+MIT License - see LICENSE file for details
 
-## Roadmap
+## 🙏 Acknowledgments
 
-### Current Release (v1.0.0 - MVP)
-- ✅ 8 core services (all healthy)
-- ✅ Synchronous orchestration
-- ✅ 78% unit test coverage, 75% integration coverage
-- ✅ Production-ready deployment
-- ✅ Comprehensive documentation (20+ guides)
-- ✅ Complete API reference
-- ✅ Load testing framework
-- ✅ Monitoring and alerting procedures
-- ✅ WebSocket architecture designed
-
-### Future Enhancements
-- ⏳ WebSocket implementation (architecture complete)
-- ⏳ Real-time updates via WebSocket
-- ⏳ Additional language models
-- ⏳ Kubernetes deployment support
-- ⏳ Advanced stage automation features
-- ⏳ Improve test coverage to 80%+
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Acknowledgments
-
-Project Chimera is a student-run project developed by university students passionate about AI and theatre.
-
-**Technology Partners:**
-- Z.ai (GLM-4.7 API)
-- NVIDIA (Nemotron models)
-- Docker (Containerization)
-
-**Academic Partners:**
-- University Theatre Departments
-- AI Research Labs
-
-## Support
-
-- **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/ranjrana2012-lab/project-chimera/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/ranjrana2012-lab/project-chimera/discussions)
-
-## Citation
-
-If you use Project Chimera in your research or production, please cite:
-
-```bibtex
-@software{project_chimera_2026,
-  title={Project Chimera: An AI-Powered Live Theatre Platform},
-  author={Project Chimera Team},
-  year={2026},
-  url={https://github.com/ranjrana2012-lab/project-chimera}
-}
-```
+Built with:
+- FastAPI
+- Redis
+- Apache Kafka
+- Milvus Vector Database
+- Docker & Docker Compose
 
 ---
 
-**Project Chimera v1.0.0** - Production Ready ✅
-*Creating the future of interactive live theatre*
-
-[![Built with love](https://img.shields.io/badge/built%20with-love-red)](https://github.com/ranjrana2012-lab/project-chimera)
-
----
-
-## Ralph Loop (Autonomous Development)
-
-Project Chimera uses an autonomous AI agent ("Ralph Loop") for iterative development.
-
-**Master Prompt:** `.claude/RALPH_LOOP_MASTER_PROMPT.md`
-
-**Docker Safety:** The Ralph Loop has strict constraints on Docker operations to prevent disk bloat. See `docs/superpowers/DOCKER_SAFETY_REFERENCE.md` for details.
-
-**Progress Tracking:** See `.claude/ralph-loop-progress.md` for iteration history.
-
-### Recent Iterations
-
-**Iteration 34 (April 19, 2026): Documentation & Operational Readiness Complete**
-- **Configuration Gaps Resolved:** Complete configuration guide with API key setup, ML model troubleshooting, and service URL reference
-- **Operational Readiness:** Automatic restart persistence, monitoring setup, log aggregation, and alerting configuration
-- **Testing Enhanced:** Load testing framework (Locust), performance benchmarking, and coverage improvement recommendations
-- **Documentation Complete:** Developer setup guide, operations runbook, API documentation, and WebSocket implementation guide
-- **Feature Completeness:** Complete API reference, WebSocket architecture designed, and multi-agent optimization strategies
-- **Files Created:** 20+ new documentation files, enhanced test infrastructure, fixed GitHub workflows
-
-**Iteration 33 (April 18, 2026): Service Health Fixes & Validation**
-- **Achievement:** All 8 MVP services verified healthy and operational
-- **Health Check Tests:** Comprehensive integration test for service health validation
-- **Port Configuration:** Fixed service port conflicts and ML model permissions
-- **Validation Scripts:** Enhanced health verification and stack monitoring scripts
-
-**Iteration 32 (April 13, 2026): Docker Build Context Optimization**
-- **Achievement:** Reduced Docker build context from 84GB to 13MB (99.99% reduction)
-- **Implementation:** Root `.dockerignore` file with comprehensive exclusions
-- **Impact:** Build times reduced from minutes to seconds, sustainable Docker workflow
-- **Validation:** All services verified healthy with shared code imports working
+**Note**: This project is under active development. Services marked as "unhealthy" may be under development or require additional configuration.
