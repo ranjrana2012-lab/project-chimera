@@ -27,6 +27,14 @@ wheels/
 services/*/venv/
 venv/
 .venv/
+**/.venv/
+**/venv/
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
 
 # IDE
 .vscode/
@@ -43,10 +51,12 @@ Thumbs.db
 .worktrees/
 worktrees/
 
-# Environment variables
+# Environment variables (MUST BE PRIVATE)
 .env
 .env.local
-*.env
+.env.*
+!.env.example
+!.env.production.example
 
 # Logs
 *.log
@@ -56,52 +66,29 @@ logs/
 *.db
 *.sqlite
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
-# Models
+# Models & Weights
+models/
 models/*.bin
 models/*.safetensors
 models/*.gguf
 models/*.pth
-**/__pycache__
-**/*.pyc
-# Virtual environments - don't commit these!
-**/venv/
-**/.venv/
-**/__pycache__/
-**/*.pyc
-**/node_modules/
-
-# Large model files (should be in separate storage)
 **/*.bin
 **/*.so
 **/*.dylib
-docs/@ Ranj Notes/
-
-# Model cache directories
 services/sentiment-agent/models_cache/
 services/music-generation/models_cache/
 
-# Test environments
-final_test_env/
-models/
+# Grant Materials & Private Demo Outputs
 internal/
-.claude/internal/
-@ Prompts/
-
-# Grant documentation (local only, not for public GitHub)
-Grant_Evidence_Pack/
-GRANT_EXTENSION_PROPOSAL.md
-FINAL_GRANT_SUBMISSION_STATUS.md
-docs/FINAL_GRANT_REPORT_PHASE_1.md
-docs/EXECUTIVE_SUMMARY.md
-docs/STRATEGIC_PIVOT_MANDATE.md
-docs/NARRATIVE_OF_ADAPTATION.md
-docs/FINAL_GRANT_REPORT_PHASE_1.md
-docs/ADAPTIVE_ROUTING_BEHAVIOR.md
-docs/LIMITATIONS_AND_FUTURE_ROADMAP.md
+demo_footage/
+demo_captures/
+services/operator-console/demo_captures/
+project-chimera-submission*
 evidence/
+Grant_Evidence_Pack/
+
+# Agents & Scripts runtime outputs
+final_test_env/
+.claude/
+.autonomous/
+@ Prompts/

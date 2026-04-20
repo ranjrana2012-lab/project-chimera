@@ -13,6 +13,13 @@ __pycache__/
 .git/
 .gitignore
 
+# Environment variables (MUST BE PRIVATE)
+.env
+.env.local
+.env.*
+!.env.example
+!.env.production.example
+
 # CI/CD (not needed in images)
 .github/
 .gitlab-ci.yml

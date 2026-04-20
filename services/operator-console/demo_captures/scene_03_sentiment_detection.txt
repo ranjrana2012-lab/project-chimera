@@ -1,12 +1,26 @@
 
-============================================================
- CHIMERA CORE v1.0.0
- Monolithic Demonstrator - Project Chimera Phase 1
-============================================================
- Started: 2026-04-09 13:15:15
- Adaptation: ENABLED
- Prefer Local LLM: False
- GLM API: NOT CONFIGURED
- Local LLM URL: http://localhost:11434
-============================================================
+[1mExecuting Demo Sequence...[0m
+[94mLoading ML models (DistilBERT)...[0m
+[92mModels loaded successfully.[0m
 
+
+[1mProcessing Demo Input:[0m 'This show is absolutely wonderful, I love the energy!'
+
+[1mSystem Output:[0m
+Sentiment: POSITIVE -> Strategy: momentum_build
+Adaptive Dialogue: That's fantastic! The energy here is really amplifying with that feedback! We're thrilled you feel that way.
+Latency: 104ms
+
+[1mProcessing Demo Input:[0m 'I'm feeling a bit anxious and the loud noises are frustrating.'
+
+[1mSystem Output:[0m
+Sentiment: NEGATIVE -> Strategy: supportive_care
+Adaptive Dialogue: I hear your concerns, and the performance is adapting to give a more calming, supportive atmosphere right now.
+Latency: 53ms
+
+[1mProcessing Demo Input:[0m 'It's an okay experience, nothing special so far.'
+
+[1mSystem Output:[0m
+Sentiment: POSITIVE -> Strategy: momentum_build
+Adaptive Dialogue: That's fantastic! The energy here is really amplifying with that feedback! We're thrilled you feel that way.
+Latency: 51ms

@@ -1,58 +1,7 @@
-
-============================================================
- CHIMERA CORE v1.0.0
- Monolithic Demonstrator - Project Chimera Phase 1
-============================================================
- Started: 2026-04-09 13:15:36
- Adaptation: ENABLED
- Prefer Local LLM: False
- GLM API: NOT CONFIGURED
- Local LLM URL: http://localhost:11434
-============================================================
+[94mLoading ML models (DistilBERT)...[0m
+[92mModels loaded successfully.[0m
 
 
-============================================================
- CAPTION MODE - Accessibility Output
-============================================================
-Input: That's wonderful to hear!
-------------------------------------------------------------
-
-[FORMATTED CAPTION]
-
-████████████████████████████████████████████████████████████
-█                         POSITIVE                         █
-█                                                        █
-█  That's wonderful to hear! Your positive energy is contagious.  █
-█        Let's build on this momentum together!        █
-█                                                        █
-████████████████████████████████████████████████████████████
-
-
-[PLAIN TEXT CAPTION]
-  😊  
---------------------------------------------
-  That's wonderful to hear! Your positive energy  
-  is contagious. Let's build on this momentum  
-  together!                                 
---------------------------------------------
-
-[SRT FORMAT EXAMPLE]
-1
-00:00:00,000 --> 00:00:05,000
-That's wonderful to hear! Your positive energy is contagious. Let's build on this momentum together!
-
-============================================================
-
-Caption formatting demonstrates basic accessibility support.
-Full BSL avatar and advanced captioning deferred to Phase 2.
-============================================================
-
-
-[COMPLETE]
-{
-  "input": "That's wonderful to hear!",
-  "caption_text": "That's wonderful to hear! Your positive energy is contagious. Let's build on this momentum together!",
-  "sentiment": "positive",
-  "formatted_caption": "  \ud83d\ude0a  \n--------------------------------------------\n  That's wonderful to hear! Your positive energy  \n  is contagious. Let's build on this momentum  \n  together!                                 \n--------------------------------------------",
-  "srt_example": "1\n00:00:00,000 --> 00:00:05,000\nThat's wonderful to hear! Your positive energy is contagious. Let's build on this momentum together!\n"
-}
+[1m--- High-Contrast Caption Format ---[0m
+[1;37;40m That's wonderful to hear! [0m
+SRT output successfully generated.
