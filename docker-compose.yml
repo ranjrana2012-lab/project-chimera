@@ -578,52 +578,52 @@ services:
           cpus: ${SENTIMENT_CPU_RESERVATION:-0.25}
           memory: ${SENTIMENT_MEMORY_RESERVATION:-128M}
 
-  lighting-sound-music:
-    build:
-      context: .
-      dockerfile: services/lighting-sound-music/Dockerfile
-      args:
-        - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
-    image: chimera/lighting-sound-music:${SERVICE_VERSION:-1.0.0}
-    container_name: chimera-lighting-sound-music
-    ports:
-      - "${LIGHTING_SOUND_MUSIC_PORT:-8005}:8005"
-    environment:
-      - SERVICE_NAME=lighting-sound-music
-      - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
-      - PORT=${LIGHTING_SOUND_MUSIC_PORT:-8005}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
-      - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
-      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - LSM_DMX_PORT=${LSM_DMX_PORT:-0}
-      - LSM_AUDIO_OUTPUT=${LSM_AUDIO_OUTPUT:-default}
-    volumes:
-      - chimera-lsm-cache:/app/cache
-    depends_on:
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8005/health/live"]
-      interval: ${HEALTH_CHECK_INTERVAL:-30s}
-      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
-      retries: ${HEALTH_CHECK_RETRIES:-3}
-      start_period: ${HEALTH_CHECK_START_PERIOD:-60s}
-    networks:
-      - chimera-backend
-    restart: ${RESTART_POLICY:-unless-stopped}
-    deploy:
-      resources:
-        limits:
-          cpus: ${LSM_CPU_LIMIT:-1.0}
-          memory: ${LSM_MEMORY_LIMIT:-512M}
-        reservations:
-          cpus: ${LSM_CPU_RESERVATION:-0.25}
-          memory: ${LSM_MEMORY_RESERVATION:-128M}
+  # lighting-sound-music:
+  #   build:
+  #     context: .
+  #     dockerfile: services/lighting-sound-music/Dockerfile
+  #     args:
+  #       - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+  #   image: chimera/lighting-sound-music:${SERVICE_VERSION:-1.0.0}
+  #   container_name: chimera-lighting-sound-music
+  #   ports:
+  #     - "${LIGHTING_SOUND_MUSIC_PORT:-8005}:8005"
+  #   environment:
+  #     - SERVICE_NAME=lighting-sound-music
+  #     - SERVICE_VERSION=${SERVICE_VERSION:-1.0.0}
+  #     - PORT=${LIGHTING_SOUND_MUSIC_PORT:-8005}
+  #     - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+  #     - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+  #     - KAFKA_TOPIC_PREFIX=${KAFKA_TOPIC_PREFIX:-chimera}
+  #     - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://jaeger:4317}
+  #     - ENVIRONMENT=${ENVIRONMENT:-development}
+  #     - LOG_LEVEL=${LOG_LEVEL:-INFO}
+  #     - LSM_DMX_PORT=${LSM_DMX_PORT:-0}
+  #     - LSM_AUDIO_OUTPUT=${LSM_AUDIO_OUTPUT:-default}
+  #   volumes:
+  #     - chimera-lsm-cache:/app/cache
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #     kafka:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8005/health/live"]
+  #     interval: ${HEALTH_CHECK_INTERVAL:-30s}
+  #     timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+  #     retries: ${HEALTH_CHECK_RETRIES:-3}
+  #     start_period: ${HEALTH_CHECK_START_PERIOD:-60s}
+  #   networks:
+  #     - chimera-backend
+  #   restart: ${RESTART_POLICY:-unless-stopped}
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: ${LSM_CPU_LIMIT:-1.0}
+  #         memory: ${LSM_MEMORY_LIMIT:-512M}
+  #       reservations:
+  #         cpus: ${LSM_CPU_RESERVATION:-0.25}
+  #         memory: ${LSM_MEMORY_RESERVATION:-128M}
 
   safety-filter:
     container_name: chimera-safety-filter
