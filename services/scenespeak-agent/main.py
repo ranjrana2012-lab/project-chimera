@@ -29,6 +29,13 @@ if shared_path not in sys.path:
     sys.path.append(shared_path)
 
 # Import local modules directly
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+try:
+    from shared.kafka_bus import KafkaEventBus
+except ImportError:
+    KafkaEventBus = None
+
 import config
 import glm_client
 import local_llm
@@ -62,17 +69,56 @@ tracer = setup_tracing(
 glm_client = GLMClient()
 local_llm_client: Optional[LocalLLMClient] = None
 openai_llm_client: Optional[OpenAILLMClient] = None  # New client
+kafka_bus = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup/shutdown events"""
-    global local_llm_client, openai_llm_client
+    global local_llm_client, openai_llm_client, kafka_bus
 
     logger.info("SceneSpeak Agent starting up")
     logger.info(f"GLM API configured: {bool(settings.glm_api_key)}")
     logger.info(f"Local LLM enabled: {settings.local_llm_enabled}")
     logger.info(f"Local LLM type: {settings.local_llm_type}")
+
+    bootstrap_servers = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    if KafkaEventBus:
+        kafka_bus = KafkaEventBus(bootstrap_servers, "scenespeak-agent")
+        try:
+            await kafka_bus.start()
+            
+            async def handle_dialogue_request(msg: dict):
+                prompt = msg.get("prompt", "")
+                task_id = msg.get("task_id", "")
+                context = msg.get("context", {})
+                if prompt and task_id:
+                    # Prefer GLM or fallback internally
+                    try:
+                        response = await glm_client.generate(
+                            prompt=prompt,
+                            max_tokens=500,
+                            temperature=0.7,
+                            prefer_local=False
+                        )
+                        await kafka_bus.publish("chimera.dialogue.completed", {
+                            "task_id": task_id,
+                            "dialogue": response.text,
+                            "status": "success",
+                            "model": response.model
+                        })
+                    except Exception as e:
+                        logger.error(f"Failed to generate dialogue for {task_id}: {e}")
+                        await kafka_bus.publish("chimera.dialogue.completed", {
+                            "task_id": task_id,
+                            "dialogue": "",
+                            "status": "error",
+                            "error": str(e)
+                        })
+                    
+            await kafka_bus.subscribe("chimera.dialogue.request", handle_dialogue_request)
+        except Exception as e:
+            logger.error(f"Failed to start Kafka bus: {e}")
 
     # Initialize local LLM if enabled
     if settings.local_llm_enabled:
@@ -122,6 +168,8 @@ async def lifespan(app: FastAPI):
         await local_llm_client.disconnect()
     if openai_llm_client:
         await openai_llm_client.disconnect()
+    if kafka_bus:
+        await kafka_bus.stop()
     logger.info("SceneSpeak Agent shutting down")
 
 

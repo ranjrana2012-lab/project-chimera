@@ -58,12 +58,23 @@ class TestMVPUserJourneys:
                 },
                 timeout=10.0  # Shorter timeout to avoid waiting too long
             )
-            # Should get a response (may be 200, 400, 500, or 503)
-            assert response.status_code in [200, 400, 500, 503, 504]
-        except (httpx.TimeoutException, httpx.ConnectError):
-            # Timeout or connection error means the service is reachable but slow/unavailable
-            # This is acceptable for MVP validation
-            pass
+            # Must get a valid async 202 Accepted response
+            assert response.status_code == 202
+            
+            # Step 2: Poll for completion
+            task_id = response.json().get("task_id")
+            if task_id:
+                for _ in range(3):
+                    time.sleep(0.5)
+                    poll_res = httpx.get(f"{base_urls['orchestrator']}/api/orchestrate/{task_id}")
+                    if poll_res.status_code == 200:
+                        data = poll_res.json()
+                        if data.get("status") in ["completed", "failed"]:
+                            break
+                            
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
+            # Service must be reachable and performant
+            pytest.fail(f"Connection or timeout error: {e}")
 
     def test_journey_2_scene_coordination(self, base_urls: Dict[str, str]):
         """Journey 2: Operator console → orchestrator → hardware bridge."""
@@ -81,8 +92,8 @@ class TestMVPUserJourneys:
             timeout=15.0
         )
 
-        # Console should accept the request (even if downstream fails)
-        assert response.status_code in [200, 202, 400, 500, 503]
+        # Console should accept the request
+        assert response.status_code in [200, 202]
 
     def test_journey_3_translation_workflow(self, base_urls: Dict[str, str]):
         """Journey 3: Translation request → mock translation → formatted response."""
@@ -101,8 +112,8 @@ class TestMVPUserJourneys:
             timeout=10.0
         )
 
-        # Translation agent should respond (200 or graceful error)
-        assert response.status_code in [200, 400, 500]
+        # Translation agent should respond successfully
+        assert response.status_code == 200
 
         if response.status_code == 200:
             data = response.json()
@@ -156,12 +167,11 @@ class TestMVPUserJourneys:
                 json=request_data,
                 timeout=10.0  # Shorter timeout for MVP validation
             )
-            # Should get a response (success or graceful failure)
-            assert response.status_code in [200, 400, 500, 503, 504]
-        except (httpx.TimeoutException, httpx.ConnectError):
-            # Timeout means the orchestrator is reachable but coordination is slow
-            # This is acceptable for MVP validation
-            pass
+            # Should get an async accepted response
+            assert response.status_code == 202
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
+            # Coordination must be performant and not time out
+            pytest.fail(f"Coordination failed with timeout or connect error: {e}")
 
     def test_journey_6_error_handling(self, base_urls: Dict[str, str]):
         """Journey 6: Error handling when service is unavailable."""
@@ -279,8 +289,8 @@ class TestE2EScenarios:
             timeout=10.0
         )
 
-        # Safety filter should respond (may return 500 if model not loaded)
-        assert response.status_code in [200, 500]
+        # Safety filter should respond successfully
+        assert response.status_code == 200
 
         if response.status_code == 200:
             data = response.json()
@@ -299,11 +309,11 @@ class TestE2EScenarios:
                     json={"prompt": f"Concurrent test {prompt_id}", "show_id": "test_concurrent"},
                     timeout=5.0  # Short timeout for concurrent requests
                 )
-                # Accept timeouts as valid (service is reachable but slow)
-                return response.status_code in [200, 400, 500, 503, 504]
+                # Must get a valid success response
+                return response.status_code in [200, 202]
             except (httpx.TimeoutException, httpx.ConnectError):
-                # Timeout/connection error still counts as "service reachable"
-                return True
+                # Timeout/connection error is a hard failure for concurrency
+                return False
             except Exception:
                 return False
 

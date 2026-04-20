@@ -29,3 +29,5 @@ httpx==0.25.1
 python-dotenv==1.0.0
 slowapi>=0.1.9
 structlog>=2.4.0
+
+aiokafka>=0.8.1

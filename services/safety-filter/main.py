@@ -19,7 +19,18 @@ import sys
 import os
 
 # Add shared module to path for security middleware
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../shared'))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+try:
+    from shared.kafka_bus import KafkaEventBus
+except ImportError:
+    KafkaEventBus = None
+
+from shared.middleware import (
+    SecurityHeadersMiddleware,
+    configure_cors,
+    setup_rate_limit_error_handler,
+)
 
 from config import get_settings
 from content_moderator import ContentModerator
@@ -48,16 +59,44 @@ moderator = ContentModerator(
     enable_ml_filter=settings.enable_ml_filter,
     audit_log_max_size=settings.audit_log_max_size
 )
+kafka_bus = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup/shutdown events"""
+    global kafka_bus
     logger.info("Safety Filter starting up")
     logger.info(f"Default policy: {settings.default_policy}")
     logger.info(f"ML filter enabled: {settings.enable_ml_filter}")
     logger.info(f"Context filter enabled: {settings.enable_context_filter}")
+    
+    bootstrap_servers = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    if KafkaEventBus:
+        kafka_bus = KafkaEventBus(bootstrap_servers, "safety-filter")
+        try:
+            await kafka_bus.start()
+            
+            async def handle_safety_request(msg: dict):
+                text = msg.get("text", "")
+                task_id = msg.get("task_id", "")
+                policy = msg.get("policy", settings.default_policy)
+                if text and task_id:
+                    result = moderator.moderate(text=text)
+                    await kafka_bus.publish("chimera.safety.completed", {
+                        "task_id": task_id,
+                        "safe": result.is_safe,
+                        "confidence": result.confidence,
+                        "reason": result.reason if not result.is_safe else None
+                    })
+                    
+            await kafka_bus.subscribe("chimera.safety.request", handle_safety_request)
+        except Exception as e:
+            logger.error(f"Failed to start Kafka bus: {e}")
+
     yield
+    if kafka_bus:
+        await kafka_bus.stop()
     logger.info("Safety Filter shutting down")
 
 
