@@ -4,7 +4,24 @@ import argparse
 import json
 import csv
 import os
+import threading
 from datetime import datetime
+
+try:
+    import pyttsx3
+except ImportError:
+    pyttsx3 = None
+
+def spawn_voice(text):
+    def speak():
+        if pyttsx3:
+            try:
+                engine = pyttsx3.init()
+                engine.say(text)
+                engine.runAndWait()
+            except Exception:
+                pass
+    threading.Thread(target=speak, daemon=True).start()
 
 # Optional ML loading
 try:
@@ -31,15 +48,18 @@ class ChimeraCore:
         self.history = []
 
     def load_models(self):
-        print(f"{Colors.OKBLUE}Loading ML models (DistilBERT)...{Colors.ENDC}")
+        print(f"{Colors.OKBLUE}Loading ML models (DistilBERT & DistilGPT2)...{Colors.ENDC}")
         time.sleep(0.5)
+        self.text_generator = None
         if pipeline:
             try:
                 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
                 self.sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device="cpu")
+                # Using tiny summarization or generation for live script
+                self.text_generator = pipeline("text-generation", model="distilgpt2", device="cpu")
                 print(f"{Colors.OKGREEN}Models loaded successfully.{Colors.ENDC}\n")
             except Exception as e:
-                print(f"{Colors.WARNING}Warning: Could not load model from huggingface. Using fast heuristic fallback.{Colors.ENDC}\n")
+                print(f"{Colors.WARNING}Warning: Could not load HuggingFace models. Using fast heuristic fallback.{Colors.ENDC}\n")
                 self.sentiment_analyzer = self.heuristic_sentiment
         else:
             print(f"{Colors.WARNING}Warning: transformers not installed. Using fast heuristic fallback.{Colors.ENDC}\n")
@@ -77,7 +97,21 @@ class ChimeraCore:
             return "standard_response"
 
     def generate_response(self, text, strategy):
-        # Mock GLM-4.7 API generation based on strategy
+        # Dynamic GLM-4.7/LLM Generative dialogue logic
+        if getattr(self, "text_generator", None):
+            try:
+                prompt_map = {
+                    "momentum_build": f"Text: '{text}'. Very enthusiastic response amplifying the audience energy:",
+                    "supportive_care": f"Text: '{text}'. Calm and supportive response, telling them it will be okay:",
+                    "standard_response": f"Text: '{text}'. Professional and neutral theater response:"
+                }
+                res = self.text_generator(prompt_map.get(strategy, "Response:"), max_new_tokens=25, num_return_sequences=1)
+                final_text = res[0]['generated_text'].replace(prompt_map.get(strategy, "Response:"), "").strip()
+                final_text = final_text.replace('\n', ' ')
+                return final_text if final_text else "Thank you for the input."
+            except Exception:
+                pass
+                
         if strategy == "momentum_build":
             return f"That's fantastic! The energy here is really amplifying with that feedback! We're thrilled you feel that way."
         elif strategy == "supportive_care":
@@ -91,6 +125,9 @@ class ChimeraCore:
         sentiment = self.analyze_sentiment(text)
         strategy = self.select_strategy(sentiment)
         response = self.generate_response(text, strategy)
+        
+        # Asynchronously speak the response (Option 2)
+        spawn_voice(response)
         
         latency = (time.time() - start_time) * 1000
 
