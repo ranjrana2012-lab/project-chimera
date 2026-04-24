@@ -2,14 +2,16 @@ import subprocess
 import os
 import sys
 import unittest
+from pathlib import Path
 
 class TestChimeraSmoke(unittest.TestCase):
     def test_running_demo_from_cli(self):
         """Smoke test compiling demo output strictly using subprocess"""
-        script_path = os.path.abspath("services/operator-console/chimera_core.py")
+        repo_root = Path(__file__).resolve().parent.parent.parent
+        script_path = str(repo_root / "services" / "operator-console" / "chimera_core.py")
         
         # Check if venv python exists specifically for ML load test
-        venv_python = os.path.abspath("services/operator-console/venv/bin/python")
+        venv_python = str(repo_root / "services" / "operator-console" / "venv" / "bin" / "python")
         python_bin = venv_python if os.path.exists(venv_python) else sys.executable
         
         res = subprocess.run([python_bin, script_path, "demo"], capture_output=True, text=True)
