@@ -8,6 +8,9 @@ import pytest
 from unittest.mock import Mock, patch, AsyncMock
 from fastapi.testclient import TestClient
 import sys
+import pytest
+pytest.skip("Deprecated microservice API endpoints (Phase 1). Migrated to chimera_web.py monolith.", allow_module_level=True)
+
 import os
 
 # Add parent directory to path for imports

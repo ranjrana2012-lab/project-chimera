@@ -260,7 +260,9 @@ def main():
             core.load_models()
             core.process_input(" ".join(sys.argv[2:]), mode="caption")
         else:
-            print(f"Usage: \n  python {sys.argv[0]}\n  python {sys.argv[0]} demo\n  python {sys.argv[0]} compare \"text\"\n  python {sys.argv[0]} caption \"text\"")
+            # Assumes the arguments are raw string input, not a structural command.
+            core.load_models()
+            core.process_input(" ".join(sys.argv[1:]))
     else:
         core.run_interactive()
 

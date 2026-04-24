@@ -143,25 +143,8 @@ class PrerequisiteChecker:
         print("📁 Required Files:")
         self.check_file_exists("services/operator-console/chimera_core.py")
         self.check_file_exists("services/operator-console/requirements.txt")
-        self.check_file_exists("evidence/evidence_pack/capture_demo.py")
-        self.check_file_exists("evidence/evidence_pack/screenshots/capture_screenshots.sh")
-        self.check_file_exists("evidence/budget/budget_helper.py")
-        self.check_file_exists("create_submission_archive.py")
-        print()
-
-        # Documentation files
-        print("📚 Documentation:")
-        self.check_file_exists("QUICK_REFERENCE_CARD.md")
-        self.check_file_exists("AUTOMATION_SUITE_COMPLETE_GUIDE.md")
-        self.check_file_exists("EXECUTION_GUIDE_FINAL_STEPS.md")
-        self.check_file_exists("SUBMISSION_PREPARATION_CHECKLIST.md")
-        print()
-
-        # Optional files (warnings only)
-        print("⏳ Pending Items:")
-        self.check_file_exists("demo_footage/chimera_demo_final.mp4", required=False)
-        self.check_directory_exists("evidence/evidence_pack/screenshots/*.png", required=False)
-        self.check_file_exists("evidence/budget/budget_filled.md", required=False)
+        self.check_file_exists("services/operator-console/chimera_web.py")
+        self.check_file_exists("docker-compose.student.yml")
         print()
 
         # Commands
@@ -186,13 +169,11 @@ class PrerequisiteChecker:
         print()
 
         if self.checks_failed == 0:
-            print("✅ All prerequisites met! Ready to execute automation tools.")
+            print("✅ All prerequisites met! Ready to execute Project Chimera.")
             print()
             print("Next steps:")
-            print("1. Run: python evidence/evidence_pack/capture_demo.py")
-            print("2. Run: bash evidence/evidence_pack/screenshots/capture_screenshots.sh")
-            print("3. Run: python evidence/budget/budget_helper.py --interactive")
-            print("4. Run: python create_submission_archive.py")
+            print("1. Run: docker compose -f docker-compose.student.yml up")
+            print("2. Or to run locally: cd services/operator-console && python chimera_web.py")
             return True
         else:
             print("❌ Some prerequisites not met. Please fix failed checks above.")

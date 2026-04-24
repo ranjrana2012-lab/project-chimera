@@ -23,3 +23,5 @@ gtts>=2.5.0
 pyttsx3>=2.90
 jinja2>=3.1.0
 python-multipart>=0.0.20
+transformers>=4.31.0
+torch>=2.0.0
