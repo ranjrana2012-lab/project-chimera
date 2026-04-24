@@ -10,9 +10,18 @@ Usage:
 """
 
 import sys
+import os
 import subprocess
+import shutil
 from pathlib import Path
 import importlib.util
+
+# Keep console output portable on Windows shells that default to cp1252.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, ValueError):
+    pass
 
 
 class PrerequisiteChecker:
@@ -49,16 +58,21 @@ class PrerequisiteChecker:
             "Python 3.10+ required" if not passed else ""
         )
 
-    def check_module(self, module_name: str, package_name: str = None):
+    def check_module(self, module_name: str, package_name: str = None, required: bool = True):
         """Check if a Python module is available."""
         package_name = package_name or module_name
         spec = importlib.util.find_spec(module_name)
         passed = spec is not None
-        self.check(
-            f"Module: {module_name}",
-            passed,
-            f"Install: pip install {package_name}" if not passed else ""
-        )
+        if required:
+            self.check(
+                f"Module: {module_name}",
+                passed,
+                f"Install: pip install {package_name}" if not passed else ""
+            )
+        elif passed:
+            print(f"✅ Module: {module_name} (optional)")
+        else:
+            self.warn(f"Optional module: {module_name} (install with: pip install {package_name})")
 
     def check_file_exists(self, path: str, required: bool = True):
         """Check if a file exists."""
@@ -92,22 +106,19 @@ class PrerequisiteChecker:
             else:
                 self.warn(f"Optional directory: {path} (not found)")
 
-    def check_command_available(self, command: str):
+    def check_command_available(self, command: str, aliases=None):
         """Check if a command is available."""
-        try:
-            result = subprocess.run(
-                ["which", command],
-                capture_output=True,
-                text=True
-            )
-            passed = result.returncode == 0
-            self.check(
-                f"Command: {command}",
-                passed,
-                f"Install {command}" if not passed else ""
-            )
-        except Exception:
-            self.check(f"Command: {command}", False, "Could not check")
+        aliases = aliases or []
+        candidates = [command, *aliases]
+        passed = any(
+            (Path(candidate).exists() if Path(candidate).is_absolute() else shutil.which(candidate))
+            for candidate in candidates
+        )
+        self.check(
+            f"Command: {command}",
+            passed,
+            f"Install {command}" if not passed else ""
+        )
 
     def check_chimera_core(self):
         """Verify chimera_core.py exists and is syntactically valid."""
@@ -136,7 +147,7 @@ class PrerequisiteChecker:
         self.check_python_version()
         self.check_module("torch", "torch")
         self.check_module("transformers", "transformers")
-        self.check_module("openai", "openai")
+        self.check_module("openai", "openai", required=False)
         print()
 
         # Required files
@@ -149,8 +160,10 @@ class PrerequisiteChecker:
 
         # Commands
         print("🔧 System Commands:")
-        self.check_command_available("python3")
-        self.check_command_available("bash")
+        python_command = "python3" if os.name != "nt" else "python"
+        self.check_command_available(python_command, aliases=[sys.executable])
+        if os.name != "nt":
+            self.check_command_available("bash")
         self.check_command_available("git")
         print()
 

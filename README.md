@@ -24,11 +24,13 @@ cd project-chimera
 cd services/operator-console
 python3 -m venv venv
 source venv/bin/activate
+# Windows PowerShell: .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
 # OPTION 1: Run the beautiful Visual Web Dashboard (Recommended)
 python chimera_web.py
 # -> Open your browser to http://127.0.0.1:8080
+# -> If 8080 is already in use, set PORT=8090 (PowerShell: $env:PORT=8090) and rerun.
 
 # OPTION 2: Run the local terminal CLI
 python chimera_core.py
@@ -37,8 +39,18 @@ python chimera_core.py
 ### Try these demonstration inputs:
 - *"I am very happy today!"* -> Prompts `momentum_build` dialogue strategy.
 - *"I'm feeling anxious and overwhelmed."* -> Prompts `supportive_care` dialogue strategy.
+- *"It's an okay experience, nothing special so far."* -> Prompts `standard_response`.
 - Type `compare` -> Triggers side-by-side mode.
 - Type `caption` -> Triggers accessibility output.
+
+### Broader Repository Tests
+
+For repository-wide tests from the project root, install the root development dependencies first:
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -v
+```
 
 ---
 
