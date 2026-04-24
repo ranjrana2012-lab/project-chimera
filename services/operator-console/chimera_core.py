@@ -4,8 +4,16 @@ import argparse
 import json
 import csv
 import os
+import re
 import threading
+import unicodedata
 from datetime import datetime
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, ValueError):
+    pass
 
 try:
     import pyttsx3
@@ -45,7 +53,20 @@ class Colors:
 class ChimeraCore:
     def __init__(self):
         self.sentiment_analyzer = None
+        self.text_generator = None
         self.history = []
+        self.positive_cues = {
+            "amazing", "excited", "fantastic", "great", "happy", "love",
+            "thrilled", "wonderful",
+        }
+        self.negative_cues = {
+            "anxious", "angry", "bad", "frustrated", "overwhelmed",
+            "sad", "terrible", "worried",
+        }
+        self.neutral_cues = {
+            "fine", "it is okay", "it's okay", "nothing special",
+            "okay", "ok", "so far",
+        }
 
     def load_models(self):
         print(f"{Colors.OKBLUE}Loading ML models (DistilBERT & DistilGPT2)...{Colors.ENDC}")
@@ -85,7 +106,23 @@ class ChimeraCore:
         if not self.sentiment_analyzer:
             self.load_models()
         res = self.sentiment_analyzer(text if isinstance(text, list) else [text])
-        return res[0]
+        return self.apply_sentiment_overrides(text, res[0])
+
+    def apply_sentiment_overrides(self, text, sentiment_result):
+        lowered = text.lower()
+        if self.contains_any(lowered, self.positive_cues) or self.contains_any(lowered, self.negative_cues):
+            return sentiment_result
+
+        if (
+            sentiment_result["label"].upper() == "POSITIVE"
+            and self.contains_any(lowered, self.neutral_cues)
+        ):
+            return {"label": "NEUTRAL", "score": 0.55}
+
+        return sentiment_result
+
+    def contains_any(self, text, phrases):
+        return any(phrase in text for phrase in phrases)
 
     def select_strategy(self, sentiment_result):
         label = sentiment_result['label'].upper()
@@ -105,13 +142,58 @@ class ChimeraCore:
                     "supportive_care": f"Text: '{text}'. Calm and supportive response, telling them it will be okay:",
                     "standard_response": f"Text: '{text}'. Professional and neutral theater response:"
                 }
-                res = self.text_generator(prompt_map.get(strategy, "Response:"), max_new_tokens=25, num_return_sequences=1)
-                final_text = res[0]['generated_text'].replace(prompt_map.get(strategy, "Response:"), "").strip()
-                final_text = final_text.replace('\n', ' ')
-                return final_text if final_text else "Thank you for the input."
+                prompt = prompt_map.get(strategy, "Response:")
+                res = self.text_generator(
+                    prompt,
+                    max_new_tokens=25,
+                    num_return_sequences=1,
+                    do_sample=False,
+                )
+                final_text = res[0]["generated_text"].replace(prompt, "", 1).strip()
+                final_text = self.clean_generated_response(final_text)
+                if self.is_response_usable(final_text, strategy):
+                    return final_text
             except Exception:
                 pass
-                
+
+        return self.fallback_response(strategy)
+
+    def clean_generated_response(self, text):
+        normalized = unicodedata.normalize("NFKC", text)
+        cleaned = "".join(
+            char for char in normalized
+            if char.isprintable() and unicodedata.category(char)[0] != "C"
+        )
+        cleaned = re.sub(r"\s+", " ", cleaned).strip(" '\"-")
+        return cleaned
+
+    def is_response_usable(self, response, strategy):
+        if not response or len(response) < 12 or "\ufffd" in response:
+            return False
+
+        alpha_count = sum(char.isalpha() for char in response)
+        if alpha_count < 8:
+            return False
+
+        lowered = response.lower()
+        prompt_artifacts = (
+            "text:",
+            "very enthusiastic response",
+            "calm and supportive response",
+            "professional and neutral theater response",
+            "telling them it will be okay",
+        )
+        if any(artifact in lowered for artifact in prompt_artifacts):
+            return False
+
+        tone_keywords = {
+            "momentum_build": ("amazing", "energy", "excited", "great", "love", "thrill", "wonderful"),
+            "supportive_care": ("breathe", "calm", "gentle", "here", "okay", "safe", "support"),
+            "standard_response": ("continue", "noted", "standard", "trajectory"),
+        }
+        return any(keyword in lowered for keyword in tone_keywords[strategy])
+
+    def fallback_response(self, strategy):
         if strategy == "momentum_build":
             return f"That's fantastic! The energy here is really amplifying with that feedback! We're thrilled you feel that way."
         elif strategy == "supportive_care":

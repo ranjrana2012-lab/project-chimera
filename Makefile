@@ -16,10 +16,10 @@ help:
 	@echo "  make silence-alerts  - Silence AlertManager alerts"
 
 install-deps:
-	pip install -e ".[dev]"
+	pip install -r requirements-dev.txt
 
 dev:
-	docker compose up -d
+	docker compose -f docker-compose.mvp.yml up -d
 
 lint:
 	ruff check .
