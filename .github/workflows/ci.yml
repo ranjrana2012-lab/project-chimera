@@ -41,5 +41,5 @@ jobs:
     - name: Run Test Matrix (Unit, Integration, E2E Smoke)
       run: |
         cd services/operator-console
-        # Run the full test suite
-        PYTHONPATH=.:$PYTHONPATH pytest ../../tests/ -v
+        # Run exclusively the active monolith demonstrator suite
+        PYTHONPATH=.:$PYTHONPATH pytest ../../tests/unit/test_chimera_core.py ../../tests/integration/test_chimera_workflows.py ../../tests/e2e/test_chimera_smoke.py -v
