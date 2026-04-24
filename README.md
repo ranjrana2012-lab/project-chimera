@@ -7,7 +7,7 @@
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 
-*Last Updated: April 20, 2026*
+*Last Updated: April 24, 2026*
 
 ## 🚀 Quick Start (Monolithic Demonstrators)
 
@@ -22,7 +22,7 @@ cd project-chimera
 
 # Setup Environment
 cd services/operator-console
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
 # Windows PowerShell: .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -30,7 +30,8 @@ pip install -r requirements.txt
 # OPTION 1: Run the beautiful Visual Web Dashboard (Recommended)
 python chimera_web.py
 # -> Open your browser to http://127.0.0.1:8080
-# -> If 8080 is already in use, set PORT=8090 (PowerShell: $env:PORT=8090) and rerun.
+# -> If 8080 is already in use, set PORT to another free port, e.g. 18080.
+# -> PowerShell: $env:PORT=18080
 
 # OPTION 2: Run the local terminal CLI
 python chimera_core.py
@@ -57,8 +58,8 @@ pytest tests/ -v
 ## 🏗️ Architecture Pathways
 
 Project Chimera supports two modes of operation:
-1. **The MVP Monolith (chimera_core.py)**: The recommended way to run the local demonstrator using local ML models without Docker overhead.
-2. **The Microservices Ecosystem (docker-compose)**: Designed for large scale-out deployments utilizing Kafka, Milvus, and containerized agents (see `docs/guides/MVP_OVERVIEW.md` or `docs/guides/DEPLOYMENT.md`).
+1. **The MVP Monolith (`chimera_core.py` / `chimera_web.py`)**: The recommended way to run the local demonstrator using local ML models without Docker overhead.
+2. **The Secondary Containerized Paths (`docker-compose.mvp.yml` / `docker-compose.student.yml`)**: Use these when you need multi-service wiring or a sandboxed operator-console preview (see `docs/guides/GETTING_STARTED.md` and `docs/guides/DEPLOYMENT.md`).
 
 ## 📁 Repository Structure
 
@@ -70,7 +71,8 @@ project-chimera/
 ├── docs/                        # Project Guides & Architecture (e.g. docs/guides)
 ├── scripts/                     # Helpful developer setup scripts
 ├── tests/                       # QA and Pytest suites
-└── docker-compose.yml           # (Available for scale-out setups)
+├── docker-compose.mvp.yml       # Secondary multi-service MVP stack
+└── docker-compose.student.yml   # Secondary operator-console sandbox
 ```
 
 ## 🤝 Contributing & Security
