@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chimera Operator Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="container">
+        <h1>Chimera Live</h1>
+        <div class="subtitle">AI Operator Dashboard • <a href="/projection" target="_blank" style="color:var(--primary);text-decoration:none;">Open Projection</a> • <a href="/api/export" target="_blank" style="color:#10b981;text-decoration:none;">Download Analytics CSV</a></div>
+        
+        <input type="text" id="userInput" placeholder="Type simulated audience feedback..." autocomplete="off"/>
+        <button onclick="send()" id="submitBtn">Compute Generative Response</button>
+        <div class="spinner" id="spinner"></div>
+        
+        <!-- STUDENT 2: AVATAR PLACEHOLDER -->
+        <div class="avatar-container" id="avatarDisplay">
+            <span style="color: #94a3b8;">Avatar Module Not Integrated</span>
+        </div>
+        
+        <div id="output">
+            <span style="color: #94a3b8;">System initialized and listening... Type above to begin.</span>
+        </div>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>

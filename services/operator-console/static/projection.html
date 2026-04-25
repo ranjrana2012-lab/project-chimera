@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chimera Live Caption Projection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: #000000; 
+            margin: 0; 
+            overflow: hidden; 
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+        .caption-box {
+            width: 90%;
+            text-align: center;
+            color: #ffffff;
+            font-size: 4rem;
+            font-weight: 700;
+            text-shadow: 0 4px 20px rgba(255,255,255,0.2);
+            transition: opacity 0.5s;
+        }
+        .strategy-indicator {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            font-size: 1.5rem;
+            color: #555;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.2rem;
+        }
+        .bsl-container {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            border: 2px dashed #475569;
+            padding: 1.5rem;
+            background: rgba(15, 23, 42, 0.8);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-align: center;
+            border-radius: 0.5rem;
+            letter-spacing: 0.1em;
+        }
+        .pulse { animation: fadePulse 2s infinite; }
+        @keyframes fadePulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+    </style>
+</head>
+<body>
+    <div class="caption-box" id="caption">SYSTEM INITIALIZING...</div>
+    
+    <div class="bsl-container">
+        [ PHASE 2: BSL AVATAR RENDER TARGET ]<br>
+        <span id="bsl-text" style="font-size: 0.85rem; color: #38bdf8; font-weight: bold; margin-top: 10px; display: block;">* STANDBY *</span>
+    </div>
+    
+    <div class="strategy-indicator" id="strategy">STANDBY</div>
+    <script>
+        let lastResponse = "";
+        const bslDictionary = {
+            'momentum_build': '* EXCITED ANIMATION SEQUENCE *',
+            'supportive_care': '* CALMING NURTURING GESTURES *',
+            'standard_response': '* PROFESSIONAL NEUTRAL POSTURE *'
+        };
+        
+        setInterval(async () => {
+            try {
+                const res = await fetch('/api/state');
+                const data = await res.json();
+                if (data.response !== lastResponse) {
+                    lastResponse = data.response;
+                    const cap = document.getElementById('caption');
+                    cap.style.opacity = '0';
+                    setTimeout(() => {
+                        cap.innerText = `"${data.response}"`;
+                        cap.style.opacity = '1';
+                    }, 500);
+                    document.getElementById('strategy').innerText = data.strategy.replace('_', ' ');
+                    document.getElementById('bsl-text').innerText = bslDictionary[data.strategy] || '* WAITING *';
+                    
+                    if (data.strategy === 'momentum_build') { document.getElementById('strategy').style.color = '#ef4444'; }
+                    else if (data.strategy === 'supportive_care') { document.getElementById('strategy').style.color = '#3b82f6'; }
+                    else { document.getElementById('strategy').style.color = '#555'; }
+                }
+            } catch (e) {}
+        }, 600);
+    </script>
+</body>
+</html>
