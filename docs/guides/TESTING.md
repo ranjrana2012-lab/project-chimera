@@ -1,6 +1,6 @@
 # Testing Guide
 
-**Last Updated:** April 24, 2026
+**Last Updated:** April 26, 2026
 
 ## Overview
 
@@ -16,7 +16,12 @@ For day-to-day validation, start with the monolithic operator-console checks. Us
 cd services/operator-console
 python -m venv venv
 source venv/bin/activate
-# Windows PowerShell: .\venv\Scripts\Activate.ps1
+# Windows PowerShell:
+#   .\venv\Scripts\Activate.ps1
+# If that is blocked:
+#   Set-ExecutionPolicy -Scope Process Bypass
+#   .\venv\Scripts\Activate.ps1
+# Or use .\venv\Scripts\python.exe directly.
 pip install -r requirements.txt
 ```
 
@@ -96,6 +101,25 @@ pytest tests/e2e/ -v
 
 Run these only when Docker is healthy and the stack is intentionally under test.
 
+For the validated MVP slice:
+
+```bash
+docker compose -f docker-compose.mvp.yml up -d --build
+pytest tests/integration/mvp/test_docker_compose.py -v
+pytest tests/integration/mvp/test_sentiment_agent.py \
+  tests/integration/mvp/test_hardware_bridge.py \
+  tests/integration/mvp/test_translation_agent.py \
+  tests/integration/mvp/test_safety_filter.py -v
+```
+
+For DGX Spark / GB10 ARM64 validation, use the DGX override:
+
+```bash
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
+pytest tests/integration/mvp/test_docker_compose.py -v
+```
+
 ## Useful Commands
 
 ```bash
@@ -130,6 +154,15 @@ If `docker compose` cannot reach the local engine, fix the Docker environment be
 
 Set `PORT` to a free value before launching `chimera_web.py`.
 
+### Windows `python` or activation problems
+
+If `python --version` fails in a fresh shell, add these directories to your user `Path` and reopen PowerShell:
+
+- `%LocalAppData%\Programs\Python\Python312`
+- `%LocalAppData%\Programs\Python\Python312\Scripts`
+
+If PowerShell blocks `.\venv\Scripts\Activate.ps1`, use `Set-ExecutionPolicy -Scope Process Bypass`, `cmd /c venv\Scripts\activate.bat`, or `.\venv\Scripts\python.exe ...`.
+
 ## Practical Validation Order
 
 For most changes, use this order:
@@ -146,6 +179,8 @@ For most changes, use this order:
 ## Related Guides
 
 - [GETTING_STARTED.md](GETTING_STARTED.md)
+- [STUDENT_LAPTOP_SETUP.md](STUDENT_LAPTOP_SETUP.md)
+- [DGX_SPARK_SETUP.md](DGX_SPARK_SETUP.md)
 - [DEVELOPMENT.md](DEVELOPMENT.md)
 - [DEPLOYMENT.md](DEPLOYMENT.md)
 - [README.md](../../README.md)

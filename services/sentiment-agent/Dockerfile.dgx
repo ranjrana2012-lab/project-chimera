@@ -1,0 +1,42 @@
+# Project Chimera - DGX Spark / GB10 Sentiment Agent
+#
+# This image is intended for NVIDIA DGX Spark / Grace Blackwell ARM64 hosts.
+# It starts from an NGC PyTorch container so GPU, CUDA, cuDNN, and PyTorch are
+# supplied by NVIDIA rather than rebuilt from PyPI.
+
+ARG DGX_PYTORCH_IMAGE=nvcr.io/nvidia/pytorch:25.11-py3
+FROM ${DGX_PYTORCH_IMAGE}
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app/src:/app
+ENV HF_HUB_CACHE=/app/models_cache
+ENV TRANSFORMERS_CACHE=/app/models_cache
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# Keep the NGC-provided torch/CUDA stack intact. Project requirements install
+# the service libraries around it and deliberately skip the torch pin.
+COPY services/shared/requirements.txt ./shared_requirements.txt
+COPY services/sentiment-agent/requirements.txt ./requirements.txt
+RUN grep -v "^torch==" requirements.txt > /tmp/requirements_dgx.txt && \
+    pip install --no-cache-dir -r shared_requirements.txt && \
+    pip install --no-cache-dir -r /tmp/requirements_dgx.txt && \
+    rm /tmp/requirements_dgx.txt
+
+RUN mkdir -p ./models_cache
+
+COPY services/sentiment-agent/src/ /app/src/
+COPY services/shared/ /app/shared/
+
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8004
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=5 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8004/health/live')" || exit 1
+
+CMD ["python", "-m", "sentiment_agent.main"]

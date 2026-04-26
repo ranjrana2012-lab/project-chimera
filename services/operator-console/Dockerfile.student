@@ -4,28 +4,16 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install system dependencies required for Text-to-Speech
-RUN apt-get update && apt-get install -y \
-    espeak \
-    ffmpeg \
-    libespeak1 \
-    && rm -rf /var/lib/apt/lists/*
+# Install only the runtime dependencies needed for the student dashboard.
+# The monolith path remains the place to exercise the full Hugging Face setup.
+COPY requirements.student.txt .
+RUN pip install --no-cache-dir -r requirements.student.txt
 
-# Install python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Preload Tiny ML Models into the image cache to save students time during startup
-RUN python -c "\
-import os;\
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3';\
-from transformers import pipeline;\
-pipeline('sentiment-analysis', model='distilbert-base-uncased-finetuned-sst-2-english', device='cpu');\
-pipeline('text-generation', model='distilgpt2', device='cpu');\
-"
-
-# Copy the core engine
-COPY . .
+# Copy only the dashboard runtime files. Avoid copying local venvs, caches,
+# logs, and generated exports from a student's working tree into the image.
+COPY *.py ./
+RUN mkdir -p static
+COPY static/ ./static/
 
 # Expose Web Dashboard
 EXPOSE 8080

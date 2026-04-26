@@ -57,6 +57,7 @@ worktrees/
 .env.*
 !.env.example
 !.env.production.example
+!.env.dgx-spark.example
 
 # Logs
 *.log

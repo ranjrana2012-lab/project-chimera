@@ -7,6 +7,7 @@ for moderation-specific attributes.
 
 import os
 import logging
+from contextlib import contextmanager
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,14 @@ except ImportError:
     logger.debug("Jaeger exporter not available, will use console exporter")
 
 
+class NoOpTracer:
+    """Tracer-compatible fallback used when OpenTelemetry is not installed."""
+
+    @contextmanager
+    def start_as_current_span(self, *args, **kwargs):
+        yield None
+
+
 def setup_telemetry(
     service_name: str = "safety-filter",
     jaeger_host: str = "jaeger.shared.svc.cluster.local",
@@ -48,11 +57,12 @@ def setup_telemetry(
         sample_rate: Fraction of traces to sample (default: 0.1 = 10%)
 
     Returns:
-        Tracer instance for creating manual spans, or None if OpenTelemetry is not available
+        Tracer instance for creating manual spans. Returns a no-op tracer if
+        OpenTelemetry is not available so request handlers can keep running.
     """
     if not OPENTELEMETRY_AVAILABLE:
-        logger.warning("OpenTelemetry not installed, returning None tracer")
-        return None
+        logger.warning("OpenTelemetry not installed, using no-op tracer")
+        return NoOpTracer()
 
     # Create resource with service name
     resource = Resource(attributes={

@@ -19,8 +19,12 @@ RUN pip install --no-cache-dir -r shared_requirements.txt
 # Copy requirements first for better caching
 COPY services/sentiment-agent/requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies.
+# The MVP compose profile is a CPU preview path, so skip the PyTorch wheel here
+# and allow the service's built-in mock fallback to run when ML deps are absent.
+RUN grep -v "^torch==" requirements.txt > /tmp/requirements_no_torch.txt && \
+    pip install --no-cache-dir -r /tmp/requirements_no_torch.txt && \
+    rm /tmp/requirements_no_torch.txt
 
 # Create models cache directory (model will be downloaded at runtime)
 RUN mkdir -p ./models_cache

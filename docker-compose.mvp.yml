@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Project Chimera - MVP Rescue Slice
 # ================================
 # Simplified Docker Compose for core functionality testing.
@@ -56,7 +54,7 @@ services:
       - SCENESPEAK_ENVIRONMENT=development
       - SCENESPEAK_LOG_LEVEL=INFO
       # Z.ai GLM 4.7 API (Primary LLM)
-      - SCENESPEAK_GLM_API_KEY=${GLM_API_KEY}
+      - SCENESPEAK_GLM_API_KEY=${GLM_API_KEY:-}
       - SCENESPEAK_GLM_API_BASE=https://open.bigmodel.cn/api/paas/v4/
       # Fallback to LOCAL Nemotron LLM on host machine
       - SCENESPEAK_LOCAL_LLM_ENABLED=true

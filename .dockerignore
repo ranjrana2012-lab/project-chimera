@@ -19,6 +19,7 @@ __pycache__/
 .env.*
 !.env.example
 !.env.production.example
+!.env.dgx-spark.example
 
 # CI/CD (not needed in images)
 .github/

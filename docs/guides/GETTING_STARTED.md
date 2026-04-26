@@ -2,10 +2,22 @@
 
 This guide focuses on the paths that are current and usable today.
 
-Project Chimera has two main ways to run:
+Project Chimera has two profile-specific setup guides:
+
+1. Student / Laptop: `docs/guides/STUDENT_LAPTOP_SETUP.md`
+2. DGX Spark / GB10 ARM64: `docs/guides/DGX_SPARK_SETUP.md`
+
+Agents should read `AGENTS.md` first and can run:
+
+```bash
+python scripts/detect_runtime_profile.py
+```
+
+Project Chimera has three main ways to run:
 
 1. The monolithic operator-console demonstrator in `services/operator-console`.
-2. The secondary Docker Compose stacks in `docker-compose.mvp.yml` and `docker-compose.student.yml`.
+2. The lightweight student dashboard in `docker-compose.student.yml`.
+3. The secondary MVP Docker Compose stack in `docker-compose.mvp.yml`, optionally combined with `docker-compose.dgx-spark.yml` on DGX Spark / GB10 ARM64 hardware.
 
 For a first run, start with the monolithic demonstrator. It is the quickest way to validate sentiment routing, caption mode, export, and the local web dashboard without depending on the full container stack.
 
@@ -19,6 +31,7 @@ For a first run, start with the monolithic demonstrator. It is the quickest way 
 ### Optional
 
 - Docker Desktop / Docker Engine with Docker Compose v2 for the secondary containerized paths
+- NVIDIA Container Runtime and NGC login for the DGX Spark path
 - `GLM_API_KEY` if you want to exercise external GLM-backed flows in the microservice stack
 
 ## Recommended First Run: Monolithic Demonstrator
@@ -32,7 +45,13 @@ cd project-chimera
 cd services/operator-console
 python -m venv venv
 source venv/bin/activate
-# Windows PowerShell: .\venv\Scripts\Activate.ps1
+# Windows PowerShell:
+#   .\venv\Scripts\Activate.ps1
+# If that is blocked by execution policy:
+#   Set-ExecutionPolicy -Scope Process Bypass
+#   .\venv\Scripts\Activate.ps1
+# Or call the venv interpreter directly:
+#   .\venv\Scripts\python.exe -m pip install -r requirements.txt
 
 # Install monolith dependencies
 pip install -r requirements.txt
@@ -102,6 +121,16 @@ docker compose -f docker-compose.mvp.yml up -d --build
 docker compose -f docker-compose.mvp.yml ps
 ```
 
+For DGX Spark / GB10 ARM64 hosts, use the DGX override instead:
+
+```bash
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml ps
+```
+
+Do not use the DGX override on ordinary student laptops.
+
 ### Current MVP Service Ports
 
 | Service | URL | Purpose |
@@ -129,11 +158,38 @@ docker compose -f docker-compose.student.yml up -d --build
 
 This exposes the student dashboard at `http://localhost:8080`.
 
+If port `8080` is already in use, set a different host port:
+
+```powershell
+$env:CHIMERA_STUDENT_PORT=18080
+docker compose -f docker-compose.student.yml up -d --build
+```
+
 ## Troubleshooting
 
 ### Python Command Not Found
 
 Install Python 3.12+ and make sure the interpreter is available as `python`.
+
+On Windows, add these directories to your user `Path`, then open a new PowerShell window:
+
+- `%LocalAppData%\Programs\Python\Python312`
+- `%LocalAppData%\Programs\Python\Python312\Scripts`
+
+Then verify:
+
+```powershell
+python --version
+pip --version
+```
+
+### PowerShell Blocks Activate.ps1
+
+If `.\venv\Scripts\Activate.ps1` is blocked, use one of these options:
+
+- `Set-ExecutionPolicy -Scope Process Bypass` for the current shell only
+- `cmd /c venv\Scripts\activate.bat`
+- `.\venv\Scripts\python.exe ...` without activating the venv
 
 ### Port Already In Use
 

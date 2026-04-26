@@ -1,477 +1,130 @@
-# Project Chimera - Student Guide
+# Project Chimera Student Guide
 
-**Last Updated**: 2026-03-30
-**Target Audience**: Students, Researchers, Developers learning the system
-**Prerequisites**: Basic Python, Docker, and REST API knowledge
+**Last Updated:** April 25, 2026
 
----
+This guide is for students who want the shortest accurate path to running and testing Project Chimera as it exists today.
 
-## 🎓 Learning Objectives
+## What You Should Run First
 
-After completing this guide, you will understand:
-1. How Project Chimera's microservices architecture works
-2. How data flows between services in real-time
-3. How to run and test the system locally
-4. How the AI/ML components integrate
-5. How to extend and modify the system
+Project Chimera supports two kinds of workflows:
 
----
+1. `services/operator-console` monolithic demonstrator
+2. Secondary Docker Compose stacks for broader service wiring
 
-## 🏗️ System Architecture Overview
+For onboarding, always start with the monolith. It has the clearest setup path and covers the core behaviors:
 
-### High-Level Diagram
+- sentiment routing
+- compare mode
+- caption mode
+- export flow
+- local web dashboard and API
 
-```
-                    ┌─────────────────────────────────────┐
-                    │      Nemo Claw Orchestrator        │
-                    │         (Port 8000)                 │
-                    │  - Coordinates all services         │
-                    │  - Manages show state              │
-                    │  - WebSocket hub for real-time      │
-                    └───────────┬─────────────────────────┘
-                                │
-        ┌───────────────────┼───────────────────┐
-        │                   │                   │
-        ▼                   ▼                   ▼
-┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-│  Audience    │   │   Content    │   │   Effect     │
-│  Reaction    │   │   Generation │   │   Control    │
-│              │   │              │   │              │
-│ Sentiment    │   │ SceneSpeak   │   │ Lighting/    │
-│ Agent (8004) │   │ Agent (8001) │   │ Sound (8005) │
-└──────────────┘   └──────────────┘   └──────────────┘
-        │                   │                   │
-        └───────────────────┼───────────────────┘
-                            │
-                            ▼
-                   ┌────────────────┐
-                   │  Accessibility │
-                   │                │
-                   │ Captioning     │
-                   │ (8002)         │
-                   │ BSL Avatar     │
-                   │ (8003)         │
-                   └────────────────┘
-```
-
-### Data Flow Example
-
-```
-1. Audience member reacts: "This is amazing!"
-   │
-2. └─> POST /api/analyze {text: "This is amazing!"}
-        │
-        ▼
-   [Sentiment Agent]
-   - ML model analyzes text
-   - Returns: {sentiment: "positive", score: 0.9}
-   │
-3. └─> WebSocket broadcast: sentiment_update
-        │
-        ├──> [Captioning Agent] - Generate subtitle
-        ├──> [BSL Agent] - Trigger sign animation
-        ├──> [Lighting Agent] - Adjust lighting
-        └──> [Sound Agent] - Modify audio
-```
-
----
-
-## 🔬 Service Deep Dives
-
-### 1. Nemo Claw Orchestrator (Port 8000)
-
-**Purpose**: Central coordinator for the entire show
-
-**Key Responsibilities**:
-- Manage show state (idle, active, paused, ended)
-- Broadcast state updates via WebSocket
-- Coordinate agent communication
-- Handle audience inputs
-
-**Key Files**:
-```
-services/nemoclaw-orchestrator/
-├── main.py                    # FastAPI app entry point
-├── websocket/
-│   ├── handlers.py            # WebSocket message handlers
-│   └── manager.py             # Connection management
-└── core/
-    └── state_machine.py       # Show state management
-```
-
-**How to Test**:
-```bash
-# Health check
-curl http://localhost:8000/health/live
-
-# WebSocket connection
-wscat -c ws://localhost:8000/ws/show
-# Send: {"action": "start_show", "show_id": "test"}
-```
-
----
-
-### 2. Sentiment Agent (Port 8004)
-
-**Purpose**: Analyze audience reactions and emotions
-
-**Technology**:
-- ML Model: DistilBERT (sentiment classification)
-- Lazy loading: Model loads on first request (~5-10s)
-
-**API Endpoint**:
-```bash
-POST /api/analyze
-Content-Type: application/json
-
-{
-  "text": "The audience is loving this performance!"
-}
-
-Response:
-{
-  "sentiment": "positive",
-  "score": 0.87,
-  "confidence": 0.92,
-  "emotions": {
-    "joy": 0.75,
-    "surprise": 0.15,
-    "neutral": 0.10
-  }
-}
-```
-
-**Key Files**:
-```
-services/sentiment-agent/
-├── src/sentiment_agent/
-│   ├── main.py              # FastAPI app
-│   ├── analyzer.py          # ML model wrapper
-│   └── models.py            # Pydantic models
-```
-
----
-
-### 3. BSL Avatar Agent (Port 8003)
-
-**Purpose**: Generate sign language animations for deaf accessibility
-
-**Technology**:
-- Converts text to NMM (Notation Movement Language)
-- Real-time avatar animation
-
-**WebSocket Protocol**:
-```javascript
-// Connect
-ws://localhost:8003/ws/avatar
-
-// Send animation request
-{
-  "action": "animate",
-  "text": "Hello, welcome to the show",
-  "timestamp": "2026-03-30T10:00:00Z"
-}
-
-// Response
-{
-  "type": "animation_update",
-  "data": {
-    "nmm_data": [{"coefficient": 0.5, "value": 1.0}],
-    "text": "Hello, welcome to the show"
-  }
-}
-```
-
----
-
-### 4. Captioning Agent (Port 8002)
-
-**Purpose**: Generate real-time captions/subtitles
-
-**Features**:
-- Speech-to-text processing
-- Caption formatting and timing
-- Multi-language support (planned)
-
----
-
-### 5. SceneSpeak Agent (Port 8001)
-
-**Purpose**: Generate dialogue for scenes and characters
-
-**Technology**:
-- LLM-based dialogue generation
-- Character personality consistency
-- Scene context awareness
-
----
-
-## 🔌 WebSocket Communication
-
-### Connection Pattern
-
-All services communicate via WebSocket using a standard message format:
-
-```javascript
-{
-  "type": "message_type",
-  "data": { /* message-specific data */ },
-  "timestamp": "2026-03-30T10:00:00Z"
-}
-```
-
-### Message Types
-
-| Type | Source | Purpose |
-|------|--------|---------|
-| `show_state` | Orchestrator | Current show state |
-| `sentiment_update` | Sentiment Agent | New sentiment detected |
-| `animation_update` | BSL Agent | New animation frame |
-| `caption_update` | Captioning Agent | New caption text |
-| `state_update` | Orchestrator | Generic state change |
-
-### Example: Listening for Sentiment Updates
-
-```javascript
-const ws = new WebSocket('ws://localhost:8000/ws/show');
-
-ws.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-
-  if (message.type === 'sentiment_update') {
-    console.log('Sentiment:', message.data.sentiment);
-    console.log('Score:', message.data.score);
-
-    // Trigger actions based on sentiment
-    if (message.data.score > 0.8) {
-      // High positive sentiment - enhance lighting
-      enhanceLighting();
-    }
-  }
-};
-```
-
----
-
-## 🧪 Running Tests
-
-### Test Structure
-
-```
-tests/e2e/
-├── api/                    # API contract tests
-│   ├── sentiment.spec.ts
-│   ├── captioning.spec.ts
-│   └── ...
-├── websocket/              # WebSocket tests
-│   └── sentiment-updates.spec.ts
-├── ui/                     # UI tests
-│   └── operator-console.spec.ts
-└── failures/               # Resilience tests
-    └── service-failures.spec.ts
-```
-
-### Running Tests
+## Minimal Student Workflow
 
 ```bash
-cd tests/e2e
-
-# All tests
-npm test
-
-# Specific category
-npm test -- api/sentiment.spec.ts
-
-# With UI (interactive)
-npm test -- --ui
-
-# With coverage
-npm test -- --coverage
+git clone https://github.com/ranjrana2012-lab/project-chimera.git
+cd project-chimera
+cd services/operator-console
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python chimera_core.py demo
+python chimera_web.py
 ```
 
-### Writing a Test
+Windows PowerShell alternatives:
 
-```typescript
-import { test, expect } from '@playwright/test';
+- `.\venv\Scripts\Activate.ps1`
+- `Set-ExecutionPolicy -Scope Process Bypass` if PowerShell blocks activation
+- `.\venv\Scripts\python.exe ...` if you want to avoid activation entirely
 
-test('sentiment analysis works', async ({ request }) => {
-  const response = await request.post('http://localhost:8004/api/analyze', {
-    data: { text: 'This is amazing!' }
-  });
+If `8080` is already in use:
 
-  expect(response.status()).toBe(200);
-
-  const body = await response.json();
-  expect(body).toHaveProperty('sentiment');
-  expect(body).toHaveProperty('score');
-});
+```powershell
+$env:PORT=18080
+python chimera_web.py
 ```
 
----
+## What to Validate
 
-## 🛠️ Development Workflow
+### CLI
 
-### 1. Make Changes
-
-Edit service code in `services/<service-name>/`
-
-### 2. Test Locally
+From `services/operator-console`:
 
 ```bash
-# Restart affected service
-docker compose restart <service-name>
-
-# Run specific tests
-cd tests/e2e
-npm test -- <test-file>
+python chimera_core.py demo
+python chimera_core.py "I am very happy today!"
+python chimera_core.py "I'm feeling anxious and overwhelmed."
+python chimera_core.py "It's an okay experience, nothing special so far."
+python chimera_core.py compare "I love this performance"
+python chimera_core.py caption "Can you tell me more about the system?"
 ```
 
-### 3. Verify Integration
+### Web
+
+After `python chimera_web.py` starts, verify:
+
+- `GET /`
+- `GET /api/state`
+- `POST /api/process`
+- `GET /projection`
+- `GET /api/export`
+
+## Student Test Flow
+
+From the project root:
 
 ```bash
-# Run full test suite
-npm test
-
-# Check all services healthy
-for port in 8000 8001 8002 8003 8004 8005 8006 8007; do
-  curl -s http://localhost:$port/health/live | jq .
-done
+python verify_prerequisites.py
+pip install -r requirements-dev.txt
+pytest tests/unit/test_chimera_core.py -v
+pytest tests/e2e/test_chimera_smoke.py -v
+pytest tests/unit -v
+pytest tests --collect-only -q
 ```
 
-### 4. Commit Changes
+Treat `pytest tests -v` as a broader sweep rather than the default first check.
+
+## Secondary Docker Paths
+
+These are valid only after the monolith is healthy:
 
 ```bash
-git add .
-git commit -m "feat: description of changes"
-git push
+docker compose -f docker-compose.mvp.yml config --services
+docker compose -f docker-compose.student.yml config --services
+docker compose -f docker-compose.mvp.yml up -d --build
+docker compose -f docker-compose.student.yml up -d --build
 ```
 
----
+If Docker cannot reach the local engine, treat that as an environment blocker before treating it as a repository bug.
 
-## 📚 Key Concepts
+If `8080` is already in use for the student sandbox:
 
-### Microservices Communication
-
-**Synchronous**: HTTP/REST APIs
-- Used for: Direct requests, queries
-- Example: `POST /api/analyze`
-
-**Asynchronous**: WebSocket broadcasts
-- Used for: Real-time updates, events
-- Example: `sentiment_update` broadcast
-
-### State Management
-
-- Orchestrator maintains global show state
-- Services subscribe to state updates
-- WebSocket ensures all clients stay synchronized
-
-### ML Model Lazy Loading
-
-- Models load on first request (not at startup)
-- Trade-off: Faster service startup vs slower first request
-- Tests account for this with longer timeouts
-
----
-
-## 🎯 Exercises
-
-### Beginner
-
-1. **Health Checks**: Verify all services are healthy
-2. **Sentiment API**: Test different text inputs
-3. **WebSocket**: Connect and receive show state updates
-
-### Intermediate
-
-1. **Add a new sentiment test**: Write a test for edge cases
-2. **Modify show state**: Use WebSocket to change show state
-3. **Analyze data flow**: Trace a sentiment analysis through the system
-
-### Advanced
-
-1. **Add a new service**: Create a simple microservice
-2. **Implement a WebSocket handler**: Add custom message processing
-3. **Optimize ML loading**: Implement model pre-warming
-
----
-
-## 📖 Further Reading
-
-### Architecture
-- `docs/architecture/` - Detailed architecture documentation
-- `DEPLOYMENT.md` - Kubernetes deployment guide
-- `DOCKER.md` - Docker configuration details
-
-### Development
-- `DEVELOPMENT.md` - Development setup guide
-- `tests/e2e/README.md` - E2E testing guide
-- `CONTRIBUTING.md` - Contribution guidelines
-
-### Production
-- `PRODUCTION_READINESS_CHECKLIST.md` - Production readiness status
-- `CHANGELOG.md` - Version history and changes
-
----
-
-## 🆘 Troubleshooting
-
-### Issue: Service won't start
-```bash
-# Check logs
-docker compose logs <service-name>
-
-# Check port conflicts
-netstat -tuln | grep <port>
-
-# Restart service
-docker compose restart <service-name>
+```powershell
+$env:CHIMERA_STUDENT_PORT=18080
+docker compose -f docker-compose.student.yml up -d --build
 ```
 
-### Issue: Tests failing
-```bash
-# Ensure services are running
-docker compose ps
+## Windows Checklist
 
-# Run tests sequentially (debugging)
-cd tests/e2e
-NODE_ENV=test npm test --workers=1
+Before following the commands exactly, make sure a fresh PowerShell window can run:
 
-# Run specific test with debug output
-npm test -- <test-file> --debug
+```powershell
+python --version
+pip --version
+git --version
+docker compose version
 ```
 
-### Issue: ML model timing out
-- First request to ML services takes 5-10s
-- Subsequent requests are fast
-- Increase timeout in test: `test.setTimeout(60000)`
+If `python --version` fails, add these directories to your user `Path`, then open a new shell:
 
----
+- `%LocalAppData%\Programs\Python\Python312`
+- `%LocalAppData%\Programs\Python\Python312\Scripts`
 
-## ✅ Checklist
+## Related Guides
 
-Before working on Project Chimera:
-
-- [ ] Docker and Docker Compose installed
-- [ ] Repository cloned locally
-- [ ] Services running: `docker compose up -d`
-- [ ] All services healthy: Check health endpoints
-- [ ] Tests passing: `cd tests/e2e && npm test`
-
----
-
-## 🎓 Learning Path
-
-1. **Start Here**: Read `QUICK_START.md` (5 min)
-2. **Understand**: Read this Student Guide (30 min)
-3. **Explore**: Run the system and test endpoints (1 hour)
-4. **Test**: Run E2E tests and review code (2 hours)
-5. **Extend**: Make a small change and verify it works (2 hours)
-
-**Total Time**: ~5-6 hours for basic understanding
-
----
-
-**Happy Learning! 📚✨**
-
-For questions or issues, refer to the documentation or GitHub issues.
+- [README.md](../../README.md)
+- [GETTING_STARTED.md](GETTING_STARTED.md)
+- [DEVELOPMENT.md](DEVELOPMENT.md)
+- [TESTING.md](TESTING.md)
+- [DEPLOYMENT.md](DEPLOYMENT.md)

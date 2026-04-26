@@ -1,0 +1,60 @@
+# Project Chimera - DGX Spark / GB10 ARM64 override
+#
+# Use with the MVP stack:
+#   docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
+#
+# This profile assumes an NVIDIA DGX Spark / Grace Blackwell host with Docker,
+# NVIDIA Container Runtime, and NGC registry access configured.
+
+services:
+  openclaw-orchestrator:
+    platform: linux/arm64
+    environment:
+      CHIMERA_RUNTIME_PROFILE: dgx-spark
+
+  scenespeak-agent:
+    platform: linux/arm64
+    environment:
+      CHIMERA_RUNTIME_PROFILE: dgx-spark
+      SCENESPEAK_LOCAL_LLM_ENABLED: "${CHIMERA_DGX_LOCAL_LLM_ENABLED:-true}"
+      SCENESPEAK_LOCAL_LLM_URL: "${CHIMERA_DGX_LLM_URL:-http://host.docker.internal:8012}"
+      SCENESPEAK_LOCAL_LLM_MODEL: "${CHIMERA_DGX_LLM_MODEL:-nemotron-3-super-120b-a12b-nvfp4}"
+      SCENESPEAK_LLM_TIMEOUT: "${CHIMERA_DGX_LLM_TIMEOUT:-300}"
+
+  sentiment-agent:
+    platform: linux/arm64
+    build:
+      context: .
+      dockerfile: services/sentiment-agent/Dockerfile.dgx
+      args:
+        DGX_PYTORCH_IMAGE: "${CHIMERA_DGX_PYTORCH_IMAGE:-nvcr.io/nvidia/pytorch:25.11-py3}"
+    environment:
+      CHIMERA_RUNTIME_PROFILE: dgx-spark
+      USE_ML_MODEL: "true"
+      DEVICE: "auto"
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+      MODEL_CACHE_DIR: "/app/models_cache"
+    gpus: all
+    volumes:
+      - "${CHIMERA_DGX_MODEL_CACHE:-./models/dgx-spark/sentiment}:/app/models_cache"
+
+  safety-filter:
+    platform: linux/arm64
+    environment:
+      CHIMERA_RUNTIME_PROFILE: dgx-spark
+
+  translation-agent:
+    platform: linux/arm64
+    environment:
+      CHIMERA_RUNTIME_PROFILE: dgx-spark
+
+  operator-console:
+    platform: linux/arm64
+    environment:
+      CHIMERA_RUNTIME_PROFILE: dgx-spark
+
+  hardware-bridge:
+    platform: linux/arm64
+    environment:
+      CHIMERA_RUNTIME_PROFILE: dgx-spark

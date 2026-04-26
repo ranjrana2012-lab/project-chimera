@@ -30,7 +30,12 @@ cd project-chimera
 cd services/operator-console
 python -m venv venv
 source venv/bin/activate
-# Windows PowerShell: .\venv\Scripts\Activate.ps1
+# Windows PowerShell:
+#   .\venv\Scripts\Activate.ps1
+# If that is blocked:
+#   Set-ExecutionPolicy -Scope Process Bypass
+#   .\venv\Scripts\Activate.ps1
+# Or use .\venv\Scripts\python.exe directly.
 pip install -r requirements.txt
 ```
 
@@ -148,6 +153,21 @@ Open a pull request against `main` and include:
 ### Python or pip not found
 
 Install Python 3.12+ and verify the interpreter is available as `python`.
+
+On Windows, add these directories to your user `Path`, then reopen PowerShell:
+
+- `%LocalAppData%\Programs\Python\Python312`
+- `%LocalAppData%\Programs\Python\Python312\Scripts`
+
+Then verify with `python --version` and `pip --version`.
+
+### PowerShell blocks venv activation
+
+If `.\venv\Scripts\Activate.ps1` is blocked, use one of these instead:
+
+- `Set-ExecutionPolicy -Scope Process Bypass`
+- `cmd /c venv\Scripts\activate.bat`
+- `.\venv\Scripts\python.exe ...`
 
 ### Import errors during pytest collection
 

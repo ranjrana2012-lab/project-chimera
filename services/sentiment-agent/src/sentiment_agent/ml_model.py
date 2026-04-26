@@ -1,9 +1,19 @@
 """ML Model Wrapper for Sentiment Analysis."""
 
-import torch
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import logging
 import time
+from typing import Optional
+
+try:
+    import torch
+    from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+except ImportError as exc:
+    torch = None
+    DistilBertTokenizer = None
+    DistilBertForSequenceClassification = None
+    _IMPORT_ERROR: Optional[ImportError] = exc
+else:
+    _IMPORT_ERROR = None
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +32,17 @@ class SentimentModel:
 
     def _detect_device(self) -> str:
         """Auto-detect available device."""
-        if torch.cuda.is_available():
+        if torch is not None and torch.cuda.is_available():
             return "cuda"
         return "cpu"
 
     def load(self, max_retries: int = 5, retry_delay: int = 10):
         """Load model and tokenizer with retry logic for network resilience."""
+        if _IMPORT_ERROR is not None:
+            raise RuntimeError(
+                "DistilBERT dependencies are unavailable; sentiment mock fallback will be used"
+            ) from _IMPORT_ERROR
+
         logger.info(f"Loading {self.MODEL_NAME} on {self.device}")
 
         for attempt in range(max_retries):

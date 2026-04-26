@@ -1,14 +1,15 @@
 # Deployment Guide
 
 **Version:** 1.0.0
-**Last Updated:** April 24, 2026
+**Last Updated:** April 26, 2026
 
 ## Overview
 
-Project Chimera currently supports two practical deployment paths:
+Project Chimera currently supports three practical deployment paths:
 
 1. A local monolithic demonstrator in `services/operator-console`.
-2. Secondary Docker Compose stacks for multi-service or sandbox scenarios.
+2. A student/laptop Docker sandbox in `docker-compose.student.yml`.
+3. A multi-service MVP stack in `docker-compose.mvp.yml`, with an optional DGX Spark / GB10 ARM64 override in `docker-compose.dgx-spark.yml`.
 
 For local previews and rapid validation, use the monolith first. Use Docker Compose when you need the broader service topology.
 
@@ -29,7 +30,12 @@ Setup:
 cd services/operator-console
 python -m venv venv
 source venv/bin/activate
-# Windows PowerShell: .\venv\Scripts\Activate.ps1
+# Windows PowerShell:
+#   .\venv\Scripts\Activate.ps1
+# If that is blocked:
+#   Set-ExecutionPolicy -Scope Process Bypass
+#   .\venv\Scripts\Activate.ps1
+# Or use .\venv\Scripts\python.exe directly.
 pip install -r requirements.txt
 python chimera_web.py
 ```
@@ -66,6 +72,37 @@ docker compose -f docker-compose.student.yml up -d --build
 
 This exposes the student dashboard on `http://localhost:8080`.
 
+If `8080` is already in use, set a different host port:
+
+```powershell
+$env:CHIMERA_STUDENT_PORT=18080
+docker compose -f docker-compose.student.yml up -d --build
+```
+
+### 4. DGX Spark / GB10 ARM64 Stack
+
+Best for:
+
+- NVIDIA DGX Spark / Grace Blackwell ARM64 hosts
+- GPU-backed sentiment or local LLM experiments
+- advanced service integration after the student path is already understood
+
+Prerequisites:
+
+- Docker and NVIDIA Container Runtime
+- NGC registry login for `nvcr.io`
+- Verified `docker run --rm --gpus all ...` GPU access
+
+```bash
+python scripts/detect_runtime_profile.py
+docker login nvcr.io
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml ps
+```
+
+Do not use this path on student laptops.
+
 ## Current MVP Service Map
 
 The current `docker-compose.mvp.yml` exposes:
@@ -101,6 +138,16 @@ python chimera_web.py
 
 `GLM_API_KEY` is optional. Leave it unset unless you explicitly need the external GLM-backed flows in the secondary stack.
 
+### DGX Spark
+
+The DGX override also supports:
+
+- `CHIMERA_DGX_PYTORCH_IMAGE`, default `nvcr.io/nvidia/pytorch:25.11-py3`
+- `CHIMERA_DGX_MODEL_CACHE`, default `./models/dgx-spark/sentiment`
+- `CHIMERA_DGX_LLM_URL`, default `http://host.docker.internal:8012`
+- `CHIMERA_DGX_LLM_MODEL`, default `nemotron-3-super-120b-a12b-nvfp4`
+- `CHIMERA_DGX_LLM_TIMEOUT`, default `300`
+
 ## Verifying a Deployment
 
 ### Monolith
@@ -135,6 +182,14 @@ for port in 8000 8001 8002 8004 8006 8007 8008; do
   echo "Checking port $port..."
   curl -s http://localhost:$port/health || echo "Service not responding"
 done
+```
+
+### DGX Spark
+
+```bash
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml ps
+curl http://localhost:8004/health
+docker logs chimera-sentiment-agent --tail 80
 ```
 
 ## Troubleshooting
@@ -177,6 +232,8 @@ Keep those decisions separate from the validated local monolith and MVP Compose 
 ## Related Guides
 
 - [GETTING_STARTED.md](GETTING_STARTED.md)
+- [STUDENT_LAPTOP_SETUP.md](STUDENT_LAPTOP_SETUP.md)
+- [DGX_SPARK_SETUP.md](DGX_SPARK_SETUP.md)
 - [DEVELOPMENT.md](DEVELOPMENT.md)
 - [TESTING.md](TESTING.md)
 - [README.md](../../README.md)

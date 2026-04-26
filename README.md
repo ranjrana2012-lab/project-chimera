@@ -1,85 +1,143 @@
 # Project Chimera
 
-> An AI-powered live theatre platform creating performances that adapt in real-time to audience input.
+An AI-powered live theatre platform that adapts performance logic in real time
+from audience input.
 
 [![CI/CD](https://github.com/ranjrana2012-lab/project-chimera/actions/workflows/ci.yml/badge.svg)](https://github.com/ranjrana2012-lab/project-chimera/actions/workflows/ci.yml)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 
-*Last Updated: April 24, 2026*
+Last validated locally: April 26, 2026
 
-## 🚀 Quick Start (Monolithic Demonstrators)
+## Choose Your Route
 
-Project Chimera's primary MVP demonstrator is a fully autonomous monolithic Python environment. It incorporates `DistilBERT` sentiment analyzers, Local LLM Generative Scripting, and Live TTS Audio Routing to demonstrate our core intelligent theatre logic. 
+Project Chimera now documents two explicit runtime profiles:
 
-You can run the demonstrator either using the traditional Text CLI or our beautifully rendered Local Web Dashboard!
+| Profile | Use When | Start Here |
+| --- | --- | --- |
+| Student / Laptop | Students, Windows/macOS/WSL, ordinary laptops, first validation pass, no GPU required | `docs/guides/STUDENT_LAPTOP_SETUP.md` |
+| DGX Spark / GB10 ARM64 | NVIDIA DGX Spark / Grace Blackwell ARM64 host with Docker + NVIDIA Container Runtime | `docs/guides/DGX_SPARK_SETUP.md` |
+
+Agents should read `AGENTS.md` first. To auto-detect the likely profile:
 
 ```bash
-# Clone repository
+python scripts/detect_runtime_profile.py
+```
+
+If detection is ambiguous, use the Student / Laptop route first.
+
+## Student / Laptop Quick Start
+
+This is the default path for most users.
+
+```powershell
 git clone https://github.com/ranjrana2012-lab/project-chimera.git
 cd project-chimera
 
-# Setup Environment
 cd services/operator-console
 python -m venv venv
-source venv/bin/activate
-# Windows PowerShell: .\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+.\venv\Scripts\python.exe -m pip install --upgrade pip
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
 
-# OPTION 1: Run the beautiful Visual Web Dashboard (Recommended)
-python chimera_web.py
-# -> Open your browser to http://127.0.0.1:8080
-# -> If 8080 is already in use, set PORT to another free port, e.g. 18080.
-# -> PowerShell: $env:PORT=18080
-
-# OPTION 2: Run the local terminal CLI
-python chimera_core.py
+.\venv\Scripts\python.exe chimera_core.py demo
+$env:PORT='18080'
+.\venv\Scripts\python.exe chimera_web.py
 ```
 
-### Try these demonstration inputs:
-- *"I am very happy today!"* -> Prompts `momentum_build` dialogue strategy.
-- *"I'm feeling anxious and overwhelmed."* -> Prompts `supportive_care` dialogue strategy.
-- *"It's an okay experience, nothing special so far."* -> Prompts `standard_response`.
-- Type `compare` -> Triggers side-by-side mode.
-- Type `caption` -> Triggers accessibility output.
+Open:
 
-### Broader Repository Tests
+```text
+http://127.0.0.1:18080
+```
 
-For repository-wide tests from the project root, install the root development dependencies first:
+Try:
+
+- `I am very happy today!` -> `momentum_build`
+- `I'm feeling anxious and overwhelmed.` -> `supportive_care`
+- `It's an okay experience, nothing special so far.` -> `standard_response`
+- `compare "I love this performance"` -> baseline versus adaptive output
+- `caption "Can you tell me more about the system?"` -> accessibility output
+
+## Optional Student Docker Preview
+
+```powershell
+docker compose -f docker-compose.student.yml up -d --build
+```
+
+Open:
+
+```text
+http://127.0.0.1:8080
+```
+
+This container is intentionally lightweight and uses heuristic fallback behavior.
+
+## DGX Spark / GB10 Quick Start
+
+Use this only on a DGX Spark / ARM64 host with NVIDIA Container Runtime and NGC
+access configured.
 
 ```bash
-pip install -r requirements-dev.txt
-pytest tests/ -v
+docker login nvcr.io
+python scripts/detect_runtime_profile.py
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml ps
 ```
 
----
+The DGX route uses `services/sentiment-agent/Dockerfile.dgx`, which starts from
+an NVIDIA NGC PyTorch image instead of pulling PyTorch from PyPI.
 
-## 🏗️ Architecture Pathways
+## Validated Checks
 
-Project Chimera supports two modes of operation:
-1. **The MVP Monolith (`chimera_core.py` / `chimera_web.py`)**: The recommended way to run the local demonstrator using local ML models without Docker overhead.
-2. **The Secondary Containerized Paths (`docker-compose.mvp.yml` / `docker-compose.student.yml`)**: Use these when you need multi-service wiring or a sandboxed operator-console preview (see `docs/guides/GETTING_STARTED.md` and `docs/guides/DEPLOYMENT.md`).
+From the repository root:
 
-## 📁 Repository Structure
-
+```powershell
+.\services\operator-console\venv\Scripts\python.exe verify_prerequisites.py
+.\services\operator-console\venv\Scripts\python.exe -m pytest tests/unit/test_chimera_core.py tests/e2e/test_chimera_smoke.py -v
+.\services\operator-console\venv\Scripts\python.exe -m pytest tests/unit -v
+.\services\operator-console\venv\Scripts\python.exe -m pytest tests --collect-only -q
 ```
+
+With the MVP Compose stack running:
+
+```powershell
+.\services\operator-console\venv\Scripts\python.exe -m pytest tests/integration/mvp/test_docker_compose.py -v
+.\services\operator-console\venv\Scripts\python.exe -m pytest tests/integration/mvp/test_sentiment_agent.py tests/integration/mvp/test_hardware_bridge.py tests/integration/mvp/test_translation_agent.py tests/integration/mvp/test_safety_filter.py -v
+```
+
+## Repository Structure
+
+```text
 project-chimera/
-├── services/
-│   ├── operator-console/        # Contains the `chimera_core` Python demonstrator
-│   └── shared/                  # Shared utilities and middleware
-├── docs/                        # Project Guides & Architecture (e.g. docs/guides)
-├── scripts/                     # Helpful developer setup scripts
-├── tests/                       # QA and Pytest suites
-├── docker-compose.mvp.yml       # Secondary multi-service MVP stack
-└── docker-compose.student.yml   # Secondary operator-console sandbox
+  AGENTS.md                         # Agent route selection rules
+  docker-compose.student.yml        # Student/laptop container preview
+  docker-compose.mvp.yml            # MVP multi-service stack
+  docker-compose.dgx-spark.yml      # DGX Spark / ARM64 override
+  docs/guides/
+    STUDENT_LAPTOP_SETUP.md
+    DGX_SPARK_SETUP.md
+  scripts/
+    detect_runtime_profile.py
+  services/operator-console/
+    chimera_core.py
+    chimera_web.py
+  services/sentiment-agent/
+    Dockerfile
+    Dockerfile.dgx
 ```
 
-## 🤝 Contributing & Security
+## External Services
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup and guidelines. 
+Project Chimera does not require credentials for the default student route.
+Advanced LLM features can use `GLM_API_KEY` or a local DGX LLM endpoint, but do
+not invent or commit secrets.
 
-If you discover any security issues, refer to our [SECURITY.md](SECURITY.md) for responsible disclosure. 
+## Contributing and Security
 
-## ⚖️ License
+See `CONTRIBUTING.md` and `SECURITY.md`.
+
+## License
+
 MIT License

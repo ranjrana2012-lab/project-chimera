@@ -15,15 +15,14 @@ def base_url() -> str:
 def service_ports() -> Dict[str, int]:
     """Service port mappings for MVP services.
 
-    Note: Currently running services from docker-compose.yml have these port mappings.
-    The MVP docker-compose.mvp.yml has different mappings - update accordingly.
+    Ports match docker-compose.mvp.yml.
     """
     return {
         "orchestrator": 8000,
         "scenespeak": 8001,
         "sentiment": 8004,
         "safety": 8006,  # ACTUAL: safety-filter is on port 8006
-        "translation": None,  # NOT RUNNING: translation-agent not started
+        "translation": 8002,
         "console": 8007,
         "hardware": 8008,  # echo-hardware-bridge with dmx-sentiment mode
         "redis": 6379,

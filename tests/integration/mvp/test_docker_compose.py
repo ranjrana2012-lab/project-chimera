@@ -59,7 +59,6 @@ def test_safety_filter_health(safety_url):
 
 @pytest.mark.integration
 @pytest.mark.requires_docker
-@pytest.mark.skip(reason="Translation Agent service not running in current configuration")
 def test_translation_health(translation_url):
     """Test Translation Agent health endpoint."""
     response = requests.get(f"{translation_url}/health", timeout=5)
