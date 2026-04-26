@@ -1,5 +1,9 @@
 # Getting Started with Chimera Simulation Engine
 
+> Current Project Chimera setup note: this page is specific to the simulation
+> engine. For the validated repository setup routes, use `GETTING_STARTED.md`,
+> `STUDENT_LAPTOP_SETUP.md`, or `DGX_SPARK_SETUP.md`.
+
 > **Version:** 1.0.0
 > **Last Updated:** 2026-03-18
 > **Audience:** Developers, System Architects, Researchers
