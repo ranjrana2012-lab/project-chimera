@@ -89,6 +89,8 @@ docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml ps
 The DGX route uses `services/sentiment-agent/Dockerfile.dgx`, which starts from
 an NVIDIA NGC PyTorch image instead of pulling PyTorch from PyPI.
 
+> **Note**: Full integration tests run via `make test` or `pytest tests/integration/` require the `docker-compose.mvp.yml` services to be active and must be executed from *within* the Docker network to resolve internal DNS hostnames (e.g., `openclaw-orchestrator`, `redis`).
+
 ## Validated Checks
 
 From the repository root:
