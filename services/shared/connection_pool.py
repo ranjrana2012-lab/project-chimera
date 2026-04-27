@@ -111,6 +111,8 @@ class ConnectionPoolManager:
                 timeout=httpx.Timeout(
                     connect=self.connection_timeout,
                     read=self.read_timeout,
+                    write=self.read_timeout,
+                    pool=self.connection_timeout,
                 ),
             )
 
