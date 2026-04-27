@@ -2,6 +2,8 @@
 models/
 
 # Python development
+**/venv/
+**/.venv/
 venv/
 .venv/
 __pycache__/

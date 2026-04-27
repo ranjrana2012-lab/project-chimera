@@ -30,7 +30,7 @@ RUN mkdir -p ./models_cache
 COPY services/sentiment-agent/src/ /app/src/
 COPY services/shared/ /app/shared/
 
-RUN useradd -m -u 1000 appuser && \
+RUN useradd -m appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
