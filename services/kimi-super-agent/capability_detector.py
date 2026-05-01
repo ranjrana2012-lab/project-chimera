@@ -3,17 +3,12 @@
 import logging
 import os
 from typing import Dict, Any
-from enum import IntEnum
+
+# Use protobuf enum for consistency
+from proto import kimi_pb2
+CapabilityHint = kimi_pb2.CapabilityHint
 
 logger = logging.getLogger(__name__)
-
-
-class CapabilityHint(IntEnum):
-    """Capability hints for delegation."""
-    NONE = 0
-    LONG_CONTEXT = 1
-    MULTIMODAL = 2
-    AGENTIC_CODING = 3
 
 
 class CapabilityDetector:
@@ -25,7 +20,7 @@ class CapabilityDetector:
         )
         logger.info("CapabilityDetector initialized")
 
-    def detect(self, request: Dict[str, Any]) -> CapabilityHint:
+    def detect(self, request: Dict[str, Any]) -> kimi_pb2.CapabilityHint:
         """
         Detect required capability from request.
 
