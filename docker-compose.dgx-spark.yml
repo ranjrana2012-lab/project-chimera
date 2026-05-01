@@ -58,3 +58,64 @@ services:
     platform: linux/arm64
     environment:
       CHIMERA_RUNTIME_PROFILE: dgx-spark
+
+  # Kimi K2.6 Super-Agent Stack
+  kimi-vllm:
+    platform: linux/arm64
+    image: vllm/vllm-openai:latest
+    container_name: chimera-kimi-vllm
+    command: >
+      --model /model
+      --gpu-memory-utilization 0.55
+      --max-model-len 32768
+      --dtype bfloat16
+      --quantization int4
+      --port 8012
+      --host 0.0.0.0
+    gpus: all
+    volumes:
+      - ${KIMI_MODEL_CACHE:-./models/kimi}:/model
+    environment:
+      PYTHONUNBUFFERED: "1"
+      VLLM_WORKER_MULTIPROC_METHOD: "spawn"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8012/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - chimera-network
+
+  kimi-super-agent:
+    platform: linux/arm64
+    build:
+      context: .
+      dockerfile: services/kimi-super-agent/Dockerfile
+    container_name: chimera-kimi-super-agent
+    gpus: all
+    environment:
+      KIMI_VLLM_ENDPOINT: http://kimi-vllm:8012
+      CHIMERA_RUNTIME_PROFILE: dgx-spark
+      KIMI_GRPC_PORT: 50052
+      NEMO_CLAW_GRPC_ENDPOINT: nemoclaw-orchestrator:50051
+      KIMI_MAX_TOKENS: 32768
+      KIMI_TEMPERATURE: 0.7
+      KIMI_TOP_P: 0.9
+    volumes:
+      - ./config/kimi-super-agent:/etc/kimi:ro
+      - ./logs/kimi:/app/logs
+    depends_on:
+      kimi-vllm:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - chimera-network
