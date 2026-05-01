@@ -5,9 +5,12 @@ from services.kimi_super_agent.capability_detector import (
     CapabilityHint,
     MultimodalContent
 )
+from services.kimi_super_agent.agent_coordinator import AgentCoordinator, AgentConfig
 
 __all__ = [
     "CapabilityDetector",
     "CapabilityHint",
-    "MultimodalContent"
+    "MultimodalContent",
+    "AgentCoordinator",
+    "AgentConfig"
 ]
