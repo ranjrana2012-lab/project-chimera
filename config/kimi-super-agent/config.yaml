@@ -1,0 +1,50 @@
+kimi:
+  model_name: "moonshotai/Kimi-K2.6"
+  vllm_endpoint: "http://kimi-vllm:8012"
+  max_tokens: 32768
+  temperature: 0.7
+  top_p: 0.9
+  timeout_seconds: 300
+
+grpc:
+  host: "0.0.0.0"
+  port: 50052
+  max_workers: 10
+  nemoclaw_endpoint: "nemoclaw-orchestrator:50051"
+
+memory:
+  gpu_memory_fraction: 0.55
+  kv_cache_size_bytes: 10737418240  # 10GB
+  max_concurrent_requests: 5
+
+delegation:
+  long_context_threshold_tokens: 8192
+  enable_multimodal: true
+  enable_agentic_coding: true
+
+  # Multimodal processing limits
+  max_video_size_mb: 500
+  max_image_size_mb: 50
+  max_audio_size_mb: 100
+
+  # Agentic coding settings
+  max_generated_code_length: 10000
+  allowed_code_languages: ["python"]
+
+chimera_agents:
+  sentiment:
+    endpoint: "http://sentiment-agent:8004"
+    timeout_seconds: 10
+  translation:
+    endpoint: "http://translation-agent:8002"
+    timeout_seconds: 15
+  scenespeak:
+    endpoint: "http://scenespeak-agent:8001"
+    timeout_seconds: 30
+  safety:
+    endpoint: "http://safety-filter:8006"
+    timeout_seconds: 5
+
+logging:
+  level: "INFO"
+  format: "json"
