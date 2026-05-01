@@ -4,15 +4,10 @@ import re
 import os
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
-from enum import Enum
 
-
-class CapabilityHint(Enum):
-    """Capability hint types."""
-    NONE = 0
-    LONG_CONTEXT = 1
-    MULTIMODAL = 2
-    AGENTIC_CODING = 3
+# Use protobuf enum for consistency
+from proto import kimi_pb2
+CapabilityHint = kimi_pb2.CapabilityHint
 
 
 @dataclass
@@ -55,7 +50,7 @@ class CapabilityDetector:
         # Compile regex patterns
         self.coding_patterns = [re.compile(p, re.IGNORECASE) for p in self.AGENTIC_CODING_PATTERNS]
 
-    def detect(self, request: Dict[str, Any]) -> CapabilityHint:
+    def detect(self, request: Dict[str, Any]) -> kimi_pb2.CapabilityHint:
         """Detect required capability for a request.
 
         Args:
