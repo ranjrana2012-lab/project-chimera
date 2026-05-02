@@ -93,3 +93,4 @@ final_test_env/
 .claude/
 .autonomous/
 @ Prompts/
+.venv_kimi/
