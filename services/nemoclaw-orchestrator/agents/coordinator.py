@@ -67,7 +67,7 @@ class AgentCoordinator:
             dgx_endpoint=settings.dgx_endpoint,
             local_ratio=settings.local_ratio,
             cloud_fallback_enabled=settings.cloud_fallback_enabled,
-            nemotron_model=settings.nemotron_model
+            nemotron_model_120b=settings.nemotron_model
         )
         self.privacy_router = PrivacyRouter(router_config)
 
