@@ -58,7 +58,7 @@ async def lifespan(app: FastAPI):
     # Initialize Privacy Router
     router_config = RouterConfig(
         dgx_endpoint=settings.dgx_endpoint,
-        nemotron_model=settings.nemotron_model,
+        nemotron_model_120b=settings.nemotron_model,
         zai_api_key=settings.zai_api_key,
         zai_primary_model=settings.zai_primary_model,
         zai_programming_model=settings.zai_programming_model,
