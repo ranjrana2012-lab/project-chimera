@@ -38,7 +38,7 @@ echo "Downloading Kimi-Dev-72B (Native INT4)..."
 echo "This may take 15-30 minutes depending on connection speed."
 echo ""
 
-python3 << PYTHON_SCRIPT
+until python3 << PYTHON_SCRIPT
 import os
 from huggingface_hub import snapshot_download
 import shutil
@@ -56,6 +56,10 @@ except Exception as e:
     print(f"\n✗ Error downloading model: {e}")
     exit(1)
 PYTHON_SCRIPT
+do
+    echo "Hugging Face client disconnected (unauthenticated rate limit). Retrying in 5 seconds..."
+    sleep 5
+done
 
 # Verify download
 echo ""
