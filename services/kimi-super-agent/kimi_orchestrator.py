@@ -8,9 +8,9 @@ import grpc
 from dotenv import load_dotenv
 
 from proto import kimi_pb2, kimi_pb2_grpc
-from services.kimi_super_agent.kimi_client import KimiClient
-from services.kimi_super_agent.capability_detector import CapabilityDetector
-from services.kimi_super_agent.agent_coordinator import AgentCoordinator
+from kimi_client import KimiClient
+from capability_detector import CapabilityDetector
+from agent_coordinator import AgentCoordinator
 
 load_dotenv()
 
