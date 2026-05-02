@@ -93,7 +93,7 @@ services:
       retries: 3
       start_period: 120s
     networks:
-      - chimera-network
+      - chimera-backend
 
   kimi-super-agent:
     platform: linux/arm64
@@ -118,4 +118,4 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - chimera-network
+      - chimera-backend
