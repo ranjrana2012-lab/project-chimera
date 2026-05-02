@@ -1,14 +1,14 @@
 #!/bin/bash
-# Download Kimi K2.6 Native INT4 for DGX Spark GB10
+# Download Kimi-Dev-72B Native INT4 for DGX Spark GB10
 
 set -e
 
-MODEL_NAME="moonshotai/Kimi-K2.6"
+MODEL_NAME="moonshotai/Kimi-Dev-72B"
 CACHE_DIR="./models/kimi"
 VENV=".venv_kimi"
 
 echo "================================================"
-echo "Kimi K2.6 Model Download Script"
+echo "Kimi-Dev-72B Model Download Script"
 echo "================================================"
 echo "Model: ${MODEL_NAME}"
 echo "Cache: ${CACHE_DIR}"
@@ -34,8 +34,8 @@ pip install --upgrade huggingface_hub hf-transfer
 
 # Download model
 echo ""
-echo "Downloading Kimi K2.6 (Native INT4)..."
-echo "This may take 30-60 minutes depending on connection speed."
+echo "Downloading Kimi-Dev-72B (Native INT4)..."
+echo "This may take 15-30 minutes depending on connection speed."
 echo ""
 
 python3 << PYTHON_SCRIPT
@@ -70,7 +70,7 @@ if [ -d "${CACHE_DIR}" ] && [ "$(ls -A ${CACHE_DIR})" ]; then
     ls -lh "${CACHE_DIR}" | head -20
     echo ""
     echo "================================================"
-    echo "✓ Kimi K2.6 download complete!"
+    echo "✓ Kimi-Dev-72B download complete!"
     echo "================================================"
     echo ""
     echo "Model location: ${CACHE_DIR}"

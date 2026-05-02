@@ -1,5 +1,5 @@
 kimi:
-  model_name: "moonshotai/Kimi-K2.6"
+  model_name: "moonshotai/Kimi-Dev-72B"
   vllm_endpoint: "http://kimi-vllm:8012"
   max_tokens: 32768
   temperature: 0.7
