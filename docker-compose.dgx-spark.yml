@@ -69,7 +69,7 @@ services:
       --gpu-memory-utilization 0.55
       --max-model-len 32768
       --dtype bfloat16
-      --quantization int4
+      --quantization bitsandbytes
       --port 8012
       --host 0.0.0.0
     gpus: all
