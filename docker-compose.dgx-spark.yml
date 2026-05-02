@@ -119,3 +119,20 @@ services:
     restart: unless-stopped
     networks:
       - chimera-backend
+
+  nemoclaw-orchestrator:
+    platform: linux/arm64
+    build:
+      context: .
+      dockerfile: services/nemoclaw-orchestrator/Dockerfile.zai
+    container_name: nemoclaw-orchestrator
+    environment:
+      SERVICE_NAME: nemoclaw-orchestrator
+      CHIMERA_RUNTIME_PROFILE: dgx-spark
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: INFO
+    networks:
+      - chimera-backend
+    restart: unless-stopped
+    depends_on:
+      - redis

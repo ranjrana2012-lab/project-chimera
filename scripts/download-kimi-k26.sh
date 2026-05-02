@@ -29,8 +29,8 @@ source "$VENV/bin/activate"
 echo "Installing huggingface_hub..."
 pip install --upgrade huggingface_hub hf-transfer
 
-# Enable fast transfer
-export HF_HUB_ENABLE_HF_TRANSFER=1
+# Disable fast transfer as it causes connection resets on large models
+# export HF_HUB_ENABLE_HF_TRANSFER=1
 
 # Download model
 echo ""
@@ -49,6 +49,7 @@ try:
         local_dir="${CACHE_DIR}",
         local_dir_use_symlinks=False,
         resume_download=True,
+        allow_patterns=["*.safetensors", "*.json", "*.tiktoken", "*.txt", "*.model", "tokenizer*"],
     )
     print("\n✓ Download complete!")
 except Exception as e:
