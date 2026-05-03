@@ -1,11 +1,24 @@
 global:
-  scrape_interval: 5s
-  evaluation_interval: 5s
+  scrape_interval: 15s
+  evaluation_interval: 15s
   external_labels:
     cluster: 'chimera-dgx'
     environment: 'development'
 
 scrape_configs:
+  - job_name: 'chimera-services'
+    static_configs:
+      - targets:
+        - 'openclaw-orchestrator:8000'
+        - 'scenespeak-agent:8001'
+        - 'captioning-agent:8002'
+        - 'bsl-agent:8003'
+        - 'sentiment-agent:8004'
+        - 'lighting-sound-music:8005'
+        - 'safety-filter:8006'
+        - 'operator-console:8007'
+    metrics_path: '/metrics'
+
   - job_name: 'netdata'
     static_configs:
       - targets: ['netdata:19999']
