@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    cluster: 'chimera-dgx'
+    environment: 'development'
+
+scrape_configs:
+  - job_name: 'netdata'
+    static_configs:
+      - targets: ['netdata:19999']
+    metrics_path: '/api/v1/prometheus.metrics'
+    scrape_interval: 5s
