@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chimera Interact</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/interact.css">
+</head>
+<body>
+    <div class="ambient-background">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar glass-panel">
+            <div class="logo-area">
+                <div class="logo-icon"></div>
+                <h2>Chimera<span class="highlight">OS</span></h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/static/dashboard.html" class="nav-item"><i class="icon-monitor"></i> Monitoring</a></li>
+                <li><a href="/static/interact.html" class="nav-item active"><i class="icon-chat"></i> Neural Link</a></li>
+            </ul>
+            <div class="status-indicator">
+                <div class="pulse-dot"></div>
+                <span>Swarm Active</span>
+            </div>
+        </nav>
+
+        <!-- Main Chat Area -->
+        <main class="chat-container glass-panel">
+            <header class="chat-header">
+                <div>
+                    <h1>Nemo Claw Orchestrator</h1>
+                    <p class="subtitle">Direct interface to the 72B Super-Agent Swarm</p>
+                </div>
+                <div class="model-badge">Kimi-Dev-72B</div>
+            </header>
+
+            <div class="messages-area" id="chat-messages">
+                <!-- Welcome Message -->
+                <div class="message system-message">
+                    <div class="avatar chimera-avatar"></div>
+                    <div class="message-content">
+                        <p>Welcome to the Project Chimera Neural Link. The orchestrator is listening. Submit a prompt to test the agent swarm's capabilities.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <form id="chat-form">
+                    <div class="input-wrapper">
+                        <textarea id="prompt-input" rows="1" placeholder="Enter your command or scenario..."></textarea>
+                        <button type="submit" id="send-btn" class="glow-button">
+                            <span>Initialize</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/interact.js"></script>
+</body>
+</html>
