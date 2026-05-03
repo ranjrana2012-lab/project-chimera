@@ -89,6 +89,33 @@ docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml ps
 The DGX route uses `services/sentiment-agent/Dockerfile.dgx`, which starts from
 an NVIDIA NGC PyTorch image instead of pulling PyTorch from PyPI.
 
+### Kimi K2.6 Super-Agent (Advanced)
+
+For DGX Spark systems with 128GB GPU VRAM, Project Chimera now supports **Kimi K2.6** 
+(Moonshot AI's 1T parameter Mixture-of-Experts model) as a hierarchical super-agent for:
+- Long context reasoning (>8K tokens)
+- Multimodal processing (images, video, audio)
+- Agentic code generation
+
+```bash
+# Download Kimi K2.6 model (~70GB)
+./scripts/download-kimi-k26.sh
+
+# Start vLLM service
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-vllm
+
+# Wait for vLLM to be ready
+./scripts/wait-for-kimi.sh
+
+# Start Kimi super-agent
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-super-agent
+
+# Validate VRAM usage (should be <85GB)
+./scripts/validate-kimi-vram.sh
+```
+
+See `docs/guides/KIMI_QUICKSTART.md` for complete Kimi K2.6 documentation.
+
 > **Note**: Full integration tests run via `make test` or `pytest tests/integration/` require the `docker-compose.mvp.yml` services to be active and must be executed from *within* the Docker network to resolve internal DNS hostnames (e.g., `openclaw-orchestrator`, `redis`).
 
 ## Validated Checks

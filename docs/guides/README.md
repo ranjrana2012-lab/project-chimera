@@ -9,6 +9,7 @@ Start here if you are browsing documentation directly.
 - `STUDENT_LAPTOP_SETUP.md` - default student/laptop setup path.
 - `Student_Quick_Start.md` - classroom-friendly quick start with student focus areas.
 - `DGX_SPARK_SETUP.md` - NVIDIA DGX Spark / GB10 ARM64 setup path.
+- `KIMI_QUICKSTART.md` - Kimi K2.6 super-agent setup for DGX Spark GB10.
 - `DOCKER.md` - current Docker Compose guide.
 - `TESTING.md` - validated test commands.
 - `DEPLOYMENT.md` - local, Docker, and DGX deployment notes.

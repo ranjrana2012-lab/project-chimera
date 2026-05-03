@@ -1,6 +1,6 @@
 # Core AI Services
 
-Overview of the 8 AI agents that power Project Chimera.
+Overview of the AI agents and services that power Project Chimera.
 
 ## Services Overview
 
@@ -14,6 +14,8 @@ Overview of the 8 AI agents that power Project Chimera.
 | **Lighting, Sound & Music** | **8005** | **✅ Production Ready** | **Unified audio-visual control** |
 | Safety Filter | 8006 | ⚠️ Partial | Content moderation |
 | Operator Console | 8007 | ✅ Production Ready | Human oversight |
+| **Kimi vLLM Service** | **8012** | **✅ DGX Ready** | **Kimi K2.6 inference (INT4 quantized)** |
+| **Kimi Super-Agent** | **50052** | **✅ DGX Ready** | **Hierarchical super-agent gRPC server** |
 
 ## Service Details
 
@@ -151,6 +153,68 @@ curl http://localhost:8005/health/live
 curl http://localhost:8007/health/live
 ```
 
+### Kimi K2.6 Super-Agent Stack (DGX Spark GB10 Only)
+
+**Purpose:** Hierarchical super-agent for complex AI workflows requiring long context reasoning, multimodal processing, or agentic coding capabilities.
+
+**Components:**
+
+#### Kimi vLLM Service (Port 8012)
+- **Model:** Moonshot AI Kimi K2.6 (1T parameters, 32B active via MoE)
+- **Quantization:** Native INT4 (~70GB VRAM)
+- **Max Context:** 32,768 tokens
+- **Purpose:** OpenAI-compatible API for inference
+
+#### Kimi Super-Agent (Port 50052)
+- **Protocol:** gRPC
+- **Purpose:** Orchestrates delegation between Nemo Claw and Kimi K2.6
+- **Delegation Triggers:**
+  - **LONG_CONTEXT:** Requests >8K tokens
+  - **MULTIMODAL:** Images, video, or audio content
+  - **AGENTIC_CODING:** Keywords like "create agent", "write script"
+
+**Health Checks:**
+```bash
+# vLLM service
+curl http://localhost:8012/health
+
+# Kimi super-agent (requires grpcurl)
+grpcurl -plaintext localhost:50052 kimi.KimiSuperAgent/HealthCheck
+```
+
+**VRAM Allocation (128GB Total):**
+| Component | VRAM Usage |
+|-----------|------------|
+| Kimi K2.6 (INT4) | ~70 GB |
+| KV Cache | ~10 GB |
+| Multimodal Processing | ~5 GB |
+| Chimera Agents | ~10-20 GB |
+| **Headroom** | ~23 GB |
+
+**Status:** ✅ DGX Ready - Requires 128GB GPU VRAM (DGX Spark GB10 specification)
+
+**Quick Start:**
+```bash
+# Download Kimi K2.6 model
+./scripts/download-kimi-k26.sh
+
+# Start vLLM service
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-vllm
+
+# Wait for vLLM readiness
+./scripts/wait-for-kimi.sh
+
+# Start super-agent
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-super-agent
+
+# Validate VRAM usage
+./scripts/validate-kimi-vram.sh
+```
+
+**Related Documentation:**
+- [Kimi K2.6 Design Spec](../superpowers/specs/2026-05-01-kimi-k26-super-agent-design.md)
+- [Kimi K2.6 Quick Start](../guides/KIMI_QUICKSTART.md)
+
 ## Architecture
 
 ```
@@ -168,6 +232,18 @@ curl http://localhost:8007/health/live
   SceneSpeak Captioning  BSL  Sentiment Lighting Safety  Operator
     Agent     Agent    Agent   Agent  Sound  Filter  Console
                                      & Music
+                                         │
+                                         ▼ (Complex Workflows)
+                              ┌─────────────────────┐
+                              │  Kimi K2.6 Super-Agent│
+                              │  (DGX Spark GB10)     │
+                              └──────────┬────────────┘
+                                         │
+                                         ▼
+                              ┌─────────────────────┐
+                              │   Kimi K2.6 vLLM    │
+                              │   (INT4, ~70GB VRAM) │
+                              └─────────────────────┘
 ```
 
 ## Related Documentation

@@ -17,6 +17,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 | Read the API docs | [API Reference](api/) |
 | Deploy to production | [Deployment Guide](DEPLOYMENT.md) |
 | Set up autonomous refactoring | [Autonomous Refactoring Guide](autonomous-refactoring-integration.md) |
+| Set up Kimi K2.6 super-agent | [Kimi K2.6 Quick Start](guides/KIMI_QUICKSTART.md) |
 
 ## By Audience
 
@@ -53,6 +54,7 @@ Welcome to the Project Chimera documentation. Use this hub to find what you need
 - [Lighting, Sound & Music](services/lighting-sound-music.md) - Unified audio-visual control (NEW)
 - [Music Generation](services/music-generation.md) - Music platform (now part of LSM)
 - [Quality Platform](quality-platform/README.md) - Testing infrastructure
+- [Kimi K2.6 Super-Agent](superpowers/specs/2026-05-01-kimi-k26-super-agent-design.md) - Hierarchical AI orchestrator for complex workflows
 
 ### Guides
 - [Documentation Hub](guides/README.md) - Central navigation for all guides

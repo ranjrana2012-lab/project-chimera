@@ -67,6 +67,33 @@ The Operator Console will be exposed on **port 8007**.
 http://<dgx-host-ip>:8007
 ```
 
+### 3.1 Kimi K2.6 Super-Agent (DGX Spark Optional)
+For DGX Spark systems with 128GB GPU VRAM, enable **Kimi K2.6** super-agent for complex workflows:
+
+```bash
+# Download Kimi K2.6 model (~70GB, takes 30-60 minutes)
+./scripts/download-kimi-k26.sh
+
+# Start vLLM service (port 8012)
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-vllm
+
+# Wait for vLLM to be healthy
+./scripts/wait-for-kimi.sh
+
+# Start Kimi super-agent (gRPC port 50052)
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-super-agent
+
+# Validate VRAM usage (should be <85GB)
+./scripts/validate-kimi-vram.sh
+```
+
+**What Kimi K2.6 Enables:**
+- Long context reasoning (>8K tokens)
+- Multimodal processing (images, video, audio)
+- Agentic code generation
+
+For complete documentation, see [Kimi K2.6 Quick Start Guide](docs/guides/KIMI_QUICKSTART.md).
+
 ## Useful Test Inputs
 Once running (in either environment), try passing these input phrases to see how Chimera adapts the theatrical scene:
 - `I am very happy today!` -> expected: `momentum_build`

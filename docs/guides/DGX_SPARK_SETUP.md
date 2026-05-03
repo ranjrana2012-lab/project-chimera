@@ -154,6 +154,63 @@ export GLM_API_KEY=your_key_here
 
 Do not commit `.env` files or API keys.
 
+## Kimi K2.6 Super-Agent (Optional)
+
+For DGX Spark systems with 128GB GPU VRAM, you can enable **Kimi K2.6** as a hierarchical 
+super-agent that handles complex workflows requiring long context reasoning, multimodal 
+processing, or agentic coding capabilities.
+
+### Prerequisites
+
+- 128GB GPU VRAM (DGX Spark GB10 specification)
+- ~70GB free disk space for Kimi K2.6 model (Native INT4 quantized)
+- All MVP services running
+
+### Setup Kimi K2.6
+
+```bash
+# 1. Download Kimi K2.6 model
+./scripts/download-kimi-k26.sh
+
+# 2. Start vLLM service (runs on port 8012)
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-vllm
+
+# 3. Wait for vLLM to be healthy
+./scripts/wait-for-kimi.sh
+
+# 4. Start Kimi super-agent (gRPC on port 50052)
+docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-super-agent
+
+# 5. Validate VRAM usage
+./scripts/validate-kimi-vram.sh
+```
+
+### VRAM Allocation
+
+| Component | VRAM Usage |
+|-----------|------------|
+| Kimi K2.6 (Native INT4) | ~70 GB |
+| KV Cache | ~10 GB |
+| Chimera Agents | ~10-20 GB |
+| **Headroom** | ~23 GB |
+
+### Delegation Triggers
+
+Nemo Claw automatically delegates to Kimi K2.6 when:
+- **LONG_CONTEXT**: Request exceeds 8K tokens
+- **MULTIMODAL**: Request contains images, video, or audio
+- **AGENTIC_CODING**: Keywords like "create agent", "write script", "implement function"
+
+### Configuration
+
+Edit `config/kimi-super-agent/config.yaml` to customize:
+- Model settings (temperature, top_p, max_tokens)
+- Memory allocation (gpu_memory_fraction, kv_cache_size)
+- Delegation thresholds (long_context_threshold_tokens)
+- Chimera agent endpoints and timeouts
+
+For complete documentation, see `docs/guides/KIMI_QUICKSTART.md`.
+
 ## Dual DGX Spark Notes
 
 Two connected DGX Spark systems are a cluster topology, not a magic single
