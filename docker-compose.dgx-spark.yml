@@ -136,3 +136,23 @@ services:
     restart: unless-stopped
     depends_on:
       - redis
+
+  # ============================================
+  # MONITORING - DGX GPU ENABLED
+  # ============================================
+  netdata:
+    environment:
+      - NETDATA_LIBCAP_ENABLE=1
+      - NETDATA_STREAM_ENABLED=false
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /dev/nvidia0:/dev/nvidia0:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
