@@ -11,12 +11,11 @@ scrape_configs:
       - targets:
         - 'openclaw-orchestrator:8000'
         - 'scenespeak-agent:8001'
-        - 'captioning-agent:8002'
-        - 'bsl-agent:8003'
+        - 'translation-agent:8002'
         - 'sentiment-agent:8004'
-        - 'lighting-sound-music:8005'
         - 'safety-filter:8006'
         - 'operator-console:8007'
+        - 'hardware-bridge:8008'
     metrics_path: '/metrics'
 
   - job_name: 'netdata'
