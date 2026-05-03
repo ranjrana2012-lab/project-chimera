@@ -21,5 +21,7 @@ scrape_configs:
   - job_name: 'netdata'
     static_configs:
       - targets: ['netdata:19999']
-    metrics_path: '/api/v1/prometheus.metrics'
+    metrics_path: '/api/v1/allmetrics'
+    params:
+      format: ['prometheus']
     scrape_interval: 5s
