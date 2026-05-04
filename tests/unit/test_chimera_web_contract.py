@@ -1,10 +1,10 @@
 import csv
 import importlib.util
-import os
 import sys
 from io import StringIO
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -13,42 +13,37 @@ OPERATOR_CONSOLE = REPO_ROOT / "services" / "operator-console"
 CHIMERA_WEB = OPERATOR_CONSOLE / "chimera_web.py"
 
 
-def load_chimera_web():
-    os.environ["CHIMERA_ENABLE_VOICE"] = "0"
-    sys.path.insert(0, str(OPERATOR_CONSOLE))
-    previous_cwd = Path.cwd()
-    os.chdir(OPERATOR_CONSOLE)
-    try:
-        spec = importlib.util.spec_from_file_location("chimera_web", CHIMERA_WEB)
-        web_module = importlib.util.module_from_spec(spec)
-        assert spec.loader is not None
-        spec.loader.exec_module(web_module)
-        return web_module
-    finally:
-        os.chdir(previous_cwd)
+@pytest.fixture
+def web_module(monkeypatch):
+    sys.modules.pop("chimera_web", None)
+    sys.modules.pop("chimera_core", None)
+    monkeypatch.setitem(sys.modules, "transformers", None)
+    monkeypatch.setenv("CHIMERA_ENABLE_VOICE", "0")
+    monkeypatch.syspath_prepend(str(OPERATOR_CONSOLE))
+    monkeypatch.chdir(OPERATOR_CONSOLE)
 
+    spec = importlib.util.spec_from_file_location("chimera_web", CHIMERA_WEB)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
 
-web_module = load_chimera_web()
-
-
-def reset_web_state():
-    web_module.chimera.sentiment_analyzer = web_module.chimera.heuristic_sentiment
-    web_module.chimera.text_generator = None
-    web_module.app.state.history = []
-    web_module.app.state.latest_response = {
+    module.chimera.sentiment_analyzer = module.chimera.heuristic_sentiment
+    module.chimera.text_generator = None
+    module.app.state.history = []
+    module.app.state.latest_response = {
         "text": "",
         "sentiment": "NEUTRAL",
         "strategy": "standard_response",
         "response": "Awaiting initial dialogue...",
     }
+    return module
 
 
 def csv_rows(response_text):
     return list(csv.reader(StringIO(response_text)))
 
 
-def test_state_starts_with_neutral_waiting_response():
-    reset_web_state()
+def test_state_starts_with_neutral_waiting_response(web_module):
     client = TestClient(web_module.app)
 
     response = client.get("/api/state")
@@ -62,8 +57,7 @@ def test_state_starts_with_neutral_waiting_response():
     }
 
 
-def test_process_positive_input_updates_state_and_export():
-    reset_web_state()
+def test_process_positive_input_updates_state_and_export(web_module):
     client = TestClient(web_module.app)
 
     response = client.post("/api/process", json={"text": "I am very happy today!"})
@@ -94,11 +88,32 @@ def test_process_positive_input_updates_state_and_export():
     assert rows[1][4] == "momentum_build"
 
 
-def test_process_rejects_empty_text_without_mutating_history():
-    reset_web_state()
+def test_process_rejects_empty_text_without_mutating_history(web_module):
     client = TestClient(web_module.app)
 
     response = client.post("/api/process", json={"text": "   \t\n  "})
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "text is required"}
+
+    export = client.get("/api/export")
+    assert export.status_code == 200
+    assert csv_rows(export.text) == [
+        [
+            "timestamp",
+            "input",
+            "sentiment",
+            "confidence_score",
+            "strategy_routed",
+            "latency_ms",
+        ]
+    ]
+
+
+def test_process_rejects_non_string_text_without_mutating_history(web_module):
+    client = TestClient(web_module.app)
+
+    response = client.post("/api/process", json={"text": None})
 
     assert response.status_code == 400
     assert response.json() == {"detail": "text is required"}
