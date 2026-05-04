@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chimera Monitoring Dashboard</title>
+    <link rel="stylesheet" href="/static/monitoring-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Chimera System Monitoring</h1>
+            <div class="status-indicator" id="connectionStatus">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Quick Stats Cards -->
+        <section class="stats-grid">
+            <div class="stat-card" id="cpuCard">
+                <div class="stat-icon">CPU</div>
+                <div class="stat-content">
+                    <h3>CPU Usage</h3>
+                    <div class="stat-value" id="cpuValue">--%</div>
+                    <div class="stat-stale hidden" id="cpuStale">Stale</div>
+                </div>
+            </div>
+
+            <div class="stat-card" id="gpuCard">
+                <div class="stat-icon">GPU</div>
+                <div class="stat-content">
+                    <h3>GPU Usage</h3>
+                    <div class="stat-value" id="gpuValue">--%</div>
+                    <div class="stat-stale hidden" id="gpuStale">Stale</div>
+                </div>
+            </div>
+
+            <div class="stat-card" id="memoryCard">
+                <div class="stat-icon">MEM</div>
+                <div class="stat-content">
+                    <h3>Memory</h3>
+                    <div class="stat-value" id="memoryValue">--%</div>
+                    <div class="stat-stale hidden" id="memoryStale">Stale</div>
+                </div>
+            </div>
+
+            <div class="stat-card" id="servicesCard">
+                <div class="stat-icon">SRV</div>
+                <div class="stat-content">
+                    <h3>Services</h3>
+                    <div class="stat-value" id="servicesValue">--/--</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="chart-container">
+                <canvas id="cpuChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="memoryChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Container Resources Table -->
+        <section class="containers-section">
+            <h2>Container Resources</h2>
+            <table class="containers-table" id="containersTable">
+                <thead>
+                    <tr>
+                        <th>Container</th>
+                        <th>CPU %</th>
+                        <th>Memory (MB)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="containersBody">
+                    <tr><td colspan="4">Loading...</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Application Health -->
+        <section class="services-section">
+            <h2>Application Health</h2>
+            <div class="services-grid" id="servicesGrid">
+                <div class="service-card">Loading...</div>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/monitoring-dashboard.js"></script>
+</body>
+</html>

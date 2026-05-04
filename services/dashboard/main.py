@@ -449,6 +449,16 @@ async def root():
     return HTMLResponse(content="<h1>Dashboard not found</h1>", status_code=404)
 
 
+@app.get("/monitoring", response_class=HTMLResponse)
+async def monitoring_dashboard():
+    """Serve monitoring dashboard page."""
+    dashboard_file = static_dir / "monitoring-dashboard.html"
+    if dashboard_file.exists():
+        with open(dashboard_file, 'r') as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>Monitoring dashboard not found</h1>", status_code=404)
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8013)
