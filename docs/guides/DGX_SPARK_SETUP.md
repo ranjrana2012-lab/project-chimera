@@ -3,11 +3,15 @@
 This is the advanced Project Chimera route for NVIDIA DGX Spark / GB10-class
 ARM64 systems. It is not the default student path.
 
+Latest local sign-off on the GB10/aarch64 host validated the DGX/MVP route,
+Kimi host-facing HTTP/gRPC, Docker GPU/CDI support, and the full regression
+suite with `737 passed, 96 skipped, 4 warnings`.
+
 Use this path only when the host has:
 
 - Linux ARM64 / `aarch64`
 - Docker access
-- NVIDIA Container Runtime with `--gpus all`
+- Docker GPU access with `--gpus all` through NVIDIA runtime or CDI
 - NGC registry access for NVIDIA containers
 - Optional local LLM endpoint or GLM API key if you want full SceneSpeak LLM
   behavior rather than fallback responses
@@ -19,7 +23,7 @@ NVIDIA-specific runtime setup. DGX Spark should use NVIDIA's optimized container
 stack instead of generic PyPI CUDA/PyTorch wheels.
 
 NVIDIA documents DGX Spark as an Ubuntu 24.04 ARM64 system with 128 GB unified
-memory, NVIDIA Container Runtime for Docker, and Grace Blackwell optimized NGC
+memory, NVIDIA GPU-enabled Docker support, and Grace Blackwell optimized NGC
 containers. See the official DGX Spark docs:
 
 - https://docs.nvidia.com/dgx/dgx-spark-porting-guide/porting/software-requirements.html
@@ -31,7 +35,7 @@ containers. See the official DGX Spark docs:
 Run this from the repository root:
 
 ```bash
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 ```
 
 Use the DGX Spark path only if it reports `dgx-spark` or if you manually verify
@@ -45,6 +49,7 @@ docker --version
 docker compose version
 nvidia-smi
 docker info --format '{{json .Runtimes}}'
+docker info
 ```
 
 Expected:
@@ -52,7 +57,9 @@ Expected:
 - `uname -m` is `aarch64` or `arm64`.
 - Docker commands work without `sudo`, or you intentionally use `sudo`.
 - `nvidia-smi` reports the NVIDIA GPU.
-- Docker runtimes include `nvidia`.
+- Docker runtimes include `nvidia`, or Docker reports NVIDIA CDI devices such
+  as `nvidia.com/gpu=all`. The authoritative check is that `docker run
+  --gpus all ...` can see the GPU.
 
 If Docker permission fails:
 
@@ -114,8 +121,8 @@ curl -fsS http://127.0.0.1:8008/health
 Run the MVP integration checks:
 
 ```bash
-python -m pytest tests/integration/mvp/test_docker_compose.py -v
-python -m pytest tests/integration/mvp/test_sentiment_agent.py \
+./services/operator-console/venv/bin/python -m pytest tests/integration/mvp/test_docker_compose.py -v
+./services/operator-console/venv/bin/python -m pytest tests/integration/mvp/test_sentiment_agent.py \
   tests/integration/mvp/test_hardware_bridge.py \
   tests/integration/mvp/test_translation_agent.py \
   tests/integration/mvp/test_safety_filter.py -v
@@ -129,8 +136,9 @@ docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml down
 
 ## Optional LLM Configuration
 
-Without credentials or a local LLM endpoint, SceneSpeak health should report the
-LLM as unavailable and use fallback behavior.
+Without external credentials, SceneSpeak can use the local OpenAI-compatible
+vLLM endpoint when the DGX/Kimi stack is running. If no GLM key or local LLM is
+available, fallback behavior is expected.
 
 You can start from the example environment file:
 
@@ -210,6 +218,17 @@ Edit `config/kimi-super-agent/config.yaml` to customize:
 - Chimera agent endpoints and timeouts
 
 For complete documentation, see `docs/guides/KIMI_QUICKSTART.md`.
+
+Validated host-facing endpoints:
+
+```bash
+curl -fsS http://127.0.0.1:8012/v1/models
+KIMI_VLLM_TEST_URL=http://127.0.0.1:8012 \
+KIMI_MODEL_TEST_NAME=/model \
+KIMI_TEST_TIMEOUT=180 \
+KIMI_GRPC_TEST_TARGET=127.0.0.1:50052 \
+./services/operator-console/venv/bin/python -m pytest tests/integration/kimi -q
+```
 
 ## Dual DGX Spark Notes
 

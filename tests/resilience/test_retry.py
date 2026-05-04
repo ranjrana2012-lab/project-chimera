@@ -151,10 +151,18 @@ class TestRetryOnException:
         # Should have 2 delays of 0.1s each
         assert 0.15 <= elapsed <= 0.35
 
-    def test_jitter_added_to_delays(self):
+    def test_jitter_added_to_delays(self, monkeypatch):
         """Test that jitter is added to delays."""
         call_count = 0
-        delays = []
+        sleep_delays = []
+        jitter_calls = []
+
+        def fake_uniform(low, high):
+            jitter_calls.append((low, high))
+            return low if len(jitter_calls) == 1 else high
+
+        monkeypatch.setattr("shared.resilience.time.sleep", sleep_delays.append)
+        monkeypatch.setattr("random.uniform", fake_uniform)
 
         @retry_on_exception(ConnectionError, config=RetryConfig(
             max_attempts=3,
@@ -169,16 +177,10 @@ class TestRetryOnException:
                 raise ConnectionError("Connection failed")
             return "success"
 
-        # Run multiple times to ensure jitter is applied
-        times = []
-        for _ in range(3):
-            call_count = 0
-            start = time.time()
-            failing_func()
-            times.append(time.time() - start)
-
-        # Times should vary due to jitter (use lower threshold for robustness)
-        assert max(times) - min(times) > 0.03
+        assert failing_func() == "success"
+        assert call_count == 3
+        assert jitter_calls == [(-0.05, 0.05), (-0.1, 0.1)]
+        assert sleep_delays == pytest.approx([0.05, 0.3])
 
 
 class TestRetryOnCondition:

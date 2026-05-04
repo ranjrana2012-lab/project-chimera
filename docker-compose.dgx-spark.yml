@@ -17,8 +17,8 @@ services:
     environment:
       CHIMERA_RUNTIME_PROFILE: dgx-spark
       SCENESPEAK_LOCAL_LLM_ENABLED: "${CHIMERA_DGX_LOCAL_LLM_ENABLED:-true}"
-      SCENESPEAK_LOCAL_LLM_URL: "${CHIMERA_DGX_LLM_URL:-http://host.docker.internal:8012}"
-      SCENESPEAK_LOCAL_LLM_MODEL: "${CHIMERA_DGX_LLM_MODEL:-nemotron-3-super-120b-a12b-nvfp4}"
+      SCENESPEAK_LOCAL_LLM_URL: "${CHIMERA_DGX_LLM_URL:-http://kimi-vllm:8012}"
+      SCENESPEAK_LOCAL_LLM_MODEL: "${CHIMERA_DGX_LLM_MODEL:-/model}"
       SCENESPEAK_LLM_TIMEOUT: "${CHIMERA_DGX_LLM_TIMEOUT:-300}"
 
   sentiment-agent:
@@ -78,6 +78,8 @@ services:
     environment:
       PYTHONUNBUFFERED: "1"
       VLLM_WORKER_MULTIPROC_METHOD: "spawn"
+    ports:
+      - "${KIMI_VLLM_HOST_BIND:-127.0.0.1}:${KIMI_VLLM_HOST_PORT:-8012}:8012"
     deploy:
       resources:
         reservations:
@@ -90,8 +92,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8012/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 120s
+      retries: 20
+      start_period: 20m
     networks:
       - chimera-backend
 
@@ -104,15 +106,19 @@ services:
     gpus: all
     environment:
       KIMI_VLLM_ENDPOINT: http://kimi-vllm:8012
+      KIMI_MODEL_NAME: /model
       CHIMERA_RUNTIME_PROFILE: dgx-spark
       KIMI_GRPC_PORT: 50052
       NEMO_CLAW_GRPC_ENDPOINT: nemoclaw-orchestrator:50051
-      KIMI_MAX_TOKENS: 32768
+      KIMI_MAX_TOKENS: "${KIMI_MAX_TOKENS:-64}"
+      KIMI_REQUEST_TIMEOUT: "${KIMI_REQUEST_TIMEOUT:-300}"
       KIMI_TEMPERATURE: 0.7
       KIMI_TOP_P: 0.9
     volumes:
       - ./config/kimi-super-agent:/etc/kimi:ro
       - ./logs/kimi:/app/logs
+    ports:
+      - "${KIMI_GRPC_HOST_BIND:-127.0.0.1}:${KIMI_GRPC_HOST_PORT:-50052}:50052"
     depends_on:
       kimi-vllm:
         condition: service_healthy

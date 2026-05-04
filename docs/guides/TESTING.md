@@ -1,6 +1,6 @@
 # Testing Guide
 
-**Last Updated:** April 26, 2026
+**Last Updated:** May 4, 2026
 
 ## Overview
 
@@ -14,7 +14,7 @@ For day-to-day validation, start with the monolithic operator-console checks. Us
 
 ```bash
 cd services/operator-console
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 # Windows PowerShell:
 #   .\venv\Scripts\Activate.ps1
@@ -22,7 +22,7 @@ source venv/bin/activate
 #   Set-ExecutionPolicy -Scope Process Bypass
 #   .\venv\Scripts\Activate.ps1
 # Or use .\venv\Scripts\python.exe directly.
-pip install -r requirements.txt
+./venv/bin/python -m pip install -r requirements.txt
 ```
 
 ### Repo-Wide Test Dependencies
@@ -30,7 +30,7 @@ pip install -r requirements.txt
 From the project root:
 
 ```bash
-pip install -r requirements-dev.txt
+./services/operator-console/venv/bin/python -m pip install -r requirements-dev.txt
 ```
 
 Use the repository root when running top-level `tests/` commands so imports and shared fixtures resolve correctly.
@@ -40,11 +40,11 @@ Use the repository root when running top-level `tests/` commands so imports and 
 These are the fastest high-signal commands for local validation:
 
 ```bash
-python verify_prerequisites.py
-pytest tests/unit/test_chimera_core.py -v
-pytest tests/e2e/test_chimera_smoke.py -v
-pytest tests/unit -v
-pytest tests --collect-only -q
+./services/operator-console/venv/bin/python verify_prerequisites.py
+./services/operator-console/venv/bin/python -m pytest tests/unit/test_chimera_core.py -v
+./services/operator-console/venv/bin/python -m pytest test_chimera_smoke.py -v
+./services/operator-console/venv/bin/python -m pytest tests/unit -v
+./services/operator-console/venv/bin/python -m pytest tests --collect-only -q
 ```
 
 The first three focus on the validated monolithic demonstrator. `pytest tests --collect-only -q` is a useful sanity check before attempting a broader test sweep.
@@ -57,10 +57,10 @@ Use these to validate the primary operator-console experience:
 
 ```bash
 # From services/operator-console
-python chimera_core.py demo
-python chimera_core.py compare "I love this performance"
-python chimera_core.py caption "Can you tell me more about the system?"
-python chimera_web.py
+./venv/bin/python chimera_core.py demo
+./venv/bin/python chimera_core.py compare "I love this performance"
+./venv/bin/python chimera_core.py caption "Can you tell me more about the system?"
+PORT=18080 ./venv/bin/python chimera_web.py
 ```
 
 This covers:
@@ -74,9 +74,9 @@ This covers:
 ### 2. Focused Pytest Checks
 
 ```bash
-pytest tests/unit/test_chimera_core.py -v
-pytest tests/e2e/test_chimera_smoke.py -v
-pytest tests/unit -v
+./services/operator-console/venv/bin/python -m pytest tests/unit/test_chimera_core.py -v
+./services/operator-console/venv/bin/python -m pytest test_chimera_smoke.py -v
+./services/operator-console/venv/bin/python -m pytest tests/unit -v
 ```
 
 These are the best default checks to run before opening a PR that touches the monolith or the test harness.
@@ -167,13 +167,13 @@ If PowerShell blocks `.\venv\Scripts\Activate.ps1`, use `Set-ExecutionPolicy -Sc
 
 For most changes, use this order:
 
-1. `python verify_prerequisites.py`
-2. `python chimera_core.py demo`
-3. `pytest tests/unit/test_chimera_core.py -v`
-4. `pytest tests/e2e/test_chimera_smoke.py -v`
-5. `pytest tests/unit -v`
-6. `pytest tests --collect-only -q`
-7. `pytest tests/ -v` only when the broader sweep is warranted
+1. `./services/operator-console/venv/bin/python verify_prerequisites.py`
+2. `./venv/bin/python chimera_core.py demo` from `services/operator-console`
+3. `./services/operator-console/venv/bin/python -m pytest tests/unit/test_chimera_core.py -v`
+4. `./services/operator-console/venv/bin/python -m pytest test_chimera_smoke.py -v`
+5. `./services/operator-console/venv/bin/python -m pytest tests/unit -v`
+6. `./services/operator-console/venv/bin/python -m pytest tests --collect-only -q`
+7. `./services/operator-console/venv/bin/python -m pytest tests/ -v` only when the broader sweep is warranted
 8. `docker compose -f docker-compose.mvp.yml up -d --build` only when you need the multi-service stack
 
 ## Related Guides

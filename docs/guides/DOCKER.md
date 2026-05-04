@@ -1,6 +1,6 @@
 # Docker Guide
 
-**Last Updated:** April 26, 2026
+**Last Updated:** May 4, 2026
 
 Docker is a secondary Project Chimera path. Students should validate the
 monolithic operator-console first unless their tutor specifically asks for
@@ -77,11 +77,11 @@ docker compose -f docker-compose.mvp.yml down
 
 ## DGX Spark / GB10 ARM64 Stack
 
-Use only on DGX Spark / Grace Blackwell ARM64 hosts with NVIDIA Container
-Runtime and NGC login configured.
+Use only on DGX Spark / Grace Blackwell ARM64 hosts with Docker GPU support
+through NVIDIA runtime or CDI and NGC login configured where required.
 
 ```bash
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 docker login nvcr.io
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build

@@ -26,6 +26,8 @@ class HealthMetrics(BaseModel):
 
 class ReadinessResponse(BaseModel):
     """Service readiness response."""
+    model_config = {"protected_namespaces": ()}
+
     status: str = Field(..., description="Overall status: ready, not_ready")
     version: Optional[str] = Field(None, description="Service version")
     uptime: Optional[int] = Field(None, description="Service uptime in seconds")

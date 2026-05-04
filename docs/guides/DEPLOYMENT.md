@@ -1,7 +1,7 @@
 # Deployment Guide
 
 **Version:** 1.0.0
-**Last Updated:** April 26, 2026
+**Last Updated:** May 4, 2026
 
 ## Overview
 
@@ -28,7 +28,7 @@ Setup:
 
 ```bash
 cd services/operator-console
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 # Windows PowerShell:
 #   .\venv\Scripts\Activate.ps1
@@ -36,8 +36,8 @@ source venv/bin/activate
 #   Set-ExecutionPolicy -Scope Process Bypass
 #   .\venv\Scripts\Activate.ps1
 # Or use .\venv\Scripts\python.exe directly.
-pip install -r requirements.txt
-python chimera_web.py
+./venv/bin/python -m pip install -r requirements.txt
+PORT=18080 ./venv/bin/python chimera_web.py
 ```
 
 If `8080` is already in use, set `PORT` to another free port before launching the dashboard.
@@ -89,12 +89,12 @@ Best for:
 
 Prerequisites:
 
-- Docker and NVIDIA Container Runtime
+- Docker and Docker GPU support through NVIDIA runtime or CDI
 - NGC registry login for `nvcr.io`
 - Verified `docker run --rm --gpus all ...` GPU access
 
 ```bash
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 docker login nvcr.io
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
@@ -131,7 +131,7 @@ Example:
 
 ```bash
 export PORT=18080
-python chimera_web.py
+./venv/bin/python chimera_web.py
 ```
 
 ### Docker Compose
@@ -154,8 +154,8 @@ The DGX override also supports:
 
 ```bash
 # From services/operator-console
-python chimera_core.py demo
-python chimera_web.py
+./venv/bin/python chimera_core.py demo
+PORT=18080 ./venv/bin/python chimera_web.py
 ```
 
 Key endpoints:

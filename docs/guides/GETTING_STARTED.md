@@ -10,7 +10,7 @@ Project Chimera has two profile-specific setup guides:
 Agents should read `AGENTS.md` first and can run:
 
 ```bash
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 ```
 
 Project Chimera has three main ways to run:
@@ -31,7 +31,7 @@ For a first run, start with the monolithic demonstrator. It is the quickest way 
 ### Optional
 
 - Docker Desktop / Docker Engine with Docker Compose v2 for the secondary containerized paths
-- NVIDIA Container Runtime and NGC login for the DGX Spark path
+- Docker GPU support through NVIDIA runtime or CDI, plus NGC login where required, for the DGX Spark path
 - `GLM_API_KEY` if you want to exercise external GLM-backed flows in the microservice stack
 
 ## Recommended First Run: Monolithic Demonstrator
@@ -43,7 +43,7 @@ cd project-chimera
 
 # Create a local Python environment for the operator console
 cd services/operator-console
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 # Windows PowerShell:
 #   .\venv\Scripts\Activate.ps1
@@ -54,16 +54,16 @@ source venv/bin/activate
 #   .\venv\Scripts\python.exe -m pip install -r requirements.txt
 
 # Install monolith dependencies
-pip install -r requirements.txt
+./venv/bin/python -m pip install -r requirements.txt
 ```
 
 ### Launch the Web Dashboard
 
 ```bash
-python chimera_web.py
+PORT=18080 ./venv/bin/python chimera_web.py
 ```
 
-Open `http://127.0.0.1:8080`.
+Open `http://127.0.0.1:18080`.
 
 If port `8080` is already in use, choose another free port and rerun:
 
@@ -74,13 +74,13 @@ export PORT=18080
 # Windows PowerShell
 $env:PORT=18080
 
-python chimera_web.py
+./venv/bin/python chimera_web.py
 ```
 
 ### CLI Fallback
 
 ```bash
-python chimera_core.py
+./venv/bin/python chimera_core.py
 ```
 
 ### Demo Inputs
@@ -98,17 +98,17 @@ After the monolith is installed, these are the highest-signal checks:
 
 ```bash
 # From services/operator-console
-python chimera_core.py demo
+./venv/bin/python chimera_core.py demo
 ```
 
 ```bash
 # From the project root
-python verify_prerequisites.py
-pip install -r requirements-dev.txt
-pytest tests/unit/test_chimera_core.py -v
-pytest tests/e2e/test_chimera_smoke.py -v
-pytest tests/unit -v
-pytest tests --collect-only -q
+./services/operator-console/venv/bin/python verify_prerequisites.py
+./services/operator-console/venv/bin/python -m pip install -r requirements-dev.txt
+./services/operator-console/venv/bin/python -m pytest tests/unit/test_chimera_core.py -v
+./services/operator-console/venv/bin/python -m pytest test_chimera_smoke.py -v
+./services/operator-console/venv/bin/python -m pytest tests/unit -v
+./services/operator-console/venv/bin/python -m pytest tests --collect-only -q
 ```
 
 ## Secondary Path: MVP Docker Compose Stack

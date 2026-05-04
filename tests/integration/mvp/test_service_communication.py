@@ -190,19 +190,25 @@ class TestServiceCommunication:
         candidates.extend(discovered.stdout.splitlines())
 
         result = None
+        network_info = None
         for network_name in dict.fromkeys(name for name in candidates if name):
-            result = subprocess.run(
+            candidate_result = subprocess.run(
                 ["docker", "network", "inspect", network_name],
                 capture_output=True,
                 text=True,
             )
-            if result.returncode == 0:
+            if candidate_result.returncode != 0:
+                continue
+
+            candidate_info = json.loads(candidate_result.stdout)
+            containers = candidate_info[0].get("Containers", {}) if candidate_info else {}
+            result = candidate_result
+            network_info = candidate_info
+            if len(containers) >= 8:
                 break
 
         assert result and result.returncode == 0, "chimera-backend network does not exist"
-
-        network_info = json.loads(result.stdout)
-        assert len(network_info) > 0, "No network info returned"
+        assert network_info and len(network_info) > 0, "No network info returned"
 
         containers = network_info[0].get("Containers", {})
         assert len(containers) >= 8, f"Expected at least 8 containers, found {len(containers)}"

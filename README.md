@@ -8,7 +8,18 @@ from audience input.
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 
-Last validated locally: April 26, 2026
+Last validated locally: May 4, 2026 on Ubuntu 24.04.4 ARM64 / NVIDIA GB10.
+
+Current local sign-off:
+
+- Local operator-console CLI and web route: validated
+- Student Docker route: validated on port `8080`
+- MVP / DGX Compose route: validated on GB10 with Docker GPU/CDI support
+- Kimi host-facing route: validated on `127.0.0.1:8012` and `127.0.0.1:50052`
+- Final regression: `737 passed, 96 skipped, 4 warnings`
+
+See `LOCAL_VALIDATION_REPORT.md`, `PATCH_SUMMARY.md`, and
+`REMAINING_GAPS.md` for the evidence and caveats behind this status.
 
 ## Choose Your Route
 
@@ -17,12 +28,12 @@ Project Chimera now documents two explicit runtime profiles:
 | Profile | Use When | Start Here |
 | --- | --- | --- |
 | Student / Laptop | Students, Windows/macOS/WSL, ordinary laptops, first validation pass, no GPU required | `docs/guides/STUDENT_LAPTOP_SETUP.md` |
-| DGX Spark / GB10 ARM64 | NVIDIA DGX Spark / Grace Blackwell ARM64 host with Docker + NVIDIA Container Runtime | `docs/guides/DGX_SPARK_SETUP.md` |
+| DGX Spark / GB10 ARM64 | NVIDIA DGX Spark / Grace Blackwell ARM64 host with Docker GPU support through NVIDIA runtime or CDI | `docs/guides/DGX_SPARK_SETUP.md` |
 
 Agents should read `AGENTS.md` first. To auto-detect the likely profile:
 
 ```bash
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 ```
 
 If detection is ambiguous, use the Student / Laptop route first.
@@ -75,12 +86,12 @@ This container is intentionally lightweight and uses heuristic fallback behavior
 
 ## DGX Spark / GB10 Quick Start
 
-Use this only on a DGX Spark / ARM64 host with NVIDIA Container Runtime and NGC
-access configured.
+Use this only on a DGX Spark / ARM64 host with Docker GPU support and NGC
+access configured where required by the images you pull.
 
 ```bash
 docker login nvcr.io
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml ps
@@ -114,6 +125,11 @@ docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d k
 ./scripts/validate-kimi-vram.sh
 ```
 
+Validated host-facing Kimi ports:
+
+- vLLM HTTP/OpenAI-compatible API: `http://127.0.0.1:8012`
+- Kimi super-agent gRPC: `127.0.0.1:50052`
+
 See `docs/guides/KIMI_QUICKSTART.md` for complete Kimi K2.6 documentation.
 
 ## Monitoring Stack
@@ -128,7 +144,7 @@ Project Chimera includes a comprehensive monitoring stack for system health and 
 
 # Or manually
 docker compose -f docker-compose.mvp.yml up -d prometheus netdata
-cd services/dashboard && python -m uvicorn main:app --port 8013
+cd services/dashboard && python3 -m uvicorn main:app --port 8013
 ```
 
 ### Access Points
@@ -162,7 +178,7 @@ From the repository root:
 
 ```powershell
 .\services\operator-console\venv\Scripts\python.exe verify_prerequisites.py
-.\services\operator-console\venv\Scripts\python.exe -m pytest tests/unit/test_chimera_core.py tests/e2e/test_chimera_smoke.py -v
+.\services\operator-console\venv\Scripts\python.exe -m pytest tests/unit/test_chimera_core.py test_chimera_smoke.py -v
 .\services\operator-console\venv\Scripts\python.exe -m pytest tests/unit -v
 .\services\operator-console\venv\Scripts\python.exe -m pytest tests --collect-only -q
 ```
@@ -174,6 +190,17 @@ With the MVP Compose stack running:
 .\services\operator-console\venv\Scripts\python.exe -m pytest tests/integration/mvp/test_sentiment_agent.py tests/integration/mvp/test_hardware_bridge.py tests/integration/mvp/test_translation_agent.py tests/integration/mvp/test_safety_filter.py -v
 ```
 
+On Linux/macOS, use `./services/operator-console/venv/bin/python` for the same
+pytest commands. For a full local regression against a running Kimi/DGX stack:
+
+```bash
+KIMI_VLLM_TEST_URL=http://127.0.0.1:8012 \
+KIMI_MODEL_TEST_NAME=/model \
+KIMI_TEST_TIMEOUT=180 \
+KIMI_GRPC_TEST_TARGET=127.0.0.1:50052 \
+./services/operator-console/venv/bin/python -m pytest -q -ra
+```
+
 ## Repository Structure
 
 ```text
@@ -182,9 +209,13 @@ project-chimera/
   docker-compose.student.yml        # Student/laptop container preview
   docker-compose.mvp.yml            # MVP multi-service stack
   docker-compose.dgx-spark.yml      # DGX Spark / ARM64 override
+  LOCAL_VALIDATION_REPORT.md        # Latest local sign-off evidence
+  PATCH_SUMMARY.md                  # Summary of validation fixes
+  REMAINING_GAPS.md                 # Non-blocking caveats and follow-up
   docs/guides/
     STUDENT_LAPTOP_SETUP.md
     DGX_SPARK_SETUP.md
+    KIMI_QUICKSTART.md
   scripts/
     detect_runtime_profile.py
   services/operator-console/

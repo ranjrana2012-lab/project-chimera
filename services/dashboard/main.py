@@ -43,6 +43,12 @@ class MetricsCache:
         cls._timestamps[key] = datetime.now()
 
     @classmethod
+    def clear(cls) -> None:
+        """Clear all cached metrics."""
+        cls._cache.clear()
+        cls._timestamps.clear()
+
+    @classmethod
     def mark_stale(cls, key: str) -> None:
         """Mark cached value as stale."""
         if key in cls._cache:

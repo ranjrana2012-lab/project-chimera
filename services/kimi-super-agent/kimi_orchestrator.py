@@ -3,14 +3,21 @@
 import asyncio
 import logging
 import os
+import signal
 from typing import Dict, Any
 import grpc
 from dotenv import load_dotenv
 
-from proto import kimi_pb2, kimi_pb2_grpc
-from kimi_client import KimiClient
-from capability_detector import CapabilityDetector
-from agent_coordinator import AgentCoordinator
+try:
+    from .proto import kimi_pb2, kimi_pb2_grpc
+    from .kimi_client import KimiClient
+    from .capability_detector import CapabilityDetector
+    from .agent_coordinator import AgentCoordinator
+except ImportError:  # pragma: no cover - supports direct script execution
+    from proto import kimi_pb2, kimi_pb2_grpc
+    from kimi_client import KimiClient
+    from capability_detector import CapabilityDetector
+    from agent_coordinator import AgentCoordinator
 
 load_dotenv()
 
@@ -79,7 +86,7 @@ class KimiSuperAgentServicer(kimi_pb2_grpc.KimiSuperAgentServicer):
             "messages": [
                 {"role": "user", "content": request.user_input}
             ],
-            "max_tokens": int(os.getenv("KIMI_MAX_TOKENS", "32768"))
+            "max_tokens": int(os.getenv("KIMI_MAX_TOKENS", "64"))
         }
 
         try:
@@ -163,11 +170,38 @@ async def serve() -> None:
     await server.start()
     logger.info("Server started successfully")
 
+    stop_event = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    registered_signals = []
+
+    for shutdown_signal in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(shutdown_signal, stop_event.set)
+            registered_signals.append(shutdown_signal)
+        except (NotImplementedError, RuntimeError):
+            pass
+
+    wait_task = asyncio.create_task(server.wait_for_termination())
+    stop_task = asyncio.create_task(stop_event.wait())
+
     try:
-        await server.wait_for_termination()
-    except KeyboardInterrupt:
-        logger.info("Shutting down server")
-        await server.stop(0)
+        done, pending = await asyncio.wait(
+            {wait_task, stop_task},
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+
+        if stop_task in done:
+            logger.info("Shutting down server")
+            await server.stop(0)
+        elif wait_task in done:
+            await wait_task
+    finally:
+        for task in (wait_task, stop_task):
+            if not task.done():
+                task.cancel()
+
+        for shutdown_signal in registered_signals:
+            loop.remove_signal_handler(shutdown_signal)
 
 
 if __name__ == "__main__":

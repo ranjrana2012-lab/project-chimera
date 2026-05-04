@@ -1,5 +1,7 @@
 """Integration tests for KimiClient vLLM client."""
 
+import os
+
 import pytest
 from services.kimi_super_agent.kimi_client import KimiClient
 
@@ -8,8 +10,9 @@ from services.kimi_super_agent.kimi_client import KimiClient
 def kimi_client():
     """Create a KimiClient instance for testing."""
     client = KimiClient(
-        base_url="http://localhost:8012",
-        timeout_seconds=300
+        base_url=os.getenv("KIMI_VLLM_TEST_URL", "http://localhost:8012"),
+        model_name=os.getenv("KIMI_MODEL_TEST_NAME", os.getenv("KIMI_MODEL_NAME", "/model")),
+        timeout_seconds=int(os.getenv("KIMI_TEST_TIMEOUT", "300")),
     )
     return client
 
@@ -18,9 +21,8 @@ def kimi_client():
 async def test_kimi_client_generate(kimi_client):
     """Test vLLM client generates response."""
     request = {
-        "model": "kimi",
         "messages": [{"role": "user", "content": "Hello"}],
-        "max_tokens": 100
+        "max_tokens": 8
     }
 
     response = await kimi_client.generate(request)

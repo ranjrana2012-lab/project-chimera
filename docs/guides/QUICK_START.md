@@ -1,6 +1,6 @@
 # Project Chimera Quick Start
 
-**Last Updated:** April 26, 2026
+**Last Updated:** May 4, 2026
 **Status:** Canonical setup pointer
 
 Project Chimera now has two explicit runtime profiles:
@@ -8,7 +8,7 @@ Project Chimera now has two explicit runtime profiles:
 - Student / Laptop: ordinary student machines, Windows/macOS/WSL/Linux laptops,
   and first validation runs.
 - DGX Spark / GB10 ARM64: NVIDIA DGX Spark or Grace Blackwell hosts with Docker,
-  NVIDIA Container Runtime, and NGC access.
+  Docker GPU support through NVIDIA runtime or CDI, and NGC access where needed.
 
 Agents should read `AGENTS.md` at the repository root before choosing a route.
 
@@ -46,10 +46,12 @@ http://127.0.0.1:8080
 Use only on DGX Spark / ARM64 hosts:
 
 ```bash
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
 ```
+
+Current local sign-off on the GB10/aarch64 host: `737 passed, 96 skipped, 4 warnings`.
 
 ## Full Guides
 

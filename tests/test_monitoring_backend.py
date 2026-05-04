@@ -4,6 +4,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
 
 
+@pytest.fixture(autouse=True)
+def clear_metrics_cache():
+    """Keep metrics cache state from leaking between endpoint tests."""
+    from services.dashboard.main import MetricsCache
+
+    MetricsCache.clear()
+    yield
+    MetricsCache.clear()
+
+
 @pytest.mark.unit
 def test_metrics_summary_returns_combined_data(monkeypatch):
     """Test that metrics_summary combines system and app metrics."""
@@ -41,7 +51,7 @@ def test_prometheus_timeout_returns_cached(monkeypatch):
     from services.dashboard.main import app, MetricsCache
 
     # Set up cache with stale data
-    MetricsCache.set("cpu_usage", {"value": 42.0, "stale": True})
+    MetricsCache.set("prom:system.cpu.total_pct:5m", {"value": 42.0, "data": [], "stale": True})
 
     # Mock Prometheus to raise timeout
     mock_prom = MagicMock()
@@ -56,7 +66,7 @@ def test_prometheus_timeout_returns_cached(monkeypatch):
 
     assert response.status_code == 200
     data = response.json()
-    assert data["value"] == 42.0
+    assert data["usage_pct"] == 42.0
     assert data["stale"] is True
 
 

@@ -15,6 +15,7 @@ Usage:
 import hashlib
 import json
 import logging
+import os
 from typing import Optional, Any, Dict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -297,7 +298,7 @@ def get_global_cache() -> RequestCache:
     """Get or create the global cache instance."""
     global _global_cache
     if _global_cache is None:
-        redis_url = "redis://" + redis.__name__
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
         _global_cache = RequestCache(redis_url=redis_url)
     return _global_cache
 

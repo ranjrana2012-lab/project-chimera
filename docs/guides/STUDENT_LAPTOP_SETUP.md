@@ -130,7 +130,7 @@ docker compose -f docker-compose.student.yml down
 From the repository root:
 
 ```powershell
-.\services\operator-console\venv\Scripts\python.exe -m pytest tests/unit/test_chimera_core.py tests/e2e/test_chimera_smoke.py -v
+.\services\operator-console\venv\Scripts\python.exe -m pytest tests/unit/test_chimera_core.py test_chimera_smoke.py -v
 .\services\operator-console\venv\Scripts\python.exe -m pytest tests/unit -v
 .\services\operator-console\venv\Scripts\python.exe -m pytest tests --collect-only -q
 ```

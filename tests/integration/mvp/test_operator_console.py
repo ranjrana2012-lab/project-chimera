@@ -124,6 +124,12 @@ def test_console_show_control_create(console_url):
     - Response should include message
     - Should include created_at or started_at timestamp
     """
+    requests.post(
+        f"{console_url}/api/show/control",
+        json={"action": "stop"},
+        timeout=10
+    )
+
     response = requests.post(
         f"{console_url}/api/show/control",
         json={

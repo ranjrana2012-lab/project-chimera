@@ -1,7 +1,7 @@
 # Student Quick Start
 
 **Version:** 2.1.0
-**Last Updated:** April 26, 2026
+**Last Updated:** May 4, 2026
 **Target Audience:** Students joining the active Project Chimera demonstrator
 
 This guide is the short classroom entrypoint. For the full validated setup path,
@@ -17,11 +17,11 @@ hardware.
 git clone https://github.com/ranjrana2012-lab/project-chimera.git
 cd project-chimera
 cd services/operator-console
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-python chimera_core.py demo
-python chimera_web.py
+./venv/bin/python -m pip install -r requirements.txt
+./venv/bin/python chimera_core.py demo
+PORT=18080 ./venv/bin/python chimera_web.py
 ```
 
 Windows PowerShell:
@@ -84,7 +84,7 @@ feel smarter and more theatrical.
 
 - Where to work: `services/operator-console/chimera_core.py`
 - What to improve: `generate_response()`, `select_strategy()`, and heuristic sentiment detection
-- How to test: `python chimera_core.py demo`
+- How to test: `./venv/bin/python chimera_core.py demo`
 
 ### Focus Area 2: Full-Stack Web App and UX
 
@@ -93,28 +93,28 @@ for an audience or operator.
 
 - Where to work: `services/operator-console/chimera_web.py` and `services/operator-console/static/`
 - What to improve: dashboard layout, visual feedback, accessibility display, and live polling
-- How to test: `python chimera_web.py`, then open the local dashboard
+- How to test: `PORT=18080 ./venv/bin/python chimera_web.py`, then open the local dashboard
 
 ### Focus Area 3: DevOps and Reliability Analytics
 
 You are the shield of the operation. Your job is to keep the demo dependable and
 make exported data useful.
 
-- Where to work: `tests/e2e/test_chimera_smoke.py`, `tests/unit/test_chimera_core.py`, and export-related scripts
+- Where to work: `test_chimera_smoke.py`, `tests/unit/test_chimera_core.py`, and export-related scripts
 - What to improve: regression tests, export verification, and small analytics summaries
-- How to test: `pytest tests/e2e/test_chimera_smoke.py -v`
+- How to test: `./services/operator-console/venv/bin/python -m pytest test_chimera_smoke.py -v`
 
 ## Validated Checks
 
 From the project root:
 
 ```bash
-python verify_prerequisites.py
-pip install -r requirements-dev.txt
-pytest tests/unit/test_chimera_core.py -v
-pytest tests/e2e/test_chimera_smoke.py -v
-pytest tests/unit -v
-pytest tests --collect-only -q
+./services/operator-console/venv/bin/python verify_prerequisites.py
+./services/operator-console/venv/bin/python -m pip install -r requirements-dev.txt
+./services/operator-console/venv/bin/python -m pytest tests/unit/test_chimera_core.py -v
+./services/operator-console/venv/bin/python -m pytest test_chimera_smoke.py -v
+./services/operator-console/venv/bin/python -m pytest tests/unit -v
+./services/operator-console/venv/bin/python -m pytest tests --collect-only -q
 ```
 
 ## Where To Look Next

@@ -92,6 +92,8 @@ class ModelInfo(BaseModel):
 
 class HealthResponse(BaseModel):
     """Health check response"""
+    model_config = {"protected_namespaces": ()}
+
     status: str
     service: str
     moderator_ready: bool

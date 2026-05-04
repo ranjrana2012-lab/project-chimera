@@ -32,6 +32,7 @@ class RuntimeProfile:
     docker_compose: CommandResult
     nvidia_smi: CommandResult
     docker_nvidia_runtime: bool
+    docker_gpu_support: bool
     next_commands: list[str]
 
 
@@ -61,6 +62,14 @@ def docker_has_nvidia_runtime() -> bool:
     return "nvidia" in result.output.lower()
 
 
+def docker_has_nvidia_cdi_devices() -> bool:
+    result = run_command(["docker", "info"])
+    if not result.available:
+        return False
+    lowered = result.output.lower()
+    return "cdi" in lowered and "nvidia.com/gpu" in lowered
+
+
 def detect_dgx_signal(nvidia_output: str) -> bool:
     lowered = nvidia_output.lower()
     return any(
@@ -83,24 +92,25 @@ def build_profile() -> RuntimeProfile:
         ]
     )
     has_nvidia_runtime = docker_has_nvidia_runtime()
+    has_gpu_container_support = has_nvidia_runtime or docker_has_nvidia_cdi_devices()
 
     is_arm64 = arch in {"aarch64", "arm64"}
     is_linux = os_name.lower() == "linux"
     has_gpu_signal = nvidia.available and detect_dgx_signal(nvidia.output)
 
-    if is_linux and is_arm64 and has_nvidia_runtime and has_gpu_signal:
+    if is_linux and is_arm64 and has_gpu_container_support and has_gpu_signal:
         profile = "dgx-spark"
         confidence = "high"
-        reason = "Linux ARM64 host with NVIDIA GPU and Docker NVIDIA runtime detected."
+        reason = "Linux ARM64 host with NVIDIA GPU and Docker GPU container support detected."
         next_commands = [
             "docker login nvcr.io",
             "docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services",
             "docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build",
         ]
-    elif is_linux and is_arm64 and (has_nvidia_runtime or has_gpu_signal):
+    elif is_linux and is_arm64 and (has_gpu_container_support or has_gpu_signal):
         profile = "dgx-spark-candidate"
         confidence = "medium"
-        reason = "Linux ARM64 host has partial DGX/GPU evidence; verify NVIDIA runtime before using DGX route."
+        reason = "Linux ARM64 host has partial DGX/GPU evidence; verify Docker GPU support before using DGX route."
         next_commands = [
             "docker run --rm --gpus all nvcr.io/nvidia/pytorch:25.11-py3 python -c \"import torch; print(torch.cuda.is_available())\"",
             "docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services",
@@ -111,9 +121,9 @@ def build_profile() -> RuntimeProfile:
         reason = "DGX Spark / Linux ARM64 / NVIDIA runtime evidence was not complete."
         next_commands = [
             "cd services/operator-console",
-            "python -m venv venv",
-            "python -m pip install -r requirements.txt",
-            "python chimera_core.py demo",
+            "python3 -m venv venv",
+            "./venv/bin/python -m pip install -r requirements.txt",
+            "./venv/bin/python chimera_core.py demo",
         ]
 
     return RuntimeProfile(
@@ -126,6 +136,7 @@ def build_profile() -> RuntimeProfile:
         docker_compose=compose,
         nvidia_smi=nvidia,
         docker_nvidia_runtime=has_nvidia_runtime,
+        docker_gpu_support=has_gpu_container_support,
         next_commands=next_commands,
     )
 

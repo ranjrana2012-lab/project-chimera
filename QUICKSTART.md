@@ -6,7 +6,7 @@ This guide will get you up and running with Project Chimera as quickly as possib
 
 Run the profile detection script to see which route your environment supports:
 ```bash
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 ```
 > **Note**: If detection is ambiguous or fails, default to the **Student / Laptop Route**.
 
@@ -21,7 +21,7 @@ Use this route for Windows/macOS/Linux laptops without specialized NVIDIA GPU en
 cd services/operator-console
 
 # 2. Setup your virtual environment
-python -m venv venv
+python3 -m venv venv
 
 # Windows/Powershell:
 .\venv\Scripts\python.exe -m pip install -r requirements.txt
@@ -29,10 +29,9 @@ python -m venv venv
 $env:PORT='18080'; .\venv\Scripts\python.exe chimera_web.py
 
 # Linux/macOS:
-source venv/bin/activate
-pip install -r requirements.txt
-python chimera_core.py demo
-PORT=18080 python chimera_web.py
+./venv/bin/python -m pip install -r requirements.txt
+./venv/bin/python chimera_core.py demo
+PORT=18080 ./venv/bin/python chimera_web.py
 ```
 **Access the Web UI**: `http://127.0.0.1:18080`
 
@@ -46,7 +45,7 @@ docker compose -f docker-compose.student.yml up -d --build
 ---
 
 ## 3. Advanced Route: NVIDIA DGX Spark / GB10 (ARM64)
-Use this route **only** if you are on an NVIDIA DGX Spark / Grace Blackwell host (ARM64), with Docker, NVIDIA Container Runtime (`--gpus all`), and NGC Registry access.
+Use this route **only** if you are on an NVIDIA DGX Spark / Grace Blackwell host (ARM64), with Docker GPU support (`--gpus all` through NVIDIA runtime or CDI), and NGC Registry access where required by the images you pull.
 
 ```bash
 # 1. Login to NVIDIA container registry (required for PyTorch base images)
@@ -94,6 +93,32 @@ docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d k
 
 For complete documentation, see [Kimi K2.6 Quick Start Guide](docs/guides/KIMI_QUICKSTART.md).
 
+Validated host-facing Kimi ports:
+
+- vLLM HTTP/OpenAI-compatible API: `http://127.0.0.1:8012`
+- Kimi super-agent gRPC: `127.0.0.1:50052`
+
+Run the host-facing Kimi integration tests from the repository root:
+
+```bash
+KIMI_VLLM_TEST_URL=http://127.0.0.1:8012 \
+KIMI_MODEL_TEST_NAME=/model \
+KIMI_TEST_TIMEOUT=180 \
+KIMI_GRPC_TEST_TARGET=127.0.0.1:50052 \
+./services/operator-console/venv/bin/python -m pytest tests/integration/kimi -q
+```
+
+## Current Validation Snapshot
+
+The latest local sign-off on the DGX/GB10 ARM64 host completed with:
+
+- runtime detection, prerequisites, local CLI/web, student Docker, MVP/DGX,
+  Kimi host-facing validation: pass
+- final regression: `737 passed, 96 skipped, 4 warnings`
+
+See `LOCAL_VALIDATION_REPORT.md`, `PATCH_SUMMARY.md`, and
+`REMAINING_GAPS.md` for details.
+
 
 
 ## Monitoring Stack
@@ -109,7 +134,7 @@ Project Chimera includes a built-in monitoring stack for system health and perfo
 # Or manual setup
 docker compose -f docker-compose.mvp.yml up -d prometheus netdata
 cd services/dashboard
-python -m uvicorn main:app --port 8013
+python3 -m uvicorn main:app --port 8013
 ```
 
 ### Access Dashboards

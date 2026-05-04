@@ -22,6 +22,9 @@ python -m venv venv
 $env:PORT='18080'; .\venv\Scripts\python.exe chimera_web.py
 ```
 
+On Linux/macOS hosts, use `python3 -m venv venv` and then call
+`./venv/bin/python` explicitly.
+
 For a lightweight container preview:
 
 ```powershell
@@ -37,13 +40,13 @@ Use this route only when the host evidence supports it:
 - Linux ARM64 / `aarch64`.
 - DGX Spark, GB10, or Grace Blackwell hardware is present.
 - Docker is available.
-- NVIDIA Container Runtime works with `--gpus all`.
+- Docker GPU access works with `--gpus all` through NVIDIA runtime or CDI.
 - The user has authenticated to NGC if pulling NVIDIA containers.
 
 Primary commands:
 
 ```bash
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
 docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
 ```

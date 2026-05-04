@@ -29,3 +29,21 @@ if os.path.exists(_shared_init):
         module = importlib.util.module_from_spec(spec)
         sys.modules['shared'] = module
         spec.loader.exec_module(module)
+
+# Force the repo's services package for the same reason. Some environments have
+# unrelated packages named "services", and collection order can otherwise make
+# tests resolve services.dashboard or services.kimi_super_agent incorrectly.
+_services_dir = os.path.join(_project_root, 'services')
+_services_init = os.path.join(_services_dir, '__init__.py')
+if os.path.exists(_services_init):
+    _services_module = sys.modules.get('services')
+    _services_file = getattr(_services_module, '__file__', '') if _services_module else ''
+    if not _services_file.startswith(_services_dir):
+        spec = importlib.util.spec_from_file_location(
+            'services',
+            _services_init,
+            submodule_search_locations=[_services_dir],
+        )
+        module = importlib.util.module_from_spec(spec)
+        sys.modules['services'] = module
+        spec.loader.exec_module(module)

@@ -79,8 +79,8 @@ make test-integration
 
 ```bash
 # From services/operator-console
-python chimera_core.py demo
-python chimera_web.py
+./venv/bin/python chimera_core.py demo
+PORT=18080 ./venv/bin/python chimera_web.py
 ```
 
 If `8080` is already in use, set `PORT` to a free port before launching `chimera_web.py`.
@@ -89,11 +89,11 @@ If `8080` is already in use, set `PORT` to a free port before launching `chimera
 
 ```bash
 # From the project root
-python verify_prerequisites.py
-pytest tests/unit/test_chimera_core.py -v
-pytest tests/e2e/test_chimera_smoke.py -v
-pytest tests/unit -v
-pytest tests --collect-only -q
+./services/operator-console/venv/bin/python verify_prerequisites.py
+./services/operator-console/venv/bin/python -m pytest tests/unit/test_chimera_core.py -v
+./services/operator-console/venv/bin/python -m pytest test_chimera_smoke.py -v
+./services/operator-console/venv/bin/python -m pytest tests/unit -v
+./services/operator-console/venv/bin/python -m pytest tests --collect-only -q
 ```
 
 ### Broader containerized check

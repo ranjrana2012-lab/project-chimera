@@ -226,10 +226,10 @@ class PrerequisiteChecker:
                 print(
                     r"3. If PowerShell blocks .\venv\Scripts\Activate.ps1, use Set-ExecutionPolicy -Scope Process Bypass, venv\Scripts\activate.bat, or call venv\Scripts\python.exe directly."
                 )
+                print(r"4. Start the web dashboard with .\venv\Scripts\python.exe chimera_web.py.")
             else:
-                print("3. Activate the venv with source venv/bin/activate.")
-            print("4. Start the web dashboard with python chimera_web.py.")
-            print("5. Use docker compose only after the monolith path is already working.")
+                print("3. Start the web dashboard with ./venv/bin/python chimera_web.py.")
+            print("5. Use docker compose only after the monolith path is already working." if os.name == "nt" else "4. Use docker compose only after the monolith path is already working.")
             return True
 
         print("[FAIL] Some prerequisites are not met. Please fix the failed checks above.")

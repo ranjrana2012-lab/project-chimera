@@ -1,12 +1,20 @@
-import sys
-import os
 import unittest
 from unittest.mock import patch, mock_open
+import importlib.util
+from pathlib import Path
 
-# Add services/operator-console to python path to import chimera_core
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../services/operator-console')))
+chimera_core_path = (
+    Path(__file__).resolve().parent.parent.parent
+    / "services"
+    / "operator-console"
+    / "chimera_core.py"
+)
+spec = importlib.util.spec_from_file_location("chimera_core", chimera_core_path)
+chimera_core = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+spec.loader.exec_module(chimera_core)
 
-from chimera_core import ChimeraCore
+ChimeraCore = chimera_core.ChimeraCore
 
 class TestChimeraCore(unittest.TestCase):
     def setUp(self):

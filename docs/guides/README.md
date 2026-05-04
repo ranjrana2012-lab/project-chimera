@@ -20,11 +20,11 @@ Start here if you are browsing documentation directly.
 Agents should read the root `AGENTS.md` first. Humans can run:
 
 ```bash
-python scripts/detect_runtime_profile.py
+python3 scripts/detect_runtime_profile.py
 ```
 
 Default to `STUDENT_LAPTOP_SETUP.md` unless the machine is clearly a DGX Spark /
-GB10 ARM64 host with NVIDIA Container Runtime.
+GB10 ARM64 host with Docker GPU support through NVIDIA runtime or CDI.
 
 ## Historical or Specialized Guides
 

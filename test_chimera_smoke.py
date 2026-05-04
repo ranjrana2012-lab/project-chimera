@@ -11,6 +11,7 @@ Usage:
 import sys
 import subprocess
 import time
+import tempfile
 from pathlib import Path
 
 
@@ -33,21 +34,26 @@ class SmokeTestRunner:
                 print(f"   Output: {output[:200]}")
             self.tests_failed += 1
 
+    def run_core(self, input_text: str, timeout: int = 15):
+        """Run chimera_core.py from a temp cwd so smoke tests do not write repo files."""
+        with tempfile.TemporaryDirectory(prefix="chimera-smoke-") as temp_dir:
+            return subprocess.run(
+                [sys.executable, str(self.chimera_path.resolve())],
+                input=input_text,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=temp_dir,
+            )
+
     def test_basic_execution(self):
         """Test basic execution with simple input."""
         try:
-            result = subprocess.run(
-                [sys.executable, self.chimera_path.name],
-                input="Hello\nquit\n",
-                capture_output=True,
-                text=True,
-                timeout=15,
-                cwd=self.chimera_path.parent
-            )
+            result = self.run_core("Hello\nquit\n")
             # Check both stdout and stderr - chimera_core.py outputs to stderr
             output = result.stdout + result.stderr
             passed = (
-                result.returncode in [0, 1, 2, -11, 139, 134] and  # Accept both 0 and 2 as valid exit codes
+                result.returncode == 0 and
                 ("CHIMERA CORE" in output or "Exiting" in output or "timestamp" in output or "Goodbye" in output)
             )
             self.test("Basic execution", passed)
@@ -59,21 +65,14 @@ class SmokeTestRunner:
     def test_sentiment_detection(self):
         """Test sentiment detection with positive input."""
         try:
-            result = subprocess.run(
-                [sys.executable, self.chimera_path.name],
-                input="I'm so excited to be here!\nquit\n",
-                capture_output=True,
-                text=True,
-                timeout=15,
-                cwd=self.chimera_path.parent
-            )
+            result = self.run_core("I'm so excited to be here!\nquit\n")
             output = result.stdout + result.stderr
             output_lower = output.lower()
             has_positive = "positive" in output_lower
             has_joy = "joy" in output_lower
             has_excited = "excited" in output_lower
             passed = (
-                result.returncode in [0, 1, 2, -11, 139, 134] and
+                result.returncode == 0 and
                 (has_positive or has_joy or has_excited)
             )
             if not passed:
@@ -87,17 +86,10 @@ class SmokeTestRunner:
     def test_sentiment_negative(self):
         """Test sentiment detection with negative input."""
         try:
-            result = subprocess.run(
-                [sys.executable, self.chimera_path.name],
-                input="I'm worried about everything\nquit\n",
-                capture_output=True,
-                text=True,
-                timeout=15,
-                cwd=self.chimera_path.parent
-            )
+            result = self.run_core("I'm worried about everything\nquit\n")
             output = result.stdout + result.stderr
             passed = (
-                result.returncode in [0, 1, 2, -11, 139, 134] and
+                result.returncode == 0 and
                 ("negative" in output.lower() or "supportive" in output.lower() or "sadness" in output.lower() or "worried" in output.lower())
             )
             self.test("Sentiment detection (negative)", passed)
@@ -110,17 +102,10 @@ class SmokeTestRunner:
         """Test caption mode."""
         try:
             input_text = "caption\nThis is wonderful!\nquit\n"
-            result = subprocess.run(
-                [sys.executable, self.chimera_path.name],
-                input=input_text,
-                capture_output=True,
-                text=True,
-                timeout=15,
-                cwd=self.chimera_path.parent
-            )
+            result = self.run_core(input_text)
             output = result.stdout + result.stderr
             passed = (
-                result.returncode in [0, 1, 2, -11, 139, 134] and
+                result.returncode == 0 and
                 ("caption" in output.lower() or "subtitle" in output.lower() or "C" in output or "Ⓧ" in output or "[]" in output)
             )
             self.test("Caption mode", passed)
@@ -134,15 +119,8 @@ class SmokeTestRunner:
         try:
             # Export requires a file path, so we'll just test the command is recognized
             input_text = "export\nquit\n"
-            result = subprocess.run(
-                [sys.executable, self.chimera_path.name],
-                input=input_text,
-                capture_output=True,
-                text=True,
-                timeout=15,
-                cwd=self.chimera_path.parent
-            )
-            passed = result.returncode in [0, 1, 2, -11, 139, 134]
+            result = self.run_core(input_text)
+            passed = result.returncode == 0
             self.test("Export command recognition", passed)
         except subprocess.TimeoutExpired:
             self.test("Export command recognition", False, "Timeout")
@@ -153,17 +131,10 @@ class SmokeTestRunner:
         """Test comparison mode."""
         try:
             input_text = "compare\nI love this performance\nquit\n"
-            result = subprocess.run(
-                [sys.executable, self.chimera_path.name],
-                input=input_text,
-                capture_output=True,
-                text=True,
-                timeout=20,
-                cwd=self.chimera_path.parent
-            )
+            result = self.run_core(input_text, timeout=20)
             output = result.stdout + result.stderr
             passed = (
-                result.returncode in [0, 1, 2, -11, 139, 134] and
+                result.returncode == 0 and
                 ("compare" in output.lower() or "adaptive" in output.lower() or "comparison" in output.lower())
             )
             self.test("Comparison mode", passed)
@@ -226,6 +197,12 @@ def main():
     runner = SmokeTestRunner()
     success = runner.run_all_tests()
     sys.exit(0 if success else 1)
+
+
+def test_smoke_runner_all_tests():
+    """Expose the smoke runner to pytest collection."""
+    runner = SmokeTestRunner()
+    assert runner.run_all_tests()
 
 
 if __name__ == "__main__":

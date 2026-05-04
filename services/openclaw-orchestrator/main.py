@@ -53,6 +53,15 @@ SKILL_ENDPOINTS = {
     "autonomous_execution": "/execute",
 }
 
+_orchestration_locks: dict[str, asyncio.Lock] = {}
+_orchestration_locks_guard = asyncio.Lock()
+
+
+async def _get_orchestration_lock(cache_key: str) -> asyncio.Lock:
+    async with _orchestration_locks_guard:
+        return _orchestration_locks.setdefault(cache_key, asyncio.Lock())
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager with connection pool and cache initialization"""
@@ -175,6 +184,7 @@ async def orchestrate_synchronous(request: dict):
     """
     import uuid
     start_time = time.time()
+    request_lock = None
 
     try:
         prompt = request.get("prompt", "")
@@ -203,8 +213,12 @@ async def orchestrate_synchronous(request: dict):
         pool = get_global_pool()
         cache = get_global_cache()
 
-        # Check cache first (Iteration 35)
+        # Check cache first (Iteration 35). Identical in-flight requests share
+        # one computation so parallel clients do not stampede the local LLM.
         cache_key = cache.cache_key("orchestrator", prompt, show_id)
+        request_lock = await _get_orchestration_lock(cache_key)
+        await request_lock.acquire()
+
         cached_result = await cache.get(cache_key)
         if cached_result:
             logger.info(f"Cache hit for orchestration request")
@@ -235,8 +249,8 @@ async def orchestrate_synchronous(request: dict):
             try:
                 session = await pool.get_session(AGENTS['safety-filter'])
                 response = await session.post(
-                    "/api/check",
-                    json={"text": prompt, "policy": "family"}
+                    "/v1/check",
+                    json={"content": prompt, "policy": "family"}
                 )
                 response.raise_for_status()
                 result = response.json()
@@ -301,10 +315,10 @@ async def orchestrate_synchronous(request: dict):
                         "show_id": show_id,
                         "sentiment": sentiment_label
                     },
-                    "max_tokens": 500,
+                    "max_tokens": int(os.getenv("ORCHESTRATOR_SCENESPEAK_MAX_TOKENS", "8")),
                     "temperature": 0.7
                 },
-                timeout=120.0  # Long timeout for LLM
+                timeout=float(os.getenv("ORCHESTRATOR_SCENESPEAK_TIMEOUT", "120"))
             )
             response.raise_for_status()
             dialogue_result = response.json()
@@ -347,6 +361,9 @@ async def orchestrate_synchronous(request: dict):
     except Exception as e:
         logger.error(f"Synchronous orchestration failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if request_lock is not None and request_lock.locked():
+            request_lock.release()
 
 
 def _map_sentiment_to_dmx(sentiment: str, score: float) -> dict:

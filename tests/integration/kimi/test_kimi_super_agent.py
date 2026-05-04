@@ -1,26 +1,23 @@
 """Integration tests for Kimi K2.6 super-agent."""
 
-import pytest
-import grpc
-import sys
 import os
 
-# Add the kimi-super-agent service directory to path for proto imports
-kimi_service_path = os.path.join(os.path.dirname(__file__), '../../services/kimi-super-agent')
-if kimi_service_path not in sys.path:
-    sys.path.insert(0, kimi_service_path)
+import pytest
+import grpc
+import pytest_asyncio
 
-from proto import kimi_pb2, kimi_pb2_grpc
+from services.kimi_super_agent.proto import kimi_pb2, kimi_pb2_grpc
 
 
 @pytest.mark.integration
 class TestKimiSuperAgentIntegration:
     """End-to-end integration tests for Kimi super-agent."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def grpc_channel(self):
         """Create gRPC channel to super-agent."""
-        channel = grpc.aio.insecure_channel("localhost:50052")
+        target = os.getenv("KIMI_GRPC_TEST_TARGET", "localhost:50052")
+        channel = grpc.aio.insecure_channel(target)
         yield channel
         await channel.close()
 

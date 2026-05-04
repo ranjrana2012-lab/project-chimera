@@ -5,7 +5,7 @@ This guide covers setting up and running the Kimi K2.6 super-agent on NVIDIA DGX
 ## Prerequisites
 
 - DGX Spark GB10 with 128GB GPU VRAM
-- Docker and NVIDIA Container Runtime installed
+- Docker GPU support available through NVIDIA runtime or CDI
 - NGC registry access configured
 - Project Chimera cloned
 
@@ -48,14 +48,28 @@ docker compose -f docker-compose.mvp.yml \
 
 # Check service health
 docker compose logs kimi-super-agent | tail -20
+
+# Confirm host-facing vLLM endpoint
+curl -fsS http://127.0.0.1:8012/v1/models
 ```
 
 ## Step 5: Test Delegation
 
 ```bash
-# Run integration tests
-python -m pytest tests/integration/kimi/ -v
+# Run integration tests against the published local Kimi endpoints.
+# Use the operator/test venv because the full integration harness depends on
+# repo-level test dependencies.
+KIMI_VLLM_TEST_URL=http://127.0.0.1:8012 \
+KIMI_GRPC_TEST_TARGET=127.0.0.1:50052 \
+KIMI_MODEL_TEST_NAME=/model \
+KIMI_TEST_TIMEOUT=180 \
+./services/operator-console/venv/bin/python -m pytest tests/integration/kimi/ -v
 ```
+
+Validated host-facing ports:
+
+- `127.0.0.1:8012` for the OpenAI-compatible vLLM HTTP API
+- `127.0.0.1:50052` for Kimi super-agent gRPC
 
 ## Configuration
 

@@ -21,12 +21,16 @@ except ImportError:
     pyttsx3 = None
 
 def spawn_voice(text):
+    if os.getenv("CHIMERA_ENABLE_VOICE", "").lower() not in {"1", "true", "yes", "on"}:
+        return
+
     def speak():
         if pyttsx3:
             try:
                 engine = pyttsx3.init()
                 engine.say(text)
                 engine.runAndWait()
+                engine.stop()
             except Exception:
                 pass
     threading.Thread(target=speak, daemon=True).start()

@@ -9,6 +9,8 @@
 
 set -e  # Exit on error
 
+PYTHON_BIN="${PYTHON:-python3}"
+
 # Colors
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -60,7 +62,7 @@ run_service_tests() {
 
         cd "$service_path"
 
-        if python -m pytest tests/ -v --tb=short; then
+        if "$PYTHON_BIN" -m pytest tests/ -v --tb=short; then
             print_success "$service tests passed"
             ((PASSED++))
         else

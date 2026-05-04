@@ -17,6 +17,13 @@ from local_llm import LocalLLMClient, LocalLLMResponse
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+PLACEHOLDER_API_KEYS = {
+    "",
+    "your_zai_glm_api_key_here",
+    "your-zai-api-key-here",
+    "change-me",
+}
+
 
 @dataclass
 class DialogueResponse:
@@ -40,6 +47,8 @@ class GLMClient:
                     will use the value from settings.
         """
         self.api_key = api_key or settings.glm_api_key
+        if self.api_key and self.api_key.strip().lower() in PLACEHOLDER_API_KEYS:
+            self.api_key = None
         self.api_base = settings.glm_api_base
         self.local_model_path = settings.local_model_path
         self.local_llm_client: Optional[LocalLLMClient] = None

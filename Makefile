@@ -1,5 +1,9 @@
 .PHONY: help install-deps dev profile student-up student-down dgx-config dgx-up dgx-down lint format test test-unit test-integration
 
+PYTHON ?= python3
+PIP ?= $(PYTHON) -m pip
+PYTEST ?= $(PYTHON) -m pytest
+
 help:
 	@echo "Project Chimera - Make Targets"
 	@echo ""
@@ -22,13 +26,13 @@ help:
 	@echo "  make silence-alerts  - Silence AlertManager alerts"
 
 install-deps:
-	pip install -r requirements-dev.txt
+	$(PIP) install -r requirements-dev.txt
 
 dev:
 	docker compose -f docker-compose.mvp.yml up -d
 
 profile:
-	python scripts/detect_runtime_profile.py
+	$(PYTHON) scripts/detect_runtime_profile.py
 
 student-up:
 	docker compose -f docker-compose.student.yml up -d --build
@@ -52,13 +56,13 @@ format:
 	black .
 
 test:
-	pytest tests/ -v
+	$(PYTEST) tests/ -v
 
 test-unit:
-	pytest tests/unit/ -v
+	$(PYTEST) tests/unit/ -v
 
 test-integration:
-	pytest tests/integration/ -v
+	$(PYTEST) tests/integration/ -v
 
 silence-alerts:
 	./scripts/silence-alerts.sh $(DURATION) $(COMMENT) $(MATCHERS)

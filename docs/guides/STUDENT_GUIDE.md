@@ -1,6 +1,6 @@
 # Project Chimera Student Guide
 
-**Last Updated:** April 25, 2026
+**Last Updated:** May 4, 2026
 
 This guide is for students who want the shortest accurate path to running and testing Project Chimera as it exists today.
 
@@ -25,11 +25,11 @@ For onboarding, always start with the monolith. It has the clearest setup path a
 git clone https://github.com/ranjrana2012-lab/project-chimera.git
 cd project-chimera
 cd services/operator-console
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-python chimera_core.py demo
-python chimera_web.py
+./venv/bin/python -m pip install -r requirements.txt
+./venv/bin/python chimera_core.py demo
+PORT=18080 ./venv/bin/python chimera_web.py
 ```
 
 Windows PowerShell alternatives:
@@ -42,7 +42,7 @@ If `8080` is already in use:
 
 ```powershell
 $env:PORT=18080
-python chimera_web.py
+.\venv\Scripts\python.exe chimera_web.py
 ```
 
 ## What to Validate
@@ -52,17 +52,17 @@ python chimera_web.py
 From `services/operator-console`:
 
 ```bash
-python chimera_core.py demo
-python chimera_core.py "I am very happy today!"
-python chimera_core.py "I'm feeling anxious and overwhelmed."
-python chimera_core.py "It's an okay experience, nothing special so far."
-python chimera_core.py compare "I love this performance"
-python chimera_core.py caption "Can you tell me more about the system?"
+./venv/bin/python chimera_core.py demo
+./venv/bin/python chimera_core.py "I am very happy today!"
+./venv/bin/python chimera_core.py "I'm feeling anxious and overwhelmed."
+./venv/bin/python chimera_core.py "It's an okay experience, nothing special so far."
+./venv/bin/python chimera_core.py compare "I love this performance"
+./venv/bin/python chimera_core.py caption "Can you tell me more about the system?"
 ```
 
 ### Web
 
-After `python chimera_web.py` starts, verify:
+After `./venv/bin/python chimera_web.py` starts, verify:
 
 - `GET /`
 - `GET /api/state`
@@ -75,12 +75,12 @@ After `python chimera_web.py` starts, verify:
 From the project root:
 
 ```bash
-python verify_prerequisites.py
-pip install -r requirements-dev.txt
-pytest tests/unit/test_chimera_core.py -v
-pytest tests/e2e/test_chimera_smoke.py -v
-pytest tests/unit -v
-pytest tests --collect-only -q
+./services/operator-console/venv/bin/python verify_prerequisites.py
+./services/operator-console/venv/bin/python -m pip install -r requirements-dev.txt
+./services/operator-console/venv/bin/python -m pytest tests/unit/test_chimera_core.py -v
+./services/operator-console/venv/bin/python -m pytest test_chimera_smoke.py -v
+./services/operator-console/venv/bin/python -m pytest tests/unit -v
+./services/operator-console/venv/bin/python -m pytest tests --collect-only -q
 ```
 
 Treat `pytest tests -v` as a broader sweep rather than the default first check.

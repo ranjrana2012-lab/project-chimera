@@ -38,7 +38,7 @@ SERVICE_PORTS = {
     "bsl": 8003,
     "sentiment": 8004,
     "lighting": 8005,
-    "safety": 8005,  # FIXED: Matches docker-compose.yml
+    "safety": 8006,
     "console": 8007,
 }
 
@@ -61,14 +61,6 @@ def get_service_ws_url(service_name: str) -> str:
     if USE_DOCKER:
         return f"ws://{BASE_HOST.format(service=service_name)}"
     return f"ws://localhost:{port}"
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create an event loop for async tests."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest_asyncio.fixture(scope="session")

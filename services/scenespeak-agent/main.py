@@ -6,6 +6,7 @@ local LLM fallback, business metrics, and distributed tracing.
 
 import time
 import logging
+import asyncio
 from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
@@ -218,7 +219,8 @@ async def health_check():
     """
     local_available = (local_llm_client and await local_llm_client.is_available()) or \
                       (openai_llm_client and await openai_llm_client.is_available())
-    model_loaded = bool(settings.glm_api_key or local_available)
+    glm_available = bool(glm_client.api_key)
+    model_loaded = bool(glm_available or local_available)
 
     return {
         "status": "healthy",
@@ -227,7 +229,7 @@ async def health_check():
         "model_loaded": model_loaded,  # Iteration 35: for E2E test compatibility
         "local_llm_available": local_available,
         "openai_llm_available": bool(openai_llm_client and await openai_llm_client.is_available()) if openai_llm_client else False,
-        "glm_api_available": bool(settings.glm_api_key),
+        "glm_api_available": glm_available,
         "model_info": {
             "name": settings.local_llm_model if local_available else "glm-4.7",
             "loaded": model_loaded,
@@ -248,14 +250,15 @@ async def readiness():
     """Readiness probe for Kubernetes."""
     local_available = (local_llm_client and await local_llm_client.is_available()) or \
                       (openai_llm_client and await openai_llm_client.is_available())
-    model_available = bool(settings.glm_api_key or local_available)
+    glm_available = bool(glm_client.api_key)
+    model_available = bool(glm_available or local_available)
     return {
         "status": "ready",
         "service": "scenespeak-agent",
         "model_available": model_available,
         "local_llm_available": local_available,
         "openai_llm_available": bool(openai_llm_client and await openai_llm_client.is_available()) if openai_llm_client else False,
-        "glm_api_available": bool(settings.glm_api_key)
+        "glm_api_available": glm_available
     }
 
 
@@ -278,8 +281,9 @@ async def health_with_model_info():
 
     model_loaded: true indicates GLM API or local LLM is configured.
     """
-    local_available = local_llm_client and await local_llm_client.is_available()
-    model_loaded = bool(settings.glm_api_key or local_available)
+    local_available = (local_llm_client and await local_llm_client.is_available()) or \
+                      (openai_llm_client and await openai_llm_client.is_available())
+    model_loaded = bool(glm_client.api_key or local_available)
 
     return {
         "status": "healthy",
@@ -331,23 +335,28 @@ async def generate_dialogue_api(request: dict):
     style = request.get("style")  # Optional style parameter
     max_tokens = request.get("max_tokens", 500)
     temperature = request.get("temperature", 0.7)
-    use_fallback = request.get("use_fallback", False)  # Force local LLM
-    timeout = request.get("timeout", 120)  # Optional timeout override
+    use_fallback = request.get("use_fallback", request.get("allow_fallback", False))
+    timeout = float(request.get("timeout", 120))  # Optional timeout override
 
     try:
         # Determine which client to use
         response = None
         fallback_used = False
 
-        # If use_fallback is True, try local LLM first (Nemotron or Ollama)
-        if use_fallback:
+        prefer_local_runtime = use_fallback or not glm_client.api_key
+
+        # If fallback is requested, or GLM is unavailable, try local LLM first.
+        if prefer_local_runtime:
             # Try OpenAI-compatible client (Nemotron) first
             if openai_llm_client and await openai_llm_client.is_available():
                 try:
-                    openai_response = await openai_llm_client.generate(
-                        prompt=prompt,
-                        max_tokens=max_tokens,
-                        temperature=temperature
+                    openai_response = await asyncio.wait_for(
+                        openai_llm_client.generate(
+                            prompt=prompt,
+                            max_tokens=max_tokens,
+                            temperature=temperature
+                        ),
+                        timeout=timeout,
                     )
                     # Convert to DialogueResponse format
                     from local_llm import LocalLLMResponse
@@ -355,6 +364,7 @@ async def generate_dialogue_api(request: dict):
                         text=openai_response.text,
                         tokens_used=openai_response.tokens_used,
                         model=openai_response.model,
+                        source=openai_response.source,
                         duration_ms=openai_response.duration_ms
                     )
                     response = GLMDialogueResponse(
@@ -372,10 +382,13 @@ async def generate_dialogue_api(request: dict):
             # Try Ollama if Nemotron unavailable or failed
             if response is None and local_llm_client and await local_llm_client.is_available():
                 try:
-                    local_response = await local_llm_client.generate(
-                        prompt=prompt,
-                        max_tokens=max_tokens,
-                        temperature=temperature
+                    local_response = await asyncio.wait_for(
+                        local_llm_client.generate(
+                            prompt=prompt,
+                            max_tokens=max_tokens,
+                            temperature=temperature
+                        ),
+                        timeout=timeout,
                     )
                     response = GLMDialogueResponse(
                         text=local_response.text,
@@ -389,14 +402,19 @@ async def generate_dialogue_api(request: dict):
                 except Exception as e:
                     logger.warning(f"Ollama generation failed: {e}")
 
-        # Use GLM client (with built-in fallback) if not using forced fallback
-        # or if forced fallback failed
+        if response is None and not glm_client.api_key:
+            raise RuntimeError("Local LLM unavailable and no GLM API key configured")
+
+        # Use GLM client (with built-in fallback) if local generation was not used.
         if response is None:
-            response = await glm_client.generate(
-                prompt=prompt,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                prefer_local=use_fallback
+            response = await asyncio.wait_for(
+                glm_client.generate(
+                    prompt=prompt,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    prefer_local=use_fallback
+                ),
+                timeout=timeout,
             )
             # Check if fallback was actually used
             fallback_used = response.source in ["local", "local-fallback", "nemotron"]
@@ -448,6 +466,9 @@ async def generate_dialogue_api(request: dict):
     except HTTPException:
         # Re-raise HTTP exceptions as-is (including 422 validation errors)
         raise
+    except asyncio.TimeoutError:
+        logger.error("Dialogue generation timed out")
+        raise HTTPException(status_code=504, detail="Dialogue generation timed out")
     except Exception as e:
         logger.error(f"API generation failed: {e}")
         duration_ms = (time.time() - start_time) * 1000

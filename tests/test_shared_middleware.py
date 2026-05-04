@@ -10,14 +10,11 @@ import sys
 from pathlib import Path
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 
-# Mock slowapi and starlette before importing
+# Mock slowapi before importing; use the real installed Starlette package so
+# this test does not poison sys.modules for later FastAPI tests.
 sys.modules['slowapi'] = MagicMock()
 sys.modules['slowapi.util'] = MagicMock()
 sys.modules['slowapi.errors'] = MagicMock()
-sys.modules['starlette'] = MagicMock()
-sys.modules['starlette.middleware'] = MagicMock()
-sys.modules['starlette.middleware.base'] = MagicMock()
-sys.modules['starlette.middleware.cors'] = MagicMock()
 
 # Create mock classes
 class MockRateLimitExceeded(Exception):
@@ -26,7 +23,6 @@ class MockRateLimitExceeded(Exception):
 sys.modules['slowapi.errors'].RateLimitExceeded = MockRateLimitExceeded
 sys.modules['slowapi'].Limiter = Mock
 sys.modules['slowapi.util'].get_remote_address = Mock
-sys.modules['starlette.middleware.base'].BaseHTTPMiddleware = object
 
 # Add services/shared to path
 services_shared = Path(__file__).parent.parent / "services" / "shared"
