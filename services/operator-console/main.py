@@ -789,6 +789,23 @@ async def prometheus_metrics():
     return Response(content=get_metrics_text(), media_type=CONTENT_TYPE_LATEST)
 
 
+@app.post("/api/interact")
+async def proxy_interact(request: dict):
+    """Proxy interaction to the internal orchestrator."""
+    url = f"{settings.nemoclaw_orchestrator_url}/v1/orchestrate"
+    try:
+        async with AsyncClient(timeout=60.0) as client:
+            response = await client.post(url, json=request)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                raise HTTPException(status_code=response.status_code, detail=response.text)
+    except ConnectError:
+        raise HTTPException(status_code=503, detail="Orchestrator unreachable")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=settings.port)

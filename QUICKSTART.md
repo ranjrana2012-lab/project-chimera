@@ -94,6 +94,37 @@ docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d k
 
 For complete documentation, see [Kimi K2.6 Quick Start Guide](docs/guides/KIMI_QUICKSTART.md).
 
+
+
+## Monitoring Stack
+
+Project Chimera includes a built-in monitoring stack for system health and performance metrics.
+
+### Setup Monitoring
+
+```bash
+# Automated setup (recommended)
+./scripts/setup-monitoring.sh
+
+# Or manual setup
+docker compose -f docker-compose.mvp.yml up -d prometheus netdata
+cd services/dashboard
+python -m uvicorn main:app --port 8013
+```
+
+### Access Dashboards
+
+- **Netdata**: http://localhost:19999 - Real-time system metrics (CPU, memory, disk, network)
+- **Prometheus**: http://localhost:9090 - Metrics query and exploration
+- **Unified Dashboard**: http://localhost:8013/monitoring - Custom monitoring view
+
+### Testing
+
+```bash
+# Run monitoring integration tests
+pytest tests/integration/test_monitoring_e2e.py -v -m integration
+```
+
 ## Useful Test Inputs
 Once running (in either environment), try passing these input phrases to see how Chimera adapts the theatrical scene:
 - `I am very happy today!` -> expected: `momentum_build`

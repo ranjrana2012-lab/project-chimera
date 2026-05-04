@@ -116,6 +116,44 @@ docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d k
 
 See `docs/guides/KIMI_QUICKSTART.md` for complete Kimi K2.6 documentation.
 
+## Monitoring Stack
+
+Project Chimera includes a comprehensive monitoring stack for system health and performance metrics.
+
+### Quick Setup
+
+```bash
+# Automated setup
+./scripts/setup-monitoring.sh
+
+# Or manually
+docker compose -f docker-compose.mvp.yml up -d prometheus netdata
+cd services/dashboard && python -m uvicorn main:app --port 8013
+```
+
+### Access Points
+
+- **Netdata Dashboard**: http://localhost:19999 - Real-time system metrics
+- **Prometheus UI**: http://localhost:9090 - Metrics query and exploration
+- **Monitoring Dashboard**: http://localhost:8013/monitoring - Unified monitoring view
+
+### Metrics Collected
+
+- CPU usage (system and per-core)
+- Memory utilization
+- GPU metrics (NVIDIA GPUs)
+- Container health and resource usage
+- Network I/O
+- Disk I/O
+- Custom application metrics
+
+### Running Integration Tests
+
+```bash
+# Test monitoring stack
+pytest tests/integration/test_monitoring_e2e.py -v -m integration
+```
+
 > **Note**: Full integration tests run via `make test` or `pytest tests/integration/` require the `docker-compose.mvp.yml` services to be active and must be executed from *within* the Docker network to resolve internal DNS hostnames (e.g., `openclaw-orchestrator`, `redis`).
 
 ## Validated Checks

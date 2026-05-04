@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     # Service URLs (for health checks and metrics collection)
     openclaw_orchestrator_url: str = "http://localhost:8000"
+    nemoclaw_orchestrator_url: str = "http://nemoclaw-orchestrator:8000"
     scenespeak_agent_url: str = "http://localhost:8001"
     captioning_agent_url: str = "http://localhost:8002"
     bsl_agent_url: str = "http://localhost:8003"
@@ -44,6 +45,7 @@ class Settings(BaseSettings):
         """Get all service URLs as a dictionary."""
         return {
             "openclaw-orchestrator": self.openclaw_orchestrator_url,
+            "nemoclaw-orchestrator": self.nemoclaw_orchestrator_url,
             "scenespeak-agent": self.scenespeak_agent_url,
             "captioning-agent": self.captioning_agent_url,
             "bsl-agent": self.bsl_agent_url,
