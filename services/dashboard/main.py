@@ -5,15 +5,48 @@ Tracks Ralph Loop progress, service health, git commits, and student testing.
 
 import os
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
+from collections import defaultdict
 
 import httpx
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
+
+
+class MetricsCache:
+    """Simple in-memory cache for metrics with staleness tracking."""
+
+    _cache: Dict[str, Dict[str, Any]] = defaultdict(dict)
+    _timestamps: Dict[str, datetime] = {}
+
+    @classmethod
+    def get(cls, key: str) -> Optional[Dict[str, Any]]:
+        """Get cached value if not expired (30s TTL)."""
+        if key not in cls._cache:
+            return None
+
+        age = datetime.now() - cls._timestamps.get(key, datetime.now())
+        if age > timedelta(seconds=30):
+            return None
+
+        return cls._cache[key].copy()
+
+    @classmethod
+    def set(cls, key: str, value: Dict[str, Any]) -> None:
+        """Set value in cache with current timestamp."""
+        cls._cache[key] = value.copy()
+        cls._timestamps[key] = datetime.now()
+
+    @classmethod
+    def mark_stale(cls, key: str) -> None:
+        """Mark cached value as stale."""
+        if key in cls._cache:
+            cls._cache[key]["stale"] = True
+
 
 # Configuration
 app = FastAPI(title="Project Chimera Dashboard")
