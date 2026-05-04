@@ -326,6 +326,19 @@ async def metrics_summary():
     }
 
 
+@app.get("/api/metrics/cpu")
+async def metrics_cpu(span: str = "5m"):
+    """CPU utilization metrics."""
+    result = await query_prometheus("system.cpu.total_pct", span=span)
+    if result is None:
+        return {"usage_pct": 0, "stale": True, "error": "Query failed"}
+    return {
+        "usage_pct": result.get("value", 0),
+        "history": result.get("data", []),
+        "stale": result.get("stale", False)
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Serve dashboard HTML page."""
