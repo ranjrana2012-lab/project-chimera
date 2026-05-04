@@ -42,7 +42,7 @@ def test_build_capture_plan_returns_named_argv_commands():
     assert all(all(isinstance(part, str) for part in argv) for argv in commands.values())
     assert commands["prerequisites"] == [
         "/python",
-        "services/operator-console/verify_prerequisites.py",
+        "verify_prerequisites.py",
     ]
     assert commands["smoke-demo"] == [
         "/python",

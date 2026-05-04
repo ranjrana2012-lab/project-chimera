@@ -31,7 +31,7 @@ def build_capture_plan(python_executable=sys.executable, web_base_url=DEFAULT_WE
             "prerequisites",
             [
                 python_executable,
-                "services/operator-console/verify_prerequisites.py",
+                "verify_prerequisites.py",
             ],
         ),
         CaptureCommand(
