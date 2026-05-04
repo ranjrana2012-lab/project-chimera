@@ -304,6 +304,28 @@ async def api_dashboard():
     return await update_dashboard_data()
 
 
+@app.get("/api/metrics/summary")
+async def metrics_summary():
+    """Combined system + app metrics summary."""
+    # Query system metrics from Prometheus
+    cpu_usage = await query_prometheus("system.cpu.total_pct")
+    gpu_usage = await query_prometheus("nvidia_gpu_utilization")
+    mem_usage = await query_prometheus("system.memory.used_pct")
+
+    # Get application health from existing aggregator
+    app_health = await get_service_health()
+
+    return {
+        "system": {
+            "cpu": cpu_usage or {"value": 0, "stale": True},
+            "gpu": gpu_usage or {"value": 0, "stale": True},
+            "memory": mem_usage or {"value": 0, "stale": True}
+        },
+        "applications": app_health,
+        "timestamp": datetime.now().isoformat()
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Serve dashboard HTML page."""
