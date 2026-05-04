@@ -4,6 +4,8 @@ import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import pytest
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "scripts" / "capture_phase1_evidence.py"
@@ -51,6 +53,8 @@ def test_build_capture_plan_returns_named_argv_commands():
     ]
     assert commands["privacy-preflight"] == ["/python", "scripts/privacy_preflight.py"]
     assert commands["focused-pytest"][:3] == ["/python", "-m", "pytest"]
+    assert "-p" in commands["focused-pytest"]
+    assert "no:cacheprovider" in commands["focused-pytest"]
     assert commands["web-state"][:2] == ["/python", "scripts/capture_phase1_evidence.py"]
     assert commands["web-export"][:2] == ["/python", "scripts/capture_phase1_evidence.py"]
 
@@ -85,6 +89,27 @@ def test_run_capture_plan_writes_logs_and_manifest(tmp_path):
     assert (output_dir / "second.log").read_text(encoding="utf-8").strip() == "beta"
 
 
+def test_run_capture_plan_disables_bytecode_writes_for_subprocesses(tmp_path):
+    capture = load_capture_module()
+    output_dir = tmp_path / "private-evidence"
+    plan = [
+        capture.CaptureCommand(
+            "env",
+            [
+                sys.executable,
+                "-c",
+                "import os; print(os.environ.get('PYTHONDONTWRITEBYTECODE'))",
+            ],
+        ),
+    ]
+
+    manifest_path = capture.run_capture_plan(plan, output_dir=output_dir, cwd=tmp_path)
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["results"][0]["returncode"] == 0
+    assert (output_dir / "env.log").read_text(encoding="utf-8").strip() == "1"
+
+
 def test_run_capture_plan_records_failure_and_keeps_previous_logs(tmp_path):
     capture = load_capture_module()
     output_dir = tmp_path / "private-evidence"
@@ -102,6 +127,31 @@ def test_run_capture_plan_records_failure_and_keeps_previous_logs(tmp_path):
     assert [result["returncode"] for result in manifest["results"]] == [0, 7]
     assert (output_dir / "passing.log").read_text(encoding="utf-8").strip() == "kept"
     assert (output_dir / "failing.log").read_text(encoding="utf-8").strip() == "failed"
+
+
+def test_run_capture_plan_records_timeout_and_writes_manifest(tmp_path):
+    capture = load_capture_module()
+    output_dir = tmp_path / "private-evidence"
+    plan = [
+        capture.CaptureCommand(
+            "slow",
+            [sys.executable, "-c", "import time; print('start'); time.sleep(5)"],
+        ),
+    ]
+
+    manifest_path = capture.run_capture_plan(
+        plan,
+        output_dir=output_dir,
+        cwd=tmp_path,
+        timeout_seconds=0.1,
+    )
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["results"][0]["returncode"] != 0
+    assert manifest["results"][0]["timed_out"] is True
+    assert "timed out after 0.1 seconds" in (output_dir / "slow.log").read_text(
+        encoding="utf-8"
+    )
 
 
 def test_run_capture_plan_rejects_log_paths_outside_output_directory(tmp_path):
@@ -122,3 +172,21 @@ def test_run_capture_plan_rejects_log_paths_outside_output_directory(tmp_path):
         raise AssertionError("expected unsafe log path to be rejected")
 
     assert not (tmp_path / "outside.log").exists()
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "file:///etc/passwd",
+        "ftp://127.0.0.1/state",
+        "http://example.com/api/state",
+        "https://192.168.1.10/api/state",
+    ],
+)
+def test_fetch_url_rejects_non_local_http_urls(url, capsys):
+    capture = load_capture_module()
+
+    assert capture.fetch_url(url) == 2
+
+    output = capsys.readouterr()
+    assert "only local http(s) URLs are allowed" in output.err
