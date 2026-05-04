@@ -15,6 +15,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
+from prometheus_api_client import PrometheusConnect
 
 
 class MetricsCache:
@@ -46,6 +47,73 @@ class MetricsCache:
         """Mark cached value as stale."""
         if key in cls._cache:
             cls._cache[key]["stale"] = True
+
+
+# Initialize Prometheus client
+PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
+prometheus = PrometheusConnect(url=PROMETHEUS_URL, disable_ssl=True)
+
+
+async def query_prometheus(
+    query: str,
+    span: str = "5m",
+    step: str = "15s"
+) -> Optional[Dict[str, Any]]:
+    """Query Prometheus with caching and error handling.
+
+    Args:
+        query: PromQL query string
+        span: Time range (e.g., "5m", "1h")
+        step: Query step interval
+
+    Returns:
+        Dict with 'value' (current value) and 'data' (time series), or None
+    """
+    cache_key = f"prom:{query}:{span}"
+
+    # Check cache first
+    cached = MetricsCache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        # Query Prometheus
+        end_time = datetime.now()
+        start_time = end_time - timedelta(minutes=5)  # Simplified parsing
+
+        result = prometheus.custom_query_range(
+            query=query,
+            start_time=start_time,
+            end_time=end_time,
+            step=step
+        )
+
+        if not result:
+            return {"value": 0.0, "data": [], "stale": False}
+
+        # Extract latest value
+        latest = result[-1]
+        value = float(latest.value[1]) if latest.value[1] else 0.0
+
+        response = {
+            "value": round(value, 2),
+            "data": [{"timestamp": r.value[0], "value": float(r.value[1])} for r in result],
+            "stale": False
+        }
+
+        # Cache the result
+        MetricsCache.set(cache_key, response)
+        return response
+
+    except (TimeoutError, ConnectionError) as e:
+        # Return cached with stale flag
+        MetricsCache.mark_stale(cache_key)
+        cached = MetricsCache.get(cache_key)
+        if cached:
+            return cached
+        return {"value": 0.0, "data": [], "stale": True, "error": str(e)}
+    except Exception as e:
+        return {"value": 0.0, "data": [], "stale": True, "error": str(e)}
 
 
 # Configuration
