@@ -339,6 +339,106 @@ async def metrics_cpu(span: str = "5m"):
     }
 
 
+@app.get("/api/metrics/gpu")
+async def metrics_gpu(span: str = "5m"):
+    """GPU utilization metrics (NVIDIA)."""
+    result = await query_prometheus("nvidia_gpu_utilization", span=span)
+    if result is None:
+        return {"utilization_pct": 0, "memory_used_mb": 0, "stale": True}
+
+    # Also get VRAM usage
+    vram_result = await query_prometheus("nvidia_gpu_mem_used", span=span)
+
+    return {
+        "utilization_pct": result.get("value", 0),
+        "memory_used_mb": vram_result.get("value", 0) if vram_result else 0,
+        "history": result.get("data", []),
+        "stale": result.get("stale", False)
+    }
+
+
+@app.get("/api/metrics/memory")
+async def metrics_memory(span: str = "5m"):
+    """Memory usage metrics."""
+    usage_result = await query_prometheus("system.memory.used_pct", span=span)
+    swap_result = await query_prometheus("system.swap.used_pct", span=span)
+
+    return {
+        "usage_pct": usage_result.get("value", 0) if usage_result else 0,
+        "swap_pct": swap_result.get("value", 0) if swap_result else 0,
+        "history": usage_result.get("data", []) if usage_result else [],
+        "stale": usage_result.get("stale", False) if usage_result else True
+    }
+
+
+@app.get("/api/metrics/containers")
+async def metrics_containers():
+    """Per-container resource usage."""
+    containers = {}
+
+    # Get list of Chimera containers
+    chimera_containers = [
+        "openclaw-orchestrator",
+        "scenespeak-agent",
+        "sentiment-agent",
+        "safety-filter",
+        "operator-console",
+        "translation-agent",
+        "hardware-bridge"
+    ]
+
+    for container in chimera_containers:
+        # Query CPU and memory for each container
+        cpu_query = f'container_cpu_usage_seconds_total{{container="{container}"}}'
+        cpu_result = await query_prometheus(cpu_query, span="1m")
+
+        mem_query = f'container_memory_usage_bytes{{container="{container}"}}'
+        mem_result = await query_prometheus(mem_query, span="1m")
+
+        containers[container] = {
+            "cpu_pct": cpu_result.get("value", 0) if cpu_result else 0,
+            "memory_mb": (mem_result.get("value", 0) / 1024 / 1024) if mem_result else 0,
+            "stale": (cpu_result.get("stale", True) if cpu_result else True) or
+                    (mem_result.get("stale", True) if mem_result else True)
+        }
+
+    return {"containers": containers, "timestamp": datetime.now().isoformat()}
+
+
+@app.get("/api/metrics/history")
+async def metrics_history(
+    metric: str = "cpu",
+    span: str = "1h",
+    step: str = "30s"
+):
+    """Historical time-series data for a metric."""
+    # Map metric name to PromQL query
+    queries = {
+        "cpu": "system.cpu.total_pct",
+        "gpu": "nvidia_gpu_utilization",
+        "memory": "system.memory.used_pct",
+        "disk_io": "system.io.total",
+        "network": "system.net.total"
+    }
+
+    promql = queries.get(metric, queries["cpu"])
+
+    # Parse span (simplified - 1h default)
+    span_minutes = 60  # default
+
+    result = await query_prometheus(promql, span=span, step=step)
+
+    if result is None:
+        return {"metric": metric, "data": [], "stale": True, "error": "Query failed"}
+
+    return {
+        "metric": metric,
+        "span_minutes": span_minutes,
+        "data": result.get("data", []),
+        "stale": result.get("stale", False)
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Serve dashboard HTML page."""
