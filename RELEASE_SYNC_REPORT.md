@@ -34,10 +34,34 @@ Kimi route validated on the GB10/aarch64 host.
 
 ## Commit and Push Summary
 
-The release sync commit is intended to include all validated code, config,
-documentation, test, and report changes, excluding local-only `chat.py`.
+Primary release sync commit:
 
-After commit and push, publication verification must confirm:
+* Hash: `5eae9831dd929ec9793bdbbdde783b7a59452bd8`
+* Message: `chore: publish local validation sync`
+* Scope: validated code, config, documentation, test, and report changes,
+  excluding local-only `chat.py`.
+
+Push result observed:
+
+```text
+To https://github.com/ranjrana2012-lab/project-chimera.git
+   c6795ec3..5eae9831  main -> main
+```
+
+Remote verification observed after push:
+
+* `git ls-remote origin refs/heads/main` returned
+  `5eae9831dd929ec9793bdbbdde783b7a59452bd8`.
+* `git rev-parse HEAD origin/main` returned the same hash for both refs after
+  fetching `origin main`.
+* Key files matched between local `HEAD` and fetched `origin/main`:
+  README.md, QUICKSTART.md, AGENTS.md, docs/guides/DGX_SPARK_SETUP.md,
+  docs/guides/KIMI_QUICKSTART.md, LOCAL_VALIDATION_REPORT.md,
+  PATCH_SUMMARY.md, REMAINING_GAPS.md, RELEASE_SYNC_REPORT.md,
+  docker-compose.dgx-spark.yml, services/shared/cache.py, and
+  services/kimi_super_agent/__init__.py.
+
+Verification commands used:
 
 ```bash
 git rev-parse HEAD
@@ -47,8 +71,9 @@ git diff --quiet HEAD origin/main -- README.md QUICKSTART.md AGENTS.md \
   RELEASE_SYNC_REPORT.md docker-compose.dgx-spark.yml
 ```
 
-The final chat handoff records the exact local and remote HEAD hashes observed
-after the push.
+This report is committed as a follow-up publication note after the primary
+release-sync push. The final chat handoff records the exact final local and
+remote HEAD hashes observed after this report commit is pushed.
 
 ## Remaining Non-blocking Caveats
 
