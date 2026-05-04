@@ -33,8 +33,13 @@ venv/
 # Pytest / Coverage
 .pytest_cache/
 .coverage
+coverage.json
 htmlcov/
 .tox/
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
 
 # IDE
 .vscode/
@@ -42,6 +47,10 @@ htmlcov/
 *.swp
 *.swo
 *~
+
+# Node / frontend dependencies
+node_modules/
+**/node_modules/
 
 # OS
 .DS_Store
@@ -62,6 +71,7 @@ worktrees/
 # Logs
 *.log
 logs/
+pytestdebug.log
 
 # Database
 *.db
@@ -79,13 +89,32 @@ models/*.pth
 services/sentiment-agent/models_cache/
 services/music-generation/models_cache/
 
+# Runtime tokens and generated binaries
+services/zai-auth-proxy/tokens/*.json
+services/claude-orchestrator/bin/
+services/claude-orchestrator/orchestrator
+
 # Grant Materials & Private Demo Outputs
 internal/
 demo_footage/
 demo_captures/
 services/operator-console/demo_captures/
 project-chimera-submission*
-evidence/
+evidence/**
+!evidence/
+!evidence/README.md
+!evidence/screenshots/
+!evidence/screenshots/.gitkeep
+!evidence/demo-recordings/
+!evidence/demo-recordings/.gitkeep
+!evidence/logs/
+!evidence/logs/.gitkeep
+!evidence/meeting-notes/
+!evidence/meeting-notes/.gitkeep
+!evidence/spend-evidence/
+!evidence/spend-evidence/.gitkeep
+!evidence/run-notes/
+!evidence/run-notes/.gitkeep
 Grant_Evidence_Pack/
 
 # Agents & Scripts runtime outputs
