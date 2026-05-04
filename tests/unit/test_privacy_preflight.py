@@ -54,6 +54,50 @@ def test_public_placeholders_and_examples_are_allowed():
     assert findings == []
 
 
+def test_venv_paths_are_classified_when_they_are_private_artifacts():
+    privacy_preflight = load_privacy_preflight()
+
+    findings = privacy_preflight.classify_paths(
+        ["services/operator-console/venv/.env", "venv/demo.mp4"]
+    )
+
+    assert {finding.path for finding in findings} == {
+        "services/operator-console/venv/.env",
+        "venv/demo.mp4",
+    }
+
+
+def test_nested_env_example_variants_are_allowed():
+    privacy_preflight = load_privacy_preflight()
+
+    findings = privacy_preflight.classify_paths(
+        ["services/foo/.env.local.example", "profiles/.env.production.example"]
+    )
+
+    assert findings == []
+
+
+def test_financial_keywords_match_tokens_not_substrings():
+    privacy_preflight = load_privacy_preflight()
+
+    findings = privacy_preflight.classify_paths(
+        [
+            "docs/syntax.md",
+            "docs/private-tax.pdf",
+            "docs/bank_statement.pdf",
+            "receipts/invoice-001.pdf",
+            "records/receipt.png",
+        ]
+    )
+
+    assert {finding.path for finding in findings} == {
+        "docs/private-tax.pdf",
+        "docs/bank_statement.pdf",
+        "receipts/invoice-001.pdf",
+        "records/receipt.png",
+    }
+
+
 def test_main_returns_failure_when_collector_reports_forbidden_path(monkeypatch, capsys):
     privacy_preflight = load_privacy_preflight()
     path = "internal/grant-tracking/grant_closeout/final_report.md"

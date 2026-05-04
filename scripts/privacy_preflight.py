@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 
 import subprocess
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-ALLOWED_ENV_FILES = {
-    ".env.example",
-    ".env.production.example",
-    ".env.dgx-spark.example",
-}
 VIDEO_SUFFIXES = {".avi", ".m4v", ".mkv", ".mov", ".mp4", ".webm"}
 FINANCIAL_KEYWORDS = ("receipt", "invoice", "bank", "tax")
 MAX_PRINTED_FINDINGS = 200
@@ -31,7 +27,7 @@ def _normalize(path: str) -> str:
 
 
 def _is_allowed_env_file(path: str) -> bool:
-    return Path(path).name in ALLOWED_ENV_FILES
+    return Path(path).name.startswith(".env.") and Path(path).name.endswith(".example")
 
 
 def _is_allowed_evidence_placeholder(path: str) -> bool:
@@ -40,9 +36,9 @@ def _is_allowed_evidence_placeholder(path: str) -> bool:
     )
 
 
-def _is_venv_path(path: str) -> bool:
-    parts = Path(path).parts
-    return "venv" in parts or ".venv" in parts
+def _has_financial_keyword(path: str) -> bool:
+    tokens = [token for token in re.split(r"[^a-z0-9]+", path.lower()) if token]
+    return any(keyword in tokens for keyword in FINANCIAL_KEYWORDS)
 
 
 def classify_paths(paths: list[str]) -> list[Finding]:
@@ -52,12 +48,9 @@ def classify_paths(paths: list[str]) -> list[Finding]:
         path = _normalize(raw_path)
         parts = Path(path).parts
         name = Path(path).name
-        lower_name = name.lower()
         suffix = Path(path).suffix.lower()
 
         reason = ""
-        if _is_venv_path(path):
-            continue
         if path.startswith("internal/"):
             reason = "internal private path"
         elif path.startswith("Grant_Evidence_Pack/"):
@@ -78,7 +71,7 @@ def classify_paths(paths: list[str]) -> list[Finding]:
             reason = "real environment file"
         elif path.startswith("evidence/") and not _is_allowed_evidence_placeholder(path):
             reason = "evidence artifact path"
-        elif any(keyword in lower_name for keyword in FINANCIAL_KEYWORDS):
+        elif _has_financial_keyword(path):
             reason = "financial or tax document path"
         elif suffix in VIDEO_SUFFIXES:
             reason = "video recording path"
