@@ -276,10 +276,24 @@ def test_public_evidence_placeholder_exists_when_referenced():
     docs_demo = (REPO_ROOT / "docs" / "demo" / "README.md").read_text(
         encoding="utf-8"
     )
+    allowed_evidence_paths = {
+        "evidence/README.md",
+        "evidence/screenshots/.gitkeep",
+        "evidence/demo-recordings/.gitkeep",
+        "evidence/logs/.gitkeep",
+        "evidence/meeting-notes/.gitkeep",
+        "evidence/spend-evidence/.gitkeep",
+        "evidence/run-notes/.gitkeep",
+    }
+    tracked_evidence = sorted(path for path in tracked if path.startswith("evidence/"))
+    unexpected_evidence = sorted(
+        path for path in tracked_evidence if path not in allowed_evidence_paths
+    )
 
     assert "evidence/" in readme
     assert "../../evidence/README.md" in docs_demo
     assert "evidence/README.md" in tracked
+    assert unexpected_evidence == []
 
 
 def test_demo_troubleshooting_is_limited_to_phase1_student_route():
