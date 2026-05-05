@@ -11,25 +11,25 @@ ERRORS=0
 echo "Validating Dockerfiles..."
 
 for dockerfile in services/*/Dockerfile; do
-  service=$(basename $(dirname "$dockerfile"))
+  service=$(basename "$(dirname "$dockerfile")")
   echo -n "Checking $service... "
 
-  # Check for curl installation (simple check: curl must appear somewhere)
-  if ! grep -q "curl" "$dockerfile"; then
-    echo -e "${RED}FAIL${NC} (missing curl)"
+  # Check for consistent base image on Python services.
+  if grep -q "^FROM python:" "$dockerfile" && ! grep -q "^FROM python:3.1[12]-slim" "$dockerfile"; then
+    echo -e "${RED}FAIL${NC} (inconsistent base image)"
     ERRORS=$((ERRORS + 1))
     continue
   fi
 
-  # Check for consistent base image (python:3.11-slim or 3.12-slim)
-  if ! grep -q "FROM python:3.1[12]-slim" "$dockerfile"; then
-    # Non-Python services are OK (e.g., Node.js)
-    if ! grep -q "FROM python:" "$dockerfile"; then
-      echo -e "${GREEN}OK${NC} (non-Python service)"
-      continue
-    fi
-    echo -e "${RED}FAIL${NC} (inconsistent base image)"
+  # Health checks may use curl, wget, or Python HTTP clients depending on image.
+  if grep -q "^HEALTHCHECK" "$dockerfile" && ! grep -Eq "CMD +(curl|wget|python)" "$dockerfile"; then
+    echo -e "${RED}FAIL${NC} (unsupported healthcheck command)"
     ERRORS=$((ERRORS + 1))
+    continue
+  fi
+
+  if ! grep -q "^FROM python:" "$dockerfile"; then
+    echo -e "${GREEN}OK${NC} (non-Python service)"
     continue
   fi
 
