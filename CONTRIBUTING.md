@@ -20,6 +20,7 @@ python3 -m venv venv
 ./venv/bin/python -m pip install --upgrade pip
 ./venv/bin/python -m pip install -r requirements.txt
 ./venv/bin/python chimera_core.py demo
+PORT=18080 ./venv/bin/python chimera_web.py
 ```
 
 Windows users should follow `docs/guides/STUDENT_LAPTOP_SETUP.md`.
@@ -36,6 +37,7 @@ Windows users should follow `docs/guides/STUDENT_LAPTOP_SETUP.md`.
 Run the checks that match your change:
 
 ```bash
+cd project-chimera
 ./services/operator-console/venv/bin/python verify_prerequisites.py
 ./services/operator-console/venv/bin/python test_chimera_smoke.py
 ./services/operator-console/venv/bin/python scripts/privacy_preflight.py
