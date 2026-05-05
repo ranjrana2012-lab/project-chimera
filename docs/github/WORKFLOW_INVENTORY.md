@@ -21,6 +21,11 @@ trust-check workflows. Remove a workflow only after confirming:
 
 Workflow consolidation is deferred when trigger ownership is unclear.
 
+During final public review, `.github/workflows/onboarding.yml` and
+`.github/workflows/sprint-0-issues.yml` were removed because they were manual
+public issue creators with stale onboarding content that could recreate
+overbroad Phase 1 claims.
+
 ## Stale-Risk Signals
 
 Workflows with stale-risk signals must be verified against branch policy, the
@@ -45,9 +50,7 @@ and `test.yaml` for `master`/`develop`.
 | `.github/workflows/docs-link-check.yml` | Documentation Link Check | Docs Markdown push and pull request paths. | `link-check` | Narrow docs link check; overlaps partly with `check-links.yml`. |
 | `.github/workflows/e2e-tests.yml` | E2E Tests | Push to `main`, `master`, and `develop`; pull request to `main` and `master`; hourly schedule; manual dispatch. | `e2e-tests`, `smoke-tests`, `report-results` | E2E and smoke workflow with scheduled monitoring behavior. |
 | `.github/workflows/main-ci.yml` | Main Branch CI | Push to `main` when service, platform, test, or platform deployment paths change. | `test`, `build-push-images`, `deploy-preprod`, `quality-gate`, `notify` | Main branch platform build/deploy pipeline. |
-| `.github/workflows/onboarding.yml` | Monday Onboarding | Manual dispatch. | `create-onboarding-issues` | Historical onboarding issue creator. |
 | `.github/workflows/pr-validation.yml` | PR Validation | Pull request to `main` for service/platform/test paths; push to `feature/*` and `fix/*`. | `lint`, `security-scan`, `unit-tests`, `summary` | PR validation for scoped code paths and feature/fix branches. |
 | `.github/workflows/prod-deploy.yml` | Production Deployment | Manual dispatch with deployment inputs. | `validate`, `backup`, `deploy-prod`, `smoke-tests`, `rollback`, `complete` | Manual production deployment workflow. |
-| `.github/workflows/sprint-0-issues.yml` | Sprint 0 Onboarding Issues | Manual dispatch. | `create-onboarding-issues` | Historical Sprint 0 onboarding issue creator. |
 | `.github/workflows/test.yaml` | Tests | Push and pull request to `master`, `main`, and `develop`; manual dispatch. | `unit-tests`, `integration-tests`, `load-tests`, `safety-tests`, `accessibility-tests`, `performance-tests`, `test-summary` | Broad test workflow; ownership overlaps with other historical test workflows. |
 | `.github/workflows/trust-check.yml` | Trust Score Check | Pull request events: opened, synchronize, reopened. | `check-trust` | Contributor trust labeling workflow used by auto-merge policy. |

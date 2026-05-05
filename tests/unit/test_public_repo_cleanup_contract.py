@@ -81,6 +81,22 @@ FORBIDDEN_README_PHRASES = (
 )
 
 
+FORBIDDEN_PUBLIC_METADATA_PHRASES = (
+    "admin/admin",
+    "all 8 services",
+    "8 core services operational",
+    "8 microservices",
+    "BSL Translation",
+    "Captioning Agent",
+    "Production-ready",
+    "Ready to apply",
+    "real-time adaptive performances",
+    "adapt in real-time",
+    "k3s Bootstrap",
+    "git clone https://github.com/project-chimera/main.git",
+)
+
+
 REQUIRED_README_PHRASES = (
     "Project Chimera",
     "Phase 1",
@@ -180,3 +196,48 @@ def test_github_issue_templates_are_deduplicated():
     assert "feature_request.md" in templates
     assert "bug.md" not in templates
     assert "feature.md" not in templates
+
+
+def test_public_github_metadata_does_not_recreate_stale_claims():
+    public_metadata_paths = [
+        "README.md",
+        "docs/README.md",
+        *[
+            str(path.relative_to(REPO_ROOT))
+            for path in (REPO_ROOT / ".github").glob("*.md")
+        ],
+        *[
+            str(path.relative_to(REPO_ROOT))
+            for path in (REPO_ROOT / ".github" / "workflows").glob("*.y*ml")
+        ],
+        *[
+            str(path.relative_to(REPO_ROOT))
+            for path in (REPO_ROOT / "docs" / "demo").glob("*.md")
+        ],
+    ]
+
+    stale_matches = []
+    for relative_path in public_metadata_paths:
+        path = REPO_ROOT / relative_path
+        if not path.exists():
+            continue
+        content = path.read_text(encoding="utf-8")
+        stale_matches.extend(
+            f"{relative_path}: {phrase}"
+            for phrase in FORBIDDEN_PUBLIC_METADATA_PHRASES
+            if phrase in content
+        )
+
+    assert stale_matches == []
+
+
+def test_public_evidence_placeholder_exists_when_referenced():
+    tracked = set(git_ls_files())
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    docs_demo = (REPO_ROOT / "docs" / "demo" / "README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "evidence/" in readme
+    assert "../../evidence/README.md" in docs_demo
+    assert "evidence/README.md" in tracked

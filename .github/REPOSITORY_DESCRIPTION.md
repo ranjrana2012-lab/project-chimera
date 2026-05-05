@@ -1,97 +1,42 @@
 # GitHub Repository Description Settings
 
-## Repository Description (Short - 150 chars max)
+Use this file as owner-facing guidance for public GitHub metadata. Repository
+settings require repository owner access and should match the current Phase 1
+public claim.
 
-```
-AI-powered live theatre platform creating performances that adapt in real-time to audience input. Open-source for universities and theatre companies.
-```
+## Repository Description
 
-## Repository About Section (Longer Description)
-
-```
-Project Chimera is an open-source, student-run AI-powered live theatre platform that creates performances adapting in real-time to audience input.
-
-🎭 Real-Time AI Performance Generation
-• AI-generated dialogue and scenes with adaptive storytelling
-• Multi-agent coordination with sentiment analysis
-• Safety-first content moderation with human oversight
-
-🌍 Accessibility & Global Reach
-• Multi-language translation support (15 languages)
-• Captioning capabilities
-• Free for universities and educational institutions
-
-🔧 Developer Friendly
-• 8 microservices with FastAPI
-• Comprehensive API documentation
-• Docker-based deployment
-• 78% test coverage with load testing framework
-
-• 8 core services operational
-• Production-ready with monitoring and alerting
-• Complete documentation for developers and operators
+```text
+AI-powered theatre research platform with a local adaptive Phase 1 demonstrator.
 ```
 
-## Repository Topics/Tags
+## About Section
 
-```
-ai, theatre, live-performance, sentiment-analysis, real-time,
-microservices, fastapi, python, docker, adaptive-systems,
-education, university, open-source, machine-learning,
-nlp, entertainment, accessibility
-```
-
-## GitHub Website URL
-
-```
-https://ranjrana2012-lab.github.io/project-chimera/
+```text
+Project Chimera is an AI-powered theatre research platform. Phase 1 provides a
+local adaptive AI demonstrator: audience-style text is routed through sentiment
+analysis into adaptive response strategies, with CLI and lightweight web-console
+outputs for review.
 ```
 
-## How to Update GitHub Repository Settings
+Do not describe the current public release as a finished theatre production,
+public audience workflow, complete accessibility platform, or complete grant
+evidence pack.
 
-### Option 1: Via GitHub Web Interface
-1. Go to https://github.com/ranjrana2012-lab/project-chimera
-2. Click Settings tab
-3. Under "General" section:
-   - Add description (short version)
-   - Add website URL
-   - Add topics (comma-separated)
-4. Click "Save changes"
+## Repository Topics
 
-### Option 2: Via GitHub CLI (if authenticated)
-```bash
-gh repo edit ranjrana2012-lab/project-chimera \
-  --description "AI-powered live theatre platform creating performances that adapt in real-time to audience input. Open-source for universities and theatre companies." \
-  --homepage-url "https://ranjrana2012-lab.github.io/project-chimera/"
+```text
+ai, theatre, adaptive-ai, fastapi, docker, research
 ```
 
-### Option 3: Via GitHub API
-```bash
-curl -X PATCH \
-  -H "Authorization: Bearer YOUR_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.v3+json" \
-  https://api.github.com/repos/ranjrana2012-lab/project-chimera \
-  -d '{
-    "name": "project-chimera",
-    "description": "AI-powered live theatre platform creating performances that adapt in real-time to audience input. Open-source for universities and theatre companies.",
-    "homepage": "https://ranjrana2012-lab.github.io/project-chimera/",
-    "topics": ["ai", "theatre", "live-performance", "sentiment-analysis", "real-time", "microservices", "fastapi", "python", "docker", "adaptive-systems", "education", "university", "open-source", "machine-learning", "nlp", "entertainment", "accessibility"]
-  }'
-```
+## Website URL
 
-## Social Media Preview
+Leave blank unless a maintained public documentation site is available.
 
-For Twitter/LinkedIn shares:
-```
-🎭 Project Chimera: AI-powered live theatre platform
-Real-time adaptive performances for universities & theatres
+## Owner Checklist
 
-🔗 https://github.com/ranjrana2012-lab/project-chimera
-
-#AI #Theatre #OpenSource #EdTech
-```
-
----
-
-**Status**: Ready to apply
-**Last Updated**: April 19, 2026
+- Confirm the description matches the latest reviewed release.
+- Keep advanced DGX Spark / GB10 and Kimi claims out of repository metadata
+  unless those routes have current public validation.
+- Keep private grant records, receipts, invoices, generated evidence, participant
+  data, tokens, and `.env` files out of public repository settings and uploads.
