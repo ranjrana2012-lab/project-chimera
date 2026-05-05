@@ -27,10 +27,10 @@ Kimi route validated on the GB10/aarch64 host.
 
 ## Reports Published
 
-* LOCAL_VALIDATION_REPORT.md: full local validation evidence for the final
-  passing state.
-* PATCH_SUMMARY.md: changed-files summary and maintainer follow-up.
-* REMAINING_GAPS.md: non-blocking risks and what would close them.
+* docs/reports/LOCAL_VALIDATION_REPORT.md: full local validation evidence for
+  the final passing state.
+* docs/reports/PATCH_SUMMARY.md: changed-files summary and maintainer follow-up.
+* docs/reports/REMAINING_GAPS.md: non-blocking risks and what would close them.
 
 ## Commit and Push Summary
 
@@ -56,9 +56,11 @@ Remote verification observed after push:
   fetching `origin main`.
 * Key files matched between local `HEAD` and fetched `origin/main`:
   README.md, QUICKSTART.md, AGENTS.md, docs/guides/DGX_SPARK_SETUP.md,
-  docs/guides/KIMI_QUICKSTART.md, LOCAL_VALIDATION_REPORT.md,
-  PATCH_SUMMARY.md, REMAINING_GAPS.md, RELEASE_SYNC_REPORT.md,
-  docker-compose.dgx-spark.yml, services/shared/cache.py, and
+  docs/guides/KIMI_QUICKSTART.md,
+  docs/reports/LOCAL_VALIDATION_REPORT.md,
+  docs/reports/PATCH_SUMMARY.md, docs/reports/REMAINING_GAPS.md,
+  docs/reports/RELEASE_SYNC_REPORT.md, docker-compose.dgx-spark.yml,
+  services/shared/cache.py, and
   services/kimi_super_agent/__init__.py.
 
 Verification commands used:
@@ -67,8 +69,9 @@ Verification commands used:
 git rev-parse HEAD
 git ls-remote origin refs/heads/main
 git diff --quiet HEAD origin/main -- README.md QUICKSTART.md AGENTS.md \
-  LOCAL_VALIDATION_REPORT.md PATCH_SUMMARY.md REMAINING_GAPS.md \
-  RELEASE_SYNC_REPORT.md docker-compose.dgx-spark.yml
+  docs/reports/LOCAL_VALIDATION_REPORT.md docs/reports/PATCH_SUMMARY.md \
+  docs/reports/REMAINING_GAPS.md docs/reports/RELEASE_SYNC_REPORT.md \
+  docker-compose.dgx-spark.yml
 ```
 
 This report is committed as a follow-up publication note after the primary

@@ -60,10 +60,10 @@ This patch turns the prior "mostly working" state into a locally validated setup
 | tests/test_shared_middleware.py | Stabilizes middleware expectations under current dependency versions. | Permanent | None |
 | tests/unit/test_chimera_core.py | Removes fragile global sys.path mutation and loads operator core by file path. | Permanent | None |
 | verify_prerequisites.py | Verifies python3/current interpreter and prints venv-local commands. | Permanent | None |
-| LOCAL_VALIDATION_REPORT.md | Publishes the final local validation evidence. | Release artifact | Refresh after future validation passes |
-| PATCH_SUMMARY.md | Publishes this changed-files and follow-up summary. | Release artifact | Refresh when patches change |
-| REMAINING_GAPS.md | Publishes non-blocking caveats and closure requirements. | Release artifact | Refresh as gaps close |
-| RELEASE_SYNC_REPORT.md | Summarizes the publication pass and post-push verification procedure. | Release artifact | Refresh after future release-sync passes |
+| docs/reports/LOCAL_VALIDATION_REPORT.md | Publishes the final local validation evidence. | Release artifact | Refresh after future validation passes |
+| docs/reports/PATCH_SUMMARY.md | Publishes this changed-files and follow-up summary. | Release artifact | Refresh when patches change |
+| docs/reports/REMAINING_GAPS.md | Publishes non-blocking caveats and closure requirements. | Release artifact | Refresh as gaps close |
+| docs/reports/RELEASE_SYNC_REPORT.md | Summarizes the publication pass and post-push verification procedure. | Release artifact | Refresh after future release-sync passes |
 
 ## Service Recreates Performed
 

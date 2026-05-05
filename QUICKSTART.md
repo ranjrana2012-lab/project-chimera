@@ -116,8 +116,9 @@ The latest local sign-off on the DGX/GB10 ARM64 host completed with:
   Kimi host-facing validation: pass
 - final regression: `737 passed, 96 skipped, 4 warnings`
 
-See `LOCAL_VALIDATION_REPORT.md`, `PATCH_SUMMARY.md`, and
-`REMAINING_GAPS.md` for details.
+See `docs/reports/LOCAL_VALIDATION_REPORT.md`,
+`docs/reports/PATCH_SUMMARY.md`, and
+`docs/reports/REMAINING_GAPS.md` for details.
 
 
 
