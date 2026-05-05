@@ -1,3 +1,4 @@
+import re
 import subprocess
 from pathlib import Path
 
@@ -14,7 +15,6 @@ FORBIDDEN_TRACKED_PREFIXES = (
     "platform/dashboard/frontend/node_modules/",
     "progress/",
     "proposals/",
-    "services/operator-console/demo_captures/",
 )
 
 
@@ -29,9 +29,45 @@ FORBIDDEN_TRACKED_EXACT = {
 }
 
 
+FORBIDDEN_COMPILED_BINARY_EXACT = {
+    "services/claude-orchestrator/bin/cli",
+    "services/claude-orchestrator/bin/orchestrator",
+}
+
+
+FORBIDDEN_COMPILED_BINARY_SUFFIXES = (
+    ".dll",
+    ".dylib",
+    ".exe",
+    ".o",
+    ".so",
+)
+
+
+FORBIDDEN_MEDIA_SUFFIXES = (
+    ".avi",
+    ".m4v",
+    ".mkv",
+    ".mov",
+    ".mp4",
+    ".webm",
+)
+
+
+FORBIDDEN_RECEIPT_INVOICE_TOKENS = {
+    "invoice",
+    "invoices",
+    "receipt",
+    "receipts",
+}
+
+
 FORBIDDEN_README_PHRASES = (
     "Last validated locally",
     "Last locally validated",
+    "Current local sign-off",
+    "Final regression",
+    "Ubuntu 24.04.4 ARM64 / NVIDIA GB10",
     "737 passed",
     "96 skipped",
     "Monitoring Stack",
@@ -68,20 +104,45 @@ def git_ls_files() -> list[str]:
     return [line for line in result.stdout.splitlines() if line]
 
 
+def path_tokens(path: str) -> set[str]:
+    return {token for token in re.split(r"[^A-Za-z0-9]+", path.lower()) if token}
+
+
+def is_allowed_env_example(path: str) -> bool:
+    name = Path(path).name
+    return name == ".env.example" or (
+        name.startswith(".env.") and name.endswith(".example")
+    )
+
+
+def is_forbidden_tracked_path(path: str) -> bool:
+    lower_path = path.lower()
+    parts = Path(path).parts
+
+    return (
+        path in FORBIDDEN_TRACKED_EXACT
+        or path in FORBIDDEN_COMPILED_BINARY_EXACT
+        or any(path.startswith(prefix) for prefix in FORBIDDEN_TRACKED_PREFIXES)
+        or (Path(path).name.startswith(".env") and not is_allowed_env_example(path))
+        or bool(path_tokens(path) & FORBIDDEN_RECEIPT_INVOICE_TOKENS)
+        or lower_path.endswith(FORBIDDEN_MEDIA_SUFFIXES)
+        or lower_path.endswith(FORBIDDEN_COMPILED_BINARY_SUFFIXES)
+        or "node_modules" in parts
+        or "test-results" in lower_path
+        or "demo_captures" in parts
+        or lower_path.endswith("/coverage.json")
+    )
+
+
 def test_public_git_index_excludes_private_generated_and_experimental_paths():
     tracked = set(git_ls_files())
 
-    forbidden = {
-        path
-        for path in tracked
-        if path in FORBIDDEN_TRACKED_EXACT
-        or any(path.startswith(prefix) for prefix in FORBIDDEN_TRACKED_PREFIXES)
-        or "/node_modules/" in path
-        or path.endswith("/coverage.json")
-        or path.endswith("/test-results/.last-run.json")
-    }
+    forbidden = sorted(path for path in tracked if is_forbidden_tracked_path(path))
 
-    assert forbidden == set()
+    assert forbidden == [], (
+        "Tracked public git index still contains private/generated/local cleanup "
+        f"paths:\n" + "\n".join(forbidden)
+    )
 
 
 def test_validation_reports_are_under_docs_reports_not_root():
