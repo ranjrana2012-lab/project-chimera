@@ -260,7 +260,7 @@ curl http://localhost:8012/v1/models
 
 **Key Configuration Files:**
 - `scripts/deploy-nemotron-vllm.sh`
-- `.env.nemotron` (NGC credentials, port config)
+- `.env.nemotron` (local/private/ignored NGC credentials and port config; not committed)
 - `models/nemotron/` - Hugging Face cache
 
 ---

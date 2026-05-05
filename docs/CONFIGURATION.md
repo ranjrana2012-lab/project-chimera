@@ -125,7 +125,7 @@ Services use these URLs (Docker internal networking):
 |------|---------|
 | `.env` | Main environment variables |
 | `.env.example` | Template with all options |
-| `.env.docker` | Docker-specific configuration |
+| `.env.docker` | Local/private/ignored Docker configuration |
 | `docker-compose.mvp.yml` | MVP service definitions |
 | `services/*/.env.example` | Per-service templates |
 
