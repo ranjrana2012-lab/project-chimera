@@ -133,6 +133,32 @@ def test_main_returns_success_when_no_forbidden_paths(monkeypatch, capsys):
     assert "Privacy preflight passed" in output
 
 
+def test_main_rejects_ngc_token_literals_in_publication_risk_files(
+    monkeypatch, tmp_path, capsys
+):
+    privacy_preflight = load_privacy_preflight()
+    doc_path = tmp_path / "docs" / "setup.md"
+    doc_path.parent.mkdir()
+    token = "nvapi-" + "abc123def456ghi789jkl012mno345pqr678"
+    doc_path.write_text(
+        f"NGC_API_KEY={token}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(privacy_preflight, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(
+        privacy_preflight,
+        "collect_publication_risk_paths",
+        lambda: ["docs/setup.md"],
+    )
+
+    assert privacy_preflight.main([]) == 1
+
+    output = capsys.readouterr().out
+    assert "Privacy preflight failed" in output
+    assert "docs/setup.md" in output
+    assert "NGC/NVIDIA API key/token literal" in output
+
+
 def test_public_cleanup_experiment_and_root_report_paths_are_rejected():
     privacy_preflight = load_privacy_preflight()
 

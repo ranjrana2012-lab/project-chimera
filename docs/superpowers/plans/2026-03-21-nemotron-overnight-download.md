@@ -40,7 +40,7 @@
 ```bash
 cat > /home/ranj/Project_Chimera/.env.nemotron << 'EOF'
 # NGC API Key (required)
-NGC_API_KEY=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
+NGC_API_KEY=nvapi-REDACTED
 
 # Nemotron Docker Image (optional, override if different)
 NEMOTRON_IMAGE=nvcr.io/nvidia/nemotron-3-super-120b-a12b-nvfp4:latest
@@ -225,7 +225,7 @@ git commit -m "feat: add Nemotron download and deployment script"
 
 - [ ] **Step 1: Test NGC login with provided API key**
 
-Run: `echo "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" | docker login nvcr.io -u '$oauthtoken' --password-stdin`
+Run: `echo "nvapi-REDACTED" | docker login nvcr.io -u '$oauthtoken' --password-stdin`
 Expected: `Login Succeeded`
 
 - [ ] **Step 2: If login fails, verify the exact image name on NGC**

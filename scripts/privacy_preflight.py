@@ -24,6 +24,9 @@ ROOT_REPORT_FILES = {
     "RELEASE_SYNC_REPORT.md",
     "REMAINING_GAPS.md",
 }
+NGC_TOKEN_LITERAL_RE = re.compile(
+    r"\bnvapi-(?!REDACTED\b)(?!\.\.\.\b)[A-Za-z0-9_-]{20,}\b"
+)
 MAX_PRINTED_FINDINGS = 200
 
 
@@ -100,6 +103,30 @@ def classify_paths(paths: list[str]) -> list[Finding]:
     return findings
 
 
+def classify_file_contents(paths: list[str]) -> list[Finding]:
+    findings: list[Finding] = []
+
+    for raw_path in paths:
+        path = _normalize(raw_path)
+        file_path = Path(path)
+        if not file_path.is_absolute():
+            file_path = REPO_ROOT / path
+        if not file_path.is_file():
+            continue
+
+        try:
+            content = file_path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+
+        if NGC_TOKEN_LITERAL_RE.search(content):
+            findings.append(
+                Finding(path=path, reason="NGC/NVIDIA API key/token literal")
+            )
+
+    return findings
+
+
 def _git_paths(args: list[str]) -> list[str]:
     result = subprocess.run(
         ["git", *args],
@@ -121,7 +148,9 @@ def collect_publication_risk_paths() -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     del argv
-    findings = classify_paths(collect_publication_risk_paths())
+    paths = collect_publication_risk_paths()
+    findings = classify_paths(paths)
+    findings.extend(classify_file_contents(paths))
 
     if findings:
         print("Privacy preflight failed:")
