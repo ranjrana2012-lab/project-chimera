@@ -1,59 +1,41 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report a public-safe Project Chimera issue
 title: '[BUG] '
 labels: bug
 assignees: ''
 ---
 
-## Bug Description
+## Runtime Route
 
-A clear and concise description of what the bug is.
+- [ ] Student / Laptop
+- [ ] DGX Spark / GB10
+- [ ] Kimi advanced route
+- [ ] Other
 
-## To Reproduce
+## What Happened
 
-Steps to reproduce the behavior:
+Describe the issue and affected command, route, or screen.
 
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+## Expected Behaviour
 
-## Expected Behavior
+Describe what you expected to happen.
 
-A clear and concise description of what you expected to happen.
+## Reproduction Steps
 
-## Actual Behavior
+1.
+2.
+3.
 
-A clear and concise description of what actually happened.
+## Validation Output
 
-## Screenshots
+Paste relevant command output from `verify_prerequisites.py`, `test_chimera_smoke.py`, or the failing test.
 
-If applicable, add screenshots to help explain your problem.
+```text
 
-## Environment
-
-- **OS:** [e.g. Ubuntu 22.04]
-- **Python Version:** [e.g. 3.10]
-- **Project Chimera Version:** [e.g. 0.1.0]
-- **Deployment:** [e.g. Local k3s, Cloud, Production]
-- **GPU:** [e.g. NVIDIA T4, None]
-
-## Logs
-
-Please paste relevant logs here.
-
-```bash
-# Paste logs between the backticks
 ```
 
-## Additional Context
+## Privacy Check
 
-Add any other context about the problem here.
-
-## Checklist
-
-- [ ] I have searched existing issues for similar problems
-- [ ] I have provided all relevant information
-- [ ] I have included logs if applicable
-- [ ] I am willing to submit a PR to fix this
+- [ ] I have not attached private grant records, receipts, invoices, tokens,
+      participant data, or `.env` files.

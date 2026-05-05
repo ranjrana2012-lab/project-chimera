@@ -26,5 +26,8 @@
 /tests/ @technical-lead
 /docs/ @technical-lead
 
+# GitHub Repository Metadata
+.github/ @technical-lead
+
 # GitHub Workflows (protected - always requires review)
 .github/workflows/ @technical-lead
