@@ -96,6 +96,9 @@ services/claude-orchestrator/orchestrator
 
 # Grant Materials & Private Demo Outputs
 internal/
+docs/@ Ranj Notes/
+data/students.csv
+*.~lock.*
 demo-materials-2026-03-02/
 future_concepts/
 progress/

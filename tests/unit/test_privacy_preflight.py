@@ -191,3 +191,23 @@ def test_public_cleanup_experiment_and_root_report_paths_are_rejected():
         "REMAINING_GAPS.md",
         "RELEASE_SYNC_REPORT.md",
     }
+
+
+def test_student_contact_and_private_notes_paths_are_rejected():
+    privacy_preflight = load_privacy_preflight()
+
+    findings = privacy_preflight.classify_paths(
+        [
+            "data/students.csv",
+            "docs/@ Ranj Notes/AI Students/AI Student - contacts_table.xlsx",
+            "docs/@ Ranj Notes/AI Students/.~lock.AI Student - contacts_table.xlsx#",
+            "docs/public/student-guide.md",
+            "data/sample_students.example.csv",
+        ]
+    )
+
+    assert {finding.path for finding in findings} == {
+        "data/students.csv",
+        "docs/@ Ranj Notes/AI Students/AI Student - contacts_table.xlsx",
+        "docs/@ Ranj Notes/AI Students/.~lock.AI Student - contacts_table.xlsx#",
+    }

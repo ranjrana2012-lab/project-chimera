@@ -24,6 +24,7 @@ ROOT_REPORT_FILES = {
     "RELEASE_SYNC_REPORT.md",
     "REMAINING_GAPS.md",
 }
+CONTACT_SPREADSHEET_SUFFIXES = {".csv", ".ods", ".xls", ".xlsx"}
 NGC_TOKEN_LITERAL_RE = re.compile(
     r"\bnvapi-(?!REDACTED\b)(?!\.\.\.\b)[A-Za-z0-9_-]{20,}\b"
 )
@@ -58,6 +59,16 @@ def _has_financial_keyword(path: str) -> bool:
     return any(keyword in tokens for keyword in FINANCIAL_KEYWORDS)
 
 
+def _is_student_contact_path(path: str) -> bool:
+    name_lower = Path(path).name.lower()
+    suffix = Path(path).suffix.lower()
+    if path == "data/students.csv":
+        return True
+    if path.startswith("data/") and suffix == ".csv" and "students" in name_lower:
+        return not name_lower.endswith(".example.csv")
+    return suffix in CONTACT_SPREADSHEET_SUFFIXES and "contact" in name_lower
+
+
 def classify_paths(paths: list[str]) -> list[Finding]:
     findings: list[Finding] = []
 
@@ -74,8 +85,14 @@ def classify_paths(paths: list[str]) -> list[Finding]:
             reason = "public experiment or prototype path"
         elif path in ROOT_REPORT_FILES:
             reason = "root maintainer report path"
+        elif path.startswith("docs/@ Ranj Notes/"):
+            reason = "private notes path"
+        elif name.startswith(".~lock."):
+            reason = "office lock file"
         elif path.startswith("Grant_Evidence_Pack/"):
             reason = "grant evidence pack path"
+        elif _is_student_contact_path(path):
+            reason = "student or contact data path"
         elif path.startswith("project-chimera-submission"):
             reason = "submission package path"
         elif path.startswith("demo_footage/"):
