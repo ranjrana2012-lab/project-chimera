@@ -6,7 +6,7 @@ tokens, participant data, generated evidence, or `.env` files.
 
 ## Code Of Conduct
 
-Follow `CODE_OF_CONDUCT.md`.
+Follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Default Setup
 
@@ -56,7 +56,7 @@ scope in the PR.
 
 ## More Detail
 
-- Developer setup: `docs/DEVELOPER_SETUP.md`
-- Student setup: `docs/guides/STUDENT_LAPTOP_SETUP.md`
-- GitHub workflow: `docs/guides/github-workflow.md`
-- Security policy: `SECURITY.md`
+- Developer setup: [docs/DEVELOPER_SETUP.md](docs/DEVELOPER_SETUP.md)
+- Student setup: [docs/guides/STUDENT_LAPTOP_SETUP.md](docs/guides/STUDENT_LAPTOP_SETUP.md)
+- GitHub workflow: [docs/guides/github-workflow.md](docs/guides/github-workflow.md)
+- Security policy: [SECURITY.md](SECURITY.md)
