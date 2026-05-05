@@ -9,6 +9,12 @@ git fetch --all --prune
 git ls-remote --heads origin
 ```
 
+For each candidate branch, confirm:
+
+- No open pull request targets or uses the branch.
+- No unique commits need to be preserved.
+- The repository owner agrees to deletion or legacy tagging.
+
 ## Candidate Branches
 
 - origin/codex-chimera-validation-fixes-20260424
@@ -16,6 +22,8 @@ git ls-remote --heads origin
 - origin/master
 
 ## Delete Reviewed Cleanup Branches
+
+Only run these after the safety checks pass:
 
 ```bash
 git push origin --delete codex-chimera-validation-fixes-20260424
