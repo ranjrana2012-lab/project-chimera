@@ -2,7 +2,7 @@
 """
 Demo Video Capture Script for Project Chimera Phase 1
 
-This script automates the capture of all demo scenes for the grant closeout video.
+This script automates local demo scene capture for maintainer review.
 It runs the chimera_core.py through all demo scenarios and saves the output.
 
 Usage:
@@ -81,9 +81,8 @@ async def main():
    - Confidence score: 0.0 to 1.0
 
 2. Sentiment → Adaptive Dialogue Generation
-   - GLM-4.7 API (primary)
-   - Ollama Local LLM (fallback)
-   - Mock response (final fallback)
+   - Configured dialogue provider when available
+   - Deterministic local fallback for repeatable demos
 
 3. Sentiment → Routing Strategy Selection
    - Positive → momentum_build (enthusiastic)
@@ -182,41 +181,36 @@ Total Pipeline Latency: ~300-500ms (after model load)
     results.append(("Scene 5: Accessibility", scene_5_file))
 
     # Scene 6: Summary
-    summary_output = f"""=== Project Chimera Phase 1 - Deliverables Summary ===
+    summary_output = f"""=== Project Chimera Phase 1 - Local Demo Summary ===
 
 Date: {datetime.now().strftime('%Y-%m-%d')}
-Grant: Birmingham City University
-Phase: 1 (February 2 - April 9, 2026)
+Scope: Local maintainer evidence capture
 
-=== Core Deliverable ===
-• Monolithic Demonstrator: chimera_core.py (700+ lines)
-  - Proves adaptive routing logic
-  - ML integration working (DistilBERT)
-  - Comparison mode shows adaptive value
+=== Demo Behaviours ===
+• CLI demo exercises positive, negative, and neutral routing
+• Compare mode shows baseline and adaptive output
+• Caption mode writes an SRT file in the working directory
+• Web API evidence is captured separately through the Phase 1 helper
 
-=== Documentation ===
-• STRATEGIC_PIVOT_MANDATE.md
-• NARRATIVE_OF_ADAPTATION.md
-• ADAPTIVE_ROUTING_BEHAVIOR.md
-• LIMITATIONS_AND_FUTURE_ROADMAP.md
-• 20+ comprehensive documentation files
+=== Verification ===
+• Smoke demo
+• Focused pytest contracts
+• Privacy preflight
+• Maintainer review before public release
 
-=== Evidence Pack ===
-• Grant_Evidence_Pack/ (full structure)
-• Financial audit trail ready
-• Technical evidence compiled
-• Compliance matrix complete
+=== Evidence Storage ===
+• Generated logs and captures belong under internal/phase1-evidence/
+• Receipts, invoices, and grant records stay private and local
+• Public commits should include source, tests, and non-sensitive docs only
 
 === Git Repository ===
 • Branch: main
-• Commits: 8 pushes during Phase 1
-• Files Changed: 40+ files
-• Lines Added: 5,000+ lines
+• Public source set must pass the privacy preflight before commit
 
 === Status ===
-✅ COMPLIANT - Successful Proof-of-Concept
-✅ All Evidence Documented
-✅ Ready for Grant Closeout
+✅ Demo capture generated locally
+✅ Evidence intended for private maintainer review
+✅ Public/private separation required before publishing
 """
 
     scene_6_file = output_dir / "scene_06_summary.txt"
@@ -241,7 +235,7 @@ Phase: 1 (February 2 - April 9, 2026)
     print("2. Record voiceover using DEMO_SCRIPT.md")
     print("3. Edit captures into final demo video")
     print("4. Add titles, transitions, and music")
-    print("5. Export as MP4 for grant submission")
+    print("5. Store final recordings under internal/phase1-evidence/")
     print("=" * 60 + "\n")
 
 
