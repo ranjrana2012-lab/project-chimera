@@ -10,6 +10,20 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 VIDEO_SUFFIXES = {".avi", ".m4v", ".mkv", ".mov", ".mp4", ".webm"}
 FINANCIAL_KEYWORDS = ("receipt", "invoice", "bank", "tax")
+PUBLIC_EXPERIMENT_PREFIXES = (
+    ".autonomous/",
+    ".claude/",
+    "demo-materials-2026-03-02/",
+    "future_concepts/",
+    "progress/",
+    "proposals/",
+)
+ROOT_REPORT_FILES = {
+    "LOCAL_VALIDATION_REPORT.md",
+    "PATCH_SUMMARY.md",
+    "RELEASE_SYNC_REPORT.md",
+    "REMAINING_GAPS.md",
+}
 MAX_PRINTED_FINDINGS = 200
 
 
@@ -53,6 +67,10 @@ def classify_paths(paths: list[str]) -> list[Finding]:
         reason = ""
         if path.startswith("internal/"):
             reason = "internal private path"
+        elif any(path.startswith(prefix) for prefix in PUBLIC_EXPERIMENT_PREFIXES):
+            reason = "public experiment or prototype path"
+        elif path in ROOT_REPORT_FILES:
+            reason = "root maintainer report path"
         elif path.startswith("Grant_Evidence_Pack/"):
             reason = "grant evidence pack path"
         elif path.startswith("project-chimera-submission"):

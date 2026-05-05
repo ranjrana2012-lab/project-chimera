@@ -131,3 +131,37 @@ def test_main_returns_success_when_no_forbidden_paths(monkeypatch, capsys):
 
     output = capsys.readouterr().out
     assert "Privacy preflight passed" in output
+
+
+def test_public_cleanup_experiment_and_root_report_paths_are_rejected():
+    privacy_preflight = load_privacy_preflight()
+
+    findings = privacy_preflight.classify_paths(
+        [
+            ".autonomous/state.json",
+            ".claude/settings.local.json",
+            "future_concepts/services/old-agent/app.py",
+            "demo-materials-2026-03-02/raw_capture.txt",
+            "progress/week-1.md",
+            "proposals/venue-proposal.md",
+            "LOCAL_VALIDATION_REPORT.md",
+            "PATCH_SUMMARY.md",
+            "REMAINING_GAPS.md",
+            "RELEASE_SYNC_REPORT.md",
+            "docs/reports/LOCAL_VALIDATION_REPORT.md",
+            "docs/reports/PATCH_SUMMARY.md",
+        ]
+    )
+
+    assert {finding.path for finding in findings} == {
+        ".autonomous/state.json",
+        ".claude/settings.local.json",
+        "future_concepts/services/old-agent/app.py",
+        "demo-materials-2026-03-02/raw_capture.txt",
+        "progress/week-1.md",
+        "proposals/venue-proposal.md",
+        "LOCAL_VALIDATION_REPORT.md",
+        "PATCH_SUMMARY.md",
+        "REMAINING_GAPS.md",
+        "RELEASE_SYNC_REPORT.md",
+    }
