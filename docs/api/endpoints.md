@@ -481,7 +481,8 @@ Official SDKs are planned for the following languages:
 - JavaScript/TypeScript
 - Go
 
-Check the [Getting Started Guide](../getting-started/quick-start.md) for the latest availability information.
+Check the [Student / Laptop setup guide](../guides/STUDENT_LAPTOP_SETUP.md)
+for the latest public local route.
 
 ---
 
@@ -491,7 +492,7 @@ Check the [Getting Started Guide](../getting-started/quick-start.md) for the lat
 - **Usage Examples** (coming soon) - Practical API usage examples
 - **Architecture Documentation** (coming soon) - System architecture overview
 - **Running Simulations Guide** (coming soon) - Complete simulation guide
-- **Getting Started Guide** - [Quick Start Guide](../guides/getting-started.md)
+- **Student / Laptop Setup** - [Setup Guide](../guides/STUDENT_LAPTOP_SETUP.md)
 
 ---
 

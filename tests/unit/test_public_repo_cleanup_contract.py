@@ -25,6 +25,7 @@ FORBIDDEN_TRACKED_EXACT = {
     "PATCH_SUMMARY.md",
     "RELEASE_SYNC_REPORT.md",
     "REMAINING_GAPS.md",
+    "docs/templates/student-welcome-email.md",
     "services/zai-auth-proxy/tokens/session_token.json",
 }
 
@@ -241,3 +242,80 @@ def test_public_evidence_placeholder_exists_when_referenced():
     assert "evidence/" in readme
     assert "../../evidence/README.md" in docs_demo
     assert "evidence/README.md" in tracked
+
+
+def test_demo_troubleshooting_is_limited_to_phase1_student_route():
+    troubleshooting = (REPO_ROOT / "docs" / "demo" / "troubleshooting.md").read_text(
+        encoding="utf-8"
+    )
+
+    stale_phrases = (
+        "docker-compose",
+        "Grafana",
+        "Jaeger",
+        "8000 8001 8002 8003 8004 8005 8006 8007",
+        "all services",
+        "orchestrator",
+        "scenespeak",
+    )
+
+    for phrase in stale_phrases:
+        assert phrase not in troubleshooting
+
+    for phrase in (
+        "Student / Laptop",
+        "chimera_core.py demo",
+        "chimera_web.py",
+        "PORT=18080",
+        "scripts/privacy_preflight.py",
+    ):
+        assert phrase in troubleshooting
+
+
+def test_stale_getting_started_onboarding_package_is_not_public_tracked():
+    tracked = set(git_ls_files())
+    allowed = {"docs/getting-started/README.md"}
+
+    stale_tracked = sorted(
+        path
+        for path in tracked
+        if path.startswith("docs/getting-started/") and path not in allowed
+    )
+
+    assert stale_tracked == []
+
+    landing = (REPO_ROOT / "docs" / "getting-started" / "README.md").read_text(
+        encoding="utf-8"
+    )
+    assert "docs/guides/STUDENT_LAPTOP_SETUP.md" in landing
+    assert "archived local onboarding material" in landing
+
+
+def test_active_public_docs_do_not_link_removed_getting_started_pages():
+    active_docs = (
+        "docs/CONTRIBUTING.md",
+        "docs/api/endpoints.md",
+        "docs/api/examples/python.md",
+        "docs/architecture/README.md",
+        "docs/guides/github-workflow.md",
+        "docs/services/lighting-sound-music.md",
+        "docs/services/quality-platform.md",
+    )
+    removed_links = (
+        "../getting-started/",
+        "../getting-started/quick-start.md",
+        "../getting-started/office-hours.md",
+        "../getting-started/faq.md",
+        "../../getting-started/quick-start.md",
+        "docs/getting-started/quick-start.md",
+        "docs/getting-started/roles.md",
+    )
+
+    stale_links = []
+    for relative_path in active_docs:
+        content = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        stale_links.extend(
+            f"{relative_path}: {link}" for link in removed_links if link in content
+        )
+
+    assert stale_links == []

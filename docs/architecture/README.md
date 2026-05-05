@@ -169,7 +169,7 @@ When proposing a significant architectural change:
 
 - [API Documentation](../api/)
 - [Runbooks](../runbooks/)
-- [Getting Started](../getting-started/)
+- [Student / Laptop Setup](../guides/STUDENT_LAPTOP_SETUP.md)
 - [Implementation Plans](../plans/)
 
 ---

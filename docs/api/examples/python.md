@@ -391,4 +391,4 @@ if __name__ == "__main__":
 
 - [API Endpoints Reference](../endpoints.md)
 - [Data Models](../models.md)
-- [Getting Started Guide](../../getting-started/quick-start.md)
+- [Student / Laptop Setup](../../guides/STUDENT_LAPTOP_SETUP.md)

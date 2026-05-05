@@ -247,4 +247,5 @@ See [Observability Guide](../observability.md) for complete monitoring setup.
 
 ---
 
-**Need help?** Join our [office hours](../getting-started/office-hours.md) or check [FAQ](../getting-started/faq.md).
+**Need help?** Start with the [Student / Laptop setup guide](../guides/STUDENT_LAPTOP_SETUP.md)
+and the repository `CONTRIBUTING.md`.

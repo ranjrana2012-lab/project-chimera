@@ -132,5 +132,5 @@ Views:
 ## Need Help?
 
 - [Contributing Guide](../CONTRIBUTING.md)
-- [Quick Start](../getting-started/quick-start.md)
-- [Start a Discussion](https://github.com/project-chimera/project-chimera/discussions)
+- [Student / Laptop Setup](STUDENT_LAPTOP_SETUP.md)
+- [Start a Discussion](https://github.com/ranjrana2012-lab/project-chimera/discussions)
