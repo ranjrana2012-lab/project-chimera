@@ -421,8 +421,7 @@ services:
           cpus: ${SCENESPEAK_CPU_RESERVATION:-0.5}
           memory: ${SCENESPEAK_MEMORY_RESERVATION:-256M}
 
-  # captioning-agent: MOVED TO FUTURE_CONCEPTS - Phase 2 Development
-  # See: future_concepts/services/captioning-agent/
+  # captioning-agent: private/local future concept, not tracked in the public repository
   # Reason: Infrastructure exists, not tested with audio input
   # Archived: 2026-04-09 per STRATEGIC_PIVOT_MANDATE.md
   # captioning-agent:
@@ -475,8 +474,7 @@ services:
   #       cpus: ${CAPTIONING_CPU_RESERVATION:-0.5}
   #       memory: ${CAPTIONING_MEMORY_RESERVATION:-256M}
 
-  # bsl-agent: MOVED TO FUTURE_CONCEPTS - Phase 2 Development
-  # See: future_concepts/services/bsl-agent/
+  # bsl-agent: private/local future concept, not tracked in the public repository
   # Reason: Dictionary-based prototype (~12 phrases only), no ML model
   # Archived: 2026-04-09 per STRATEGIC_PIVOT_MANDATE.md
   # bsl-agent:
@@ -817,10 +815,7 @@ services:
       - ECHO_AGENT_URL=http://echo-agent:8014
     volumes:
       - chimera-health-cache:/app/cache
-      # Mount Ralph Loop queue for dashboard access
-      - ./.claude/autonomous-refactor/queue.txt:/ralph_loop/queue.txt:ro
-      - ./.claude/ralph-loop-progress.md:/ralph_loop/progress.md:ro
-      - ./.claude/student-assignments.md:/ralph_loop/assignments.md:ro
+      # Local Ralph Loop dashboard mounts are private/local and omitted from public compose.
     depends_on:
       openclaw-orchestrator:
         condition: service_healthy
@@ -872,10 +867,7 @@ services:
       - PROJECT_ROOT=${PROJECT_ROOT:-/home/ranj/Project_Chimera}
     volumes:
       - chimera-dashboard-cache:/app/cache
-      # Mount Ralph Loop files for dashboard display
-      - ./.claude/autonomous-refactor/queue.txt:/ralph_loop/queue.txt:ro
-      - ./.claude/ralph-loop-progress.md:/ralph_loop/progress.md:ro
-      - ./.claude/student-assignments.md:/ralph_loop/assignments.md:ro
+      # Local Ralph Loop dashboard mounts are private/local and omitted from public compose.
       # Mount git history for commit display
       - ./.git:/app/.git:ro
     depends_on:
