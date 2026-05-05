@@ -274,7 +274,7 @@ class ChimeraCore:
         print(f"\n{Colors.HEADER}{Colors.BOLD}=== Project Chimera Pipeline ==={Colors.ENDC}")
         print("1. Text Input → Sentiment Analysis (DistilBERT ML Model)")
         print("2. Sentiment → Adaptive Routing Strategy Selection")
-        print("3. Adaptive Routing → GLM-4.7 API Dialogue Generation")
+        print("3. Adaptive Routing → Dialogue Generation")
         print("\nType 'quit' to exit.")
         print("Type 'compare' to enter comparison mode for the next input.")
         print("Type 'caption' to enter caption mode for the next input.")

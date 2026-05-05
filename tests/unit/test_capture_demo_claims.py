@@ -7,10 +7,12 @@ from types import SimpleNamespace
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "services" / "operator-console" / "capture_demo.py"
+CHIMERA_CORE_PATH = REPO_ROOT / "services" / "operator-console" / "chimera_core.py"
 
 
 FORBIDDEN_PUBLIC_CLAIMS = [
     "Birmingham City University",
+    "GLM-4.7",
     "GLM-4.7 API (primary)",
     "Ollama Local LLM (fallback)",
     "chimera_core.py (700+ lines)",
@@ -25,6 +27,13 @@ FORBIDDEN_PUBLIC_CLAIMS = [
 
 def load_capture_demo_module():
     spec = importlib.util.spec_from_file_location("capture_demo", SCRIPT_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_chimera_core_module():
+    spec = importlib.util.spec_from_file_location("chimera_core", CHIMERA_CORE_PATH)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -58,3 +67,15 @@ def test_summary_scene_uses_current_private_evidence_language(tmp_path, monkeypa
     assert "internal/phase1-evidence/" in summary
     assert "Privacy preflight" in summary
     assert "Maintainer review" in summary
+
+
+def test_chimera_core_banner_uses_provider_neutral_language(capsys):
+    chimera_core = load_chimera_core_module()
+
+    chimera_core.ChimeraCore().print_banner()
+
+    output = capsys.readouterr().out
+    for forbidden_claim in FORBIDDEN_PUBLIC_CLAIMS:
+        assert forbidden_claim not in output
+    assert "Adaptive Routing" in output
+    assert "Dialogue Generation" in output
