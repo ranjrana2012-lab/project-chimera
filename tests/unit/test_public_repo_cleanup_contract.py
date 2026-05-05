@@ -319,3 +319,46 @@ def test_active_public_docs_do_not_link_removed_getting_started_pages():
         )
 
     assert stale_links == []
+
+
+def test_legacy_public_hub_docs_are_phase1_redirects():
+    legacy_hub_docs = (
+        "docs/index.md",
+        "docs/GETTING_STARTED.md",
+        "docs/guides/MVP_OVERVIEW.md",
+        "docs/guides/SERVICES_STATUS.md",
+    )
+    stale_phrases = (
+        "docker-compose",
+        "Docker Compose",
+        "Grafana",
+        "Jaeger",
+        "LLM_API_KEY",
+        "Production Ready",
+        "production-ready",
+        "all services",
+        "8000",
+        "8001",
+        "8002",
+        "8003",
+        "8004",
+        "8005",
+        "8006",
+        "8007",
+        "8008",
+        "BSL",
+        "Captioning Agent",
+        "BETTAfish",
+        "MIROFISH",
+    )
+
+    stale_matches = []
+    for relative_path in legacy_hub_docs:
+        content = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        stale_matches.extend(
+            f"{relative_path}: {phrase}" for phrase in stale_phrases if phrase in content
+        )
+        assert "Phase 1" in content
+        assert "docs/guides/STUDENT_LAPTOP_SETUP.md" in content
+
+    assert stale_matches == []
