@@ -254,6 +254,24 @@ def test_docs_link_workflow_uses_maintained_local_checker():
     assert "issues.create" not in check_links
 
 
+def test_legacy_broad_workflows_are_manual_only_until_owner_review():
+    manual_only_workflows = (
+        ".github/workflows/automated-tests.yml",
+        ".github/workflows/chimera-quality.yml",
+        ".github/workflows/ci.yaml",
+        ".github/workflows/e2e-tests.yml",
+        ".github/workflows/main-ci.yml",
+        ".github/workflows/test.yaml",
+    )
+
+    for relative_path in manual_only_workflows:
+        content = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        assert "workflow_dispatch:" in content
+        assert "\n  push:" not in content
+        assert "\n  pull_request:" not in content
+        assert "\n  schedule:" not in content
+
+
 def test_public_github_metadata_does_not_recreate_stale_claims():
     public_metadata_paths = [
         "README.md",

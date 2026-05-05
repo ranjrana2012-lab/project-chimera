@@ -32,6 +32,12 @@ same source-agnostic shell link resolution that failed on guide-relative links.
 The retained link workflow now uses `scripts/check_markdown_links.py` and does
 not create GitHub issues automatically.
 
+The first public `main` pushes also showed that several historical broad
+workflows still ran on every public update and failed on stale infrastructure
+assumptions. Until the owner reviews and modernizes them, these workflows are
+kept as manual dispatch only: `automated-tests.yml`, `chimera-quality.yml`,
+`ci.yaml`, `e2e-tests.yml`, `main-ci.yml`, and `test.yaml`.
+
 ## Stale-Risk Signals
 
 Workflows with stale-risk signals must be verified against branch policy, the
@@ -46,16 +52,16 @@ and `test.yaml` for `master`/`develop`.
 | Workflow | Name | Trigger summary | Job summary | Notes |
 | --- | --- | --- | --- | --- |
 | `.github/workflows/auto-merge.yml` | Auto-Merge | Pull request events: opened, synchronize, reopened, ready for review. | `auto-merge` | Trust/protected-file automation; keep until owner confirms repository policy. |
-| `.github/workflows/automated-tests.yml` | Automated Testing | Push and pull request to `main`; daily schedule. | `unit-tests`, `integration-tests`, `load-tests`, `flaky-test-detection`, `test-report` | Historical broad platform test workflow. |
+| `.github/workflows/automated-tests.yml` | Automated Testing | Manual dispatch only pending owner review. | `unit-tests`, `integration-tests`, `load-tests`, `flaky-test-detection`, `test-report` | Historical broad platform test workflow. |
 | `.github/workflows/cd-production.yaml` | CD - Production | Version tag pushes; manual dispatch. | `pre-deploy-checks`, `deploy`, `rollback` | Production deployment path. |
 | `.github/workflows/cd-staging.yaml` | CD - Staging | Push to `develop`; manual dispatch. | `deploy`, `rollback` | Staging deployment path. |
 | `.github/workflows/check-links.yml` | Check Documentation Links | Daily schedule; manual dispatch; docs Markdown/script push and pull request paths. | `check-links` | Maintained local markdown link checker; no external link-check action or issue creation. |
-| `.github/workflows/chimera-quality.yml` | Chimera Quality Platform | Push to `main` and `develop`; pull request to `main`. | `platform-unit-tests`, `service-tests` | Platform quality workflow. |
-| `.github/workflows/ci.yaml` | CI | Push and pull request to `master`, `main`, and `develop`; Python 3.10. | `lint`, `test`, `security`, `build`, `kubernetes-validate`, `summary` | Retained pending owner review because triggers and purpose differ from `ci.yml`; check stale branches and runtime baseline before relying on it or making it required. |
+| `.github/workflows/chimera-quality.yml` | Chimera Quality Platform | Manual dispatch only pending owner review. | `platform-unit-tests`, `service-tests` | Platform quality workflow with stale platform dependency assumptions. |
+| `.github/workflows/ci.yaml` | CI | Manual dispatch only pending owner review; Python 3.10. | `lint`, `test`, `security`, `build`, `kubernetes-validate`, `summary` | Retained pending owner review because triggers and purpose differ from `ci.yml`; check stale branches and runtime baseline before relying on it or making it required. |
 | `.github/workflows/ci.yml` | Chimera Core Pipeline | Push and pull request to `main`. | `test` | Public README badge target; active baseline. |
-| `.github/workflows/e2e-tests.yml` | E2E Tests | Push to `main`, `master`, and `develop`; pull request to `main` and `master`; hourly schedule; manual dispatch. | `e2e-tests`, `smoke-tests`, `report-results` | E2E and smoke workflow with scheduled monitoring behavior. |
-| `.github/workflows/main-ci.yml` | Main Branch CI | Push to `main` when service, platform, test, or platform deployment paths change. | `test`, `build-push-images`, `deploy-preprod`, `quality-gate`, `notify` | Main branch platform build/deploy pipeline. |
+| `.github/workflows/e2e-tests.yml` | E2E Tests | Manual dispatch only pending owner review. | `e2e-tests`, `smoke-tests`, `report-results` | Historical E2E and smoke workflow with scheduled monitoring behavior disabled for public Phase 1 baseline. |
+| `.github/workflows/main-ci.yml` | Main Branch CI | Manual dispatch only pending owner review. | `test`, `build-push-images`, `deploy-preprod`, `quality-gate`, `notify` | Main branch platform build/deploy pipeline. |
 | `.github/workflows/pr-validation.yml` | PR Validation | Pull request to `main` for service/platform/test paths; push to `feature/*` and `fix/*`. | `lint`, `security-scan`, `unit-tests`, `summary` | PR validation for scoped code paths and feature/fix branches. |
 | `.github/workflows/prod-deploy.yml` | Production Deployment | Manual dispatch with deployment inputs. | `validate`, `backup`, `deploy-prod`, `smoke-tests`, `rollback`, `complete` | Manual production deployment workflow. |
-| `.github/workflows/test.yaml` | Tests | Push and pull request to `master`, `main`, and `develop`; manual dispatch. | `unit-tests`, `integration-tests`, `load-tests`, `safety-tests`, `accessibility-tests`, `performance-tests`, `test-summary` | Broad test workflow; ownership overlaps with other historical test workflows. |
+| `.github/workflows/test.yaml` | Tests | Manual dispatch only pending owner review. | `unit-tests`, `integration-tests`, `load-tests`, `safety-tests`, `accessibility-tests`, `performance-tests`, `test-summary` | Broad test workflow; ownership overlaps with other historical test workflows. |
 | `.github/workflows/trust-check.yml` | Trust Score Check | Pull request events: opened, synchronize, reopened. | `check-trust` | Contributor trust labeling workflow used by auto-merge policy. |
