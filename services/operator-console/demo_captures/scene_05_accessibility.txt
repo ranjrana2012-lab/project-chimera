@@ -1,7 +1,0 @@
-[94mLoading ML models (DistilBERT)...[0m
-[92mModels loaded successfully.[0m
-
-
-[1m--- High-Contrast Caption Format ---[0m
-[1;37;40m That's wonderful to hear! [0m
-SRT output successfully generated.

@@ -1,33 +1,25 @@
-# Project Chimera Guides
+# Setup Guides
 
-Start here if you are browsing documentation directly.
+Choose the route from local evidence.
 
-## Current Setup Guides
+## Default Route
 
-- `GETTING_STARTED.md` - canonical overview for the current repository.
-- `QUICK_START.md` - shortest route selector and quick commands.
-- `STUDENT_LAPTOP_SETUP.md` - default student/laptop setup path.
-- `Student_Quick_Start.md` - classroom-friendly quick start with student focus areas.
-- `DGX_SPARK_SETUP.md` - NVIDIA DGX Spark / GB10 ARM64 setup path.
-- `KIMI_QUICKSTART.md` - Kimi K2.6 super-agent setup for DGX Spark GB10.
-- `DOCKER.md` - current Docker Compose guide.
-- `TESTING.md` - validated test commands.
-- `DEPLOYMENT.md` - local, Docker, and DGX deployment notes.
-- `DEVELOPMENT.md` - development workflow.
+- `STUDENT_LAPTOP_SETUP.md`
 
-## Route Selection
+Use this for students, reviewers, Windows, macOS, WSL, ordinary Linux laptops,
+and any machine where Docker or GPU access is unavailable or uncertain.
 
-Agents should read the root `AGENTS.md` first. Humans can run:
+## Advanced Routes
 
-```bash
-python3 scripts/detect_runtime_profile.py
-```
+- `DGX_SPARK_SETUP.md`
+- `KIMI_QUICKSTART.md`
 
-Default to `STUDENT_LAPTOP_SETUP.md` unless the machine is clearly a DGX Spark /
-GB10 ARM64 host with Docker GPU support through NVIDIA runtime or CDI.
+Use these only when the host evidence supports DGX Spark / GB10-class hardware,
+ARM64 Linux, Docker, Docker GPU access, and any required registry/model access.
 
-## Historical or Specialized Guides
+## Developer Reference
 
-Some guides in this folder describe older research, simulation, grant, or
-operator-console details. Treat the current setup guides above as authoritative
-for installation and validation.
+- `DEVELOPMENT.md`
+- `TESTING.md`
+- `DOCKER.md`
+- `github-workflow.md`

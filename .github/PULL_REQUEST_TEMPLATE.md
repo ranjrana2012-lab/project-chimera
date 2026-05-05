@@ -8,15 +8,26 @@
 - [ ] Refactor
 - [ ] Tests
 
-## Testing
-- [ ] Unit tests pass
-- [ ] Integration tests pass
-- [ ] Coverage increased or maintained
+## Validation
+- [ ] `scripts/privacy_preflight.py`
+- [ ] `verify_prerequisites.py`
+- [ ] `test_chimera_smoke.py`
+- [ ] focused pytest command:
+
+## Public/Private Boundary
+- [ ] No private grant records, receipts, invoices, recordings, screenshots,
+      tokens, participant data, or `.env` files are included.
+- [ ] Generated evidence is stored privately, not committed.
+
+## Runtime Route
+- [ ] Student / Laptop
+- [ ] DGX Spark / GB10
+- [ ] Kimi advanced route
+- [ ] Documentation only
 
 ## Related Issue
 Closes #
 
 ## Checklist
 - [ ] Code follows project style
-- [ ] Tests added/updated
 - [ ] Documentation updated

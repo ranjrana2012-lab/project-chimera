@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 import uvicorn
 import sys
@@ -31,7 +31,10 @@ def read_root():
 @app.post("/api/process")
 async def process(req: Request):
     data = await req.json()
-    text = data.get("text", "")
+    raw_text = data.get("text")
+    if not isinstance(raw_text, str) or not raw_text.strip():
+        raise HTTPException(status_code=400, detail="text is required")
+    text = raw_text.strip()
     
     import time
     start = time.time()

@@ -41,13 +41,17 @@ def test_postbuild_runs():
     assert "Docker Post-Build Check" in result.stdout
 
 
-def test_master_prompt_exists():
-    """Test that master prompt file exists."""
-    prompt = Path(".claude/RALPH_LOOP_MASTER_PROMPT.md")
-    assert prompt.exists()
-    content = prompt.read_text()
-    assert "CRITICAL CONSTRAINTS" in content
-    assert "Docker Build Safety" in content
+def test_agent_runtime_paths_are_private_ignored():
+    """Test that local agent runtime paths are ignored in public git."""
+    gitignore = Path(".gitignore")
+    assert gitignore.exists()
+    ignored_paths = {
+        line.strip()
+        for line in gitignore.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.startswith("#")
+    }
+    assert ".claude/" in ignored_paths
+    assert ".autonomous/" in ignored_paths
 
 
 def test_docker_safety_reference_exists():

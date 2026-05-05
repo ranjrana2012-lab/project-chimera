@@ -108,18 +108,16 @@ KIMI_GRPC_TEST_TARGET=127.0.0.1:50052 \
 ./services/operator-console/venv/bin/python -m pytest tests/integration/kimi -q
 ```
 
-## Current Validation Snapshot
+## Validation
 
-The latest local sign-off on the DGX/GB10 ARM64 host completed with:
+Validate the route you are using on your own machine. For the default local route, run:
 
-- runtime detection, prerequisites, local CLI/web, student Docker, MVP/DGX,
-  Kimi host-facing validation: pass
-- final regression: `737 passed, 96 skipped, 4 warnings`
+```bash
+./services/operator-console/venv/bin/python verify_prerequisites.py
+./services/operator-console/venv/bin/python test_chimera_smoke.py
+```
 
-See `LOCAL_VALIDATION_REPORT.md`, `PATCH_SUMMARY.md`, and
-`REMAINING_GAPS.md` for details.
-
-
+Advanced DGX/Kimi checks should only be claimed after they have been run on matching hardware.
 
 ## Monitoring Stack
 

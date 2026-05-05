@@ -1,9 +1,18 @@
 # Changelog
 
-All notable changes to Project Chimera will be documented in this file.
+All notable public changes to Project Chimera are documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## Unreleased
+
+- Public repository cleanup in progress.
+- README and contributor-facing docs simplified.
+- Private/generated artifacts kept out of public git through privacy preflight.
+
+## v1.0.0-phase1
+
+- Phase 1 local adaptive AI foundation milestone.
+- Student / Laptop route documented as the default reviewer path.
+- DGX Spark / GB10 and Kimi routes documented as advanced routes.
 
 ## [0.4.0] - 2026-03-03
 

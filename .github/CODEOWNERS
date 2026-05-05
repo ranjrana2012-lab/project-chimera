@@ -1,30 +1,33 @@
-# Role-based code ownership for Project Chimera
-# Technical lead has ownership over all components
+# Code ownership for Project Chimera
+# Repository owner has ownership over all components
 
 # Core AI Services
-/services/openclaw-orchestrator/ @technical-lead
-/services/scenespeak-agent/ @technical-lead
-/services/captioning-agent/ @technical-lead
-/services/bsl-text2gloss-agent/ @technical-lead
-/services/sentiment-agent/ @technical-lead
-/services/lighting-control/ @technical-lead
-/services/safety-filter/ @technical-lead
-/services/operator-console/ @technical-lead
+/services/openclaw-orchestrator/ @ranjrana2012-lab
+/services/scenespeak-agent/ @ranjrana2012-lab
+/services/captioning-agent/ @ranjrana2012-lab
+/services/bsl-text2gloss-agent/ @ranjrana2012-lab
+/services/sentiment-agent/ @ranjrana2012-lab
+/services/lighting-control/ @ranjrana2012-lab
+/services/safety-filter/ @ranjrana2012-lab
+/services/operator-console/ @ranjrana2012-lab
 
 # Music Generation Platform
-/services/music-generation/ @technical-lead
-/services/music-orchestration/ @technical-lead
+/services/music-generation/ @ranjrana2012-lab
+/services/music-orchestration/ @ranjrana2012-lab
 
 # Quality Platform
-/platform/ @technical-lead
+/platform/ @ranjrana2012-lab
 
 # Infrastructure
-/infrastructure/ @technical-lead
-/kubernetes/ @technical-lead
+/infrastructure/ @ranjrana2012-lab
+/kubernetes/ @ranjrana2012-lab
 
 # Tests and Documentation
-/tests/ @technical-lead
-/docs/ @technical-lead
+/tests/ @ranjrana2012-lab
+/docs/ @ranjrana2012-lab
+
+# GitHub Repository Metadata
+.github/ @ranjrana2012-lab
 
 # GitHub Workflows (protected - always requires review)
-.github/workflows/ @technical-lead
+.github/workflows/ @ranjrana2012-lab
