@@ -26,6 +26,12 @@ During final public review, `.github/workflows/onboarding.yml` and
 public issue creators with stale onboarding content that could recreate
 overbroad Phase 1 claims.
 
+After the first public `main` push, `.github/workflows/docs-link-check.yml` was
+removed because it duplicated `.github/workflows/check-links.yml` and used the
+same source-agnostic shell link resolution that failed on guide-relative links.
+The retained link workflow now uses `scripts/check_markdown_links.py` and does
+not create GitHub issues automatically.
+
 ## Stale-Risk Signals
 
 Workflows with stale-risk signals must be verified against branch policy, the
@@ -43,11 +49,10 @@ and `test.yaml` for `master`/`develop`.
 | `.github/workflows/automated-tests.yml` | Automated Testing | Push and pull request to `main`; daily schedule. | `unit-tests`, `integration-tests`, `load-tests`, `flaky-test-detection`, `test-report` | Historical broad platform test workflow. |
 | `.github/workflows/cd-production.yaml` | CD - Production | Version tag pushes; manual dispatch. | `pre-deploy-checks`, `deploy`, `rollback` | Production deployment path. |
 | `.github/workflows/cd-staging.yaml` | CD - Staging | Push to `develop`; manual dispatch. | `deploy`, `rollback` | Staging deployment path. |
-| `.github/workflows/check-links.yml` | Check Documentation Links | Daily schedule; manual dispatch; docs Markdown push and pull request paths. | `check-links` | Overlaps with `docs-link-check.yml` but has schedule/manual trigger and issue creation. |
+| `.github/workflows/check-links.yml` | Check Documentation Links | Daily schedule; manual dispatch; docs Markdown/script push and pull request paths. | `check-links` | Maintained local markdown link checker; no external link-check action or issue creation. |
 | `.github/workflows/chimera-quality.yml` | Chimera Quality Platform | Push to `main` and `develop`; pull request to `main`. | `platform-unit-tests`, `service-tests` | Platform quality workflow. |
 | `.github/workflows/ci.yaml` | CI | Push and pull request to `master`, `main`, and `develop`; Python 3.10. | `lint`, `test`, `security`, `build`, `kubernetes-validate`, `summary` | Retained pending owner review because triggers and purpose differ from `ci.yml`; check stale branches and runtime baseline before relying on it or making it required. |
 | `.github/workflows/ci.yml` | Chimera Core Pipeline | Push and pull request to `main`. | `test` | Public README badge target; active baseline. |
-| `.github/workflows/docs-link-check.yml` | Documentation Link Check | Docs Markdown push and pull request paths. | `link-check` | Narrow docs link check; overlaps partly with `check-links.yml`. |
 | `.github/workflows/e2e-tests.yml` | E2E Tests | Push to `main`, `master`, and `develop`; pull request to `main` and `master`; hourly schedule; manual dispatch. | `e2e-tests`, `smoke-tests`, `report-results` | E2E and smoke workflow with scheduled monitoring behavior. |
 | `.github/workflows/main-ci.yml` | Main Branch CI | Push to `main` when service, platform, test, or platform deployment paths change. | `test`, `build-push-images`, `deploy-preprod`, `quality-gate`, `notify` | Main branch platform build/deploy pipeline. |
 | `.github/workflows/pr-validation.yml` | PR Validation | Pull request to `main` for service/platform/test paths; push to `feature/*` and `fix/*`. | `lint`, `security-scan`, `unit-tests`, `summary` | PR validation for scoped code paths and feature/fix branches. |

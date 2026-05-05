@@ -237,6 +237,23 @@ def test_github_issue_templates_are_deduplicated():
     assert "feature.md" not in templates
 
 
+def test_docs_link_workflow_uses_maintained_local_checker():
+    workflows = set(
+        str(path.relative_to(REPO_ROOT))
+        for path in (REPO_ROOT / ".github" / "workflows").glob("*.y*ml")
+    )
+    check_links = (REPO_ROOT / ".github" / "workflows" / "check-links.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert ".github/workflows/check-links.yml" in workflows
+    assert ".github/workflows/docs-link-check.yml" not in workflows
+    assert "scripts/check_markdown_links.py" in check_links
+    assert "gaurav-nelson/github-action-check-links" not in check_links
+    assert "docs/$link" not in check_links
+    assert "issues.create" not in check_links
+
+
 def test_public_github_metadata_does_not_recreate_stale_claims():
     public_metadata_paths = [
         "README.md",
