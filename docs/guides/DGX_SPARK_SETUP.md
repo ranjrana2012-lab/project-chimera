@@ -3,9 +3,9 @@
 This is the advanced Project Chimera route for NVIDIA DGX Spark / GB10-class
 ARM64 systems. It is not the default student path.
 
-Latest local sign-off on the GB10/aarch64 host validated the DGX/MVP route,
-Kimi host-facing HTTP/gRPC, Docker GPU/CDI support, and the full regression
-suite with `737 passed, 96 skipped, 4 warnings`.
+Maintainer validation has covered the DGX/MVP route, Kimi host-facing HTTP/gRPC,
+and Docker GPU/CDI support on compatible hardware. Treat those results as
+hardware-specific evidence, not as the default public setup path.
 
 Use this path only when the host has:
 

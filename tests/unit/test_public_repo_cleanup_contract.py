@@ -98,6 +98,44 @@ FORBIDDEN_PUBLIC_METADATA_PHRASES = (
 )
 
 
+CURATED_PUBLIC_DOC_EXACT_PATHS = {
+    "docs/CONTRIBUTING.md",
+    "docs/DEVELOPER_SETUP.md",
+    "docs/GETTING_STARTED.md",
+    "docs/README.md",
+    "docs/index.md",
+    "docs/api/README.md",
+    "docs/api/operator-console.md",
+    "docs/architecture/README.md",
+    "docs/architecture/overview.md",
+    "docs/architecture/services.md",
+    "docs/guides/DEPLOYMENT.md",
+    "docs/guides/DEVELOPMENT.md",
+    "docs/guides/DGX_SPARK_SETUP.md",
+    "docs/guides/DOCKER.md",
+    "docs/guides/GETTING_STARTED.md",
+    "docs/guides/KIMI_QUICKSTART.md",
+    "docs/guides/MVP_OVERVIEW.md",
+    "docs/guides/QUICK_START.md",
+    "docs/guides/README.md",
+    "docs/guides/SERVICES_STATUS.md",
+    "docs/guides/STUDENT_GUIDE.md",
+    "docs/guides/STUDENT_LAPTOP_SETUP.md",
+    "docs/guides/Student_Quick_Start.md",
+    "docs/guides/TESTING.md",
+    "docs/guides/github-workflow.md",
+    "docs/guides/quick-start.md",
+}
+
+
+CURATED_PUBLIC_DOC_PREFIXES = (
+    "docs/demo/",
+    "docs/getting-started/",
+    "docs/github/",
+    "docs/reports/",
+)
+
+
 REQUIRED_README_PHRASES = (
     "Project Chimera",
     "Phase 1",
@@ -292,15 +330,7 @@ def test_stale_getting_started_onboarding_package_is_not_public_tracked():
 
 
 def test_active_public_docs_do_not_link_removed_getting_started_pages():
-    active_docs = (
-        "docs/CONTRIBUTING.md",
-        "docs/api/endpoints.md",
-        "docs/api/examples/python.md",
-        "docs/architecture/README.md",
-        "docs/guides/github-workflow.md",
-        "docs/services/lighting-sound-music.md",
-        "docs/services/quality-platform.md",
-    )
+    active_docs = sorted(CURATED_PUBLIC_DOC_EXACT_PATHS)
     removed_links = (
         "../getting-started/",
         "../getting-started/quick-start.md",
@@ -362,3 +392,16 @@ def test_legacy_public_hub_docs_are_phase1_redirects():
         assert "docs/guides/STUDENT_LAPTOP_SETUP.md" in content
 
     assert stale_matches == []
+
+
+def test_docs_tree_is_curated_for_public_release():
+    tracked_docs = sorted(path for path in git_ls_files() if path.startswith("docs/"))
+
+    unexpected_docs = [
+        path
+        for path in tracked_docs
+        if path not in CURATED_PUBLIC_DOC_EXACT_PATHS
+        and not any(path.startswith(prefix) for prefix in CURATED_PUBLIC_DOC_PREFIXES)
+    ]
+
+    assert unexpected_docs == []
