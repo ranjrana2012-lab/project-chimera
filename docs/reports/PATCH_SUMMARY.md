@@ -19,7 +19,7 @@ This patch turns the prior "mostly working" state into a locally validated setup
 | docs/guides/DOCKER.md | Clarifies Docker GPU/CDI wording for DGX hosts. | Permanent | None |
 | docs/guides/GETTING_STARTED.md | Updates first-run commands, ports, and python3/venv assumptions. | Permanent | None |
 | docs/guides/KIMI_QUICKSTART.md | Documents host-facing Kimi validation against localhost ports and /model. | Permanent | None |
-| docs/guides/QUICK_START.md | Updates route wording and current validation snapshot. | Permanent | None |
+| docs/guides/QUICK_START.md | Updates route wording and validation guidance. | Permanent | None |
 | docs/guides/README.md | Updates route-selection wording for Docker GPU/CDI support. | Permanent | None |
 | docs/guides/STUDENT_GUIDE.md | Updates student Linux commands to python3 and venv-local execution. | Permanent | None |
 | docs/guides/STUDENT_LAPTOP_SETUP.md | Fixes smoke-test path and current validation date. | Permanent | None |

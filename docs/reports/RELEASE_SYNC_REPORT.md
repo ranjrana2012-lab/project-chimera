@@ -17,8 +17,8 @@ Kimi route validated on the GB10/aarch64 host.
   final regression result, validation report links, Kimi host ports, and fixed
   the stale smoke-test path.
 * QUICKSTART.md: clarified Docker GPU support through NVIDIA runtime or CDI,
-  added host-facing Kimi validation commands, and added the current validation
-  snapshot.
+  added host-facing Kimi validation commands, and added local validation
+  guidance.
 * AGENTS.md: clarified Linux/macOS use of `python3` and explicit venv Python.
 * docs/guides/DGX_SPARK_SETUP.md: added the current DGX/Kimi validation status
   and host-facing Kimi test commands.
