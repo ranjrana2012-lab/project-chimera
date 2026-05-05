@@ -21,6 +21,15 @@ trust-check workflows. Remove a workflow only after confirming:
 
 Workflow consolidation is deferred when trigger ownership is unclear.
 
+## Stale-Risk Signals
+
+Workflows with stale-risk signals must be verified against branch policy, the
+default branch, and the current runtime baseline before enabling, deleting, or
+making them required. Known review targets include `cd-production.yaml` for
+Python 3.10, `cd-staging.yaml` for `develop` and Python 3.10,
+`chimera-quality.yml` for `develop`, `e2e-tests.yml` for `master`/`develop`,
+and `test.yaml` for `master`/`develop`.
+
 ## Inventory
 
 | Workflow | Name | Trigger summary | Job summary | Notes |
@@ -31,7 +40,7 @@ Workflow consolidation is deferred when trigger ownership is unclear.
 | `.github/workflows/cd-staging.yaml` | CD - Staging | Push to `develop`; manual dispatch. | `deploy`, `rollback` | Staging deployment path. |
 | `.github/workflows/check-links.yml` | Check Documentation Links | Daily schedule; manual dispatch; docs Markdown push and pull request paths. | `check-links` | Overlaps with `docs-link-check.yml` but has schedule/manual trigger and issue creation. |
 | `.github/workflows/chimera-quality.yml` | Chimera Quality Platform | Push to `main` and `develop`; pull request to `main`. | `platform-unit-tests`, `service-tests` | Platform quality workflow. |
-| `.github/workflows/ci.yaml` | CI | Push and pull request to `master`, `main`, and `develop`. | `lint`, `test`, `security`, `build`, `kubernetes-validate`, `summary` | Kept because triggers and purpose differ from `ci.yml`; it is broad CI/build validation, not the README badge operator-console pipeline. |
+| `.github/workflows/ci.yaml` | CI | Push and pull request to `master`, `main`, and `develop`; Python 3.10. | `lint`, `test`, `security`, `build`, `kubernetes-validate`, `summary` | Retained pending owner review because triggers and purpose differ from `ci.yml`; check stale branches and runtime baseline before relying on it or making it required. |
 | `.github/workflows/ci.yml` | Chimera Core Pipeline | Push and pull request to `main`. | `test` | Public README badge target; active baseline. |
 | `.github/workflows/docs-link-check.yml` | Documentation Link Check | Docs Markdown push and pull request paths. | `link-check` | Narrow docs link check; overlaps partly with `check-links.yml`. |
 | `.github/workflows/e2e-tests.yml` | E2E Tests | Push to `main`, `master`, and `develop`; pull request to `main` and `master`; hourly schedule; manual dispatch. | `e2e-tests`, `smoke-tests`, `report-results` | E2E and smoke workflow with scheduled monitoring behavior. |
