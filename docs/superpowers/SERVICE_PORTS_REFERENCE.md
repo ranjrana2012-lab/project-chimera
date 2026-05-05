@@ -50,8 +50,8 @@ This simplifies debugging and service discovery.
 
 - **8000-8008:** Consecutive range for core application services
 - **8002:** Available after moving Translation Agent during Iteration 34 (originally captioning-agent in full architecture)
-- **8003:** Reserved for captioning-agent (future_concepts, not in MVP)
-- **8005:** Reserved for BSL/BeagleScore-Listener (future_concepts, not in MVP)
+- **8003:** Reserved for captioning-agent (private/local future concept, not in MVP)
+- **8005:** Reserved for BSL/BeagleScore-Listener (private/local future concept, not in MVP)
 - **8006:** Originally assigned to Safety Filter, restored after collision resolution
 - **6379:** Standard Redis port (no reason to change)
 

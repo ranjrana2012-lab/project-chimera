@@ -4,7 +4,7 @@
 
 ---
 
-## ✅ Printed Materials (Ready in `demo-materials-2026-03-02/`)
+## ✅ Printed Materials (Ready in local ignored `demo-materials-2026-03-02/`)
 
 - [ ] **12 copies** of `student-handout.md` (10 students + 2 spare)
 - [ ] **1 copy** of `demo-commands-cheat-sheet.md` (for you)

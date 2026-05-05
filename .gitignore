@@ -96,10 +96,20 @@ services/claude-orchestrator/orchestrator
 
 # Grant Materials & Private Demo Outputs
 internal/
+demo-materials-2026-03-02/
+future_concepts/
+progress/
+proposals/
 demo_footage/
 demo_captures/
 services/operator-console/demo_captures/
 project-chimera-submission*
+*.mp4
+*.webm
+*.mov
+*.mkv
+*.avi
+*.m4v
 evidence/**
 !evidence/
 !evidence/README.md

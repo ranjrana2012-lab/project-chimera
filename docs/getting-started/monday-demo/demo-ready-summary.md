@@ -97,7 +97,7 @@
 - Provides printing instructions
 
 **Usage:** Run once: `./scripts/print-demo-materials.sh`
-**Output:** `demo-materials-2026-03-02/`
+**Output:** local ignored `demo-materials-2026-03-02/`
 
 ---
 

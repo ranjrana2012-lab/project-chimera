@@ -52,6 +52,8 @@ The autonomous codebase refactoring system has been successfully integrated into
 
 ### Memory System
 
+These files are local/private runtime state and are ignored in the public repository.
+
 | File | Purpose |
 |------|---------|
 | `.claude/autonomous-refactor/program.md` | Constitutional constraints (READ-ONLY) |
@@ -59,6 +61,8 @@ The autonomous codebase refactoring system has been successfully integrated into
 | `.claude/autonomous-refactor/queue.txt` | Task queue (MODIFIED by loop) |
 
 ### Deployment
+
+Deployment files under `.claude/` are local/private and ignored in the public repository.
 
 | File | Purpose |
 |------|---------|

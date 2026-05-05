@@ -42,7 +42,7 @@ TIME ELAPSED:    ~2 hours
 **Event:** Autonomous execution begins after user approval
 
 **Setup:**
-- Created `.autonomous/` directory structure
+- Created local ignored `.autonomous/` directory structure
 - Generated REQUIREMENTS.md (v0.5.0 requirements)
 - Generated PLAN.md (87 atomic tasks)
 - Generated STATE.md (persistent state)
