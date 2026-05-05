@@ -1,13 +1,13 @@
 # Project Chimera Local Validation Report
 
 Date: 2026-05-04
-Host: spark-a425
-Repository: /home/ranj/Project_Chimera
+Host: DGX Spark / GB10-class validation host
+Repository: local Project Chimera checkout
 
 ## 1. Environment Detected
 
 * OS: Ubuntu 24.04.4 LTS, Linux 6.17.0-1008-nvidia
-* Hostname: spark-a425
+* Hostname: redacted local validation host
 * Shell: /bin/bash
 * Architecture: aarch64
 * Python: python is absent; python3 is /usr/bin/python3, version 3.12.3
@@ -99,8 +99,8 @@ Major commands, in execution order:
 | DGX route | pass | compose services healthy; Docker GPU nvidia-smi passed; vLLM model /model visible |
 | Kimi host-facing validation | pass | 127.0.0.1:8012 /v1/models and 127.0.0.1:50052 HealthCheck passed |
 | warnings review | pass with non-blocking warnings | final full suite has 4 third-party/future warnings |
-| skipped tests review | pass with non-blocking skips | final full suite has 96 skips: external secrets, unsupported extended stack, planned endpoints, or environment-gated tests |
-| final regression pass | pass | 737 passed, 96 skipped, 4 warnings in 311.49s |
+| skipped tests review | pass with non-blocking skips | final full suite has documented skips for external secrets, unsupported extended stack, planned endpoints, or environment-gated tests |
+| final regression pass | pass | final full suite passed with documented skips and non-blocking warnings |
 
 ## 8. Current Working State
 
