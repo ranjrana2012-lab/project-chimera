@@ -90,6 +90,8 @@ FORBIDDEN_PUBLIC_METADATA_PHRASES = (
     "BSL Translation",
     "Captioning Agent",
     "Production-ready",
+    "Production Ready",
+    "✅ Production Ready",
     "Ready to apply",
     "real-time adaptive performances",
     "adapt in real-time",
@@ -275,6 +277,7 @@ def test_legacy_broad_workflows_are_manual_only_until_owner_review():
 def test_public_github_metadata_does_not_recreate_stale_claims():
     public_metadata_paths = [
         "README.md",
+        "CHANGELOG.md",
         "docs/README.md",
         *[
             str(path.relative_to(REPO_ROOT))
@@ -303,6 +306,15 @@ def test_public_github_metadata_does_not_recreate_stale_claims():
         )
 
     assert stale_matches == []
+
+
+def test_public_release_metadata_has_mit_license_file():
+    license_path = REPO_ROOT / "LICENSE"
+
+    assert license_path.exists()
+    license_text = license_path.read_text(encoding="utf-8")
+    assert "MIT License" in license_text
+    assert "Project Chimera contributors" in license_text
 
 
 def test_public_evidence_placeholder_exists_when_referenced():

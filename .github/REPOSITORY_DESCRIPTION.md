@@ -7,7 +7,7 @@ public claim.
 ## Repository Description
 
 ```text
-AI-powered theatre research platform with a local adaptive Phase 1 demonstrator.
+AI-powered live theatre research platform with a Phase 1 local adaptive AI demonstrator.
 ```
 
 ## About Section
@@ -26,7 +26,7 @@ evidence pack.
 ## Repository Topics
 
 ```text
-ai, theatre, adaptive-ai, fastapi, docker, research
+adaptive-ai, ai, education, fastapi, live-performance, microservices, python, research, sentiment-analysis, theatre
 ```
 
 ## Website URL

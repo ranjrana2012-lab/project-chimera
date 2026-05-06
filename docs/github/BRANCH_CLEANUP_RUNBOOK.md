@@ -2,6 +2,8 @@
 
 Run this after the public cleanup branch is merged.
 
+Status: completed on 2026-05-06.
+
 ## Safety Checks
 
 ```bash
@@ -20,6 +22,16 @@ For each candidate branch, confirm:
 - origin/codex-chimera-validation-fixes-20260424
 - origin/codex/student-dgx-runtime-profiles
 - origin/master
+
+## Completed Remote State
+
+- `codex/student-dgx-runtime-profiles` was fully contained in `main` and was
+  deleted.
+- `codex-chimera-validation-fixes-20260424` had two unique commits; it was
+  preserved as `archive/codex-chimera-validation-fixes-20260424` and the stale
+  branch name was deleted.
+- `master` had unrelated legacy history; it was preserved as
+  `legacy/master-20260506` and the confusing `master` branch name was deleted.
 
 ## Delete Reviewed Cleanup Branches
 
