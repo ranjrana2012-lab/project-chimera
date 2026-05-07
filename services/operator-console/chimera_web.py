@@ -3,8 +3,25 @@ from fastapi.responses import HTMLResponse
 import uvicorn
 import sys
 import os
+from dataclasses import dataclass
 
 from chimera_core import ChimeraCore, spawn_voice
+
+MAX_INPUT_CHARS = int(os.getenv("CHIMERA_WEB_MAX_INPUT_CHARS", "2000"))
+
+
+@dataclass(frozen=True)
+class ServerConfig:
+    host: str
+    port: int
+
+
+def get_server_config() -> ServerConfig:
+    return ServerConfig(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "8080")),
+    )
+
 
 app = FastAPI()
 chimera = ChimeraCore()
@@ -35,6 +52,11 @@ async def process(req: Request):
     if not isinstance(raw_text, str) or not raw_text.strip():
         raise HTTPException(status_code=400, detail="text is required")
     text = raw_text.strip()
+    if len(text) > MAX_INPUT_CHARS:
+        raise HTTPException(
+            status_code=413,
+            detail=f"text must be {MAX_INPUT_CHARS} characters or fewer",
+        )
     
     import time
     start = time.time()
@@ -92,6 +114,5 @@ def projection_overlay():
     return FileResponse("static/projection.html")
 
 if __name__ == "__main__":
-    host = os.getenv("HOST", "0.0.0.0")
-    port = int(os.getenv("PORT", "8080"))
-    uvicorn.run(app, host=host, port=port)
+    config = get_server_config()
+    uvicorn.run(app, host=config.host, port=config.port)

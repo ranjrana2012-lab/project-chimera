@@ -124,7 +124,7 @@ The current `docker-compose.mvp.yml` exposes:
 
 `chimera_web.py` supports:
 
-- `HOST` defaulting to `0.0.0.0`
+- `HOST` defaulting to `127.0.0.1`
 - `PORT` defaulting to `8080`
 
 Example:
@@ -133,6 +133,9 @@ Example:
 export PORT=18080
 ./venv/bin/python chimera_web.py
 ```
+
+Set `HOST=0.0.0.0` only for an intentionally exposed demo network after you
+have decided how to protect access to the machine and route.
 
 ### Docker Compose
 

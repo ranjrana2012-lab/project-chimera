@@ -259,7 +259,11 @@ async def orchestrate_synchronous(request: dict):
             except Exception as e:
                 logger.warning(f"Safety check failed: {e}")
                 await pool.release_session(AGENTS['safety-filter'])
-                return {"safe": True, "reason": "Safety filter unavailable"}
+                return {
+                    "safe": False,
+                    "reason": "Safety filter unavailable; content blocked until reviewed",
+                    "degraded_mode": "safety_filter_unavailable",
+                }
 
         # Run sentiment and safety in parallel
         sentiment_result, safety_result = await asyncio.gather(
@@ -274,18 +278,29 @@ async def orchestrate_synchronous(request: dict):
             sentiment_result = {"sentiment": "neutral", "score": 0.0, "confidence": 0.0}
         if isinstance(safety_result, Exception):
             logger.error(f"Safety task failed: {safety_result}")
-            safety_result = {"safe": True, "reason": "Safety filter unavailable"}
+            safety_result = {
+                "safe": False,
+                "reason": "Safety filter unavailable; content blocked until reviewed",
+                "degraded_mode": "safety_filter_unavailable",
+            }
 
         # Normalize sentiment to expected format
         sentiment_label = sentiment_result.get("sentiment", "neutral")
         sentiment_score = sentiment_result.get("score", 0.0)
 
         # Check if content is safe
-        safe = safety_result.get("safe", True)
+        safe = safety_result.get("safe", False)
         safety_reason = safety_result.get("reason", "Content approved")
+        safety_degraded_mode = safety_result.get("degraded_mode")
 
         if not safe:
             # Return early with blocked response
+            metadata = {
+                "show_id": show_id,
+                "processing_time_ms": int((time.time() - start_time) * 1000)
+            }
+            if safety_degraded_mode:
+                metadata["degraded_mode"] = safety_degraded_mode
             return {
                 "response": "",
                 "sentiment": {
@@ -296,10 +311,7 @@ async def orchestrate_synchronous(request: dict):
                     "passed": False,
                     "reason": safety_reason
                 },
-                "metadata": {
-                    "show_id": show_id,
-                    "processing_time_ms": int((time.time() - start_time) * 1000)
-                }
+                "metadata": metadata
             }
 
         # Generate Dialogue via LLM (runs after safety check passes)

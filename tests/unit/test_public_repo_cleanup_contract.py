@@ -466,3 +466,36 @@ def test_docs_tree_is_curated_for_public_release():
     ]
 
     assert unexpected_docs == []
+
+
+def test_service_architecture_doc_classifies_public_maturity_boundaries():
+    services_doc = (
+        REPO_ROOT / "docs" / "architecture" / "services.md"
+    ).read_text(encoding="utf-8")
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+
+    required_phrases = (
+        "phase1-supported",
+        "experimental",
+        "advanced",
+        "legacy",
+        "`services/operator-console/chimera_core.py`",
+        "`services/operator-console/chimera_web.py`",
+        "`services/openclaw-orchestrator/`",
+        "`services/zai-auth-proxy/`",
+        "not production readiness evidence",
+    )
+
+    for phrase in required_phrases:
+        assert phrase in services_doc
+
+    assert "docs/architecture/services.md" in readme
+
+
+def test_deployment_docs_keep_operator_console_local_by_default():
+    deployment = (
+        REPO_ROOT / "docs" / "guides" / "DEPLOYMENT.md"
+    ).read_text(encoding="utf-8")
+
+    assert "`HOST` defaulting to `127.0.0.1`" in deployment
+    assert "Set `HOST=0.0.0.0` only for an intentionally exposed demo network" in deployment
