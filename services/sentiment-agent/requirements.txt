@@ -16,7 +16,7 @@ opentelemetry-instrumentation-fastapi==0.42b0
 opentelemetry-exporter-otlp==1.21.0
 
 # ML/NLP
-transformers==4.35.0
+transformers==5.0.0rc3
 torch==2.2.0
 numpy<2.0  # NumPy 2.x incompatible with PyTorch 2.2.0
 
