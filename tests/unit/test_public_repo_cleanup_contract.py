@@ -256,6 +256,17 @@ def test_docs_link_workflow_uses_maintained_local_checker():
     assert "issues.create" not in check_links
 
 
+def test_required_docs_link_workflow_runs_on_all_pull_requests():
+    check_links = (REPO_ROOT / ".github" / "workflows" / "check-links.yml").read_text(
+        encoding="utf-8"
+    )
+    pull_request_section = check_links.split("pull_request:", 1)[1].split(
+        "\n  push:", 1
+    )[0]
+
+    assert "paths:" not in pull_request_section
+
+
 def test_legacy_broad_workflows_are_manual_only_until_owner_review():
     manual_only_workflows = (
         ".github/workflows/automated-tests.yml",
