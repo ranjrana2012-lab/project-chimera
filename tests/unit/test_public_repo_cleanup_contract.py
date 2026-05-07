@@ -515,6 +515,21 @@ def test_service_architecture_doc_classifies_public_maturity_boundaries():
     assert "docs/architecture/services.md" in readme
 
 
+def test_zai_auth_proxy_uses_python_multipart_with_trivy_fixed_version():
+    requirements = (
+        REPO_ROOT / "services" / "zai-auth-proxy" / "requirements.txt"
+    ).read_text(encoding="utf-8")
+    pinned_version = None
+
+    for line in requirements.splitlines():
+        package, _, version = line.partition("==")
+        if package == "python-multipart":
+            pinned_version = tuple(int(part) for part in version.split("."))
+
+    assert pinned_version is not None
+    assert pinned_version >= (0, 0, 27)
+
+
 def test_deployment_docs_keep_operator_console_local_by_default():
     deployment = (
         REPO_ROOT / "docs" / "guides" / "DEPLOYMENT.md"
