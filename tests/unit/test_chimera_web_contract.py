@@ -130,3 +130,38 @@ def test_process_rejects_non_string_text_without_mutating_history(web_module):
             "latency_ms",
         ]
     ]
+
+
+def test_process_rejects_overlong_text_without_mutating_history(web_module):
+    client = TestClient(web_module.app)
+    limit = web_module.MAX_INPUT_CHARS
+
+    response = client.post("/api/process", json={"text": "x" * (limit + 1)})
+
+    assert response.status_code == 413
+    assert response.json() == {
+        "detail": f"text must be {limit} characters or fewer"
+    }
+
+    export = client.get("/api/export")
+    assert export.status_code == 200
+    assert csv_rows(export.text) == [
+        [
+            "timestamp",
+            "input",
+            "sentiment",
+            "confidence_score",
+            "strategy_routed",
+            "latency_ms",
+        ]
+    ]
+
+
+def test_web_server_defaults_to_loopback_for_local_demo(web_module, monkeypatch):
+    monkeypatch.delenv("HOST", raising=False)
+    monkeypatch.delenv("PORT", raising=False)
+
+    config = web_module.get_server_config()
+
+    assert config.host == "127.0.0.1"
+    assert config.port == 8080
