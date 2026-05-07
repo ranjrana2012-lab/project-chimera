@@ -90,6 +90,9 @@ demos/                      Public-safe demo scripts and checklists
 evidence/                   Public-safe placeholders only
 ```
 
+See `docs/architecture/services.md` for the supported, experimental, advanced,
+and legacy service labels used in the public source set.
+
 ## Contributing
 
 See `CONTRIBUTING.md` for branch naming, local validation, and PR expectations.
