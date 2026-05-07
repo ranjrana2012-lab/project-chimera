@@ -7,10 +7,6 @@ on:
   pull_request:
   push:
     branches: [ main ]
-    paths:
-      - 'docs/**'
-      - '*.md'
-      - 'scripts/check_markdown_links.py'
 
 permissions:
   contents: read
