@@ -18,9 +18,11 @@ complete grant evidence pack.
 
 ## What The Local Demo Shows
 
-- Sentiment routing for positive, negative, and neutral text.
+- Sentiment and cue routing for positive, negative, neutral, overwhelmed, and
+  reflective text.
 - Adaptive strategies: `momentum_build`, `supportive_care`, and
-  `standard_response`.
+  `standard_response`, with focused `grounding_support` and
+  `reflective_transition` paths for close-out demo inputs.
 - Baseline-versus-adaptive comparison mode.
 - Caption-style output and SRT export.
 - A lightweight operator-console web route with state, process, and CSV export
@@ -53,6 +55,14 @@ PORT=18080 ./venv/bin/python chimera_web.py
 
 Open `http://127.0.0.1:18080`.
 
+To generate a real local run log for private close-out evidence:
+
+```bash
+python3 scripts/run_phase1_demo.py
+```
+
+The generated log is written under `outputs/run_logs/` and is ignored by git.
+
 ## Setup Guides
 
 - Student / Laptop: `docs/guides/STUDENT_LAPTOP_SETUP.md`
@@ -78,6 +88,12 @@ templates. Private evidence stays outside public git:
 Local private evidence should live under `internal/` or another private storage
 location. Run `scripts/privacy_preflight.py` before publishing.
 
+## Funding Acknowledgement
+
+HUMAN ACTION REQUIRED: add the exact approved BCU/AHRC acknowledgement wording
+before final submission or release materials are shared with funders. This
+placeholder is not an approved funder statement.
+
 ## Close-Out Review
 
 For CreaTech Frontiers Foundations close-out review, use the narrowed Phase 1
@@ -92,6 +108,10 @@ documentation set:
 These files separate public technical evidence from private evidence that must
 be supplied outside git.
 
+The numbered close-out pack templates are in `chimera_closeout_pack/`. They are
+drafts and checklists for human review, not evidence of approval, spend, payment,
+public delivery, or partner sign-off.
+
 ## Repository Map
 
 ```text
@@ -102,6 +122,7 @@ docs/                       Documentation hub and setup guides
 scripts/                    Validation, setup, and maintenance helpers
 demos/                      Public-safe demo scripts and checklists
 evidence/                   Public-safe placeholders only
+chimera_closeout_pack/       Draft close-out templates for human review
 ```
 
 See `docs/architecture/services.md` for the supported, experimental, advanced,

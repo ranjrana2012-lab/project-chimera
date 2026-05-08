@@ -32,6 +32,13 @@ Expected behavior:
 - positive, negative, and neutral sample inputs are processed;
 - selected adaptive strategies are printed.
 
+For the close-out scripted inputs, `scripts/run_phase1_demo.py` should show:
+
+- `I am sad` -> `supportive_care`;
+- `I feel excited and ready` -> `momentum_build`;
+- `I am confused and overwhelmed` -> `grounding_support`;
+- `This is intense but inspiring` -> `reflective_transition`.
+
 ## Run A Direct Comparison
 
 ```bash
@@ -71,7 +78,11 @@ From the repository root:
 ```bash
 ./services/operator-console/venv/bin/python test_chimera_smoke.py
 python3 scripts/privacy_preflight.py
+python3 scripts/run_phase1_demo.py
 ```
+
+`scripts/run_phase1_demo.py` writes a JSON log under `outputs/run_logs/`. The
+log is generated from an actual local run and is ignored by git.
 
 If `pytest` is installed in the operator-console environment:
 

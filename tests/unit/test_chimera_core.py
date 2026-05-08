@@ -37,10 +37,30 @@ class TestChimeraCore(unittest.TestCase):
         self.assertEqual(self.core.select_strategy({'label': 'NEGATIVE'}), 'supportive_care')
         self.assertEqual(self.core.select_strategy({'label': 'NEUTRAL'}), 'standard_response')
 
+    def test_select_strategy_uses_grounding_support_for_confused_overwhelmed_input(self):
+        self.assertEqual(
+            self.core.select_strategy(
+                {'label': 'NEGATIVE'},
+                "I am confused and overwhelmed",
+            ),
+            "grounding_support",
+        )
+
+    def test_select_strategy_uses_reflective_transition_for_intense_inspiring_input(self):
+        self.assertEqual(
+            self.core.select_strategy(
+                {'label': 'POSITIVE'},
+                "This is intense but inspiring",
+            ),
+            "reflective_transition",
+        )
+
     def test_generate_response(self):
         self.assertIn("amplifying", self.core.generate_response("test", "momentum_build"))
         self.assertIn("supportive", self.core.generate_response("test", "supportive_care"))
         self.assertIn("standard", self.core.generate_response("test", "standard_response"))
+        self.assertIn("ground", self.core.generate_response("test", "grounding_support").lower())
+        self.assertIn("reflect", self.core.generate_response("test", "reflective_transition").lower())
 
     @patch("builtins.open", new_callable=mock_open)
     def test_export_json_csv(self, mock_file):

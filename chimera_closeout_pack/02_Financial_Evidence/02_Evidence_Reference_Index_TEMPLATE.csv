@@ -1,0 +1,4 @@
+Evidence ID,Evidence Type,Related Spend Line ID,File Name,Date,Payee / Supplier,Amount,Matches Bank Statement?,Redaction Complete?,Notes,Status
+EVD-001,Invoice,FIN-001,,,,,,,HUMAN ACTION REQUIRED - add real private file reference only,HUMAN ACTION REQUIRED
+EVD-002,Bank Statement,FIN-001,,,,,,,HUMAN ACTION REQUIRED - add redacted private statement reference only,HUMAN ACTION REQUIRED
+EVD-003,Timesheet or Contractor Invoice,FIN-002,,,,,,,HUMAN ACTION REQUIRED - add real private file reference only,HUMAN ACTION REQUIRED

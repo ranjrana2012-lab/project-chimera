@@ -72,15 +72,22 @@ Validate the route you are using on your own machine. For the default local rout
 ./services/operator-console/venv/bin/python verify_prerequisites.py
 ./services/operator-console/venv/bin/python test_chimera_smoke.py
 python3 scripts/privacy_preflight.py
+python3 scripts/run_phase1_demo.py
 ```
 
 Advanced DGX, Kimi, monitoring, and broader Compose checks should only be
 claimed after they have been run on matching hardware or service configuration.
 
+`scripts/run_phase1_demo.py` writes a real local log under `outputs/run_logs/`.
+Those logs are ignored by git and should be copied to private evidence storage
+only after review.
+
 ## Useful Test Inputs
 Once running (in either environment), try passing these input phrases to see how Chimera adapts the theatrical scene:
 - `I am very happy today!` -> expected: `momentum_build`
 - `I'm feeling anxious and overwhelmed.` -> expected: `supportive_care`
+- `I am confused and overwhelmed.` -> expected: `grounding_support`
+- `This is intense but inspiring.` -> expected: `reflective_transition`
 - `compare "I love this performance"` -> shows baseline vs adaptive output
 - `caption "Can you tell me more about the system?"` -> shows local caption-style output
 

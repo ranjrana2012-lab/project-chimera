@@ -17,6 +17,9 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
 # Role assignments with mentors
 ROLE_ASSIGNMENTS: Dict[str, Dict[str, str]] = {
     "frontend_developer": {
@@ -358,13 +361,13 @@ Examples:
 
     parser.add_argument(
         "--csv",
-        default="/home/ranj/Project_Chimera/data/students.csv",
+        default=str(REPO_ROOT / "data" / "students.csv"),
         help="Path to CSV file containing student data (default: %(default)s)"
     )
 
     parser.add_argument(
         "--template",
-        default="/home/ranj/Project_Chimera/data/welcome-template.txt",
+        default=str(REPO_ROOT / "data" / "welcome-template.txt"),
         help="Path to email template file (default: %(default)s)"
     )
 

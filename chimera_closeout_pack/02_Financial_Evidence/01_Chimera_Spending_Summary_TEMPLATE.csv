@@ -1,0 +1,6 @@
+Line ID,Original Budget Category,Planned Amount,Proposed Actual Category,Claimed Amount,Supplier / Payee,Invoice Reference,Invoice Date,Bank Statement Reference,Payment Date,Evidence File Name,VAT Treatment,Reallocation Required?,BCU Approval Required?,Notes,Status
+FIN-001,Equipment (DGX Spark),£4,000,,,,,,,,,,,HUMAN ACTION REQUIRED - add actual supplier, invoice, bank evidence and approval status,HUMAN ACTION REQUIRED
+FIN-002,AI Development,£2,000,,,,,,,,,,,HUMAN ACTION REQUIRED - add actual invoices or timesheets and payment evidence,HUMAN ACTION REQUIRED
+FIN-003,Student Bursaries,£1,200,,,,,,,,,,,HUMAN ACTION REQUIRED - do not claim unless paid and evidenced; otherwise ask BCU about reallocation,HUMAN ACTION REQUIRED
+FIN-004,Creative/Rehearsal,£1,500,,,,,,,,,,,HUMAN ACTION REQUIRED - do not claim live activity unless evidenced; otherwise ask BCU about reallocation,HUMAN ACTION REQUIRED
+FIN-005,Accessibility/Other,£1,300,,,,,,,,,,,HUMAN ACTION REQUIRED - claim actual supported spend only and map remainder if reallocated,HUMAN ACTION REQUIRED

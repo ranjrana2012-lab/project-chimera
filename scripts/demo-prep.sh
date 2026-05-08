@@ -5,7 +5,7 @@
 
 set -e
 
-PROJECT_ROOT="/home/ranj/Project_Chimera"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 echo "================================"

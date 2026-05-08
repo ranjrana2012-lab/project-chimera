@@ -105,7 +105,9 @@ CURATED_PUBLIC_DOC_EXACT_PATHS = {
     "docs/DEVELOPER_SETUP.md",
     "docs/GETTING_STARTED.md",
     "docs/README.md",
+    "docs/demo_video_recording_checklist.md",
     "docs/index.md",
+    "docs/release_v1.0.0_phase1_checklist.md",
     "docs/api/README.md",
     "docs/api/operator-console.md",
     "docs/architecture/README.md",
@@ -176,6 +178,12 @@ def is_allowed_env_example(path: str) -> bool:
 def is_forbidden_tracked_path(path: str) -> bool:
     lower_path = path.lower()
     parts = Path(path).parts
+
+    if path.startswith("chimera_closeout_pack/") and Path(path).suffix.lower() in {
+        ".csv",
+        ".md",
+    }:
+        return False
 
     return (
         path in FORBIDDEN_TRACKED_EXACT
@@ -504,6 +512,35 @@ def test_closeout_docs_exist_for_phase1_grant_review():
     for relative_path in closeout_docs:
         content = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         assert "Phase 1" in content or "phase 1" in content.lower()
+
+
+def test_closeout_pack_templates_are_public_safe_not_evidence():
+    required_templates = {
+        "chimera_closeout_pack/MANIFEST.md",
+        "chimera_closeout_pack/01_Reports/01_Chimera_Final_Report_DRAFT.md",
+        "chimera_closeout_pack/01_Reports/02_Chimera_MFA_Declaration_TEMPLATE.md",
+        "chimera_closeout_pack/01_Reports/03_Chimera_Close_Out_QA_Checklist.md",
+        "chimera_closeout_pack/02_Financial_Evidence/01_Chimera_Spending_Summary_TEMPLATE.csv",
+        "chimera_closeout_pack/02_Financial_Evidence/02_Evidence_Reference_Index_TEMPLATE.csv",
+        "chimera_closeout_pack/02_Financial_Evidence/03_Redacted_Bank_Statements_README.md",
+        "chimera_closeout_pack/02_Financial_Evidence/04_Invoice_Evidence_Checklist.md",
+        "chimera_closeout_pack/03_Project_Outputs/01_Demo_Video_Instructions.md",
+        "chimera_closeout_pack/03_Project_Outputs/02_Technical_Case_Study_and_Toolkit_DRAFT.md",
+        "chimera_closeout_pack/03_Project_Outputs/03_Run_Log_Instructions.md",
+        "chimera_closeout_pack/04_Communications/01_Scope_Pivot_Email_TEMPLATE.md",
+        "chimera_closeout_pack/04_Communications/02_Pre_Submission_Clarification_Email_TEMPLATE.md",
+        "chimera_closeout_pack/04_Communications/03_Scope_Pivot_Agreement_Thread_PLACEHOLDER.md",
+        "chimera_closeout_pack/05_Repository_Audit/01_Secret_Scan_Report.md",
+        "chimera_closeout_pack/05_Repository_Audit/02_Overclaim_Scan_Report.md",
+        "chimera_closeout_pack/05_Repository_Audit/03_Technical_Readiness_Report.md",
+        "chimera_closeout_pack/05_Repository_Audit/04_Blockers_and_Human_Actions.md",
+    }
+
+    for relative_path in required_templates:
+        content = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        assert "HUMAN ACTION REQUIRED" in content or "template" in content.lower()
+        assert "signed and approved" not in content.lower()
+        assert "payment confirmed" not in content.lower()
 
 
 def test_service_architecture_doc_classifies_public_maturity_boundaries():

@@ -13,6 +13,7 @@ Labels:
 | --- | --- | --- |
 | Project Chimera Phase 1 has a local adaptive AI CLI demonstrator. | EVIDENCED | `services/operator-console/chimera_core.py`, `QUICKSTART.md`, `test_chimera_smoke.py`. |
 | The demo routes positive, negative, and neutral inputs to different strategies. | EVIDENCED | `services/operator-console/chimera_core.py`, `docs/demo/demo-script.md`, smoke test expectations. |
+| The close-out demo includes focused grounding and reflective transition routes for selected scripted inputs. | EVIDENCED | `services/operator-console/chimera_core.py`, `tests/unit/test_chimera_core.py`, `scripts/run_phase1_demo.py`. |
 | The repository includes a lightweight local web route for reviewer checks. | EVIDENCED | `services/operator-console/chimera_web.py`, `docs/closeout/REPLICATION_TOOLKIT.md`. |
 | The repository has public/private evidence boundary guidance. | EVIDENCED | `README.md`, `evidence/README.md`, `scripts/privacy_preflight.py`. |
 | The public repository is open-source under MIT. | EVIDENCED | `LICENSE`, `README.md`. |

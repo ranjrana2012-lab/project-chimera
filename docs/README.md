@@ -38,6 +38,10 @@ Use these files for the narrowed Phase 1 funder-review narrative. They separate
 repo-supported technical evidence from private evidence that the owner must keep
 outside public git.
 
+The numbered close-out template pack is in `../chimera_closeout_pack/`. It is a
+draft workspace for human review and is not itself evidence of spend, approval,
+or public delivery.
+
 ## Demo And Evidence Guidance
 
 - `demo/README.md`

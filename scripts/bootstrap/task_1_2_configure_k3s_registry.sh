@@ -32,7 +32,7 @@ done
 echo "k3s restarted successfully"
 echo ""
 echo "Verifying k3s node status..."
-export KUBECONFIG=/home/ranj/.kube/config
+export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 kubectl get nodes
 
 echo ""

@@ -72,6 +72,8 @@ worktrees/
 *.log
 logs/
 pytestdebug.log
+outputs/run_logs/*
+!outputs/run_logs/.gitkeep
 
 # Database
 *.db

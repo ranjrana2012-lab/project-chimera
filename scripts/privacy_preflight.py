@@ -25,6 +25,8 @@ ROOT_REPORT_FILES = {
     "REMAINING_GAPS.md",
 }
 CONTACT_SPREADSHEET_SUFFIXES = {".csv", ".ods", ".xls", ".xlsx"}
+PUBLIC_CLOSEOUT_TEMPLATE_PREFIX = "chimera_closeout_pack/"
+PUBLIC_CLOSEOUT_TEMPLATE_SUFFIXES = {".csv", ".md"}
 NGC_TOKEN_LITERAL_RE = re.compile(
     r"\bnvapi-(?!REDACTED\b)(?!\.\.\.\b)[A-Za-z0-9_-]{20,}\b"
 )
@@ -57,6 +59,13 @@ def _is_allowed_evidence_placeholder(path: str) -> bool:
 def _has_financial_keyword(path: str) -> bool:
     tokens = [token for token in re.split(r"[^a-z0-9]+", path.lower()) if token]
     return any(keyword in tokens for keyword in FINANCIAL_KEYWORDS)
+
+
+def _is_allowed_closeout_template(path: str) -> bool:
+    return (
+        path.startswith(PUBLIC_CLOSEOUT_TEMPLATE_PREFIX)
+        and Path(path).suffix.lower() in PUBLIC_CLOSEOUT_TEMPLATE_SUFFIXES
+    )
 
 
 def _is_student_contact_path(path: str) -> bool:
@@ -109,6 +118,8 @@ def classify_paths(paths: list[str]) -> list[Finding]:
             reason = "real environment file"
         elif path.startswith("evidence/") and not _is_allowed_evidence_placeholder(path):
             reason = "evidence artifact path"
+        elif _is_allowed_closeout_template(path):
+            reason = ""
         elif _has_financial_keyword(path):
             reason = "financial or tax document path"
         elif suffix in VIDEO_SUFFIXES:

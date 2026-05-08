@@ -61,16 +61,18 @@ class ChimeraCore:
         self.history = []
         self.positive_cues = {
             "amazing", "excited", "fantastic", "great", "happy", "love",
-            "thrilled", "wonderful",
+            "inspiring", "ready", "thrilled", "wonderful",
         }
         self.negative_cues = {
             "anxious", "angry", "bad", "frustrated", "overwhelmed",
-            "sad", "terrible", "worried",
+            "confused", "sad", "terrible", "worried",
         }
         self.neutral_cues = {
             "fine", "it is okay", "it's okay", "nothing special",
             "okay", "ok", "so far",
         }
+        self.grounding_cues = {"confused", "overwhelmed", "lost", "panic"}
+        self.reflective_cues = {"bittersweet", "complex", "inspiring", "intense"}
 
     def load_models(self):
         print(f"{Colors.OKBLUE}Loading ML models (DistilBERT & DistilGPT2)...{Colors.ENDC}")
@@ -93,8 +95,8 @@ class ChimeraCore:
     def heuristic_sentiment(self, text):
         # Fallback if pipeline fails
         text = text[0].lower() if isinstance(text, list) else text.lower()
-        positive_words = ["excited", "amazing", "love", "wonderful", "great", "happy", "fantastic"]
-        negative_words = ["frustrated", "worried", "bad", "terrible", "angry", "wrong", "anxious", "sad"]
+        positive_words = ["excited", "amazing", "love", "wonderful", "great", "happy", "fantastic", "inspiring", "ready"]
+        negative_words = ["frustrated", "worried", "bad", "terrible", "angry", "wrong", "anxious", "sad", "confused", "overwhelmed"]
         
         pos_score = sum(1 for w in positive_words if w in text)
         neg_score = sum(1 for w in negative_words if w in text)
@@ -128,7 +130,13 @@ class ChimeraCore:
     def contains_any(self, text, phrases):
         return any(phrase in text for phrase in phrases)
 
-    def select_strategy(self, sentiment_result):
+    def select_strategy(self, sentiment_result, text=""):
+        lowered = text.lower()
+        if self.contains_any(lowered, self.grounding_cues):
+            return "grounding_support"
+        if self.contains_any(lowered, self.reflective_cues):
+            return "reflective_transition"
+
         label = sentiment_result['label'].upper()
         if label == "POSITIVE":
             return "momentum_build"
@@ -144,6 +152,8 @@ class ChimeraCore:
                 prompt_map = {
                     "momentum_build": f"Text: '{text}'. Very enthusiastic response amplifying the audience energy:",
                     "supportive_care": f"Text: '{text}'. Calm and supportive response, telling them it will be okay:",
+                    "grounding_support": f"Text: '{text}'. Grounding response that slows the moment and gives clear reassurance:",
+                    "reflective_transition": f"Text: '{text}'. Reflective response that acknowledges intensity and gently transitions:",
                     "standard_response": f"Text: '{text}'. Professional and neutral theater response:"
                 }
                 prompt = prompt_map.get(strategy, "Response:")
@@ -193,6 +203,8 @@ class ChimeraCore:
         tone_keywords = {
             "momentum_build": ("amazing", "energy", "excited", "great", "love", "thrill", "wonderful"),
             "supportive_care": ("breathe", "calm", "gentle", "here", "okay", "safe", "support"),
+            "grounding_support": ("breathe", "clear", "ground", "steady", "step"),
+            "reflective_transition": ("change", "moment", "reflect", "shift", "transition"),
             "standard_response": ("continue", "noted", "standard", "trajectory"),
         }
         return any(keyword in lowered for keyword in tone_keywords[strategy])
@@ -202,6 +214,10 @@ class ChimeraCore:
             return f"That's fantastic! The energy here is really amplifying with that feedback! We're thrilled you feel that way."
         elif strategy == "supportive_care":
             return f"I hear your concerns, and the performance is adapting to give a more calming, supportive atmosphere right now."
+        elif strategy == "grounding_support":
+            return f"Let's ground the moment. The system is slowing the pace and offering a clear, steady next step."
+        elif strategy == "reflective_transition":
+            return f"This is an intense moment, so the system is making a reflective transition into a steadier rhythm."
         else:
             return f"Thank you for the input. The system has noted this and continues on the standard trajectory."
 
@@ -209,7 +225,7 @@ class ChimeraCore:
         start_time = time.time()
         
         sentiment = self.analyze_sentiment(text)
-        strategy = self.select_strategy(sentiment)
+        strategy = self.select_strategy(sentiment, text)
         response = self.generate_response(text, strategy)
         
         # Asynchronously speak the response (Option 2)

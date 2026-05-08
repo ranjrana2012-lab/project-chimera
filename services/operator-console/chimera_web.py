@@ -63,7 +63,7 @@ async def process(req: Request):
     
     # Process through core
     sentiment = chimera.analyze_sentiment(text)
-    strategy = chimera.select_strategy(sentiment)
+    strategy = chimera.select_strategy(sentiment, text)
     response = chimera.generate_response(text, strategy)
     
     # Trigger broadcast voice

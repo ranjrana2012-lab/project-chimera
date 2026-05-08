@@ -10,7 +10,8 @@ captioning platform, BSL/avatar system, or full multi-service deployment.
 
 - Sentiment routing for positive, negative, and neutral audience-style text.
 - Adaptive response strategies: `momentum_build`, `supportive_care`, and
-  `standard_response`.
+  `standard_response`, plus `grounding_support` and `reflective_transition` for
+  selected close-out demo inputs.
 - Baseline-versus-adaptive comparison output.
 - Caption-style output and SRT export.
 - Operator-console web state, process, and CSV export endpoints.

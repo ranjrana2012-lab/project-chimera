@@ -10,6 +10,10 @@ programme, formal accessibility testing, BSL/avatar delivery, testimonials,
 audience impact, or a complete evidence pack unless those items are supplied
 separately in private evidence.
 
+Feature development is frozen for close-out. Work should now be limited to
+evidence capture, documentation, repository safety, and compliance-support
+packaging unless a human project lead explicitly reopens delivery scope.
+
 ## Technical Readiness
 
 Status: repo-supported.

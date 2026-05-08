@@ -864,7 +864,7 @@ services:
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - HEALTH_AGGREGATOR_URL=${HEALTH_AGGREGATOR_URL:-http://health-aggregator:8012}
-      - PROJECT_ROOT=${PROJECT_ROOT:-/home/ranj/Project_Chimera}
+      - PROJECT_ROOT=${PROJECT_ROOT:-.}
     volumes:
       - chimera-dashboard-cache:/app/cache
       # Local Ralph Loop dashboard mounts are private/local and omitted from public compose.

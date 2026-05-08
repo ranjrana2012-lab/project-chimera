@@ -27,6 +27,8 @@ The demonstrated strategies are:
 
 - `momentum_build` for positive inputs;
 - `supportive_care` for negative inputs;
+- `grounding_support` for confused or overwhelmed inputs;
+- `reflective_transition` for intense but inspiring inputs;
 - `standard_response` for neutral inputs.
 
 ## What Was Not Claimed

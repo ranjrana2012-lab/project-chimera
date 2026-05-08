@@ -29,6 +29,8 @@ Point out the expected behavior:
 
 - positive text routes to `momentum_build`;
 - negative text routes to `supportive_care`;
+- confused or overwhelmed text routes to `grounding_support`;
+- intense but inspiring text routes to `reflective_transition`;
 - neutral text routes to `standard_response`.
 
 ## 3. Show Comparison Output
