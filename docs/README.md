@@ -26,6 +26,18 @@ match the route.
 Maintainer reports are validation history and caveats. They are not the default
 setup path for new users.
 
+## Close-Out Review
+
+- `closeout/SUBMISSION_READINESS.md`
+- `closeout/CASE_STUDY_PHASE1.md`
+- `closeout/REPLICATION_TOOLKIT.md`
+- `closeout/EVIDENCE_PACK_INDEX.md`
+- `closeout/CLAIMS_REGISTER.md`
+
+Use these files for the narrowed Phase 1 funder-review narrative. They separate
+repo-supported technical evidence from private evidence that the owner must keep
+outside public git.
+
 ## Demo And Evidence Guidance
 
 - `demo/README.md`

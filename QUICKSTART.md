@@ -1,6 +1,13 @@
-# Project Chimera - Quick Start Guide
+# Project Chimera Quick Start
 
-This guide will get you up and running with Project Chimera as quickly as possible.
+This guide is scoped to the public Phase 1 close-out claim: a local adaptive AI
+demonstrator with an operator-console CLI and lightweight web route. It is the
+recommended route for BCU, R&D, funder, and reviewer checks on an ordinary
+laptop or desktop.
+
+Do not use this guide to claim a completed public show, livestream, student
+programme, formal accessibility testing, BSL/avatar delivery, audience impact,
+or complete grant evidence pack.
 
 ## 1. Determine Your Runtime Profile
 
@@ -44,69 +51,18 @@ docker compose -f docker-compose.student.yml up -d --build
 
 ---
 
-## 3. Advanced Route: NVIDIA DGX Spark / GB10 (ARM64)
-Use this route **only** if you are on an NVIDIA DGX Spark / Grace Blackwell host (ARM64), with Docker GPU support (`--gpus all` through NVIDIA runtime or CDI), and NGC Registry access where required by the images you pull.
+## 3. Advanced Routes
 
-```bash
-# 1. Login to NVIDIA container registry (required for PyTorch base images)
-docker login nvcr.io
+DGX Spark / GB10, Kimi, monitoring, and broader Compose routes are advanced
+maintainer paths. They are not needed to evidence the narrowed Phase 1
+close-out claim unless a maintainer has matching hardware, credentials, and
+fresh run logs.
 
-# 2. Verify your Compose Configuration
-docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml config --services
+Use these only when the host evidence supports them:
 
-# 3. Boot the Multi-Service Application Stack
-docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d --build
-
-# 4. Verify Services are Running
-docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml ps
-```
-
-The Operator Console will be exposed on **port 8007**.
-```bash
-http://<dgx-host-ip>:8007
-```
-
-### 3.1 Kimi K2.6 Super-Agent (DGX Spark Optional)
-For DGX Spark systems with 128GB GPU VRAM, enable **Kimi K2.6** super-agent for complex workflows:
-
-```bash
-# Download Kimi K2.6 model (~70GB, takes 30-60 minutes)
-./scripts/download-kimi-k26.sh
-
-# Start vLLM service (port 8012)
-docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-vllm
-
-# Wait for vLLM to be healthy
-./scripts/wait-for-kimi.sh
-
-# Start Kimi super-agent (gRPC port 50052)
-docker compose -f docker-compose.mvp.yml -f docker-compose.dgx-spark.yml up -d kimi-super-agent
-
-# Validate VRAM usage (should be <85GB)
-./scripts/validate-kimi-vram.sh
-```
-
-**What Kimi K2.6 Enables:**
-- Long context reasoning (>8K tokens)
-- Multimodal processing (images, video, audio)
-- Agentic code generation
-
-For complete documentation, see [Kimi K2.6 Quick Start Guide](docs/guides/KIMI_QUICKSTART.md).
-
-Validated host-facing Kimi ports:
-
-- vLLM HTTP/OpenAI-compatible API: `http://127.0.0.1:8012`
-- Kimi super-agent gRPC: `127.0.0.1:50052`
-
-Run the host-facing Kimi integration tests from the repository root:
-
-```bash
-KIMI_VLLM_TEST_URL=http://127.0.0.1:8012 \
-KIMI_MODEL_TEST_NAME=/model \
-KIMI_TEST_TIMEOUT=180 \
-KIMI_GRPC_TEST_TARGET=127.0.0.1:50052 \
-./services/operator-console/venv/bin/python -m pytest tests/integration/kimi -q
-```
+- [DGX Spark setup](docs/guides/DGX_SPARK_SETUP.md)
+- [Kimi quick start](docs/guides/KIMI_QUICKSTART.md)
+- [Docker guide](docs/guides/DOCKER.md)
 
 ## Validation
 
@@ -115,42 +71,23 @@ Validate the route you are using on your own machine. For the default local rout
 ```bash
 ./services/operator-console/venv/bin/python verify_prerequisites.py
 ./services/operator-console/venv/bin/python test_chimera_smoke.py
+python3 scripts/privacy_preflight.py
 ```
 
-Advanced DGX/Kimi checks should only be claimed after they have been run on matching hardware.
-
-## Monitoring Stack
-
-Project Chimera includes a built-in monitoring stack for system health and performance metrics.
-
-### Setup Monitoring
-
-```bash
-# Automated setup (recommended)
-./scripts/setup-monitoring.sh
-
-# Or manual setup
-docker compose -f docker-compose.mvp.yml up -d prometheus netdata
-cd services/dashboard
-python3 -m uvicorn main:app --port 8013
-```
-
-### Access Dashboards
-
-- **Netdata**: http://localhost:19999 - Real-time system metrics (CPU, memory, disk, network)
-- **Prometheus**: http://localhost:9090 - Metrics query and exploration
-- **Unified Dashboard**: http://localhost:8013/monitoring - Custom monitoring view
-
-### Testing
-
-```bash
-# Run monitoring integration tests
-pytest tests/integration/test_monitoring_e2e.py -v -m integration
-```
+Advanced DGX, Kimi, monitoring, and broader Compose checks should only be
+claimed after they have been run on matching hardware or service configuration.
 
 ## Useful Test Inputs
 Once running (in either environment), try passing these input phrases to see how Chimera adapts the theatrical scene:
 - `I am very happy today!` -> expected: `momentum_build`
 - `I'm feeling anxious and overwhelmed.` -> expected: `supportive_care`
 - `compare "I love this performance"` -> shows baseline vs adaptive output
-- `caption "Can you tell me more about the system?"` -> enforces accessibility mode
+- `caption "Can you tell me more about the system?"` -> shows local caption-style output
+
+## Close-Out Review Docs
+
+- `docs/closeout/SUBMISSION_READINESS.md`
+- `docs/closeout/CLAIMS_REGISTER.md`
+- `docs/closeout/EVIDENCE_PACK_INDEX.md`
+- `docs/closeout/REPLICATION_TOOLKIT.md`
+- `docs/closeout/CASE_STUDY_PHASE1.md`

@@ -4,6 +4,11 @@
 
 This patch turns the prior "mostly working" state into a locally validated setup on the DGX/GB10 aarch64 host. The main themes are Kimi host publication, DGX runtime detection, Python 3 host compatibility, Kimi/protobuf import compatibility, SceneSpeak/OpenClaw live local LLM routing, Redis-backed OpenClaw caching, stronger test discovery, and clearer validation reports.
 
+Close-out scope note: this is an engineering patch summary, not a complete grant
+evidence pack. Do not use it to claim a public show, livestream, formal
+accessibility testing, BSL/avatar delivery, testimonials, audience impact,
+spending reconciliation, or final payment readiness.
+
 ## Files Changed
 
 | File | Why it changed | Type | Follow-up |

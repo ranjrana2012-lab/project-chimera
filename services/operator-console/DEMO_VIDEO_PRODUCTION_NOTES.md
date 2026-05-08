@@ -4,7 +4,8 @@
 **Target Duration**: 3-5 minutes
 **Target Audience**: Birmingham City University Grant Reviewers
 **Production Date**: 2026-04-09
-**Status**: Raw Captures Complete - Ready for Post-Production
+**Status**: Production checklist only - final captures and upload must be
+verified privately by the project owner
 
 ---
 
@@ -16,47 +17,32 @@
 |-------|----------|---------|------|
 | 1. Introduction | 30s | Script overview and purpose | scene_01_introduction.txt |
 | 2. Technical Pipeline | 60s | Architecture explanation | scene_02_pipeline.txt |
-| 3. Sentiment Detection | 60s | ML model demonstration | scene_03_sentiment_detection.txt |
+| 3. Sentiment Routing | 60s | Local routing demonstration | scene_03_sentiment_detection.txt |
 | 4a. Adaptive Routing (Positive) | 30s | Comparison mode positive | scene_04a_adaptive_positive.txt |
 | 4b. Adaptive Routing (Negative) | 30s | Comparison mode negative | scene_04b_adaptive_negative.txt |
-| 5. Accessibility Features | 30s | Caption formatting | scene_05_accessibility.txt |
-| 6. Summary | 30s | Deliverables and achievements | scene_06_summary.txt |
+| 5. Caption-Style Output | 30s | Local caption formatting | scene_05_accessibility.txt |
+| 6. Summary | 30s | Phase 1 scope and remaining evidence | scene_06_summary.txt |
 
 **Total**: ~4.5 minutes
 
 ---
 
-## Raw Footage Files
+## Private Capture Checklist
 
-All captures saved in `services/operator-console/demo_captures/`:
+Do not commit raw captures, generated recordings, logs, or export files to
+public git. If a close-out video is produced, store the source captures and
+final media privately and reference them from the private evidence pack.
 
-1. `scene_01_introduction_20260409_131513.txt` (675 chars)
-   - Shows chimera_core.py header and imports
-   - Demonstrates single-file architecture
+Suggested private capture set:
 
-2. `scene_02_pipeline.txt` (created)
-   - Pipeline diagram in text format
-   - Shows 3-step process
-
-3. `scene_03_sentiment_detection.txt` (~10KB)
-   - Full demo mode output
-   - Shows all 3 sentiment types with ML results
-
-4. `scene_04a_adaptive_positive.txt` (~4KB)
-   - Comparison mode for positive input
-   - Shows adaptive vs non-adaptive responses
-
-5. `scene_04b_adaptive_negative.txt` (~4KB)
-   - Comparison mode for negative input
-   - Shows empathetic vs standard responses
-
-6. `scene_05_accessibility.txt` (~4KB)
-   - Caption mode output
-   - Shows visual caption box
-
-7. `scene_06_summary.txt` (created)
-   - Deliverables summary
-   - Statistics and achievements
+1. Introduction clip showing the repository and Phase 1 scope.
+2. CLI demo output for positive, negative, and neutral inputs.
+3. Comparison-mode output showing baseline versus adaptive response behavior.
+4. Caption-style output or SRT export output, described as a local formatting
+   feature rather than completed accessibility testing.
+5. Web-route clip showing the local console and API processing path.
+6. Closing clip showing the commands used and the public/private evidence
+   boundary.
 
 ---
 
@@ -68,13 +54,13 @@ All captures saved in `services/operator-console/demo_captures/`:
 
 ### Scene 2: The Technical Pipeline (0:30-1:30)
 
-> "The system works in three steps: First, it analyzes the sentiment of your input using a DistilBERT machine learning model. Second, it generates an adaptive dialogue response based on that emotional state. Third, it applies routing rules to select the appropriate engagement strategy. All of this happens in under a second."
+> "The system works in three steps: First, it analyzes the sentiment of your input using the local model or fallback path available in the reviewer environment. Second, it generates an adaptive dialogue response based on that emotional state. Third, it applies routing rules to select the appropriate engagement strategy."
 
 ### Scene 3: Sentiment Detection in Action (1:30-2:30)
 
-> "Let's see the sentiment analysis in action. I'll input three different emotional states. Watch how the ML model accurately detects each emotion with high confidence."
+> "Let's see the sentiment routing in action. I'll input three different emotional states and show which local strategy is selected for each one."
 >
-> "The DistilBERT model achieves 99.9% accuracy on clear positive and negative sentiment, with confidence scores approaching 100%. This is genuine machine learning, not mock responses."
+> "The demo is evidence of a local adaptive routing workflow. Do not present confidence scores as formal model accuracy, accessibility validation, or audience-impact evidence."
 
 ### Scene 4: Adaptive Routing - The Core Innovation (2:30-3:30)
 
@@ -84,15 +70,15 @@ All captures saved in `services/operator-console/demo_captures/`:
 >
 > "For negative emotions, the system switches to a 'supportive care' strategy with an empathetic, reassuring tone. The non-adaptive version gives the same generic response regardless of emotional state. This comparison clearly demonstrates the value of adaptive routing."
 
-### Scene 5: Accessibility Features (3:30-4:00)
+### Scene 5: Caption-Style Output (3:30-4:00)
 
-> "The system also includes basic accessibility features. Let me show you the caption formatting designed for hearing accessibility."
+> "The system also includes caption-style formatting for local review. Let me show the formatter output."
 >
-> "The caption formatter provides high-contrast text with visual sentiment indicators. Full BSL avatar and advanced captioning are deferred to Phase 2 due to resource constraints, as documented in our limitations report."
+> "This is not a completed accessibility feature set or formal accessibility test. BSL/avatar delivery and advanced captioning should not be claimed from Phase 1 unless separately evidenced."
 
-### Scene 6: Conclusion and Grant Deliverable (4:00-4:30)
+### Scene 6: Conclusion and Close-Out Boundary (4:00-4:30)
 
-> "Project Chimera Phase 1 successfully delivers a working adaptive AI framework proof-of-concept. We've demonstrated genuine machine learning integration, adaptive routing logic, and comprehensive documentation. This monolithic script replaces 8 microservices with a single 700-line Python file that proves the core technical concept. All evidence is compiled in our Grant Evidence Pack for transparent closeout."
+> "Project Chimera Phase 1 demonstrates a local adaptive AI proof of concept with CLI and web routes, public-safe documentation, and privacy preflight checks. The private close-out pack still needs the owner to attach real screenshots, recordings, logs, financial evidence, and any reviewer notes outside public git."
 
 ---
 
@@ -109,7 +95,7 @@ All captures saved in `services/operator-console/demo_captures/`:
 
 **Text Highlights**:
 - Key outputs: Bold or color accent
-- Scores: Use color coding (green=positive, red=negative)
+- Sentiment route labels: use color coding if helpful (green=positive, red=negative)
 - Section headers: Larger, bold
 
 ### Editing Techniques
@@ -120,7 +106,7 @@ All captures saved in `services/operator-console/demo_captures/`:
    - Slow down: 0.75x for complex output sections
 
 2. **Zoom/Callouts**:
-   - Zoom in on sentiment scores (show +1.00, 0.99, etc.)
+   - Zoom in on selected strategy and route labels.
    - Highlight adaptive vs non-adaptive text differences
    - Callout boxes for key phrases
 
@@ -132,7 +118,7 @@ All captures saved in `services/operator-console/demo_captures/`:
 4. **Overlays**:
    - Title slides: Scene number and name
    - Progress indicators: "Step 1 of 3", etc.
-   - Key statistics: "99.9% accuracy", "<300ms latency"
+   - Key labels: selected strategy, sentiment route, command used
 
 ### Audio Production
 
@@ -158,11 +144,11 @@ All captures saved in `services/operator-console/demo_captures/`:
 - Bitrate: 6-8 Mbps (VBR, 2 pass)
 - Audio: AAC, 128 kbps, 48 kHz
 
-**Compatibility**:
-- ✅ YouTube upload
-- ✅ VLC Media Player
-- ✅ QuickTime/Windows Media Player
-- ✅ Most web browsers
+**Compatibility Targets**:
+- YouTube or grant-portal upload, if required by the funder.
+- VLC Media Player.
+- QuickTime/Windows Media Player.
+- Common web browsers.
 
 ---
 
@@ -177,7 +163,7 @@ All captures saved in `services/operator-console/demo_captures/`:
 - [ ] Speed up slow sections (2x for loading)
 - [ ] Slow down complex sections (0.75x for reading)
 - [ ] Add zoom/callouts for key outputs
-- [ ] Color code sentiment scores (green/red)
+- [ ] Color code sentiment route labels, if helpful
 
 ### Audio
 
@@ -236,46 +222,47 @@ If full video production isn't feasible:
 
 ## Success Criteria
 
-The demo video is successful if it:
-- ✅ Clearly shows the adaptive routing pipeline
-- ✅ Demonstrates ML model working (not mock)
-- ✅ Shows adaptive vs non-adaptive difference
-- ✅ Fits within 3-5 minute timeframe
-- ✅ Has clear, professional narration
-- ✅ Highlights grant deliverables
-- ✅ Technical quality acceptable for submission
+The demo video is useful supporting evidence if it:
+
+- clearly shows the local adaptive routing pipeline;
+- shows the exact commands used to run the CLI/web demo;
+- shows adaptive versus non-adaptive response behavior;
+- fits within the target 3-5 minute timeframe;
+- has clear narration;
+- keeps claims within the Phase 1 local demonstrator scope;
+- avoids claims about public shows, livestreams, formal accessibility testing,
+  BSL/avatar delivery, testimonials, audience impact, or complete grant evidence
+  unless those are separately evidenced in the private pack.
 
 ---
 
 ## File Organization
 
 ```
+private evidence storage/
+├── demo-captures/                     # raw generated captures, not public git
+├── demo-recording/                    # final video or slideshow export
+├── logs/                              # local command output, redacted if shared
+└── notes/                             # private reviewer or owner notes
+
 services/operator-console/
-├── demo_captures/                    # Raw scene captures
-│   ├── scene_01_introduction_*.txt
-│   ├── scene_02_pipeline.txt
-│   ├── scene_03_sentiment_detection.txt
-│   ├── scene_04a_adaptive_positive.txt
-│   ├── scene_04b_adaptive_negative.txt
-│   ├── scene_05_accessibility.txt
-│   └── scene_06_summary.txt
-├── DEMO_SCRIPT.md                     # Voiceover script
-├── DEMO_VIDEO_PRODUCTION_NOTES.md    # This file
-├── chimera_core.py                     # Main script
-└── capture_demo.py                     # Capture automation
+├── DEMO_VIDEO_PRODUCTION_NOTES.md     # public-safe production guidance
+├── chimera_core.py                    # Phase 1 CLI demonstrator
+└── chimera_web.py                     # local web route
 ```
 
 ---
 
 ## Timeline
 
-**Week 5 Status**: Raw captures complete ✅
+**Status**: Production guidance only. Final recording, review, export, and
+upload status must be confirmed from private files by the project owner.
 
 **Remaining Tasks**:
 1. Voiceover recording (1-2 hours)
 2. Video editing (2-4 hours)
 3. Review and revisions (1-2 hours)
-4. Final export and upload (30 minutes)
+4. Final export and upload, if required by the funder (30 minutes)
 
 **Total Estimated Time**: 5-9 hours of production work
 

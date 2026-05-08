@@ -2,6 +2,16 @@
 
 All notable public changes to Project Chimera are documented here.
 
+## Unreleased
+
+- Added Phase 1 close-out review documents under `docs/closeout/` for
+  submission readiness, case study framing, replication, evidence indexing, and
+  claim status.
+- Tightened close-out wording so the public repository supports the local
+  adaptive AI demonstrator claim without asserting a completed public show,
+  livestream, formal accessibility testing, BSL/avatar delivery, audience
+  impact, complete evidence pack, or final payment readiness.
+
 ## v1.0.1-phase1 - 2026-05-06
 
 - Published the cleaned public Phase 1 baseline.

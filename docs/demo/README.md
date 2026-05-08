@@ -56,6 +56,6 @@ publishing.
 
 ---
 
-**Demo Version:** 1.0
-**Last Updated:** 2026-03-06
-**Next Review:** Post-demo debrief
+**Demo Version:** 1.0 Phase 1 close-out route
+**Last Updated:** 2026-05-08
+**Next Review:** After private evidence pack assembly

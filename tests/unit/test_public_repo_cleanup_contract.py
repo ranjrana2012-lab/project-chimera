@@ -131,6 +131,7 @@ CURATED_PUBLIC_DOC_EXACT_PATHS = {
 
 
 CURATED_PUBLIC_DOC_PREFIXES = (
+    "docs/closeout/",
     "docs/demo/",
     "docs/getting-started/",
     "docs/github/",
@@ -489,6 +490,20 @@ def test_docs_tree_is_curated_for_public_release():
     ]
 
     assert unexpected_docs == []
+
+
+def test_closeout_docs_exist_for_phase1_grant_review():
+    closeout_docs = {
+        "docs/closeout/SUBMISSION_READINESS.md",
+        "docs/closeout/CASE_STUDY_PHASE1.md",
+        "docs/closeout/REPLICATION_TOOLKIT.md",
+        "docs/closeout/EVIDENCE_PACK_INDEX.md",
+        "docs/closeout/CLAIMS_REGISTER.md",
+    }
+
+    for relative_path in closeout_docs:
+        content = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        assert "Phase 1" in content or "phase 1" in content.lower()
 
 
 def test_service_architecture_doc_classifies_public_maturity_boundaries():

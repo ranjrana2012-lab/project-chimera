@@ -78,6 +78,20 @@ templates. Private evidence stays outside public git:
 Local private evidence should live under `internal/` or another private storage
 location. Run `scripts/privacy_preflight.py` before publishing.
 
+## Close-Out Review
+
+For CreaTech Frontiers Foundations close-out review, use the narrowed Phase 1
+documentation set:
+
+- `docs/closeout/SUBMISSION_READINESS.md`
+- `docs/closeout/CASE_STUDY_PHASE1.md`
+- `docs/closeout/REPLICATION_TOOLKIT.md`
+- `docs/closeout/EVIDENCE_PACK_INDEX.md`
+- `docs/closeout/CLAIMS_REGISTER.md`
+
+These files separate public technical evidence from private evidence that must
+be supplied outside git.
+
 ## Repository Map
 
 ```text

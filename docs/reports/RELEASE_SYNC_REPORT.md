@@ -11,6 +11,12 @@ set to GitHub. The repository now documents and preserves the working local
 operator-console route, student Docker route, DGX/MVP route, and host-facing
 Kimi route validated on the GB10/aarch64 host.
 
+Close-out scope note: this report is publication history for an engineering
+sync. It is not a complete grant evidence pack and should not be used to claim a
+public show, livestream, formal accessibility testing, BSL/avatar delivery,
+testimonials, audience impact, final spending reconciliation, or final payment
+readiness.
+
 ## Documentation Updated
 
 * README.md: refreshed the validation date, added current route status,

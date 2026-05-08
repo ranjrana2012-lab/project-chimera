@@ -1,6 +1,12 @@
 # Remaining Gaps
 
-No blocking gaps remain for the supported local operator-console, student Docker, MVP/DGX, or Kimi host-facing routes validated on this machine.
+This file records maintainer engineering gaps from a local validation pass. It
+does not mean the grant evidence pack, spending summary, accessibility evidence,
+or final payment request is complete.
+
+No blocking engineering gaps were recorded for the supported local
+operator-console, student Docker, MVP/DGX, or Kimi host-facing routes validated
+on that machine.
 
 ## Non-blocking Gaps
 

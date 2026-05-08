@@ -4,6 +4,12 @@ Date: 2026-05-04
 Host: DGX Spark / GB10-class validation host
 Repository: local Project Chimera checkout
 
+Close-out scope note: this is maintainer validation history from one local
+host. It is not a complete grant evidence pack and should not be used to claim a
+public show, livestream, formal accessibility testing, BSL/avatar delivery,
+testimonials, audience impact, final spending reconciliation, or final payment
+readiness.
+
 ## 1. Environment Detected
 
 * OS: Ubuntu 24.04.4 LTS, Linux 6.17.0-1008-nvidia
@@ -121,6 +127,14 @@ Major commands, in execution order:
 
 ## 10. Final Verdict
 
-**Fully working and locally validated**
+**Maintainer validation completed for the routes tested on this host**
 
-Justification: all supported practical local routes on this host were executed and passed: local operator-console CLI/web, student Docker, DGX/MVP Compose, Kimi/vLLM host access, GPU-in-container validation, endpoint probes, smoke/unit/dashboard/Kimi/MVP/performance tests, and the final broad pytest suite. Remaining skips and warnings are non-blocking optional/external/legacy/future-compatibility items, not failures in the supported local runtime routes.
+Justification: the listed local routes on this host were executed and passed:
+local operator-console CLI/web, student Docker, DGX/MVP Compose, Kimi/vLLM host
+access, GPU-in-container validation, endpoint probes,
+smoke/unit/dashboard/Kimi/MVP/performance tests, and the final broad pytest
+suite. Remaining skips and warnings are non-blocking
+optional/external/legacy/future-compatibility items for that maintainer
+validation run. For funder close-out, use this only as supporting engineering
+history alongside the narrowed Phase 1 documents in `docs/closeout/` and the
+private evidence pack.
