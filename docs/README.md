@@ -33,6 +33,7 @@ setup path for new users.
 - `closeout/REPLICATION_TOOLKIT.md`
 - `closeout/EVIDENCE_PACK_INDEX.md`
 - `closeout/CLAIMS_REGISTER.md`
+- `closeout/POINT_IN_TIME_STATUS_2026-05-08.md`
 
 Use these files for the narrowed Phase 1 funder-review narrative. They separate
 repo-supported technical evidence from private evidence that the owner must keep
