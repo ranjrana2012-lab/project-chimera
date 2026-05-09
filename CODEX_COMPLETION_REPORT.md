@@ -235,3 +235,67 @@ Current local git state at the start of this follow-up:
 - Branch: `main`
 - State: `main...origin/main [ahead 5]`
 - No remote push was performed.
+
+## 12. Overnight Close-Out Work Results - 2026-05-09
+
+Repository-side work completed in this follow-up:
+
+- Recorded the approved ordered-hybrid close-out design and implementation plan.
+- Updated the point-in-time close-out status with the Kimi/vLLM resource
+  decision.
+- Refreshed the close-out audit reports with 2026-05-09 scan/runtime findings.
+- Tuned the overclaim scanner so agent workflow plans under `docs/superpowers/`
+  are not treated as public delivery claims.
+- Updated the public repo cleanup contract to include `docs/superpowers/` as an
+  allowed curated documentation path.
+- Softened ignored local evidence-pack wording in
+  `evidence/PHASE_1_DELIVERED.md` and
+  `evidence/evidence_pack/limitations.md`; these files remain ignored and were
+  not committed.
+
+Validation commands and actual outcomes:
+
+| Command | Result |
+| --- | --- |
+| `python3 scripts/privacy_preflight.py` | Passed |
+| `python3 test_chimera_smoke.py` | 6 passed, 0 failed |
+| `python3 -m pytest -p no:cacheprovider tests/unit/test_chimera_core.py tests/unit/test_chimera_web_contract.py tests/unit/test_public_repo_cleanup_contract.py tests/unit/test_privacy_preflight.py -q` | 45 passed |
+| `python3 scripts/check_markdown_links.py` | No broken markdown links |
+| `python3 scripts/run_phase1_demo.py` | Passed; generated `outputs/run_logs/phase1_demo_20260509T194651Z.json` |
+| `python3 scripts/scan_for_overclaims.py --include-untracked` | Completed; guarded close-out terms remain, review findings remain in legacy/Phase 2 surfaces |
+| `python3 scripts/scan_for_secrets.py --include-untracked` | Completed; values were not printed, local-path/secret-like findings remain in legacy/advanced surfaces |
+| `nvidia-smi` | GB10 visible; `VLLM::EngineCore` absent after stopping `chimera-kimi-vllm` |
+| `docker ps` | `chimera-kimi-vllm` absent; other Chimera containers still running |
+
+Generated but not committed:
+
+- `outputs/run_logs/phase1_demo_20260509T194651Z.json`
+- existing ignored run logs under `outputs/run_logs/`
+- ignored local evidence-pack edits under `evidence/`
+
+Current technical status:
+
+- Phase 1 operator-console route: GREEN.
+- Privacy boundary for tracked public files: GREEN.
+- Kimi/vLLM advanced route: intentionally stopped; restart only for explicit
+  DGX/Kimi validation.
+- Full repository public-readiness: AMBER because legacy/Phase 2 BSL/avatar,
+  monitoring, examples, and tests still contain review-risk language.
+
+Human actions still required:
+
+- Send scope pivot / clarification emails to Sisi Yuen, James Green, and Laura.
+- Obtain written BCU/partner response before claiming approval.
+- Record the 3-5 minute narrated demo video.
+- Store screenshots, run logs, and video privately.
+- Provide actual invoices and redacted bank statements.
+- Complete and sign the MFA declaration using the approved form/wording.
+- Confirm any BCU approval required for budget reallocation.
+- Add approved BCU/AHRC acknowledgement wording.
+- Review all draft wording before final submission.
+
+Current local git state during final reporting:
+
+- Branch: `main`
+- State before this final report commit: `main...origin/main [ahead 8]`
+- Remote push: not performed.
