@@ -31,12 +31,15 @@ The 2026-05-09 broad scan still reports review findings concentrated in:
 - integration examples and tests;
 - educational-platform implementation notes;
 - shared service templates;
-- planning documents that quote risky terms as search patterns or replacement
-  instructions.
+- legacy service documentation and code comments.
 
 Close-out docs contain guarded "do not claim" language by design. The Phase 1
 public claim remains limited to the operator-console demonstrator unless those
 broader surfaces are separately evidenced.
+
+`docs/superpowers/` is intentionally excluded from the overclaim scanner because
+those files are agent workflow specifications and plans that quote risky terms
+as search patterns and replacement instructions, not delivery claims.
 
 ## Edits Made
 
@@ -59,6 +62,4 @@ broader surfaces are separately evidenced.
   rather than the Phase 1 operator-console path.
 - BSL/avatar service, monitoring, integration, and test surfaces that still
   appear in the broad scanner as review findings.
-- Superpowers plan/spec files if they are published publicly; scanner hits there
-  are planning/search-term context, not delivery claims.
 - Any private grant report or submission PDF created outside git.

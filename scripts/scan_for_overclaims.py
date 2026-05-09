@@ -31,6 +31,7 @@ SKIP_PREFIXES = (
     "Grant_Evidence_Pack/",
     "project-chimera-submission/",
     "demo_footage/",
+    "docs/superpowers/",
     "models/",
     "venv/",
     ".venv_kimi/",

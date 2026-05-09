@@ -138,6 +138,7 @@ CURATED_PUBLIC_DOC_PREFIXES = (
     "docs/getting-started/",
     "docs/github/",
     "docs/reports/",
+    "docs/superpowers/",
 )
 
 
