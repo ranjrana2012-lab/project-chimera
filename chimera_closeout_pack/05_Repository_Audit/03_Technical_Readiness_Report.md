@@ -1,6 +1,7 @@
 # Technical Readiness Report
 
 Status: DRAFT AUDIT REPORT - HUMAN ACTION REQUIRED.
+Last refreshed: 2026-05-09.
 
 ## Detected Tech Stack
 
@@ -29,6 +30,21 @@ Observed local run on 2026-05-08:
   `reflective_transition` routes.
 - The generated real-run log was written to
   `outputs/run_logs/phase1_demo_20260508T160829Z.json`.
+
+Runtime state checked on 2026-05-09:
+
+- NVIDIA GB10 hardware was visible locally through `nvidia-smi`.
+- `chimera-kimi-vllm` / `VLLM::EngineCore` had been running for more than five
+  days and was holding approximately 70 GB of GB10 GPU memory.
+- `docker stop chimera-kimi-vllm` was run successfully.
+- Follow-up `nvidia-smi` showed the vLLM engine was no longer present.
+- `docker ps` showed other Chimera containers still running, including
+  `chimera-operator-console`, `chimera-sentiment-agent`,
+  `chimera-scenespeak-agent`, and `chimera-kimi-super-agent`.
+
+Operational decision: keep Kimi/vLLM stopped for default Phase 1 close-out,
+repo, docs, smoke-test, and local demo work. Restart Kimi/vLLM only for
+explicit DGX/Kimi validation.
 
 ## Models Found
 
@@ -59,6 +75,10 @@ the private evidence pack only after review.
 Local `nvidia-smi` and `scripts/check_environment.py` showed NVIDIA GB10
 hardware on this host. That evidence does not prove grant spend, a public
 deployment, or production readiness.
+
+The stopped Kimi/vLLM container is not a blocker for the narrowed Phase 1
+operator-console route. It is a blocker only for fresh DGX/Kimi validation until
+the advanced route is intentionally restarted and re-tested.
 
 ## Blockers
 
