@@ -207,3 +207,31 @@ Green, and Laura, then store the sent email and any responses privately. This is
 the most important next action because the Phase 1 framing and any budget
 reallocation should not be treated as accepted until written correspondence
 exists.
+
+## 11. Autonomous Follow-Up - 2026-05-09
+
+The user approved autonomous, non-destructive Project Chimera repository work
+overnight. The approved route is an ordered hybrid: grant close-out readiness
+first, public GitHub readiness second, technical demo hardening third, and
+broader repository surgery only where it reduces review risk.
+
+New local planning artefacts were created and committed:
+
+- `docs/superpowers/specs/2026-05-09-ordered-hybrid-closeout-design.md`
+- `docs/superpowers/plans/2026-05-09-ordered-hybrid-closeout-plan.md`
+
+Runtime resource decision:
+
+- `nvidia-smi` showed NVIDIA GB10 hardware visible locally.
+- `chimera-kimi-vllm` / `VLLM::EngineCore` was using approximately 70 GB of
+  GB10 GPU memory.
+- `docker stop chimera-kimi-vllm` was run successfully.
+- Kimi/vLLM is not required for the Phase 1 operator-console close-out route.
+- Keep Kimi/vLLM stopped for default repo, docs, smoke-test, and close-out work.
+- Restart it only for explicit DGX/Kimi validation.
+
+Current local git state at the start of this follow-up:
+
+- Branch: `main`
+- State: `main...origin/main [ahead 5]`
+- No remote push was performed.

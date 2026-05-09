@@ -35,12 +35,14 @@ Overall status:
 
 ## 2. Current Git And GitHub Position
 
-Local repository after this snapshot is committed:
+Local repository after the 2026-05-09 planning commits:
 
 - Branch: `main`
-- Expected local state: `main...origin/main [ahead 3]`
+- Current local state checked on 2026-05-09: `main...origin/main [ahead 5]`
 - Latest local commits:
-  - this snapshot document: `docs: add point-in-time close-out status`
+  - `bb3797e5 docs: plan ordered hybrid close-out work`
+  - `08ac38af docs: record ordered hybrid close-out design`
+  - `1f0a645e docs: add point-in-time close-out status`
   - `594472f0 docs: build phase 1 close-out roadmap`
   - `1c20afee docs: add phase 1 close-out pack`
 - These local close-out commits have not been pushed to GitHub at the time of this
@@ -59,6 +61,13 @@ GitHub-visible state checked on 2026-05-08:
 Recommendation: push the local close-out commits only after the owner is
 comfortable with publishing the close-out templates and roadmap. Do not merge
 the blocked Dependabot PRs without targeted dependency testing.
+
+Runtime note added on 2026-05-09:
+
+- `chimera-kimi-vllm` was stopped because it was not required for the Phase 1
+  close-out route and was holding approximately 70 GB of GB10 GPU memory.
+- Kimi/vLLM should remain off for default close-out work.
+- Restart Kimi/vLLM only for explicit DGX/Kimi validation.
 
 ## 3. What Has Been Completed
 
