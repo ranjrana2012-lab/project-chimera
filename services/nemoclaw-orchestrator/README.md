@@ -215,7 +215,7 @@ Local GGUF models for specialized tasks:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GGUF_BASE_PATH` | `/home/ranj/Project_Chimera_Downloads/LLM Models/gguf` | Base path to GGUF models |
+| `GGUF_BASE_PATH` | `<local-model-cache>/gguf` | Base path to GGUF models |
 | `GGUF_LLAMA_MODEL` | `other/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf` | General purpose GGUF model |
 | `GGUF_BSL7_MODEL` | `bsl-phases/bsl_phase7.Q4_K_M.gguf` | BSL Phase 7 model |
 | `GGUF_BSL8_MODEL` | `bsl-phases/bsl_phase8.Q4_K_M.gguf` | BSL Phase 8 model |
@@ -293,7 +293,7 @@ from llm.privacy_router import PrivacyRouter, RouterConfig, LLMBackend
 
 config = RouterConfig(
     dgx_endpoint="http://localhost:11434",
-    gguf_base_path="/home/ranj/Project_Chimera_Downloads/LLM Models/gguf"
+    gguf_base_path="<local-model-cache>/gguf"
 )
 
 router = PrivacyRouter(config)

@@ -31,7 +31,7 @@ The tests verify:
 Build and run the test container:
 
 ```bash
-cd /home/ranj/Project_Chimera/tests/integration/mvp
+cd <repo>/tests/integration/mvp
 docker build -f Dockerfile.test -t chimera-mvp-tests .
 docker run --rm --network chimera_chimera-backend chimera-mvp-tests
 ```
@@ -41,7 +41,7 @@ docker run --rm --network chimera_chimera-backend chimera-mvp-tests
 Install dependencies and run tests:
 
 ```bash
-cd /home/ranj/Project_Chimera/tests/integration/mvp
+cd <repo>/tests/integration/mvp
 pip install -r requirements.txt
 pytest test_service_communication.py -v
 ```

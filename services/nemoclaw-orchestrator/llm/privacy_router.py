@@ -1,7 +1,9 @@
 # services/nemoclaw-orchestrator/llm/privacy_router.py
 import time
+import os
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Dict, Any, Optional
 import logging
 
@@ -52,7 +54,12 @@ class RouterConfig:
     nemotron_max_retries: int = 2
 
     # GGUF Model Configuration
-    gguf_base_path: str = "/home/ranj/Project_Chimera_Downloads/LLM Models/gguf"
+    gguf_base_path: str = field(
+        default_factory=lambda: os.getenv(
+            "CHIMERA_GGUF_BASE",
+            str(Path.home() / "Project_Chimera_Downloads" / "LLM Models" / "gguf"),
+        )
+    )
     gguf_models: Dict[str, str] = None  # Map of backend to GGUF file path
 
     def __post_init__(self):

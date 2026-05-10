@@ -29,7 +29,7 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ENV_FILE="$PROJECT_ROOT/.env"
-GGUF_BASE_PATH="/home/ranj/Project_Chimera_Downloads/LLM Models/gguf"
+GGUF_BASE_PATH="${CHIMERA_GGUF_BASE:-$HOME/Project_Chimera_Downloads/LLM Models/gguf}"
 OLLAMA_ENDPOINT="http://localhost:11434"
 
 # Model definitions

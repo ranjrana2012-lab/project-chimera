@@ -4,7 +4,7 @@
 
 ```bash
 # 1. Navigate to service directory
-cd /home/ranj/Project_Chimera/services/educational-platform
+cd <repo>/services/educational-platform
 
 # 2. Create and activate virtual environment
 python -m venv venv
@@ -194,15 +194,15 @@ ws.send(JSON.stringify({
 
 | File | Location |
 |------|----------|
-| Main Application | `/home/ranj/Project_Chimera/services/educational-platform/main.py` |
+| Main Application | `<repo>/services/educational-platform/main.py` |
 | Data Models | `models.py` |
 | Database Layer | `database.py` |
 | Integrations | `integrations.py` |
 | Educator CLI | `educator_cli.py` |
 | Example Curriculum | `examples.py` |
 | Tests | `tests/test_api.py` |
-| API Documentation | `/home/ranj/Project_Chimera/docs/api/educational-platform.md` |
-| Architecture | `/home/ranj/Project_Chimera/docs/architecture/educational-platform-architecture.md` |
+| API Documentation | `<repo>/docs/api/educational-platform.md` |
+| Architecture | `<repo>/docs/architecture/educational-platform-architecture.md` |
 
 ## 🎓 Example Curriculum
 
@@ -279,4 +279,4 @@ Run it: `python examples.py`
 **For detailed information, see:**
 - Implementation Summary: `IMPLEMENTATION-SUMMARY.md`
 - API Documentation: `README.md`
-- Architecture: `/home/ranj/Project_Chimera/docs/architecture/educational-platform-architecture.md`
+- Architecture: `<repo>/docs/architecture/educational-platform-architecture.md`

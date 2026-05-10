@@ -15,7 +15,7 @@ Your App → ZAI Auth Proxy → chat.z.ai API (with session token)
 ### 1. Start the Authentication Proxy
 
 ```bash
-cd /home/ranj/Project_Chimera/services/zai-auth-proxy
+cd <repo>/services/zai-auth-proxy
 ./start.sh
 ```
 
@@ -41,7 +41,7 @@ Use the proxy endpoint instead of the direct Z.ai API:
 ```python
 # Old: Direct API (requires resource package)
 client = OpenAI(
-    api_key="your-api-key",
+    api_key="<your-api-key>",
     base_url="https://open.bigmodel.cn/api/paas/v4/"
 )
 

@@ -253,7 +253,7 @@ curl http://localhost:8007/health/live
 Ensure project root is in Python path:
 
 ```bash
-export PYTHONPATH=/home/ranj/Project_Chimera:$PYTHONPATH
+export PYTHONPATH=<repo>:$PYTHONPATH
 ```
 
 ## Continuous Integration

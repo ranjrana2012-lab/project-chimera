@@ -25,7 +25,7 @@ class TestGitHubSignature:
         from gateway.webhook import verify_github_signature
 
         payload = b'{"test": "data"}'
-        secret = "webhook_secret"
+        secret = "example"
 
         # Generate valid signature
         signature = "sha256=" + hmac.new(
@@ -41,7 +41,7 @@ class TestGitHubSignature:
         from gateway.webhook import verify_github_signature
 
         payload = b'{"test": "data"}'
-        secret = "webhook_secret"
+        secret = "example"
 
         # Invalid signature
         signature = "sha256=invalid"

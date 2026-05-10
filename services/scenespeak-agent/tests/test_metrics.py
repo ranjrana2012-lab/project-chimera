@@ -5,10 +5,11 @@ Tests Prometheus metrics for dialogue quality tracking.
 """
 
 import pytest
+from pathlib import Path
 from prometheus_client import REGISTRY
 
 # Add scenespeak-agent to path
-agent_path = "/home/ranj/Project_Chimera/services/scenespeak-agent"
+agent_path = str(Path(__file__).resolve().parents[1])
 import sys
 sys.path.insert(0, agent_path)
 

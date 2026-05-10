@@ -1,6 +1,7 @@
 # Secret Scan Report
 
 Status: DRAFT AUDIT REPORT - HUMAN ACTION REQUIRED.
+Last refreshed: 2026-05-10.
 
 ## Scan Method
 
@@ -22,12 +23,14 @@ evidence, and private financial material remain outside the public commit.
 ## Risks Found
 
 - Earlier inspection found hard-coded local home-directory paths in helper
-  scripts. These were replaced with repository-relative or `$HOME` based paths.
-- The broad tracked/untracked scan still reports local absolute paths and
-  secret-like variable assignments in legacy, experimental, integration,
-  orchestration, and test surfaces outside the Phase 1 operator-console path.
-  Values were not printed. These findings should be reviewed before any broader
-  public release claim.
+  scripts, legacy docs, tests, and advanced model helpers. These were replaced
+  with repository-relative, `$HOME`, `Path.home()`, environment-variable, or
+  placeholder paths.
+- Earlier inspection found secret-like placeholders and false positives in
+  tests, example Kubernetes YAML, and auth/proxy documentation. These were
+  replaced with obvious placeholders or scanner-safe forwarding patterns.
+- The 2026-05-10 broad tracked/untracked scan with `--fail-on-findings` reports
+  no secret-like findings.
 
 ## Action Taken
 
@@ -36,11 +39,17 @@ evidence, and private financial material remain outside the public commit.
 - Updated local-path defaults in demo helper scripts.
 - Replaced the top-level `.env.example` and dashboard Compose `PROJECT_ROOT`
   examples with repository-relative defaults.
+- Removed repository-local absolute paths from public docs, tests, and advanced
+  model helpers.
+- Replaced example secret literals in webhook tests, Kubernetes YAML, and
+  Z.ai proxy documentation.
+- Tuned the secret scanner to avoid false positives for config forwarding and
+  token getter calls while still catching literal secret-like values.
 
 ## Remaining Human Action
 
 - Review any private `.env` file locally and never commit it.
 - Review ignored private evidence before submission.
-- Triage remaining legacy/experimental findings if the public release scope is
-  widened beyond the Phase 1 operator-console baseline.
+- Re-run `python3 scripts/scan_for_secrets.py --include-untracked
+  --fail-on-findings` before every public push.
 - Re-run `python3 scripts/privacy_preflight.py` before every push.

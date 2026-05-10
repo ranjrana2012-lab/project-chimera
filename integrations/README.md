@@ -32,7 +32,7 @@ This guide helps you deploy and integrate BettaFish (public opinion analysis) an
 ### Step 1: Clone and Configure BettaFish
 
 ```bash
-cd /home/ranj/Project_Chimera/integrations/bettafish
+cd <repo>/integrations/bettafish
 
 # Create environment file
 cp .env.template .env
@@ -70,7 +70,7 @@ REPORT_ENGINE_MODEL_NAME=gpt-4o
 ### Step 2: Start BettaFish
 
 ```bash
-cd /home/ranj/Project_Chimera/integrations/bettafish
+cd <repo>/integrations/bettafish
 
 # Build and start
 docker-compose -f docker-compose.security.yml up -d --build
@@ -85,7 +85,7 @@ docker-compose -f docker-compose.security.yml logs -f bettafish
 ### Step 3: Clone and Configure MiroFish
 
 ```bash
-cd /home/ranj/Project_Chimera/integrations/mirofish
+cd <repo>/integrations/mirofish
 
 # Create environment file
 cp .env.template .env
@@ -102,7 +102,7 @@ NEO4J_PASSWORD=your_secure_graph_password
 ### Step 4: Start MiroFish
 
 ```bash
-cd /home/ranj/Project_Chimera/integrations/mirofish
+cd <repo>/integrations/mirofish
 
 # Build and start
 docker-compose -f docker-compose.security.yml up -d --build
@@ -121,7 +121,7 @@ docker exec mirofish-ollama ollama pull nomic-embed-text
 ### Step 5: Start Opinion Pipeline (Chimera Integration)
 
 ```bash
-cd /home/ranj/Project_Chimera
+cd <repo>
 
 # Start the opinion pipeline service
 docker-compose up -d opinion-pipeline-agent

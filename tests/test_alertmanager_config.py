@@ -3,9 +3,13 @@ Test suite for AlertManager configuration.
 
 Tests follow TDD: Write failing test first, then implement.
 """
-import os
 import yaml
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+ALERTMANAGER_CONFIG = REPO_ROOT / "platform/monitoring/config/alertmanager.yaml"
+ALERTMANAGER_DEPLOYMENT = REPO_ROOT / "infrastructure/kubernetes/alertmanager/deployment.yaml"
+ALERTMANAGER_SERVICE = REPO_ROOT / "infrastructure/kubernetes/alertmanager/service.yaml"
 
 
 class TestAlertManagerConfig:
@@ -13,19 +17,19 @@ class TestAlertManagerConfig:
 
     def test_alertmanager_config_exists(self):
         """Test that alertmanager.yaml configuration file exists."""
-        config_path = Path("/home/ranj/Project_Chimera/platform/monitoring/config/alertmanager.yaml")
+        config_path = ALERTMANAGER_CONFIG
         assert config_path.exists(), f"AlertManager config file not found at {config_path}"
 
     def test_alertmanager_config_valid_yaml(self):
         """Test that alertmanager.yaml is valid YAML."""
-        config_path = Path("/home/ranj/Project_Chimera/platform/monitoring/config/alertmanager.yaml")
+        config_path = ALERTMANAGER_CONFIG
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
         assert config is not None, "Config file is empty or invalid"
 
     def test_alertmanager_global_config(self):
         """Test that global configuration has required fields."""
-        config_path = Path("/home/ranj/Project_Chimera/platform/monitoring/config/alertmanager.yaml")
+        config_path = ALERTMANAGER_CONFIG
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
 
@@ -35,7 +39,7 @@ class TestAlertManagerConfig:
 
     def test_alertmanager_route_config(self):
         """Test that route configuration is properly set up."""
-        config_path = Path("/home/ranj/Project_Chimera/platform/monitoring/config/alertmanager.yaml")
+        config_path = ALERTMANAGER_CONFIG
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
 
@@ -55,7 +59,7 @@ class TestAlertManagerConfig:
 
     def test_alertmanager_receivers(self):
         """Test that receivers are properly configured."""
-        config_path = Path("/home/ranj/Project_Chimera/platform/monitoring/config/alertmanager.yaml")
+        config_path = ALERTMANAGER_CONFIG
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
 
@@ -70,7 +74,7 @@ class TestAlertManagerConfig:
 
     def test_alertmanager_slack_configs(self):
         """Test that Slack configurations are present."""
-        config_path = Path("/home/ranj/Project_Chimera/platform/monitoring/config/alertmanager.yaml")
+        config_path = ALERTMANAGER_CONFIG
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
 
@@ -86,7 +90,7 @@ class TestAlertManagerConfig:
 
     def test_alertmanager_inhibit_rules(self):
         """Test that inhibit rules are configured."""
-        config_path = Path("/home/ranj/Project_Chimera/platform/monitoring/config/alertmanager.yaml")
+        config_path = ALERTMANAGER_CONFIG
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
 
@@ -106,17 +110,17 @@ class TestAlertManagerKubernetesManifests:
 
     def test_deployment_exists(self):
         """Test that AlertManager deployment manifest exists."""
-        deployment_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/deployment.yaml")
+        deployment_path = ALERTMANAGER_DEPLOYMENT
         assert deployment_path.exists(), f"Deployment manifest not found at {deployment_path}"
 
     def test_service_exists(self):
         """Test that AlertManager service manifest exists."""
-        service_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/service.yaml")
+        service_path = ALERTMANAGER_SERVICE
         assert service_path.exists(), f"Service manifest not found at {service_path}"
 
     def test_deployment_valid_yaml(self):
         """Test that deployment.yaml is valid YAML."""
-        deployment_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/deployment.yaml")
+        deployment_path = ALERTMANAGER_DEPLOYMENT
         with open(deployment_path, 'r') as f:
             # Load all documents from multi-document YAML
             documents = list(yaml.safe_load_all(f))
@@ -125,7 +129,7 @@ class TestAlertManagerKubernetesManifests:
 
     def test_deployment_structure(self):
         """Test that deployment has correct structure."""
-        deployment_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/deployment.yaml")
+        deployment_path = ALERTMANAGER_DEPLOYMENT
         with open(deployment_path, 'r') as f:
             documents = list(yaml.safe_load_all(f))
         deployment = documents[0]  # First document is the Deployment
@@ -141,7 +145,7 @@ class TestAlertManagerKubernetesManifests:
 
     def test_deployment_container_config(self):
         """Test that AlertManager container is properly configured."""
-        deployment_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/deployment.yaml")
+        deployment_path = ALERTMANAGER_DEPLOYMENT
         with open(deployment_path, 'r') as f:
             documents = list(yaml.safe_load_all(f))
         deployment = documents[0]  # First document is the Deployment
@@ -165,7 +169,7 @@ class TestAlertManagerKubernetesManifests:
 
     def test_deployment_volumes(self):
         """Test that deployment has proper volume mounts."""
-        deployment_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/deployment.yaml")
+        deployment_path = ALERTMANAGER_DEPLOYMENT
         with open(deployment_path, 'r') as f:
             documents = list(yaml.safe_load_all(f))
         deployment = documents[0]  # First document is the Deployment
@@ -183,14 +187,14 @@ class TestAlertManagerKubernetesManifests:
 
     def test_service_valid_yaml(self):
         """Test that service.yaml is valid YAML."""
-        service_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/service.yaml")
+        service_path = ALERTMANAGER_SERVICE
         with open(service_path, 'r') as f:
             service = yaml.safe_load(f)
         assert service is not None, "Service file is empty or invalid"
 
     def test_service_structure(self):
         """Test that service has correct structure."""
-        service_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/service.yaml")
+        service_path = ALERTMANAGER_SERVICE
         with open(service_path, 'r') as f:
             service = yaml.safe_load(f)
 
@@ -201,7 +205,7 @@ class TestAlertManagerKubernetesManifests:
 
     def test_service_ports(self):
         """Test that service exposes correct port."""
-        service_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/service.yaml")
+        service_path = ALERTMANAGER_SERVICE
         with open(service_path, 'r') as f:
             service = yaml.safe_load(f)
 
@@ -211,7 +215,7 @@ class TestAlertManagerKubernetesManifests:
 
     def test_service_type(self):
         """Test that service is ClusterIP."""
-        service_path = Path("/home/ranj/Project_Chimera/infrastructure/kubernetes/alertmanager/service.yaml")
+        service_path = ALERTMANAGER_SERVICE
         with open(service_path, 'r') as f:
             service = yaml.safe_load(f)
 

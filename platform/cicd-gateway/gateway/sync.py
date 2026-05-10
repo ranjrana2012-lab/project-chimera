@@ -248,7 +248,7 @@ class ResultSyncService:
         Args:
             github: GitHub client (None for testing)
             orchestrator_url: Orchestrator base URL
-            api_key: Orchestrator API key
+            api_key parameter: key used for orchestrator API authentication
         """
         self.github = github
         self.orchestrator_url = orchestrator_url.rstrip("/")

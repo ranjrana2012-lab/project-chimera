@@ -97,7 +97,7 @@ print(f"Current model: {status['current_model']}")
 
 All GGUF models are stored in:
 ```
-/home/ranj/Project_Chimera_Downloads/LLM Models/gguf/
+<local-model-cache>/gguf/
 ├── other/           # General purpose models
 ├── bsl-phases/      # BSL phase models
 ├── directors/       # Director models

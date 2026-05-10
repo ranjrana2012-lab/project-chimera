@@ -333,3 +333,32 @@ This does not change the grant-submission blockers. The repository is stronger
 as supporting Phase 1 evidence, but final submission still needs human scope
 correspondence, actual financial evidence, the MFA declaration, and a recorded
 demo video.
+
+## 14. Secret And Local Path Cleanup - 2026-05-10
+
+Additional repository-side cleanup completed:
+
+- Removed hard-coded local home-directory repository paths from public docs and
+  tests, replacing them with `<repo>` placeholders or dynamic `Path` constants.
+- Replaced advanced local model defaults with `$HOME`, `Path.home()`, or
+  `CHIMERA_*` environment-variable defaults.
+- Replaced example secret-like literals in webhook tests, Kubernetes YAML, and
+  Z.ai proxy documentation with obvious placeholders.
+- Tuned `scripts/scan_for_secrets.py` so config forwarding and token getter
+  calls are not treated as literal leaked values.
+- Refreshed the secret scan audit report.
+
+Latest validation command:
+
+| Command | Result |
+| --- | --- |
+| `python3 scripts/scan_for_secrets.py --include-untracked --fail-on-findings` | No secret-like findings found |
+| `python3 scripts/privacy_preflight.py` | Passed |
+| `python3 scripts/scan_for_overclaims.py --include-untracked --fail-on-review` | Passed; guarded and `experimental_or_phase2` findings remain, no unresolved `review` findings |
+| `python3 -m py_compile scripts/scan_for_secrets.py services/nemoclaw-orchestrator/llm/gguf_client.py services/nemoclaw-orchestrator/llm/privacy_router.py services/nemoclaw-orchestrator/scripts/model_manager.py platform/cicd-gateway/gateway/sync.py tests/test_alertmanager_config.py services/scenespeak-agent/tests/test_metrics.py services/scenespeak-agent/tests/test_tracing.py platform/cicd-gateway/tests/test_webhook.py` | Passed |
+| `python3 -m pytest -p no:cacheprovider platform/cicd-gateway/tests/test_webhook.py tests/test_alertmanager_config.py services/scenespeak-agent/tests/test_metrics.py services/scenespeak-agent/tests/test_tracing.py -q` | 60 passed; emitted an OpenTelemetry exporter shutdown warning after completion |
+| `python3 scripts/check_markdown_links.py` | No broken markdown links |
+| `git diff --check` | Passed |
+
+This is repository hygiene only. It does not verify private `.env` files,
+private evidence folders, bank evidence, invoices, or external systems.

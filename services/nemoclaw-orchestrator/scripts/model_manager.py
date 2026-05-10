@@ -105,7 +105,7 @@ class ModelManager:
 
     def __init__(
         self,
-        gguf_base_path: str = "/home/ranj/Project_Chimera_Downloads/LLM Models/gguf",
+        gguf_base_path: Optional[str] = None,
         ollama_endpoint: str = "http://localhost:11434",
         env_file: Optional[str] = None
     ):
@@ -117,7 +117,8 @@ class ModelManager:
             ollama_endpoint: Ollama API endpoint
             env_file: Path to .env file (default: ../.env from script location)
         """
-        self.gguf_base_path = Path(gguf_base_path)
+        default_base = Path.home() / "Project_Chimera_Downloads" / "LLM Models" / "gguf"
+        self.gguf_base_path = Path(gguf_base_path or os.getenv("CHIMERA_GGUF_BASE", str(default_base)))
         self.ollama_endpoint = ollama_endpoint.rstrip("/")
 
         # Find .env file

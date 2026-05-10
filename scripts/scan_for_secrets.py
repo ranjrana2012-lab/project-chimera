@@ -46,7 +46,7 @@ PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         re.compile(
             r"(?i)\b(api[_-]?key|secret|token|password|bearer)\b\s*[:=]\s*['\"]?(?!"
             r"REDACTED|CHANGE_ME|CHANGEME|example|placeholder|your_|args\.|self\.|request\.|"
-            r"os\.getenv|None\b|<|$)"
+            r"config\.|get_|os\.getenv|None\b|<|$)"
             r"[A-Za-z0-9_./+=:-]{12,}"
         ),
     ),

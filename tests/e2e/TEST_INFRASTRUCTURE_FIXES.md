@@ -10,7 +10,7 @@ Fixed 6 test infrastructure files to ensure proper service discovery, health che
 ## Files Modified
 
 ### 1. global-setup.ts
-**Path:** `/home/ranj/Project_Chimera/tests/e2e/global-setup.ts`
+**Path:** `<repo>/tests/e2e/global-setup.ts`
 
 **Issues Fixed:**
 - Was a stub that did nothing
@@ -39,7 +39,7 @@ await ServiceHealthHelper.ensureServicesReady(120000);
 ```
 
 ### 2. global-teardown.ts
-**Path:** `/home/ranj/Project_Chimera/tests/e2e/global-teardown.ts`
+**Path:** `<repo>/tests/e2e/global-teardown.ts`
 
 **Issues Fixed:**
 - Was a stub that did nothing
@@ -61,7 +61,7 @@ if (shouldStopServices) {
 ```
 
 ### 3. helpers/service-health.ts
-**Path:** `/home/ranj/Project_Chimera/tests/e2e/helpers/service-health.ts`
+**Path:** `<repo>/tests/e2e/helpers/service-health.ts`
 
 **Issues Fixed:**
 - Incorrect service names (e.g., "orchestrator" instead of "openclaw-orchestrator")
@@ -102,7 +102,7 @@ private static services: Service[] = [
 ```
 
 ### 4. helpers/test-utils.ts
-**Path:** `/home/ranj/Project_Chimera/tests/e2e/helpers/test-utils.ts`
+**Path:** `<repo>/tests/e2e/helpers/test-utils.ts`
 
 **Issues Fixed:**
 - Hardcoded `/health` endpoint for all services
@@ -138,7 +138,7 @@ checkServiceHealth(service: string, port?: number): Promise<boolean>
 ```
 
 ### 5. helpers/websocket-client.ts
-**Path:** `/home/ranj/Project_Chimera/tests/e2e/helpers/websocket-client.ts`
+**Path:** `<repo>/tests/e2e/helpers/websocket-client.ts`
 
 **Issues Fixed:**
 - No issues found (file was already well-structured)
@@ -147,7 +147,7 @@ checkServiceHealth(service: string, port?: number): Promise<boolean>
 **Status:** No changes needed - existing implementation works correctly with actual service WebSocket endpoints.
 
 ### 6. playwright.config.ts
-**Path:** `/home/ranj/Project_Chimera/tests/e2e/playwright.config.ts`
+**Path:** `<repo>/tests/e2e/playwright.config.ts`
 
 **Issues Fixed:**
 - Default baseURL pointed to orchestrator (port 8000)

@@ -7,9 +7,10 @@ Tests OpenTelemetry instrumentation for dialogue generation tracing.
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 import sys
+from pathlib import Path
 
 # Add scenespeak-agent to path
-agent_path = "/home/ranj/Project_Chimera/services/scenespeak-agent"
+agent_path = str(Path(__file__).resolve().parents[1])
 sys.path.insert(0, agent_path)
 
 

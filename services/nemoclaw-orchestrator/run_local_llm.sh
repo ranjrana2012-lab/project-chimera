@@ -1,13 +1,13 @@
 #!/bin/bash
 # Simple local LLM server using llama.cpp
 
-MODEL_PATH="/home/ranj/Project_Chimera_Downloads/LLM Models/mythomax-l2-13b-gguf/mythomax-l2-13b.Q4_K_M.gguf"
+MODEL_PATH="${CHIMERA_MODEL_PATH:-$HOME/Project_Chimera_Downloads/LLM Models/mythomax-l2-13b-gguf/mythomax-l2-13b.Q4_K_M.gguf}"
 
 # Check if model exists
 if [ ! -f "$MODEL_PATH" ]; then
     echo "Model not found at $MODEL_PATH"
     echo "Using Llama-3-70B instead..."
-    MODEL_PATH="/home/ranj/Project_Chimera_Downloads/LLM Models/meta-llama3-70b-instruct-gguf/Meta-Llama-3-70B-Instruct-Q4_K_M.gguf"
+    MODEL_PATH="${CHIMERA_FALLBACK_MODEL_PATH:-$HOME/Project_Chimera_Downloads/LLM Models/meta-llama3-70b-instruct-gguf/Meta-Llama-3-70B-Instruct-Q4_K_M.gguf}"
 fi
 
 # Check if llama.cpp is installed

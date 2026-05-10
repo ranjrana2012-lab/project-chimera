@@ -201,8 +201,8 @@ metadata:
   namespace: chimera
 type: Opaque
 stringData:
-  # Base64 encoded API key - replace with actual value
-  api-key: YXBpLWtleS1yZXBsYWNlLXdpdGgtYWN0dWFsLXZhbHVl
+  # Replace with an externally managed secret value before deployment.
+  api-key: CHANGE_ME
 ---
 apiVersion: v1
 kind: ServiceAccount

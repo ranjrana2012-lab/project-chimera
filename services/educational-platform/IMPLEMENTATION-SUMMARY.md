@@ -27,7 +27,7 @@ partner.
 
 ### 1. Core Service Infrastructure ✅
 
-**File**: `/home/ranj/Project_Chimera/services/educational-platform/main.py`
+**File**: `<repo>/services/educational-platform/main.py`
 - FastAPI application with async support
 - RESTful API with 25+ endpoints
 - WebSocket support for real-time updates
@@ -37,7 +37,7 @@ partner.
 
 ### 2. Data Models ✅
 
-**File**: `/home/ranj/Project_Chimera/services/educational-platform/models.py`
+**File**: `<repo>/services/educational-platform/models.py`
 
 **14 Comprehensive Models**:
 - `StudentProfile` - Complete learner profiles with accessibility needs
@@ -57,7 +57,7 @@ partner.
 
 ### 3. Database Layer ✅
 
-**File**: `/home/ranj/Project_Chimera/services/educational-platform/database.py`
+**File**: `<repo>/services/educational-platform/database.py`
 
 **Features**:
 - SQLite database with 10+ tables
@@ -74,7 +74,7 @@ partner.
 
 ### 4. Accessibility-Oriented Integration Prototype ✅
 
-**File**: `/home/ranj/Project_Chimera/services/educational-platform/integrations.py`
+**File**: `<repo>/services/educational-platform/integrations.py`
 
 **Three Integration Agents**:
 
@@ -106,7 +106,7 @@ partner.
 
 ### 5. Metrics & Monitoring ✅
 
-**File**: `/home/ranj/Project_Chimera/services/educational-platform/metrics.py`
+**File**: `<repo>/services/educational-platform/metrics.py`
 
 **20+ Prometheus Metrics**:
 - Student engagement and sentiment
@@ -118,7 +118,7 @@ partner.
 
 ### 6. Educator Interface ✅
 
-**File**: `/home/ranj/Project_Chimera/services/educational-platform/educator_cli.py`
+**File**: `<repo>/services/educational-platform/educator_cli.py`
 
 **Features**:
 - Interactive CLI for educators
@@ -137,7 +137,7 @@ python educator_cli.py          # Interactive mode
 
 ### 7. Example Curriculum ✅
 
-**File**: `/home/ranj/Project_Chimera/services/educational-platform/examples.py`
+**File**: `<repo>/services/educational-platform/examples.py`
 
 **Complete Python Programming Course**:
 - 5 lessons with progression
@@ -155,7 +155,7 @@ python educator_cli.py          # Interactive mode
 
 ### 8. Testing Suite ✅
 
-**File**: `/home/ranj/Project_Chimera/services/educational-platform/tests/test_api.py`
+**File**: `<repo>/services/educational-platform/tests/test_api.py`
 
 **Test Coverage**:
 - Database operations
@@ -166,20 +166,20 @@ python educator_cli.py          # Interactive mode
 
 ### 9. Documentation ✅
 
-**API Documentation**: `/home/ranj/Project_Chimera/docs/api/educational-platform.md`
+**API Documentation**: `<repo>/docs/api/educational-platform.md`
 - Complete API reference
 - Request/response examples
 - WebSocket protocols
 - Data model specifications
 
-**Architecture Document**: `/home/ranj/Project_Chimera/docs/architecture/educational-platform-architecture.md`
+**Architecture Document**: `<repo>/docs/architecture/educational-platform-architecture.md`
 - System architecture
 - Data flow diagrams
 - Component interactions
 - Scalability considerations
 - Security measures
 
-**Service README**: `/home/ranj/Project_Chimera/services/educational-platform/README.md`
+**Service README**: `<repo>/services/educational-platform/README.md`
 - Quick start guide
 - Usage examples
 - Configuration reference
@@ -274,7 +274,7 @@ python educator_cli.py          # Interactive mode
 ### Installation
 
 ```bash
-cd /home/ranj/Project_Chimera/services/educational-platform
+cd <repo>/services/educational-platform
 
 # Create virtual environment
 python -m venv venv
@@ -424,7 +424,7 @@ curl -X POST http://localhost:8012/api/v1/content/enhance \
 ## File Structure
 
 ```
-/home/ranj/Project_Chimera/services/educational-platform/
+<repo>/services/educational-platform/
 ├── main.py                 # FastAPI application
 ├── models.py              # Data models
 ├── database.py            # Database layer

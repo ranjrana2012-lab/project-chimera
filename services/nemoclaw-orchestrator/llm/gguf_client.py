@@ -16,7 +16,7 @@ class GGUFClient:
     def __init__(
         self,
         endpoint: str = "http://localhost:11434",
-        gguf_base_path: str = "/home/ranj/Project_Chimera_Downloads/LLM Models/gguf",
+        gguf_base_path: Optional[str] = None,
         model_name: str = "llama-3.1-8b-instruct",
         gguf_relative_path: str = "other/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"
     ):
@@ -30,7 +30,8 @@ class GGUFClient:
             gguf_relative_path: Relative path from gguf_base_path to the GGUF file
         """
         self.endpoint = endpoint.rstrip("/")
-        self.gguf_base_path = Path(gguf_base_path)
+        default_base = Path.home() / "Project_Chimera_Downloads" / "LLM Models" / "gguf"
+        self.gguf_base_path = Path(gguf_base_path or os.getenv("CHIMERA_GGUF_BASE", str(default_base)))
         self.model_name = model_name
         self.gguf_path = self.gguf_base_path / gguf_relative_path
         self._client: Optional[httpx.Client] = None
