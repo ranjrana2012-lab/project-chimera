@@ -236,7 +236,7 @@ mypy audio_controller.py
 
 ### Speakers/Amps
 
-- Appropriate speakers for venue size
+- Appropriate speakers for the intended space size
 - Power amplifiers if needed
 - Proper gain staging
 

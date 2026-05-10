@@ -299,3 +299,37 @@ Current local git state during final reporting:
 - Branch: `main`
 - State before this final report commit: `main...origin/main [ahead 8]`
 - Remote push: not performed.
+
+## 13. Continuation Cleanup - 2026-05-10
+
+Additional repository-side cleanup completed after the user asked to carry on:
+
+- Rewrote `CONTRIBUTORS.md` to avoid unsupported completed community, student
+  cohort, and release claims.
+- Added explicit Phase 1 boundary notes to
+  `services/bsl-avatar-service/README.md` and
+  `services/educational-platform/IMPLEMENTATION-SUMMARY.md`.
+- Replaced the generic shared service template maturity wording with reusable
+  experimental service-template wording.
+- Reworded an audio-controller hardware note to avoid unnecessary space-planning
+  assumptions.
+- Updated `scripts/scan_for_overclaims.py` so known Phase 2 scripts and test
+  fixtures are classified as `experimental_or_phase2` rather than unresolved
+  public-claim review findings.
+- Refreshed the overclaim audit report to record the stricter scanner status.
+
+Latest validation command:
+
+| Command | Result |
+| --- | --- |
+| `python3 scripts/privacy_preflight.py` | Passed |
+| `python3 scripts/scan_for_overclaims.py --include-untracked --fail-on-review` | Passed; guarded and `experimental_or_phase2` findings remain, no unresolved `review` findings |
+| `python3 -m pytest -p no:cacheprovider tests/unit/test_chimera_core.py tests/unit/test_chimera_web_contract.py tests/unit/test_public_repo_cleanup_contract.py tests/unit/test_privacy_preflight.py -q` | 45 passed |
+| `python3 test_chimera_smoke.py` | 6 passed, 0 failed |
+| `python3 scripts/check_markdown_links.py` | No broken markdown links |
+| `git diff --check` | Passed |
+
+This does not change the grant-submission blockers. The repository is stronger
+as supporting Phase 1 evidence, but final submission still needs human scope
+correspondence, actual financial evidence, the MFA declaration, and a recorded
+demo video.

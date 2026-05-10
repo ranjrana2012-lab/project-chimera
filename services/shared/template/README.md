@@ -1,6 +1,6 @@
 # Service Template
 
-Production-ready service template for Project Chimera.
+Reusable service template for Project Chimera service experiments.
 
 ## Features
 

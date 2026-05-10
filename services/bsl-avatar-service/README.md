@@ -1,12 +1,21 @@
 # BSL Avatar Service
 
-Project Chimera Phase 2 - British Sign Language (BSL) avatar generation service for live theatrical performances.
+Project Chimera Phase 2 - British Sign Language (BSL) avatar research service
+for future live-performance exploration.
+
+> Phase 1 close-out boundary: this service is not part of the evidenced Phase 1
+> local operator-console demonstrator. Do not use this folder to claim completed
+> BSL delivery, formal accessibility validation, or production deployment unless
+> separate evidence and expert review are supplied.
 
 ## Overview
 
-The BSL Avatar Service provides real-time British Sign Language translation and avatar rendering for live theatrical performances. It translates English text to BSL sign sequences and generates avatar animations with non-manual features (facial expressions, body language).
+The BSL Avatar Service is a future-stage prototype for exploring how English
+text might be mapped to BSL sign sequences and avatar animation commands. It is
+not a validated BSL interpretation system and is not a substitute for qualified
+BSL accessibility work.
 
-## Features
+## Prototype Features
 
 - **Text-to-Sign Translation**: Convert English text to BSL sign sequences
 - **Gesture Library**: Comprehensive BSL gesture database
@@ -14,7 +23,7 @@ The BSL Avatar Service provides real-time British Sign Language translation and 
 - **Non-Manual Features**: Facial expressions, eyebrow position, body lean
 - **Fingerspelling Fallback**: Automatic fingerspelling for unknown words
 - **Question Detection**: Automatic facial expression adjustments for questions
-- **Avatar Rendering**: Generate avatar animation commands
+- **Avatar Rendering**: Generate prototype avatar animation commands
 
 ## Installation
 

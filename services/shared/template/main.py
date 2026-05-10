@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Service Template",
-    description="Production-ready service template for Project Chimera",
+    description="Reusable service template for Project Chimera service experiments",
     version="1.0.0"
 )
 

@@ -25,6 +25,31 @@ DEFAULT_TERMS = (
     "venue",
     "rehearsal",
 )
+EXPERIMENTAL_OR_PHASE2_PREFIXES = (
+    "examples/integration/",
+    "monitoring/",
+    "platform/monitoring/",
+    "services/bsl-avatar-service/",
+    "services/educational-platform/",
+    "services/orchestration/",
+    "services/translation-agent/",
+    "tests/e2e/",
+    "tests/integration-ts/",
+    "tests/integration/",
+    "tests/performance/",
+)
+EXPERIMENTAL_OR_PHASE2_EXACT = {
+    "CONTRIBUTORS.md",
+    "scripts/coverage-report.sh",
+    "scripts/deploy.sh",
+    "scripts/docker-ops.sh",
+    "scripts/health-check.sh",
+    "scripts/setup-dev.sh",
+    "services/docker-compose.phase2.yml",
+    "tests/unit/test_privacy_preflight.py",
+    "tests/test_orchestration_clients.py",
+    "tests/unit/test_public_repo_cleanup_contract.py",
+}
 SKIP_PREFIXES = (
     ".git/",
     "internal/",
@@ -117,6 +142,16 @@ def guarded_context(line: str) -> bool:
     )
 
 
+def finding_note(path: str, line: str) -> str:
+    if guarded_context(line):
+        return "guarded"
+    if path in EXPERIMENTAL_OR_PHASE2_EXACT or any(
+        path.startswith(prefix) for prefix in EXPERIMENTAL_OR_PHASE2_PREFIXES
+    ):
+        return "experimental_or_phase2"
+    return "review"
+
+
 def scan(paths: list[str], terms: tuple[str, ...]) -> list[Finding]:
     findings: list[Finding] = []
     for path in paths:
@@ -152,7 +187,7 @@ def scan(paths: list[str], terms: tuple[str, ...]) -> list[Finding]:
                             path=path,
                             line=line_no,
                             term=term,
-                            note="guarded" if guarded_section or guarded_context(line) else "review",
+                            note="guarded" if guarded_section else finding_note(path, line),
                         )
                     )
     return findings

@@ -3,14 +3,23 @@
 ## Project: Educational Platform for Project Chimera
 
 **Date**: March 14, 2026
-**Status**: ✅ COMPLETE
+**Status**: Historical implementation note - not a Phase 1 close-out claim
 **Service Port**: 8012
+
+> Phase 1 close-out boundary: this document describes an experimental service
+> surface. It must not be used to claim a completed student programme,
+> production deployment, BSL/avatar delivery, or formal accessibility validation
+> for the current Project Chimera Phase 1 submission.
 
 ---
 
 ## Executive Summary
 
-A comprehensive AI-powered educational platform has been successfully implemented, integrating Project Chimera's accessibility agents (BSL, captioning, sentiment) to create an inclusive learning environment. The platform implements research-backed principles from "Scaling Laws for Educational AI Agents" (arXiv:2603.11709) and is ready for potential BMet partnership deployment.
+An experimental AI-powered educational-platform service was implemented as a
+research surface around Project Chimera accessibility-oriented agents,
+captioning, and sentiment components. It is not part of the evidenced Phase 1
+operator-console close-out path and is not currently claimed as deployed with a
+partner.
 
 ---
 
@@ -63,18 +72,18 @@ A comprehensive AI-powered educational platform has been successfully implemente
 - enrollments, assessment_attempts, learning_sessions
 - educators
 
-### 4. Accessibility Integration ✅
+### 4. Accessibility-Oriented Integration Prototype ✅
 
 **File**: `/home/ranj/Project_Chimera/services/educational-platform/integrations.py`
 
 **Three Integration Agents**:
 
-1. **BSL Agent Integration**:
-   - Text-to-sign-language translation
-   - 3D avatar animation generation
-   - 107+ animations support
-   - Facial expression control
-   - Complete translation pipeline
+1. **BSL/Avatar Research Integration**:
+   - Prototype text-to-sign-language translation flow
+   - Prototype 3D avatar animation generation
+   - Animation support in code, not formal delivery evidence
+   - Facial expression control experiments
+   - Translation pipeline prototype; not validated BSL provision
 
 2. **Captioning Agent Integration**:
    - Audio transcription

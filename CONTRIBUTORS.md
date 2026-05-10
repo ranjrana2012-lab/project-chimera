@@ -1,82 +1,71 @@
 # Contributors
 
-Project Chimera is built by a community of students, mentors, and contributors.
+Project Chimera is currently published as a Phase 1 local-first adaptive AI
+demonstrator. This file is intentionally conservative for public review: it
+does not claim a completed student programme, public show, livestream,
+production deployment, formal accessibility validation, or final grant evidence
+pack.
 
-**Version:** 3.0.0
-**Last Updated:** March 2026
+**Status:** Phase 1 contributor record - human updates required
+**Last Updated:** May 2026
 
 ---
 
 ## Core Team
 
-### Faculty & Leadership
+### Project Leadership
 
-*Project Lead / Faculty Advisor*
-*Position TBD*
+- Ranjith Kumar - Project lead, infrastructure, documentation, and Phase 1
+  demonstrator close-out
 
-### Technical Leads
+### Open Roles / Future Contributors
 
-*Ranjith Kumar* - Infrastructure & DevOps
-*Position Open* - AI/ML Lead
-*Position Open* - Frontend Lead
+- AI/ML contributor - open
+- Frontend contributor - open
+- QA and documentation contributor - open
 
-### Teaching Assistants
-
-*Position Open*
-*Position Open*
+Do not list a person as a contributor, student participant, mentor, partner, or
+approver until there is direct evidence and permission to publish their name.
 
 ---
 
 ## Student Contributors
 
-### Spring 2026 Cohort
+No completed student cohort is claimed in the current public Phase 1 close-out
+materials.
 
-*Students will be added here after role assignments*
+Future student contributors may be added after role assignment, permission, and
+evidence are confirmed.
 
-**Role Assignments:**
-| Role | Student | Mentor |
-|------|---------|--------|
-| 1 - OpenClaw Lead | TBD | Mentor: TBD |
-| 2 - SceneSpeak Lead | TBD | Mentor: TBD |
-| 3 - Captioning Lead | TBD | Mentor: TBD |
-| 4 - BSL Lead | TBD | Mentor: TBD |
-| 5 - Sentiment Lead | TBD | Mentor: TBD |
-| 6 - Lighting Lead | TBD | Mentor: TBD |
-| 7 - Safety Lead | TBD | Mentor: TBD |
-| 8 - Console Lead | TBD | Mentor: TBD |
-| 9 - Infrastructure Lead | TBD | Mentor: Ranjith Kumar |
-| 10 - QA & Docs Lead | TBD | Mentor: TBD |
+Potential future roles:
+
+| Role | Status |
+| --- | --- |
+| Operator-console QA | Future / unassigned |
+| Documentation reviewer | Future / unassigned |
+| Accessibility adviser | Future / unassigned |
+| Student workshop participant | Do not claim until evidenced |
 
 ---
 
 ## Alumni
 
-*Future cohorts will be added here*
+No alumni list is published for Phase 1.
 
 ---
 
-## v3.0.0 Release Contributors
+## Phase 1 Repository Contributions
 
-The v3.0.0 release introduced major enhancements:
+The current public baseline is centred on:
 
-**Platform & Infrastructure:**
-- Chimera Quality Platform (Dashboard, Test Orchestrator, CI/CD Gateway, Quality Gate)
-- Helm charts for production deployment
-- CI/CD pipeline automation
-- Monitoring and alerting with Prometheus/Grafana
+- `services/operator-console/chimera_core.py`
+- `services/operator-console/chimera_web.py`
+- Phase 1 setup and close-out documentation
+- public/private evidence-boundary tooling
+- local smoke and privacy checks
 
-**AI/ML Features:**
-- SceneSpeak LoRA adapter support for genre-specific dialogue
-- Multi-layer ML-based safety filtering
-- BSL avatar rendering for sign language visualization
-- Performance optimization utilities (profiler, cache, resource monitor)
-
-**Documentation:**
-- Comprehensive API documentation for all services
-- Runbook testing guide
-- Architecture decision records
-- Student quick start guide
-- Contributor guide
+Advanced, legacy, or Phase 2 service surfaces remain future-stage unless a
+specific guide and fresh evidence say otherwise.
 
 ---
 
@@ -84,18 +73,18 @@ The v3.0.0 release introduced major enhancements:
 
 Project Chimera is made possible by:
 
-- **University Departments** - Theatre and Computer Science collaboration
-- **Open Source Community** - Tools, libraries, and frameworks we build upon
-- **GitHub Education** - Supporting student open source projects
-- **FastAPI** - The web framework powering our services
-- **k3s** - Lightweight Kubernetes for local development
-- **Anthropic** - AI assistance for development
+- **Open source maintainers** - tools, libraries, and frameworks used by the
+  project.
+- **FastAPI** - web framework used by service experiments and local APIs.
+- **Python ecosystem contributors** - testing, modelling, and documentation
+  tooling.
 
 ---
 
 ## Special Thanks
 
-To everyone who contributed ideas, feedback, testing, and support during the development of Project Chimera v3.0.0.
+Thanks to everyone who has contributed ideas, feedback, testing, and support.
+Specific names should be added only after permission and evidence are confirmed.
 
 ---
 
@@ -103,4 +92,4 @@ To everyone who contributed ideas, feedback, testing, and support during the dev
 
 ---
 
-*Contributors - Project Chimera v3.0.0*
+*Contributors - Project Chimera Phase 1*
