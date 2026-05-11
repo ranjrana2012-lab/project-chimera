@@ -466,7 +466,7 @@ curl -X POST http://localhost:8012/api/v1/content/enhance \
 
 ### Testing
 - pytest==9.0.3
-- pytest-asyncio==0.23.3
+- pytest-asyncio==1.3.0
 
 ---
 

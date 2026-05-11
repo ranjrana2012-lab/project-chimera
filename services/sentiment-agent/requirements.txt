@@ -22,7 +22,7 @@ numpy<2.0  # Keep the sentiment-agent NumPy bound conservative until ML compatib
 
 # Testing
 pytest==9.0.3
-pytest-asyncio==0.21.1
+pytest-asyncio==1.3.0
 httpx==0.25.1
 
 # Development

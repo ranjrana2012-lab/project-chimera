@@ -60,11 +60,11 @@ Dependency manifests were updated for the packages GitHub flagged:
 
 | Area | File | Change |
 | --- | --- | --- |
-| Sentiment agent | `services/sentiment-agent/requirements.txt` | `transformers` to `5.0.0rc3`, `torch` to `2.8.0`, `pytest` to `9.0.3` |
-| Educational platform | `services/educational-platform/requirements.txt` | `python-multipart` to `0.0.27`, `python-dotenv` to `1.2.2`, `pytest` to `9.0.3` |
-| Dashboard | `services/dashboard/requirements.txt` | `jinja2` to `3.1.6`, `pytest` to `9.0.3` |
-| Health aggregator | `services/health-aggregator/requirements.txt` | `pytest` to `9.0.3` |
-| Operator console | `services/operator-console/requirements.txt` | `pytest` to `9.0.3`, `python-multipart` lower bound to `0.0.27` |
+| Sentiment agent | `services/sentiment-agent/requirements.txt` | `transformers` to `5.0.0rc3`, `torch` to `2.8.0`, `pytest` to `9.0.3`, `pytest-asyncio` to `1.3.0` |
+| Educational platform | `services/educational-platform/requirements.txt` | `python-multipart` to `0.0.27`, `python-dotenv` to `1.2.2`, `pytest` to `9.0.3`, `pytest-asyncio` to `1.3.0` |
+| Dashboard | `services/dashboard/requirements.txt` | `jinja2` to `3.1.6`, `pytest` to `9.0.3`, `pytest-asyncio` to `1.3.0` |
+| Health aggregator | `services/health-aggregator/requirements.txt` | `pytest` to `9.0.3`, `pytest-asyncio` to `1.3.0` |
+| Operator console | `services/operator-console/requirements.txt` | `pytest` to `9.0.3`, `pytest-asyncio` to `1.3.0`, `python-multipart` lower bound to `0.0.27` |
 | Nemoclaw orchestrator | `services/nemoclaw-orchestrator/requirements.txt` | `python-multipart` lower bound to `0.0.27`, `python-dotenv` lower bound to `1.2.2` |
 | Claude orchestrator | `services/claude-orchestrator/go.mod` | `golang.org/x/crypto` to `0.45.0`, `golang.org/x/net` to `0.47.0`, `google.golang.org/protobuf` to `1.33.0` |
 
@@ -95,6 +95,9 @@ The following Dependabot PRs were reviewed as part of this pass:
 
 If the main branch contains the same or newer dependency updates and checks pass,
 these PRs can be closed as superseded.
+
+After the dependency graph refreshed, these Dependabot PRs no longer appeared
+as open PRs.
 
 ### Branch-protection bypass note
 
@@ -130,6 +133,7 @@ The following local checks were run after the GitHub-note fixes:
 | `python3 scripts/run_phase1_demo.py` | Passed and wrote an ignored local run log under `outputs/run_logs/` |
 | `python3 test_chimera_smoke.py` | Passed: 6 passed, 0 failed |
 | `python3 -m pytest -p no:cacheprovider tests/unit/test_chimera_core.py tests/unit/test_chimera_web_contract.py tests/unit/test_public_repo_cleanup_contract.py tests/unit/test_privacy_preflight.py -q` | Passed: 45 passed |
+| `env PYTHONPATH=. venv/bin/python -m pytest ../../tests/unit/test_chimera_core.py ../../tests/integration/test_chimera_workflows.py ../../tests/e2e/test_chimera_smoke.py -v` in `services/operator-console` | Passed locally with `pytest==9.0.3` and `pytest-asyncio==1.3.0`: 10 passed |
 | `env GOSUMDB=sum.golang.org <local-go> test ./...` in `services/claude-orchestrator` | Passed |
 
 The demo run log was not committed because generated logs are intentionally
