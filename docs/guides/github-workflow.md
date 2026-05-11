@@ -32,6 +32,11 @@ Use one of the templates:
 3. Run tests locally
 4. Push and create PR
 
+Do not push directly to `main` for normal work. If GitHub allows an
+administrator bypass, treat that as an emergency route only. The default
+maintainer and agent workflow is branch -> pull request -> checks -> review ->
+merge.
+
 ### 3. Automatic Checks
 
 GitHub Actions will automatically:
