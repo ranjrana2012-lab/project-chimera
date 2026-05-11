@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
       - name: Check trust level from trust-check job
         id: trust
         run: |
