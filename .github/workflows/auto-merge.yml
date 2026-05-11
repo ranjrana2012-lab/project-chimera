@@ -66,7 +66,7 @@ jobs:
 
       - name: Post auto-merge status
         if: steps.trust.outputs.trusted == 'true' && steps.protected.outputs.protected == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.createComment({
@@ -78,7 +78,7 @@ jobs:
 
       - name: Request manual review (not trusted)
         if: steps.trust.outputs.trusted == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const count = '${{ steps.trust.outputs.merged_count }}';
@@ -91,7 +91,7 @@ jobs:
 
       - name: Request manual review (protected files)
         if: steps.protected.outputs.protected == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.createComment({
