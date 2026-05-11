@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -91,10 +91,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -151,10 +151,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -214,10 +214,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -255,10 +255,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -285,10 +285,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'

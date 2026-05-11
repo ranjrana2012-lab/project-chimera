@@ -70,7 +70,7 @@ jobs:
       url: https://chimera.local
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up k3s
         run: |
@@ -110,10 +110,10 @@ jobs:
     needs: deploy-prod
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -149,7 +149,7 @@ jobs:
     if: failure()
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Helm
         uses: azure/setup-helm@v4

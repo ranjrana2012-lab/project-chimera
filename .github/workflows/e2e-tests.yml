@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Validate Dockerfiles
         run: |
@@ -42,7 +42,7 @@ jobs:
           ./scripts/validate-dockerfiles.sh
 
       - name: Cache HuggingFace Models
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.5
         with:
           path: ~/.cache/huggingface
           key: ${{ runner.os }}-hf-models-${{ hashFiles('services/**/models.txt') }}
@@ -140,7 +140,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -187,7 +187,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Download All Test Results
         uses: actions/download-artifact@v4

@@ -16,12 +16,12 @@ opentelemetry-instrumentation-fastapi==0.42b0
 opentelemetry-exporter-otlp==1.21.0
 
 # ML/NLP
-transformers==4.35.0
-torch==2.2.0
-numpy<2.0  # NumPy 2.x incompatible with PyTorch 2.2.0
+transformers==5.0.0rc3
+torch==2.8.0
+numpy<2.0  # Keep the sentiment-agent NumPy bound conservative until ML compatibility is retested.
 
 # Testing
-pytest==7.4.3
+pytest==9.0.3
 pytest-asyncio==0.21.1
 httpx==0.25.1
 

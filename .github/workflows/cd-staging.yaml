@@ -19,7 +19,7 @@ jobs:
       url: https://staging.chimera.example.com
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Configure AWS credentials (if using EKS)
         uses: aws-actions/configure-aws-credentials@v4
@@ -86,7 +86,7 @@ jobs:
       name: staging
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4

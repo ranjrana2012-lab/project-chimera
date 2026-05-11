@@ -16,7 +16,7 @@ jobs:
       merged_count: ${{ steps.trust.outputs.merged_count }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Check author trust level
         id: trust

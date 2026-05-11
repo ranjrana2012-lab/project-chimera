@@ -465,7 +465,7 @@ curl -X POST http://localhost:8012/api/v1/content/enhance \
 - sqlalchemy==2.0.25
 
 ### Testing
-- pytest==7.4.4
+- pytest==9.0.3
 - pytest-asyncio==0.23.3
 
 ---

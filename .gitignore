@@ -96,6 +96,9 @@ services/zai-auth-proxy/tokens/*.json
 services/claude-orchestrator/bin/
 services/claude-orchestrator/orchestrator
 
+# Local/private integration checkouts
+integrations/bettafish/
+
 # Grant Materials & Private Demo Outputs
 internal/
 docs/@ Ranj Notes/
