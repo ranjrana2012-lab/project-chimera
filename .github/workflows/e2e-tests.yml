@@ -200,7 +200,7 @@ jobs:
           find . -name 'results.json' -exec cat {} \; > combined-results.json
 
       - name: Comment PR with Results
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');

@@ -32,6 +32,17 @@ Windows users should follow `docs/guides/STUDENT_LAPTOP_SETUP.md`.
 - `docs/<name>`
 - `chore/<name>`
 
+## Main Branch Protection
+
+Use pull requests for future work. Maintainers and agents should not push
+directly to `main` for ordinary changes, even when GitHub allows an
+administrator bypass. Work from a focused branch, push that branch, and let the
+required GitHub checks run on the pull request.
+
+Direct pushes to `main` are reserved for explicit emergency or owner-approved
+mainline work in the current session. When that happens, record the bypass in
+the completion summary so the repository history stays auditable.
+
 ## Before Opening A Pull Request
 
 Run the checks that match your change:

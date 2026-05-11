@@ -7,26 +7,33 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
     steps:
-      - name: Wait for validation
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          check-name: 'validate'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 30
-          timeout: 600
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
 
       - name: Check trust level from trust-check job
         id: trust
         run: |
+          AUTHOR="${{ github.event.pull_request.user.login }}"
           LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name')
+          MERGED=$(gh pr list \
+            --author "$AUTHOR" \
+            --state merged \
+            --json title \
+            --jq length \
+            --limit 1000 2>/dev/null || echo "0")
+
+          echo "merged_count=$MERGED" >> $GITHUB_OUTPUT
+
           if echo "$LABELS" | grep -q "trust:trusted"; then
+            echo "trusted=true" >> $GITHUB_OUTPUT
+          elif [ "$MERGED" -ge 3 ]; then
             echo "trusted=true" >> $GITHUB_OUTPUT
           else
             echo "trusted=false" >> $GITHUB_OUTPUT
@@ -60,13 +67,15 @@ jobs:
             --auto \
             --merge \
             --subject "Auto-merge by trusted contributor" \
-            --body "This PR has passed all checks and will be merged automatically."
+            --body "This PR has passed all checks and will be merged automatically." || \
+            echo "::warning::Auto-merge is unavailable; manual merge is required."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Post auto-merge status
         if: steps.trust.outputs.trusted == 'true' && steps.protected.outputs.protected == 'false'
-        uses: actions/github-script@v7
+        continue-on-error: true
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.createComment({
@@ -78,7 +87,8 @@ jobs:
 
       - name: Request manual review (not trusted)
         if: steps.trust.outputs.trusted == 'false'
-        uses: actions/github-script@v7
+        continue-on-error: true
+        uses: actions/github-script@v8
         with:
           script: |
             const count = '${{ steps.trust.outputs.merged_count }}';
@@ -91,7 +101,8 @@ jobs:
 
       - name: Request manual review (protected files)
         if: steps.protected.outputs.protected == 'true'
-        uses: actions/github-script@v7
+        continue-on-error: true
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.createComment({

@@ -55,6 +55,12 @@ Use `docs/guides/DGX_SPARK_SETUP.md` for the detailed route.
 
 ## Agent Rules
 
+- Do not push directly to `main` for normal future work. Create a branch,
+  commit the focused change, push the branch, and open a pull request so GitHub
+  checks and branch protection review the work.
+- Only use a direct administrator push to `main` when the user explicitly
+  requests an emergency/mainline push in the current session, and record that
+  bypass in the final summary.
 - Do not invent `GLM_API_KEY`, NGC tokens, local Nemotron endpoints, or cluster
   configuration.
 - Do not claim the DGX path works unless it was run on DGX Spark / GB10-class
